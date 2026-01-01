@@ -14,16 +14,185 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      business_years: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_closed: boolean | null
+          year: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_closed?: boolean | null
+          year: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_closed?: boolean | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_years_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          address: string | null
+          city: string | null
+          code: string
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          mb: string | null
+          name: string
+          phone: string | null
+          pib: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          code: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          mb?: string | null
+          name: string
+          phone?: string | null
+          pib?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          code?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          mb?: string | null
+          name?: string
+          phone?: string | null
+          pib?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_companies: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          is_local_admin: boolean | null
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          is_local_admin?: boolean | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          is_local_admin?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_companies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_company_access: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "local_admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +319,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "local_admin", "user"],
+    },
   },
 } as const

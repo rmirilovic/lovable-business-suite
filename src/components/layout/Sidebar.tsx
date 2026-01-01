@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -15,6 +15,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavItem {
   label: string;
@@ -67,13 +68,10 @@ const navigation: NavItem[] = [
   { label: "Podešavanja", icon: Settings, href: "/podesavanja" },
 ];
 
-interface SidebarProps {
-  currentCompany: string;
-  currentYear: string;
-}
-
-export function Sidebar({ currentCompany, currentYear }: SidebarProps) {
+export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { selectedCompany, selectedYear, signOut } = useAuth();
   const [expandedItems, setExpandedItems] = useState<string[]>(["Šifarnici"]);
 
   const toggleExpand = (label: string) => {
@@ -87,6 +85,15 @@ export function Sidebar({ currentCompany, currentYear }: SidebarProps) {
   const isActive = (href: string) => location.pathname === href;
   const isParentActive = (children?: { href: string }[]) =>
     children?.some((child) => location.pathname === child.href);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  const handleChangeCompany = () => {
+    navigate("/select-company");
+  };
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
@@ -108,17 +115,23 @@ export function Sidebar({ currentCompany, currentYear }: SidebarProps) {
 
         {/* Company & Year Selector */}
         <div className="space-y-2">
-          <button className="w-full flex items-center justify-between px-3 py-2 bg-sidebar-accent rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors">
+          <button 
+            onClick={handleChangeCompany}
+            className="w-full flex items-center justify-between px-3 py-2 bg-sidebar-accent rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
+          >
             <span className="flex items-center gap-2">
               <Building2 className="w-4 h-4" />
-              <span className="truncate">{currentCompany}</span>
+              <span className="truncate">{selectedCompany?.name || "Izaberite firmu"}</span>
             </span>
             <ChevronDown className="w-4 h-4 opacity-60" />
           </button>
-          <button className="w-full flex items-center justify-between px-3 py-2 bg-sidebar-accent rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors">
+          <button 
+            onClick={handleChangeCompany}
+            className="w-full flex items-center justify-between px-3 py-2 bg-sidebar-accent rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
+          >
             <span className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span>Godina {currentYear}</span>
+              <span>Godina {selectedYear?.year || "-"}</span>
             </span>
             <ChevronDown className="w-4 h-4 opacity-60" />
           </button>
@@ -185,7 +198,10 @@ export function Sidebar({ currentCompany, currentYear }: SidebarProps) {
 
       {/* User Section */}
       <div className="p-3 border-t border-sidebar-border">
-        <button className="erp-sidebar-link w-full text-sidebar-foreground/70 hover:text-destructive">
+        <button 
+          onClick={handleSignOut}
+          className="erp-sidebar-link w-full text-sidebar-foreground/70 hover:text-destructive"
+        >
           <LogOut className="w-5 h-5" />
           <span>Odjavi se</span>
         </button>
