@@ -190,6 +190,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_local_admin_for_company: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "super_admin" | "local_admin" | "user"
