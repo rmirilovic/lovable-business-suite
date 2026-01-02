@@ -38,12 +38,6 @@ interface Profile {
   last_name: string | null;
 }
 
-interface UserRole {
-  id: string;
-  user_id: string;
-  role: AppRole;
-}
-
 interface Company {
   id: string;
   name: string;
@@ -57,9 +51,15 @@ interface UserCompany {
   is_local_admin: boolean;
 }
 
+interface UserCompanyWithName extends UserCompany {
+  companyName: string;
+  companyCode: string;
+}
+
 interface UserWithRole extends Profile {
   role?: AppRole;
   roleId?: string;
+  assignedCompanies: UserCompanyWithName[];
 }
 
 export function UsersTab() {
@@ -87,33 +87,46 @@ export function UsersTab() {
   const fetchUsers = async () => {
     setLoading(true);
     
-    const { data: profiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("email");
+    const [profilesRes, rolesRes, userCompaniesRes, companiesRes] = await Promise.all([
+      supabase.from("profiles").select("*").order("email"),
+      supabase.from("user_roles").select("*"),
+      supabase.from("user_companies").select("*"),
+      supabase.from("companies").select("id, name, code").eq("is_active", true).order("name"),
+    ]);
 
-    if (profilesError) {
+    if (profilesRes.error) {
       toast.error("Greška pri učitavanju korisnika");
       setLoading(false);
       return;
     }
 
-    const { data: roles, error: rolesError } = await supabase
-      .from("user_roles")
-      .select("*");
-
-    if (rolesError) {
-      toast.error("Greška pri učitavanju uloga");
+    if (rolesRes.error || userCompaniesRes.error || companiesRes.error) {
+      toast.error("Greška pri učitavanju podataka");
       setLoading(false);
       return;
     }
 
-    const usersWithRoles: UserWithRole[] = (profiles || []).map((profile) => {
-      const userRole = roles?.find((r) => r.user_id === profile.id);
+    const companiesMap = new Map(
+      (companiesRes.data || []).map((c) => [c.id, { name: c.name, code: c.code }])
+    );
+
+    setCompanies(companiesRes.data || []);
+
+    const usersWithRoles: UserWithRole[] = (profilesRes.data || []).map((profile) => {
+      const userRole = rolesRes.data?.find((r) => r.user_id === profile.id);
+      const userCompanyAssignments = (userCompaniesRes.data || [])
+        .filter((uc) => uc.user_id === profile.id)
+        .map((uc) => ({
+          ...uc,
+          companyName: companiesMap.get(uc.company_id)?.name || "Nepoznata",
+          companyCode: companiesMap.get(uc.company_id)?.code || "",
+        }));
+
       return {
         ...profile,
         role: userRole?.role,
         roleId: userRole?.id,
+        assignedCompanies: userCompanyAssignments,
       };
     });
 
@@ -137,20 +150,17 @@ export function UsersTab() {
   };
 
   const fetchUserCompanies = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("user_companies")
-      .select("*")
-      .eq("user_id", userId);
-
-    if (error) {
-      toast.error("Greška pri učitavanju dodeljenih firmi");
-      return;
-    }
-
-    setUserCompanies(data || []);
-    setSelectedCompanyIds(data?.map((uc) => uc.company_id) || []);
+    const assignments = users.find((u) => u.id === userId)?.assignedCompanies || [];
+    const mapped: UserCompany[] = assignments.map((a) => ({
+      id: a.id,
+      user_id: a.user_id,
+      company_id: a.company_id,
+      is_local_admin: a.is_local_admin,
+    }));
+    setUserCompanies(mapped);
+    setSelectedCompanyIds(assignments.map((uc) => uc.company_id));
     setLocalAdminCompanyIds(
-      data?.filter((uc) => uc.is_local_admin).map((uc) => uc.company_id) || []
+      assignments.filter((uc) => uc.is_local_admin).map((uc) => uc.company_id)
     );
   };
 
@@ -364,6 +374,7 @@ export function UsersTab() {
                 <TableHead>Ime</TableHead>
                 <TableHead>Prezime</TableHead>
                 <TableHead>Uloga</TableHead>
+                <TableHead>Dodeljene firme</TableHead>
                 <TableHead className="w-32">Akcije</TableHead>
               </TableRow>
             </TableHeader>
@@ -383,6 +394,27 @@ export function UsersTab() {
                     >
                       {getRoleLabel(user.role)}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1 max-w-xs">
+                      {user.assignedCompanies.length === 0 ? (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      ) : (
+                        user.assignedCompanies.map((uc) => (
+                          <span
+                            key={uc.id}
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${
+                              uc.is_local_admin
+                                ? "bg-primary/10 text-primary border-primary/20"
+                                : "bg-muted text-muted-foreground border-border"
+                            }`}
+                            title={uc.is_local_admin ? "Lokalni admin" : "Korisnik"}
+                          >
+                            {uc.companyCode}
+                          </span>
+                        ))
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
