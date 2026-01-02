@@ -71,8 +71,15 @@ const navigation: NavItem[] = [
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedCompany, selectedYear, signOut } = useAuth();
+  const { selectedCompany, selectedYear, signOut, isSuperAdmin } = useAuth();
   const [expandedItems, setExpandedItems] = useState<string[]>(["Šifarnici"]);
+
+  const filteredNavigation = navigation.filter((item) => {
+    if (item.href === "/admin" && !isSuperAdmin) {
+      return false;
+    }
+    return true;
+  });
 
   const toggleExpand = (label: string) => {
     setExpandedItems((prev) =>
@@ -140,7 +147,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-        {navigation.map((item) => (
+        {filteredNavigation.map((item) => (
           <div key={item.label}>
             {item.href ? (
               <Link
