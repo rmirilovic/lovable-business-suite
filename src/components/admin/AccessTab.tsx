@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Trash2, Shield, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Company {
   id: string;
@@ -51,6 +52,7 @@ interface UserCompany {
 }
 
 export function AccessTab() {
+  const { isSuperAdmin, localAdminCompanyIds } = useAuth();
   const [userCompanies, setUserCompanies] = useState<UserCompany[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -62,16 +64,22 @@ export function AccessTab() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [isSuperAdmin, localAdminCompanyIds]);
 
   const fetchData = async () => {
     setLoading(true);
 
-    // Fetch companies
-    const { data: companiesData } = await supabase
+    // Fetch companies - local admins only see their companies
+    let companiesQuery = supabase
       .from("companies")
       .select("id, name, code")
       .order("name");
+
+    if (!isSuperAdmin && localAdminCompanyIds.length > 0) {
+      companiesQuery = companiesQuery.in("id", localAdminCompanyIds);
+    }
+
+    const { data: companiesData } = await companiesQuery;
 
     // Fetch profiles
     const { data: profilesData } = await supabase
@@ -79,10 +87,14 @@ export function AccessTab() {
       .select("id, email, first_name, last_name")
       .order("email");
 
-    // Fetch user_companies
-    const { data: userCompaniesData, error } = await supabase
-      .from("user_companies")
-      .select("*");
+    // Fetch user_companies - local admins only see their companies
+    let userCompaniesQuery = supabase.from("user_companies").select("*");
+
+    if (!isSuperAdmin && localAdminCompanyIds.length > 0) {
+      userCompaniesQuery = userCompaniesQuery.in("company_id", localAdminCompanyIds);
+    }
+
+    const { data: userCompaniesData, error } = await userCompaniesQuery;
 
     if (error) {
       toast.error("Greška pri učitavanju pristupa");
@@ -224,18 +236,21 @@ export function AccessTab() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isLocalAdmin"
-                  checked={isLocalAdmin}
-                  onCheckedChange={(checked) =>
-                    setIsLocalAdmin(checked as boolean)
-                  }
-                />
-                <Label htmlFor="isLocalAdmin" className="cursor-pointer">
-                  Lokalni administrator
-                </Label>
-              </div>
+              {/* Only super admins can assign local admin rights */}
+              {isSuperAdmin && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isLocalAdmin"
+                    checked={isLocalAdmin}
+                    onCheckedChange={(checked) =>
+                      setIsLocalAdmin(checked as boolean)
+                    }
+                  />
+                  <Label htmlFor="isLocalAdmin" className="cursor-pointer">
+                    Lokalni administrator
+                  </Label>
+                </div>
+              )}
               <div className="flex justify-end gap-2 pt-4">
                 <Button
                   type="button"
@@ -267,7 +282,7 @@ export function AccessTab() {
               <TableRow>
                 <TableHead>Korisnik</TableHead>
                 <TableHead>Firma</TableHead>
-                <TableHead>Lokalni Admin</TableHead>
+                {isSuperAdmin && <TableHead>Lokalni Admin</TableHead>}
                 <TableHead className="w-24">Akcije</TableHead>
               </TableRow>
             </TableHeader>
@@ -280,12 +295,14 @@ export function AccessTab() {
                   <TableCell>
                     {uc.company?.name} ({uc.company?.code})
                   </TableCell>
-                  <TableCell>
-                    <Checkbox
-                      checked={uc.is_local_admin || false}
-                      onCheckedChange={() => handleToggleLocalAdmin(uc)}
-                    />
-                  </TableCell>
+                  {isSuperAdmin && (
+                    <TableCell>
+                      <Checkbox
+                        checked={uc.is_local_admin || false}
+                        onCheckedChange={() => handleToggleLocalAdmin(uc)}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Button
                       variant="ghost"

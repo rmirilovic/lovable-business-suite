@@ -5,15 +5,15 @@ import { useAuth } from "@/contexts/AuthContext";
 interface ProtectedRouteProps {
   children: ReactNode;
   requireCompany?: boolean;
-  requireSuperAdmin?: boolean;
+  requireAdmin?: boolean; // super_admin OR local_admin
 }
 
 export function ProtectedRoute({ 
   children, 
   requireCompany = true,
-  requireSuperAdmin = false 
+  requireAdmin = false 
 }: ProtectedRouteProps) {
-  const { user, loading, selectedCompany, selectedYear, isSuperAdmin, userRole } = useAuth();
+  const { user, loading, selectedCompany, selectedYear, isSuperAdmin, isLocalAdmin, userRole, localAdminCompanyIds } = useAuth();
 
   if (loading) {
     return (
@@ -27,8 +27,8 @@ export function ProtectedRoute({
     return <Navigate to="/auth" replace />;
   }
 
-  // Wait for role to load before checking admin access
-  if (requireSuperAdmin && userRole === null) {
+  // Wait for role data to load before checking admin access
+  if (requireAdmin && userRole === null && localAdminCompanyIds.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Učitavanje...</div>
@@ -36,7 +36,7 @@ export function ProtectedRoute({
     );
   }
 
-  if (requireSuperAdmin && !isSuperAdmin) {
+  if (requireAdmin && !isSuperAdmin && !isLocalAdmin) {
     return <Navigate to="/" replace />;
   }
 

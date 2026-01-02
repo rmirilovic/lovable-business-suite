@@ -71,11 +71,11 @@ const navigation: NavItem[] = [
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedCompany, selectedYear, signOut, isSuperAdmin } = useAuth();
+  const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin } = useAuth();
   const [expandedItems, setExpandedItems] = useState<string[]>(["Šifarnici"]);
 
   const filteredNavigation = navigation.filter((item) => {
-    if (item.href === "/admin" && !isSuperAdmin) {
+    if (item.href === "/admin" && !isSuperAdmin && !isLocalAdmin) {
       return false;
     }
     return true;

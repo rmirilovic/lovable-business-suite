@@ -27,6 +27,8 @@ interface AuthContextType {
   selectedYear: BusinessYear | null;
   userRole: AppRole | null;
   isSuperAdmin: boolean;
+  isLocalAdmin: boolean;
+  localAdminCompanyIds: string[];
   setSelectedCompany: (company: Company | null) => void;
   setSelectedYear: (year: BusinessYear | null) => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -45,8 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedYear, setSelectedYear] = useState<BusinessYear | null>(null);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
+  const [localAdminCompanyIds, setLocalAdminCompanyIds] = useState<string[]>([]);
 
   const isSuperAdmin = userRole === "super_admin";
+  const isLocalAdmin = localAdminCompanyIds.length > 0;
 
   const fetchUserRole = async (userId: string) => {
     const { data, error } = await supabase
@@ -62,6 +66,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const fetchLocalAdminCompanies = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("user_companies")
+      .select("company_id")
+      .eq("user_id", userId)
+      .eq("is_local_admin", true);
+
+    if (!error && data) {
+      setLocalAdminCompanyIds(data.map((d) => d.company_id));
+    } else {
+      setLocalAdminCompanyIds([]);
+    }
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -73,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(() => {
             fetchUserCompanies(session.user.id);
             fetchUserRole(session.user.id);
+            fetchLocalAdminCompanies(session.user.id);
           }, 0);
         } else {
           setCompanies([]);
@@ -80,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSelectedCompany(null);
           setSelectedYear(null);
           setUserRole(null);
+          setLocalAdminCompanyIds([]);
         }
       }
     );
@@ -92,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         fetchUserCompanies(session.user.id);
         fetchUserRole(session.user.id);
+        fetchLocalAdminCompanies(session.user.id);
       }
     });
 
@@ -198,6 +219,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         selectedYear,
         userRole,
         isSuperAdmin,
+        isLocalAdmin,
+        localAdminCompanyIds,
         setSelectedCompany,
         setSelectedYear,
         signIn,
