@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Calendar, Lock, Unlock, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Company {
   id: string;
@@ -44,6 +45,7 @@ interface BusinessYear {
 }
 
 export function BusinessYearsTab() {
+  const { isSuperAdmin, localAdminCompanyIds } = useAuth();
   const [businessYears, setBusinessYears] = useState<BusinessYear[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,22 +56,34 @@ export function BusinessYearsTab() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [isSuperAdmin, localAdminCompanyIds]);
 
   const fetchData = async () => {
     setLoading(true);
 
-    // Fetch companies
-    const { data: companiesData } = await supabase
+    // Fetch companies - local admins only see their companies
+    let companiesQuery = supabase
       .from("companies")
       .select("id, name, code")
       .order("name");
 
-    // Fetch business years
-    const { data: yearsData, error } = await supabase
+    if (!isSuperAdmin && localAdminCompanyIds.length > 0) {
+      companiesQuery = companiesQuery.in("id", localAdminCompanyIds);
+    }
+
+    const { data: companiesData } = await companiesQuery;
+
+    // Fetch business years - local admins only see years for their companies
+    let yearsQuery = supabase
       .from("business_years")
       .select("*")
       .order("year", { ascending: false });
+
+    if (!isSuperAdmin && localAdminCompanyIds.length > 0) {
+      yearsQuery = yearsQuery.in("company_id", localAdminCompanyIds);
+    }
+
+    const { data: yearsData, error } = await yearsQuery;
 
     if (error) {
       toast.error("Greška pri učitavanju poslovnih godina");
