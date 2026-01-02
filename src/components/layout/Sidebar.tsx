@@ -65,7 +65,7 @@ const navigation: NavItem[] = [
   },
   { label: "Magacin", icon: Warehouse, href: "/magacin" },
   { label: "Partneri", icon: Users, href: "/partneri" },
-  { label: "Podešavanja", icon: Settings, href: "/podesavanja" },
+  { label: "Administracija", icon: Settings, href: "/admin" },
 ];
 
 export function Sidebar() {

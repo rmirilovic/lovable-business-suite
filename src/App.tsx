@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import SelectCompany from "./pages/SelectCompany";
 import Artikli from "./pages/sifarnici/Artikli";
 import Partneri from "./pages/sifarnici/Partneri";
+import AdminPanel from "./pages/admin/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,11 @@ const App = () => (
             <Route path="/sifarnici/partneri" element={
               <ProtectedRoute>
                 <Partneri />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <AdminPanel />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
