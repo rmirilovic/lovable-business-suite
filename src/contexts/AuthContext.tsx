@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type AppRole = Database["public"]["Enums"]["app_role"];
 
 interface Company {
   id: string;
@@ -22,6 +25,8 @@ interface AuthContextType {
   businessYears: BusinessYear[];
   selectedCompany: Company | null;
   selectedYear: BusinessYear | null;
+  userRole: AppRole | null;
+  isSuperAdmin: boolean;
   setSelectedCompany: (company: Company | null) => void;
   setSelectedYear: (year: BusinessYear | null) => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -39,6 +44,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [businessYears, setBusinessYears] = useState<BusinessYear[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedYear, setSelectedYear] = useState<BusinessYear | null>(null);
+  const [userRole, setUserRole] = useState<AppRole | null>(null);
+
+  const isSuperAdmin = userRole === "super_admin";
+
+  const fetchUserRole = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!error && data) {
+      setUserRole(data.role as AppRole);
+    } else {
+      setUserRole(null);
+    }
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -50,12 +72,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setTimeout(() => {
             fetchUserCompanies(session.user.id);
+            fetchUserRole(session.user.id);
           }, 0);
         } else {
           setCompanies([]);
           setBusinessYears([]);
           setSelectedCompany(null);
           setSelectedYear(null);
+          setUserRole(null);
         }
       }
     );
@@ -67,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (session?.user) {
         fetchUserCompanies(session.user.id);
+        fetchUserRole(session.user.id);
       }
     });
 
@@ -171,6 +196,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         businessYears,
         selectedCompany,
         selectedYear,
+        userRole,
+        isSuperAdmin,
         setSelectedCompany,
         setSelectedYear,
         signIn,
