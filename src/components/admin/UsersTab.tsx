@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Shield, Users } from "lucide-react";
+import { Search, Shield, Users, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 
@@ -43,6 +44,19 @@ interface UserRole {
   role: AppRole;
 }
 
+interface Company {
+  id: string;
+  name: string;
+  code: string;
+}
+
+interface UserCompany {
+  id: string;
+  user_id: string;
+  company_id: string;
+  is_local_admin: boolean;
+}
+
 interface UserWithRole extends Profile {
   role?: AppRole;
   roleId?: string;
@@ -50,20 +64,29 @@ interface UserWithRole extends Profile {
 
 export function UsersTab() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Role dialog
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
   const [selectedRole, setSelectedRole] = useState<AppRole | "">("");
+  
+  // Company assignment dialog
+  const [isCompanyDialogOpen, setIsCompanyDialogOpen] = useState(false);
+  const [userCompanies, setUserCompanies] = useState<UserCompany[]>([]);
+  const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
+  const [localAdminCompanyIds, setLocalAdminCompanyIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchUsers();
+    fetchCompanies();
   }, []);
 
   const fetchUsers = async () => {
     setLoading(true);
     
-    // Fetch all profiles
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
       .select("*")
@@ -75,7 +98,6 @@ export function UsersTab() {
       return;
     }
 
-    // Fetch all user roles
     const { data: roles, error: rolesError } = await supabase
       .from("user_roles")
       .select("*");
@@ -86,7 +108,6 @@ export function UsersTab() {
       return;
     }
 
-    // Combine profiles with roles
     const usersWithRoles: UserWithRole[] = (profiles || []).map((profile) => {
       const userRole = roles?.find((r) => r.user_id === profile.id);
       return {
@@ -100,17 +121,55 @@ export function UsersTab() {
     setLoading(false);
   };
 
+  const fetchCompanies = async () => {
+    const { data, error } = await supabase
+      .from("companies")
+      .select("id, name, code")
+      .eq("is_active", true)
+      .order("name");
+
+    if (error) {
+      toast.error("Greška pri učitavanju firmi");
+      return;
+    }
+
+    setCompanies(data || []);
+  };
+
+  const fetchUserCompanies = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("user_companies")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (error) {
+      toast.error("Greška pri učitavanju dodeljenih firmi");
+      return;
+    }
+
+    setUserCompanies(data || []);
+    setSelectedCompanyIds(data?.map((uc) => uc.company_id) || []);
+    setLocalAdminCompanyIds(
+      data?.filter((uc) => uc.is_local_admin).map((uc) => uc.company_id) || []
+    );
+  };
+
   const handleEditRole = (user: UserWithRole) => {
     setSelectedUser(user);
     setSelectedRole(user.role || "");
-    setIsDialogOpen(true);
+    setIsRoleDialogOpen(true);
+  };
+
+  const handleEditCompanies = async (user: UserWithRole) => {
+    setSelectedUser(user);
+    await fetchUserCompanies(user.id);
+    setIsCompanyDialogOpen(true);
   };
 
   const handleSaveRole = async () => {
     if (!selectedUser) return;
 
     if (!selectedRole) {
-      // Remove role if exists
       if (selectedUser.roleId) {
         const { error } = await supabase
           .from("user_roles")
@@ -124,7 +183,6 @@ export function UsersTab() {
       }
       toast.success("Uloga uklonjena");
     } else if (selectedUser.roleId) {
-      // Update existing role
       const { error } = await supabase
         .from("user_roles")
         .update({ role: selectedRole as AppRole })
@@ -136,7 +194,6 @@ export function UsersTab() {
       }
       toast.success("Uloga ažurirana");
     } else {
-      // Create new role
       const { error } = await supabase.from("user_roles").insert({
         user_id: selectedUser.id,
         role: selectedRole as AppRole,
@@ -149,8 +206,97 @@ export function UsersTab() {
       toast.success("Uloga dodeljena");
     }
 
-    setIsDialogOpen(false);
+    setIsRoleDialogOpen(false);
     fetchUsers();
+  };
+
+  const handleSaveCompanies = async () => {
+    if (!selectedUser) return;
+
+    // Get current assignments
+    const currentIds = userCompanies.map((uc) => uc.company_id);
+    
+    // Companies to add
+    const toAdd = selectedCompanyIds.filter((id) => !currentIds.includes(id));
+    
+    // Companies to remove
+    const toRemove = currentIds.filter((id) => !selectedCompanyIds.includes(id));
+    
+    // Companies to update (local admin status changed)
+    const toUpdate = selectedCompanyIds.filter((id) => {
+      const existing = userCompanies.find((uc) => uc.company_id === id);
+      if (!existing) return false;
+      const wasLocalAdmin = existing.is_local_admin;
+      const isNowLocalAdmin = localAdminCompanyIds.includes(id);
+      return wasLocalAdmin !== isNowLocalAdmin;
+    });
+
+    // Perform deletions
+    if (toRemove.length > 0) {
+      const { error } = await supabase
+        .from("user_companies")
+        .delete()
+        .eq("user_id", selectedUser.id)
+        .in("company_id", toRemove);
+
+      if (error) {
+        toast.error("Greška pri uklanjanju firmi");
+        return;
+      }
+    }
+
+    // Perform insertions
+    if (toAdd.length > 0) {
+      const { error } = await supabase.from("user_companies").insert(
+        toAdd.map((companyId) => ({
+          user_id: selectedUser.id,
+          company_id: companyId,
+          is_local_admin: localAdminCompanyIds.includes(companyId),
+        }))
+      );
+
+      if (error) {
+        toast.error("Greška pri dodavanju firmi");
+        return;
+      }
+    }
+
+    // Perform updates
+    for (const companyId of toUpdate) {
+      const { error } = await supabase
+        .from("user_companies")
+        .update({ is_local_admin: localAdminCompanyIds.includes(companyId) })
+        .eq("user_id", selectedUser.id)
+        .eq("company_id", companyId);
+
+      if (error) {
+        toast.error("Greška pri ažuriranju statusa lokalnog admina");
+        return;
+      }
+    }
+
+    toast.success("Firme ažurirane");
+    setIsCompanyDialogOpen(false);
+  };
+
+  const toggleCompany = (companyId: string) => {
+    setSelectedCompanyIds((prev) =>
+      prev.includes(companyId)
+        ? prev.filter((id) => id !== companyId)
+        : [...prev, companyId]
+    );
+    // Remove from local admin if unchecking company
+    if (selectedCompanyIds.includes(companyId)) {
+      setLocalAdminCompanyIds((prev) => prev.filter((id) => id !== companyId));
+    }
+  };
+
+  const toggleLocalAdmin = (companyId: string) => {
+    setLocalAdminCompanyIds((prev) =>
+      prev.includes(companyId)
+        ? prev.filter((id) => id !== companyId)
+        : [...prev, companyId]
+    );
   };
 
   const getRoleBadgeClass = (role?: AppRole) => {
@@ -218,7 +364,7 @@ export function UsersTab() {
                 <TableHead>Ime</TableHead>
                 <TableHead>Prezime</TableHead>
                 <TableHead>Uloga</TableHead>
-                <TableHead className="w-24">Akcije</TableHead>
+                <TableHead className="w-32">Akcije</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -239,13 +385,24 @@ export function UsersTab() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEditRole(user)}
-                    >
-                      <Shield className="w-4 h-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditRole(user)}
+                        title="Dodeli ulogu"
+                      >
+                        <Shield className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditCompanies(user)}
+                        title="Dodeli firme"
+                      >
+                        <Building2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -254,7 +411,8 @@ export function UsersTab() {
         )}
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* Role Dialog */}
+      <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Dodeli ulogu</DialogTitle>
@@ -286,11 +444,89 @@ export function UsersTab() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsDialogOpen(false)}
+                onClick={() => setIsRoleDialogOpen(false)}
               >
                 Otkaži
               </Button>
               <Button onClick={handleSaveRole}>Sačuvaj</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Company Assignment Dialog */}
+      <Dialog open={isCompanyDialogOpen} onOpenChange={setIsCompanyDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Dodeli firme korisniku</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Korisnik</Label>
+              <p className="text-sm text-muted-foreground">
+                {selectedUser?.email}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Firme</Label>
+              <div className="border rounded-md max-h-64 overflow-y-auto">
+                {companies.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground text-sm">
+                    Nema dostupnih firmi
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {companies.map((company) => (
+                      <div
+                        key={company.id}
+                        className="flex items-center justify-between p-3 hover:bg-muted/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id={`company-${company.id}`}
+                            checked={selectedCompanyIds.includes(company.id)}
+                            onCheckedChange={() => toggleCompany(company.id)}
+                          />
+                          <label
+                            htmlFor={`company-${company.id}`}
+                            className="text-sm cursor-pointer"
+                          >
+                            <span className="font-medium">{company.name}</span>
+                            <span className="text-muted-foreground ml-2">
+                              ({company.code})
+                            </span>
+                          </label>
+                        </div>
+                        {selectedCompanyIds.includes(company.id) && (
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`admin-${company.id}`}
+                              checked={localAdminCompanyIds.includes(company.id)}
+                              onCheckedChange={() => toggleLocalAdmin(company.id)}
+                            />
+                            <label
+                              htmlFor={`admin-${company.id}`}
+                              className="text-xs text-muted-foreground cursor-pointer"
+                            >
+                              Lokalni admin
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCompanyDialogOpen(false)}
+              >
+                Otkaži
+              </Button>
+              <Button onClick={handleSaveCompanies}>Sačuvaj</Button>
             </div>
           </div>
         </DialogContent>
