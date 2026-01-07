@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -501,40 +502,40 @@ export default function Artikli() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="purchase_price">Nabavna cena</Label>
-                <Input
+                <LocaleNumberInput
                   id="purchase_price"
-                  type="number"
                   value={formData.purchase_price}
-                  onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, purchase_price: value })}
+                  decimalPlaces={2}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="selling_price">Prodajna cena</Label>
-                <Input
+                <LocaleNumberInput
                   id="selling_price"
-                  type="number"
                   value={formData.selling_price}
-                  onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, selling_price: value })}
+                  decimalPlaces={2}
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="stock">Stanje zaliha</Label>
-                <Input
+                <LocaleNumberInput
                   id="stock"
-                  type="number"
                   value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, stock: value })}
+                  decimalPlaces={0}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="min_stock">Minimalno stanje</Label>
-                <Input
+                <LocaleNumberInput
                   id="min_stock"
-                  type="number"
                   value={formData.min_stock}
-                  onChange={(e) => setFormData({ ...formData, min_stock: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, min_stock: value })}
+                  decimalPlaces={0}
                 />
               </div>
             </div>
@@ -573,12 +574,11 @@ export default function Artikli() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Input
+                <LocaleNumberInput
                   id="kg_po_jm"
-                  type="number"
-                  step="0.001"
                   value={formData.kg_po_jm}
-                  onChange={(e) => setFormData({ ...formData, kg_po_jm: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, kg_po_jm: value })}
+                  decimalPlaces={3}
                 />
               </div>
               <div className="space-y-2">
@@ -598,11 +598,11 @@ export default function Artikli() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Input
+                <LocaleNumberInput
                   id="kol_mas"
-                  type="number"
                   value={formData.kol_mas}
-                  onChange={(e) => setFormData({ ...formData, kol_mas: e.target.value })}
+                  onChange={(value) => setFormData({ ...formData, kol_mas: value })}
+                  decimalPlaces={0}
                 />
               </div>
             </div>
