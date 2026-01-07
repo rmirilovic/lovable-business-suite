@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      articles: {
+        Row: {
+          article_group: string | null
+          business_year_id: string
+          code: string
+          company_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          min_stock: number | null
+          name: string
+          purchase_price: number | null
+          selling_price: number | null
+          stock: number | null
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          article_group?: string | null
+          business_year_id: string
+          code: string
+          company_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_stock?: number | null
+          name: string
+          purchase_price?: number | null
+          selling_price?: number | null
+          stock?: number | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Update: {
+          article_group?: string | null
+          business_year_id?: string
+          code?: string
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_stock?: number | null
+          name?: string
+          purchase_price?: number | null
+          selling_price?: number | null
+          stock?: number | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_years: {
         Row: {
           company_id: string
