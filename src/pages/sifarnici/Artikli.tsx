@@ -392,10 +392,10 @@ export default function Artikli() {
                         </td>
                         <td className="p-3 text-muted-foreground">{article.unit}</td>
                         <td className="p-3 text-right font-mono">
-                          {Number(article.purchase_price).toLocaleString()} RSD
+                          {Number(article.purchase_price).toLocaleString()}
                         </td>
                         <td className="p-3 text-right font-mono">
-                          {Number(article.selling_price).toLocaleString()} RSD
+                          {Number(article.selling_price).toLocaleString()}
                         </td>
                         <td className="p-3 text-right font-mono">
                           {Number(article.stock).toLocaleString()}
@@ -655,11 +655,11 @@ export default function Artikli() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Nabavna cena</p>
-                  <p className="font-medium">{Number(viewingArticle.purchase_price).toLocaleString()} RSD</p>
+                  <p className="font-medium">{Number(viewingArticle.purchase_price).toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Prodajna cena</p>
-                  <p className="font-medium">{Number(viewingArticle.selling_price).toLocaleString()} RSD</p>
+                  <p className="font-medium">{Number(viewingArticle.selling_price).toLocaleString()}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
