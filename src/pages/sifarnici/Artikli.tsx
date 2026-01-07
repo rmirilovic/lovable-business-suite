@@ -14,6 +14,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { formatPrice, formatDecimal, formatInteger, parseLocaleNumber } from "@/lib/formatting";
 import {
   Dialog,
   DialogContent,
@@ -216,14 +217,14 @@ export default function Artikli() {
         name: formData.name.trim(),
         article_group: formData.article_group.trim() || null,
         unit: formData.unit.trim(),
-        purchase_price: parseFloat(formData.purchase_price) || 0,
-        selling_price: parseFloat(formData.selling_price) || 0,
-        stock: parseFloat(formData.stock) || 0,
-        min_stock: parseFloat(formData.min_stock) || 0,
+        purchase_price: parseLocaleNumber(formData.purchase_price),
+        selling_price: parseLocaleNumber(formData.selling_price),
+        stock: parseLocaleNumber(formData.stock),
+        min_stock: parseLocaleNumber(formData.min_stock),
         is_active: formData.is_active,
         svk: formData.svk,
-        kg_po_jm: parseFloat(formData.kg_po_jm) || 0,
-        kol_mas: parseFloat(formData.kol_mas) || 1,
+        kg_po_jm: parseLocaleNumber(formData.kg_po_jm),
+        kol_mas: parseLocaleNumber(formData.kol_mas) || 1,
       };
 
       if (editingArticle) {
@@ -392,13 +393,13 @@ export default function Artikli() {
                         </td>
                         <td className="p-3 text-muted-foreground">{article.unit}</td>
                         <td className="p-3 text-right font-mono">
-                          {Number(article.purchase_price).toLocaleString()}
+                          {formatPrice(article.purchase_price)}
                         </td>
                         <td className="p-3 text-right font-mono">
-                          {Number(article.selling_price).toLocaleString()}
+                          {formatPrice(article.selling_price)}
                         </td>
                         <td className="p-3 text-right font-mono">
-                          {Number(article.stock).toLocaleString()}
+                          {formatInteger(article.stock)}
                         </td>
                         <td className="p-3 text-center">
                           <span
@@ -655,21 +656,21 @@ export default function Artikli() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Nabavna cena</p>
-                  <p className="font-medium">{Number(viewingArticle.purchase_price).toLocaleString()}</p>
+                  <p className="font-medium">{formatPrice(viewingArticle.purchase_price)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Prodajna cena</p>
-                  <p className="font-medium">{Number(viewingArticle.selling_price).toLocaleString()}</p>
+                  <p className="font-medium">{formatPrice(viewingArticle.selling_price)}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Stanje zaliha</p>
-                  <p className="font-medium">{Number(viewingArticle.stock).toLocaleString()}</p>
+                  <p className="font-medium">{formatInteger(viewingArticle.stock)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Minimalno stanje</p>
-                  <p className="font-medium">{Number(viewingArticle.min_stock).toLocaleString()}</p>
+                  <p className="font-medium">{formatInteger(viewingArticle.min_stock)}</p>
                 </div>
               </div>
               <div>
@@ -681,11 +682,11 @@ export default function Artikli() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Masa (kg po JM)</p>
-                  <p className="font-medium">{Number(viewingArticle.kg_po_jm ?? 0).toFixed(3)}</p>
+                  <p className="font-medium">{formatDecimal(viewingArticle.kg_po_jm ?? 0, 3)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Količina za masu</p>
-                  <p className="font-medium">{Number(viewingArticle.kol_mas ?? 1).toLocaleString()}</p>
+                  <p className="font-medium">{formatInteger(viewingArticle.kol_mas ?? 1)}</p>
                 </div>
               </div>
               <div>
