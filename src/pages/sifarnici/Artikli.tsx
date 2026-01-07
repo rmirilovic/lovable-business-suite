@@ -35,6 +35,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
+type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
+
+const SVK_OPTIONS: { value: SvkType; label: string }[] = [
+  { value: '0', label: '0 - Usluge' },
+  { value: '1', label: '1 - Roba' },
+  { value: '2', label: '2 - Repromaterijal' },
+  { value: '6', label: '6 - Rezervni delovi' },
+  { value: '8', label: '8 - Potrošni materijal' },
+  { value: '9', label: '9 - Gotovi proizvodi' },
+];
+
 interface Article {
   id: string;
   code: string;
@@ -46,6 +57,9 @@ interface Article {
   stock: number;
   min_stock: number;
   is_active: boolean;
+  svk: SvkType | null;
+  kg_po_jm: number | null;
+  kol_mas: number | null;
 }
 
 interface ArticleForm {
@@ -58,6 +72,9 @@ interface ArticleForm {
   stock: string;
   min_stock: string;
   is_active: boolean;
+  svk: SvkType;
+  kg_po_jm: string;
+  kol_mas: string;
 }
 
 const emptyForm: ArticleForm = {
@@ -70,6 +87,9 @@ const emptyForm: ArticleForm = {
   stock: "0",
   min_stock: "0",
   is_active: true,
+  svk: "1",
+  kg_po_jm: "0",
+  kol_mas: "1",
 };
 
 export default function Artikli() {
@@ -156,6 +176,9 @@ export default function Artikli() {
       stock: String(article.stock),
       min_stock: String(article.min_stock),
       is_active: article.is_active,
+      svk: (article.svk as SvkType) || "1",
+      kg_po_jm: String(article.kg_po_jm ?? 0),
+      kol_mas: String(article.kol_mas ?? 1),
     });
     setIsFormOpen(true);
   };
@@ -191,6 +214,9 @@ export default function Artikli() {
         stock: parseFloat(formData.stock) || 0,
         min_stock: parseFloat(formData.min_stock) || 0,
         is_active: formData.is_active,
+        svk: formData.svk,
+        kg_po_jm: parseFloat(formData.kg_po_jm) || 0,
+        kol_mas: parseFloat(formData.kol_mas) || 1,
       };
 
       if (editingArticle) {
@@ -310,6 +336,7 @@ export default function Artikli() {
                     <th className="p-3 text-left font-medium">Šifra</th>
                     <th className="p-3 text-left font-medium">Naziv</th>
                     <th className="p-3 text-left font-medium">Grupa</th>
+                    <th className="p-3 text-center font-medium">SVK</th>
                     <th className="p-3 text-left font-medium">JM</th>
                     <th className="p-3 text-right font-medium">Nabavna cena</th>
                     <th className="p-3 text-right font-medium">Prodajna cena</th>
@@ -321,7 +348,7 @@ export default function Artikli() {
                 <tbody className="divide-y divide-border">
                   {filteredArticles.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={11} className="p-8 text-center text-muted-foreground">
                         {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
@@ -350,6 +377,11 @@ export default function Artikli() {
                         </td>
                         <td className="p-3 text-muted-foreground">
                           {article.article_group || "-"}
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-secondary text-secondary-foreground text-xs font-medium">
+                            {article.svk || "1"}
+                          </span>
                         </td>
                         <td className="p-3 text-muted-foreground">{article.unit}</td>
                         <td className="p-3 text-right font-mono">
@@ -498,6 +530,40 @@ export default function Artikli() {
                 />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="svk">Standardna vrsta knjiženja (SVK)</Label>
+              <select
+                id="svk"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                value={formData.svk}
+                onChange={(e) => setFormData({ ...formData, svk: e.target.value as SvkType })}
+              >
+                {SVK_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="kg_po_jm">Masa (kg po JM)</Label>
+                <Input
+                  id="kg_po_jm"
+                  type="number"
+                  step="0.001"
+                  value={formData.kg_po_jm}
+                  onChange={(e) => setFormData({ ...formData, kg_po_jm: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="kol_mas">Količina za masu</Label>
+                <Input
+                  id="kol_mas"
+                  type="number"
+                  value={formData.kol_mas}
+                  onChange={(e) => setFormData({ ...formData, kol_mas: e.target.value })}
+                />
+              </div>
+            </div>
             <div className="flex items-center space-x-2">
               <Switch
                 id="is_active"
@@ -563,6 +629,22 @@ export default function Artikli() {
                 <div>
                   <p className="text-sm text-muted-foreground">Minimalno stanje</p>
                   <p className="font-medium">{Number(viewingArticle.min_stock).toLocaleString()}</p>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Standardna vrsta knjiženja (SVK)</p>
+                <p className="font-medium">
+                  {SVK_OPTIONS.find(o => o.value === viewingArticle.svk)?.label || viewingArticle.svk || "1 - Roba"}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Masa (kg po JM)</p>
+                  <p className="font-medium">{Number(viewingArticle.kg_po_jm ?? 0).toFixed(3)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Količina za masu</p>
+                  <p className="font-medium">{Number(viewingArticle.kol_mas ?? 1).toLocaleString()}</p>
                 </div>
               </div>
               <div>

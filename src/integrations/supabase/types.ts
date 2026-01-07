@@ -23,11 +23,14 @@ export type Database = {
           created_at: string | null
           id: string
           is_active: boolean | null
+          kg_po_jm: number | null
+          kol_mas: number | null
           min_stock: number | null
           name: string
           purchase_price: number | null
           selling_price: number | null
           stock: number | null
+          svk: Database["public"]["Enums"]["svk_type"] | null
           unit: string
           updated_at: string | null
         }
@@ -39,11 +42,14 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          kg_po_jm?: number | null
+          kol_mas?: number | null
           min_stock?: number | null
           name: string
           purchase_price?: number | null
           selling_price?: number | null
           stock?: number | null
+          svk?: Database["public"]["Enums"]["svk_type"] | null
           unit?: string
           updated_at?: string | null
         }
@@ -55,11 +61,14 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          kg_po_jm?: number | null
+          kol_mas?: number | null
           min_stock?: number | null
           name?: string
           purchase_price?: number | null
           selling_price?: number | null
           stock?: number | null
+          svk?: Database["public"]["Enums"]["svk_type"] | null
           unit?: string
           updated_at?: string | null
         }
@@ -263,6 +272,7 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "local_admin" | "user"
+      svk_type: "0" | "1" | "2" | "6" | "8" | "9"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -391,6 +401,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "local_admin", "user"],
+      svk_type: ["0", "1", "2", "6", "8", "9"],
     },
   },
 } as const
