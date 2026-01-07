@@ -9,6 +9,7 @@ import {
   Trash2,
   Eye,
   Loader2,
+  HelpCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +35,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -545,7 +552,26 @@ export default function Artikli() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="kg_po_jm">Masa (kg po JM)</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="kg_po_jm">Masa (kg po JM)</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-left">
+                        <p className="font-medium mb-1">Masa proizvoda u kilogramima</p>
+                        <p className="text-xs text-muted-foreground mb-2">Primeri:</p>
+                        <ul className="text-xs space-y-1">
+                          <li>• JM = kg → kgPoJM = 1, KolMas = 1</li>
+                          <li>• JM = m, 1m = 1.321kg → kgPoJM = 1.321, KolMas = 1</li>
+                          <li>• JM = m, 1m = 12.3g → kgPoJM = 12.300, KolMas = 1000</li>
+                          <li>• JM = m, 1m = 12.5mg → kgPoJM = 12.500, KolMas = 1000000</li>
+                        </ul>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Input
                   id="kg_po_jm"
                   type="number"
@@ -555,7 +581,22 @@ export default function Artikli() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="kol_mas">Količina za masu</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label htmlFor="kol_mas">Količina za masu</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs text-left">
+                        <p className="font-medium mb-1">Količina za koju važi masa</p>
+                        <p className="text-xs text-muted-foreground">
+                          Koliko jedinica mere obuhvata navedena masa. Za kg = 1, za grame = 1000, za miligrame = 1000000.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Input
                   id="kol_mas"
                   type="number"
