@@ -1,6 +1,9 @@
 import { Bell, Search, User, Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,11 +19,41 @@ interface HeaderProps {
 
 export function Header({ title, userName }: HeaderProps) {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAvatar = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+    };
+    
+    fetchAvatar();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
+  };
+
+  const getUserInitials = () => {
+    if (userName) {
+      const parts = userName.split(" ");
+      if (parts.length >= 2) {
+        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+      }
+      return userName.substring(0, 2).toUpperCase();
+    }
+    return "KO";
   };
 
   return (
@@ -54,9 +87,12 @@ export function Header({ title, userName }: HeaderProps) {
                 <p className="text-sm font-medium text-foreground">{userName}</p>
                 <p className="text-xs text-muted-foreground">Administrator</p>
               </div>
-              <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
-                <User className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={avatarUrl || undefined} alt="Profilna slika" />
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Lock, User, Mail, Phone, Save } from "lucide-react";
+import { Lock, User, Mail, Phone, Save, Camera, Loader2 } from "lucide-react";
 import { z } from "zod";
 
 const passwordSchema = z.string().min(6, "Lozinka mora imati najmanje 6 karaktera");
@@ -17,11 +18,14 @@ export default function Profile() {
   const { user } = useAuth();
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingPassword, setIsLoadingPassword] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Profile form state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
   // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -34,25 +38,95 @@ export default function Profile() {
   }>({});
 
   // Load profile data on mount
-  useState(() => {
+  useEffect(() => {
     const loadProfile = async () => {
       if (!user) return;
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("first_name, last_name, phone")
+        .select("first_name, last_name, phone, avatar_url")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
       
       if (!error && data) {
         setFirstName(data.first_name || "");
         setLastName(data.last_name || "");
         setPhone(data.phone || "");
+        setAvatarUrl(data.avatar_url);
       }
     };
     
     loadProfile();
-  });
+  }, [user]);
+
+  const getUserInitials = () => {
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    }
+    if (firstName) {
+      return firstName.substring(0, 2).toUpperCase();
+    }
+    return user?.email?.substring(0, 2).toUpperCase() || "KO";
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Molimo izaberite sliku");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Slika mora biti manja od 2MB");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+
+    try {
+      // Generate unique file name
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(fileName);
+
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      // Update profile with avatar URL
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      toast.success("Profilna slika je uspešno ažurirana");
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast.error("Greška prilikom uploada slike");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +211,63 @@ export default function Profile() {
   return (
     <MainLayout title="Moj profil">
       <div className="max-w-2xl space-y-6">
+        {/* Avatar Upload */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Profilna slika
+            </CardTitle>
+            <CardDescription>
+              Kliknite na sliku da biste je promenili
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <Avatar 
+                  className="h-24 w-24 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={handleAvatarClick}
+                >
+                  <AvatarImage src={avatarUrl || undefined} alt="Profilna slika" />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-semibold">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+                {isUploadingAvatar && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-full">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                )}
+                <div 
+                  className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-1.5 rounded-full cursor-pointer hover:bg-primary/90"
+                  onClick={handleAvatarClick}
+                >
+                  <Camera className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Preporučena veličina: 200x200px
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Maksimalna veličina fajla: 2MB
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Podržani formati: JPG, PNG, GIF
+                </p>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Profile Information */}
         <Card>
           <CardHeader>
