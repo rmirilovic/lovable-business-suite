@@ -1,13 +1,13 @@
 import { FileText, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDate } from "@/lib/formatting";
+import { formatDate, formatPrice } from "@/lib/formatting";
 
 interface Document {
   id: string;
   type: "faktura" | "ponuda" | "prijemnica" | "nalog";
   number: string;
   partner: string;
-  amount: string;
+  amount: number;
   date: Date;
   status: "placeno" | "ceka" | "kasni";
 }
@@ -18,7 +18,7 @@ const mockDocuments: Document[] = [
     type: "faktura",
     number: "FA-2025-0042",
     partner: "Delta Trade d.o.o.",
-    amount: "245.000 RSD",
+    amount: 245000,
     date: new Date(2025, 11, 28),
     status: "placeno",
   },
@@ -27,7 +27,7 @@ const mockDocuments: Document[] = [
     type: "faktura",
     number: "FA-2025-0041",
     partner: "Mega Market",
-    amount: "128.500 RSD",
+    amount: 128500,
     date: new Date(2025, 11, 27),
     status: "ceka",
   },
@@ -36,7 +36,7 @@ const mockDocuments: Document[] = [
     type: "ponuda",
     number: "PO-2025-0018",
     partner: "ABC Partneri",
-    amount: "85.200 RSD",
+    amount: 85200,
     date: new Date(2025, 11, 26),
     status: "ceka",
   },
@@ -45,7 +45,7 @@ const mockDocuments: Document[] = [
     type: "prijemnica",
     number: "PR-2025-0089",
     partner: "Dobavljač Plus",
-    amount: "312.000 RSD",
+    amount: 312000,
     date: new Date(2025, 11, 25),
     status: "placeno",
   },
@@ -54,7 +54,7 @@ const mockDocuments: Document[] = [
     type: "faktura",
     number: "FA-2025-0040",
     partner: "Retail Point",
-    amount: "67.800 RSD",
+    amount: 67800,
     date: new Date(2025, 11, 24),
     status: "kasni",
   },
@@ -114,7 +114,7 @@ export function RecentDocuments() {
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-medium text-foreground">{doc.amount}</p>
+                <p className="font-medium text-foreground">{formatPrice(doc.amount)} RSD</p>
                 <div className="flex items-center gap-2 justify-end mt-1">
                   <span className="text-xs text-muted-foreground">
                     {formatDate(doc.date)}

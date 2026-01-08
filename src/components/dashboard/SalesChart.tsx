@@ -7,6 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { formatNumber } from "@/lib/formatting";
 
 const data = [
   { month: "Jan", prodaja: 2400000, nabavka: 1800000 },
@@ -25,9 +26,9 @@ const data = [
 
 const formatValue = (value: number) => {
   if (value >= 1000000) {
-    return `${(value / 1000000).toFixed(1)}M`;
+    return `${formatNumber(value / 1000000, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}M`;
   }
-  return `${(value / 1000).toFixed(0)}K`;
+  return `${formatNumber(value / 1000, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}K`;
 };
 
 export function SalesChart() {
@@ -102,7 +103,7 @@ export function SalesChart() {
                 boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
               }}
               formatter={(value: number) => [
-                `${(value / 1000).toLocaleString()} K RSD`,
+                `${formatNumber(value / 1000, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} K RSD`,
               ]}
             />
             <Area
