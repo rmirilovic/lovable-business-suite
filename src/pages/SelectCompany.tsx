@@ -1,10 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Calendar, LogOut } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Building2, Calendar, LogOut, Mail, User } from "lucide-react";
+
+interface UserProfile {
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  phone: string | null;
+}
 
 export default function SelectCompany() {
   const { 
@@ -19,12 +28,33 @@ export default function SelectCompany() {
     loading
   } = useAuth();
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, email, phone")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      if (!error && data) {
+        setProfile(data);
+      }
+    };
+    
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
 
   const handleContinue = () => {
     if (selectedCompany && selectedYear) {
@@ -47,6 +77,23 @@ export default function SelectCompany() {
     }
   };
 
+  const getUserDisplayName = () => {
+    if (profile?.first_name || profile?.last_name) {
+      return `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
+    }
+    return user?.email?.split("@")[0] || "Korisnik";
+  };
+
+  const getUserInitials = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
+    }
+    if (profile?.first_name) {
+      return profile.first_name.substring(0, 2).toUpperCase();
+    }
+    return user?.email?.substring(0, 2).toUpperCase() || "KO";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/5 flex items-center justify-center">
@@ -67,6 +114,34 @@ export default function SelectCompany() {
             <p className="text-sm text-muted-foreground">Poslovno rešenje</p>
           </div>
         </div>
+
+        {/* User Info Card */}
+        <Card className="shadow-lg border-border/50 mb-4">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-semibold text-foreground truncate">
+                  {getUserDisplayName()}
+                </h2>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Mail className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate">{user?.email}</span>
+                </div>
+                {profile?.phone && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
+                    <User className="h-3 w-3 flex-shrink-0" />
+                    <span>{profile.phone}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card className="shadow-lg border-border/50">
           <CardHeader className="space-y-1 pb-4">
