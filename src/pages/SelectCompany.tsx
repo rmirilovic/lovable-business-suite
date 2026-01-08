@@ -26,10 +26,24 @@ export default function SelectCompany() {
     setSelectedCompany,
     setSelectedYear,
     signOut,
-    loading
+    loading,
+    isSuperAdmin,
+    isLocalAdmin
   } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  const getRoleLabel = () => {
+    if (isSuperAdmin) return "SuperAdmin";
+    if (isLocalAdmin) return "Admin";
+    return "Korisnik";
+  };
+
+  const getRoleBadgeClass = () => {
+    if (isSuperAdmin) return "bg-destructive/10 text-destructive";
+    if (isLocalAdmin) return "bg-primary/10 text-primary";
+    return "bg-muted text-muted-foreground";
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -127,9 +141,14 @@ export default function SelectCompany() {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-semibold text-foreground truncate">
-                  {getUserDisplayName()}
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold text-foreground truncate">
+                    {getUserDisplayName()}
+                  </h2>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getRoleBadgeClass()}`}>
+                    {getRoleLabel()}
+                  </span>
+                </div>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Mail className="h-3 w-3 flex-shrink-0" />
                   <span className="truncate">{user?.email}</span>
