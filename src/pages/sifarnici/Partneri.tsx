@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Search, Plus, Filter, Building2, Phone, Mail } from "lucide-react";
+import { formatPrice } from "@/lib/formatting";
 
 interface Partner {
   id: string;
@@ -200,7 +201,7 @@ export default function Partneri() {
                 }`}
               >
                 {partner.balance >= 0 ? "+" : ""}
-                {partner.balance.toLocaleString()} RSD
+                {formatPrice(partner.balance)}
               </span>
             </div>
           </div>
