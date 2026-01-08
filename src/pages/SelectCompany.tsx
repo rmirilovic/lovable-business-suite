@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Building2, Calendar, LogOut, Mail, User } from "lucide-react";
 
 interface UserProfile {
@@ -13,6 +13,7 @@ interface UserProfile {
   last_name: string | null;
   email: string | null;
   phone: string | null;
+  avatar_url: string | null;
 }
 
 export default function SelectCompany() {
@@ -42,7 +43,7 @@ export default function SelectCompany() {
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("first_name, last_name, email, phone")
+        .select("first_name, last_name, email, phone, avatar_url")
         .eq("id", user.id)
         .maybeSingle();
       
@@ -120,6 +121,7 @@ export default function SelectCompany() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
+                <AvatarImage src={profile?.avatar_url || undefined} alt="Profilna slika" />
                 <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
                   {getUserInitials()}
                 </AvatarFallback>
