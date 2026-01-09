@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Shield, Users, Building2 } from "lucide-react";
+import { Search, Shield, Users, Building2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 
@@ -78,6 +78,17 @@ export function UsersTab() {
   const [userCompanies, setUserCompanies] = useState<UserCompany[]>([]);
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
   const [localAdminCompanyIds, setLocalAdminCompanyIds] = useState<string[]>([]);
+
+  // Create user dialog
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserFirstName, setNewUserFirstName] = useState("");
+  const [newUserLastName, setNewUserLastName] = useState("");
+  const [newUserRole, setNewUserRole] = useState<AppRole | "">("");
+  const [newUserCompanyIds, setNewUserCompanyIds] = useState<string[]>([]);
+  const [newUserLocalAdminIds, setNewUserLocalAdminIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchUsers();
@@ -347,6 +358,100 @@ export function UsersTab() {
       user.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const resetCreateForm = () => {
+    setNewUserEmail("");
+    setNewUserPassword("");
+    setNewUserFirstName("");
+    setNewUserLastName("");
+    setNewUserRole("");
+    setNewUserCompanyIds([]);
+    setNewUserLocalAdminIds([]);
+  };
+
+  const handleOpenCreateDialog = () => {
+    resetCreateForm();
+    setIsCreateDialogOpen(true);
+  };
+
+  const toggleNewUserCompany = (companyId: string) => {
+    setNewUserCompanyIds((prev) =>
+      prev.includes(companyId)
+        ? prev.filter((id) => id !== companyId)
+        : [...prev, companyId]
+    );
+    if (newUserCompanyIds.includes(companyId)) {
+      setNewUserLocalAdminIds((prev) => prev.filter((id) => id !== companyId));
+    }
+  };
+
+  const toggleNewUserLocalAdmin = (companyId: string) => {
+    setNewUserLocalAdminIds((prev) =>
+      prev.includes(companyId)
+        ? prev.filter((id) => id !== companyId)
+        : [...prev, companyId]
+    );
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserEmail.trim()) {
+      toast.error("Email je obavezan");
+      return;
+    }
+    if (!newUserPassword || newUserPassword.length < 6) {
+      toast.error("Lozinka mora imati najmanje 6 karaktera");
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      if (!token) {
+        toast.error("Niste prijavljeni");
+        setIsCreating(false);
+        return;
+      }
+
+      const response = await supabase.functions.invoke("create-user", {
+        body: {
+          email: newUserEmail.trim(),
+          password: newUserPassword,
+          first_name: newUserFirstName.trim() || null,
+          last_name: newUserLastName.trim() || null,
+          role: newUserRole || null,
+          companies: newUserCompanyIds.map((id) => ({
+            company_id: id,
+            is_local_admin: newUserLocalAdminIds.includes(id),
+          })),
+        },
+      });
+
+      if (response.error) {
+        toast.error(response.error.message || "Greška pri kreiranju korisnika");
+        setIsCreating(false);
+        return;
+      }
+
+      if (response.data?.error) {
+        toast.error(response.data.error);
+        setIsCreating(false);
+        return;
+      }
+
+      toast.success("Korisnik uspešno kreiran");
+      setIsCreateDialogOpen(false);
+      resetCreateForm();
+      fetchUsers();
+    } catch (error) {
+      console.error("Create user error:", error);
+      toast.error("Greška pri kreiranju korisnika");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -359,6 +464,10 @@ export function UsersTab() {
             className="pl-9"
           />
         </div>
+        <Button onClick={handleOpenCreateDialog} className="gap-2">
+          <UserPlus className="w-4 h-4" />
+          Dodaj korisnika
+        </Button>
       </div>
 
       <div className="erp-card overflow-hidden">
@@ -564,6 +673,137 @@ export function UsersTab() {
                 Otkaži
               </Button>
               <Button onClick={handleSaveCompanies}>Sačuvaj</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create User Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Dodaj novog korisnika</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="newFirstName">Ime</Label>
+                <Input
+                  id="newFirstName"
+                  value={newUserFirstName}
+                  onChange={(e) => setNewUserFirstName(e.target.value)}
+                  placeholder="Ime"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newLastName">Prezime</Label>
+                <Input
+                  id="newLastName"
+                  value={newUserLastName}
+                  onChange={(e) => setNewUserLastName(e.target.value)}
+                  placeholder="Prezime"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newEmail">Email *</Label>
+              <Input
+                id="newEmail"
+                type="email"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+                placeholder="korisnik@email.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">Lozinka *</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+                placeholder="Najmanje 6 karaktera"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newRole">Uloga</Label>
+              <Select
+                value={newUserRole}
+                onValueChange={(value) => setNewUserRole(value as AppRole | "")}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Izaberite ulogu (opciono)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Korisnik</SelectItem>
+                  <SelectItem value="local_admin">Lokalni Admin</SelectItem>
+                  <SelectItem value="super_admin">Super Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Firme (opciono)</Label>
+              <div className="border rounded-md max-h-48 overflow-y-auto">
+                {companies.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground text-sm">
+                    Nema dostupnih firmi
+                  </div>
+                ) : (
+                  <div className="divide-y">
+                    {companies.map((company) => (
+                      <div
+                        key={company.id}
+                        className="flex items-center justify-between p-3 hover:bg-muted/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id={`new-company-${company.id}`}
+                            checked={newUserCompanyIds.includes(company.id)}
+                            onCheckedChange={() => toggleNewUserCompany(company.id)}
+                          />
+                          <label
+                            htmlFor={`new-company-${company.id}`}
+                            className="text-sm cursor-pointer"
+                          >
+                            <span className="font-medium">{company.name}</span>
+                            <span className="text-muted-foreground ml-2">
+                              ({company.code})
+                            </span>
+                          </label>
+                        </div>
+                        {newUserCompanyIds.includes(company.id) && (
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`new-admin-${company.id}`}
+                              checked={newUserLocalAdminIds.includes(company.id)}
+                              onCheckedChange={() => toggleNewUserLocalAdmin(company.id)}
+                            />
+                            <label
+                              htmlFor={`new-admin-${company.id}`}
+                              className="text-xs text-muted-foreground cursor-pointer"
+                            >
+                              Lokalni admin
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreateDialogOpen(false)}
+                disabled={isCreating}
+              >
+                Otkaži
+              </Button>
+              <Button onClick={handleCreateUser} disabled={isCreating}>
+                {isCreating ? "Kreiranje..." : "Kreiraj korisnika"}
+              </Button>
             </div>
           </div>
         </DialogContent>
