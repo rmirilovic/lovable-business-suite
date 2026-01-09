@@ -150,14 +150,19 @@ export function UsersTab() {
   };
 
   const fetchUserCompanies = async (userId: string) => {
-    const assignments = users.find((u) => u.id === userId)?.assignedCompanies || [];
-    const mapped: UserCompany[] = assignments.map((a) => ({
-      id: a.id,
-      user_id: a.user_id,
-      company_id: a.company_id,
-      is_local_admin: a.is_local_admin,
-    }));
-    setUserCompanies(mapped);
+    // Fetch fresh data from database to avoid stale cache issues
+    const { data, error } = await supabase
+      .from("user_companies")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (error) {
+      toast.error("Greška pri učitavanju dodeljenih firmi");
+      return;
+    }
+
+    const assignments = data || [];
+    setUserCompanies(assignments);
     setSelectedCompanyIds(assignments.map((uc) => uc.company_id));
     setLocalAdminCompanyIds(
       assignments.filter((uc) => uc.is_local_admin).map((uc) => uc.company_id)
