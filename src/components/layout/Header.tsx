@@ -1,4 +1,4 @@
-import { Bell, Search, User, Settings, LogOut } from "lucide-react";
+import { Bell, Search, Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface HeaderProps {
   title: string;
@@ -72,6 +73,9 @@ export function Header({ title, userName }: HeaderProps) {
             className="erp-input pl-9 w-64"
           />
         </div>
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
 
         {/* Notifications */}
         <button className="relative p-2 rounded-md hover:bg-secondary transition-colors">
