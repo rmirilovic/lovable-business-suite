@@ -28,6 +28,7 @@ import {
 import { Search, Shield, Users, Building2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -63,6 +64,7 @@ interface UserWithRole extends Profile {
 }
 
 export function UsersTab() {
+  const { isSuperAdmin, isLocalAdmin, localAdminCompanyIds: authLocalAdminCompanyIds } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +91,13 @@ export function UsersTab() {
   const [newUserRole, setNewUserRole] = useState<AppRole | "">("");
   const [newUserCompanyIds, setNewUserCompanyIds] = useState<string[]>([]);
   const [newUserLocalAdminIds, setNewUserLocalAdminIds] = useState<string[]>([]);
+
+  // Filter companies for local admins in create dialog
+  const availableCompaniesForCreate = isSuperAdmin 
+    ? companies 
+    : companies.filter((c) => authLocalAdminCompanyIds.includes(c.id));
+
+  const canCreateUsers = isSuperAdmin || isLocalAdmin;
 
   useEffect(() => {
     fetchUsers();
@@ -464,10 +473,12 @@ export function UsersTab() {
             className="pl-9"
           />
         </div>
-        <Button onClick={handleOpenCreateDialog} className="gap-2">
-          <UserPlus className="w-4 h-4" />
-          Dodaj korisnika
-        </Button>
+        {canCreateUsers && (
+          <Button onClick={handleOpenCreateDialog} className="gap-2">
+            <UserPlus className="w-4 h-4" />
+            Dodaj korisnika
+          </Button>
+        )}
       </div>
 
       <div className="erp-card overflow-hidden">
@@ -725,32 +736,34 @@ export function UsersTab() {
                 placeholder="Najmanje 6 karaktera"
               />
             </div>
+            {isSuperAdmin && (
+              <div className="space-y-2">
+                <Label htmlFor="newRole">Uloga</Label>
+                <Select
+                  value={newUserRole}
+                  onValueChange={(value) => setNewUserRole(value as AppRole | "")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Izaberite ulogu (opciono)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="user">Korisnik</SelectItem>
+                    <SelectItem value="local_admin">Lokalni Admin</SelectItem>
+                    <SelectItem value="super_admin">Super Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="newRole">Uloga</Label>
-              <Select
-                value={newUserRole}
-                onValueChange={(value) => setNewUserRole(value as AppRole | "")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Izaberite ulogu (opciono)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">Korisnik</SelectItem>
-                  <SelectItem value="local_admin">Lokalni Admin</SelectItem>
-                  <SelectItem value="super_admin">Super Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Firme (opciono)</Label>
+              <Label>Firme {!isSuperAdmin && "(samo vaše firme)"}</Label>
               <div className="border rounded-md max-h-48 overflow-y-auto">
-                {companies.length === 0 ? (
+                {availableCompaniesForCreate.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground text-sm">
                     Nema dostupnih firmi
                   </div>
                 ) : (
                   <div className="divide-y">
-                    {companies.map((company) => (
+                    {availableCompaniesForCreate.map((company) => (
                       <div
                         key={company.id}
                         className="flex items-center justify-between p-3 hover:bg-muted/50"
@@ -771,7 +784,7 @@ export function UsersTab() {
                             </span>
                           </label>
                         </div>
-                        {newUserCompanyIds.includes(company.id) && (
+                        {isSuperAdmin && newUserCompanyIds.includes(company.id) && (
                           <div className="flex items-center gap-2">
                             <Checkbox
                               id={`new-admin-${company.id}`}

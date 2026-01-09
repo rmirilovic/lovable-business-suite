@@ -43,11 +43,25 @@ Deno.serve(async (req) => {
       .eq("role", "super_admin")
       .maybeSingle();
 
-    if (!roleData) {
-      return new Response(
-        JSON.stringify({ error: "Only super admins can create users" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const isSuperAdmin = !!roleData;
+
+    // If not super_admin, check if local admin
+    let localAdminCompanyIds: string[] = [];
+    if (!isSuperAdmin) {
+      const { data: localAdminData } = await supabaseAdmin
+        .from("user_companies")
+        .select("company_id")
+        .eq("user_id", requestingUser.id)
+        .eq("is_local_admin", true);
+
+      if (localAdminData && localAdminData.length > 0) {
+        localAdminCompanyIds = localAdminData.map((d) => d.company_id);
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Nemate ovlašćenja za kreiranje korisnika" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Parse request body
@@ -88,8 +102,8 @@ Deno.serve(async (req) => {
 
     const newUserId = userData.user.id;
 
-    // Assign role if provided
-    if (role && role !== "") {
+    // Assign role if provided - only super admins can assign roles
+    if (role && role !== "" && isSuperAdmin) {
       const { error: roleError } = await supabaseAdmin
         .from("user_roles")
         .insert({ user_id: newUserId, role });
@@ -101,18 +115,33 @@ Deno.serve(async (req) => {
 
     // Assign companies if provided
     if (companies && companies.length > 0) {
-      const companyAssignments = companies.map((c: { company_id: string; is_local_admin: boolean }) => ({
-        user_id: newUserId,
-        company_id: c.company_id,
-        is_local_admin: c.is_local_admin || false,
-      }));
+      // Local admins can only assign to their companies
+      let validCompanies = companies;
+      if (!isSuperAdmin) {
+        validCompanies = companies.filter((c: { company_id: string }) => 
+          localAdminCompanyIds.includes(c.company_id)
+        );
+        // Local admins cannot set is_local_admin to true
+        validCompanies = validCompanies.map((c: { company_id: string; is_local_admin: boolean }) => ({
+          ...c,
+          is_local_admin: false,
+        }));
+      }
 
-      const { error: companyError } = await supabaseAdmin
-        .from("user_companies")
-        .insert(companyAssignments);
+      if (validCompanies.length > 0) {
+        const companyAssignments = validCompanies.map((c: { company_id: string; is_local_admin: boolean }) => ({
+          user_id: newUserId,
+          company_id: c.company_id,
+          is_local_admin: c.is_local_admin || false,
+        }));
 
-      if (companyError) {
-        console.error("Company assignment error:", companyError);
+        const { error: companyError } = await supabaseAdmin
+          .from("user_companies")
+          .insert(companyAssignments);
+
+        if (companyError) {
+          console.error("Company assignment error:", companyError);
+        }
       }
     }
 
