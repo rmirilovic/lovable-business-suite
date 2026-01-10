@@ -334,30 +334,24 @@ export function UsersTab() {
     );
   };
 
-  const getRoleBadgeClass = (role?: AppRole) => {
-    switch (role) {
-      case "super_admin":
-        return "bg-destructive/10 text-destructive border-destructive/20";
-      case "local_admin":
-        return "bg-primary/10 text-primary border-primary/20";
-      case "user":
-        return "bg-secondary text-secondary-foreground";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
+
+  const getRoleLabel = (user: UserWithRole) => {
+    if (user.role === "super_admin") return "Super Admin";
+    if (user.role === "local_admin") return "Admin";
+    // Check if user is local admin for any company
+    const isLocalAdminForAnyCompany = user.assignedCompanies.some(uc => uc.is_local_admin);
+    if (isLocalAdminForAnyCompany) return "Admin";
+    if (user.role === "user") return "Korisnik";
+    return "Bez uloge";
   };
 
-  const getRoleLabel = (role?: AppRole) => {
-    switch (role) {
-      case "super_admin":
-        return "Super Admin";
-      case "local_admin":
-        return "Lokalni Admin";
-      case "user":
-        return "Korisnik";
-      default:
-        return "Bez uloge";
-    }
+  const getRoleBadgeClassForUser = (user: UserWithRole) => {
+    if (user.role === "super_admin") return "bg-destructive/10 text-destructive border-destructive/20";
+    if (user.role === "local_admin") return "bg-primary/10 text-primary border-primary/20";
+    const isLocalAdminForAnyCompany = user.assignedCompanies.some(uc => uc.is_local_admin);
+    if (isLocalAdminForAnyCompany) return "bg-primary/10 text-primary border-primary/20";
+    if (user.role === "user") return "bg-secondary text-secondary-foreground";
+    return "bg-muted text-muted-foreground";
   };
 
   const filteredUsers = users.filter(
@@ -513,11 +507,11 @@ export function UsersTab() {
                   <TableCell>{user.last_name || "-"}</TableCell>
                   <TableCell>
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeClass(
-                        user.role
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRoleBadgeClassForUser(
+                        user
                       )}`}
                     >
-                      {getRoleLabel(user.role)}
+                      {getRoleLabel(user)}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -533,7 +527,7 @@ export function UsersTab() {
                                 ? "bg-primary/10 text-primary border-primary/20"
                                 : "bg-muted text-muted-foreground border-border"
                             }`}
-                            title={uc.is_local_admin ? "Lokalni admin" : "Korisnik"}
+                            title={uc.is_local_admin ? "Admin" : "Korisnik"}
                           >
                             {uc.companyCode}
                           </span>
@@ -592,7 +586,7 @@ export function UsersTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="user">Korisnik</SelectItem>
-                  <SelectItem value="local_admin">Lokalni Admin</SelectItem>
+                  <SelectItem value="local_admin">Admin</SelectItem>
                   <SelectItem value="super_admin">Super Admin</SelectItem>
                 </SelectContent>
               </Select>
@@ -665,7 +659,7 @@ export function UsersTab() {
                               htmlFor={`admin-${company.id}`}
                               className="text-xs text-muted-foreground cursor-pointer"
                             >
-                              Lokalni admin
+                              Admin
                             </label>
                           </div>
                         )}
@@ -748,7 +742,7 @@ export function UsersTab() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="user">Korisnik</SelectItem>
-                    <SelectItem value="local_admin">Lokalni Admin</SelectItem>
+                    <SelectItem value="local_admin">Admin</SelectItem>
                     <SelectItem value="super_admin">Super Admin</SelectItem>
                   </SelectContent>
                 </Select>
@@ -795,7 +789,7 @@ export function UsersTab() {
                               htmlFor={`new-admin-${company.id}`}
                               className="text-xs text-muted-foreground cursor-pointer"
                             >
-                              Lokalni admin
+                              Admin
                             </label>
                           </div>
                         )}
