@@ -34,7 +34,7 @@ export default function SelectCompany() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   const getRoleLabel = () => {
-    if (isSuperAdmin) return "SuperAdmin";
+    if (isSuperAdmin) return "Super Admin";
     if (isLocalAdmin) return "Admin";
     return "Korisnik";
   };
