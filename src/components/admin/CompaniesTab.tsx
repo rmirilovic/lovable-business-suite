@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit2, Trash2, Search, Building2 } from "lucide-react";
+import { Plus, Edit2, Search, Building2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Company {
@@ -29,10 +31,80 @@ interface Company {
   mb: string | null;
   address: string | null;
   city: string | null;
+  postal_code: string | null;
+  mesto_prometa: string | null;
+  municipality_code: string | null;
+  municipality: string | null;
+  activity_code: string | null;
   phone: string | null;
   email: string | null;
+  responsible_person_name: string | null;
+  responsible_person_email: string | null;
+  responsible_person_jmbg: string | null;
+  api_token: string | null;
+  api_demo_token: string | null;
+  invoice_note_1: string | null;
+  invoice_note_2: string | null;
+  quote_note_1: string | null;
+  quote_note_2: string | null;
+  logo_url: string | null;
+  logo_text: string | null;
   is_active: boolean | null;
 }
+
+interface FormData {
+  code: string;
+  name: string;
+  pib: string;
+  mb: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  mesto_prometa: string;
+  municipality_code: string;
+  municipality: string;
+  activity_code: string;
+  phone: string;
+  email: string;
+  responsible_person_name: string;
+  responsible_person_email: string;
+  responsible_person_jmbg: string;
+  api_token: string;
+  api_demo_token: string;
+  invoice_note_1: string;
+  invoice_note_2: string;
+  quote_note_1: string;
+  quote_note_2: string;
+  logo_url: string;
+  logo_text: string;
+}
+
+const emptyFormData: FormData = {
+  code: "",
+  name: "",
+  pib: "",
+  mb: "",
+  address: "",
+  city: "",
+  postal_code: "",
+  mesto_prometa: "",
+  municipality_code: "",
+  municipality: "",
+  activity_code: "",
+  phone: "",
+  email: "",
+  responsible_person_name: "",
+  responsible_person_email: "",
+  responsible_person_jmbg: "",
+  api_token: "",
+  api_demo_token: "",
+  invoice_note_1: "",
+  invoice_note_2: "",
+  quote_note_1: "",
+  quote_note_2: "",
+  logo_url: "",
+  logo_text: "",
+};
 
 export function CompaniesTab() {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -40,16 +112,8 @@ export function CompaniesTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
-  const [formData, setFormData] = useState({
-    code: "",
-    name: "",
-    pib: "",
-    mb: "",
-    address: "",
-    city: "",
-    phone: "",
-    email: "",
-  });
+  const [formData, setFormData] = useState<FormData>(emptyFormData);
+  const [activeFormTab, setActiveFormTab] = useState("basic");
 
   useEffect(() => {
     fetchCompanies();
@@ -72,25 +136,43 @@ export function CompaniesTab() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.code || !formData.name) {
       toast.error("Šifra i naziv su obavezni");
       return;
     }
 
+    const companyData = {
+      code: formData.code,
+      name: formData.name,
+      pib: formData.pib || null,
+      mb: formData.mb || null,
+      address: formData.address || null,
+      city: formData.city || null,
+      postal_code: formData.postal_code || null,
+      mesto_prometa: formData.mesto_prometa || null,
+      municipality_code: formData.municipality_code || null,
+      municipality: formData.municipality || null,
+      activity_code: formData.activity_code || null,
+      phone: formData.phone || null,
+      email: formData.email || null,
+      responsible_person_name: formData.responsible_person_name || null,
+      responsible_person_email: formData.responsible_person_email || null,
+      responsible_person_jmbg: formData.responsible_person_jmbg || null,
+      api_token: formData.api_token || null,
+      api_demo_token: formData.api_demo_token || null,
+      invoice_note_1: formData.invoice_note_1 || null,
+      invoice_note_2: formData.invoice_note_2 || null,
+      quote_note_1: formData.quote_note_1 || null,
+      quote_note_2: formData.quote_note_2 || null,
+      logo_url: formData.logo_url || null,
+      logo_text: formData.logo_text || null,
+    };
+
     if (editingCompany) {
       const { error } = await supabase
         .from("companies")
-        .update({
-          code: formData.code,
-          name: formData.name,
-          pib: formData.pib || null,
-          mb: formData.mb || null,
-          address: formData.address || null,
-          city: formData.city || null,
-          phone: formData.phone || null,
-          email: formData.email || null,
-        })
+        .update(companyData)
         .eq("id", editingCompany.id);
 
       if (error) {
@@ -101,16 +183,7 @@ export function CompaniesTab() {
         fetchCompanies();
       }
     } else {
-      const { error } = await supabase.from("companies").insert({
-        code: formData.code,
-        name: formData.name,
-        pib: formData.pib || null,
-        mb: formData.mb || null,
-        address: formData.address || null,
-        city: formData.city || null,
-        phone: formData.phone || null,
-        email: formData.email || null,
-      });
+      const { error } = await supabase.from("companies").insert(companyData);
 
       if (error) {
         toast.error("Greška pri kreiranju firme");
@@ -131,25 +204,38 @@ export function CompaniesTab() {
       mb: company.mb || "",
       address: company.address || "",
       city: company.city || "",
+      postal_code: company.postal_code || "",
+      mesto_prometa: company.mesto_prometa || "",
+      municipality_code: company.municipality_code || "",
+      municipality: company.municipality || "",
+      activity_code: company.activity_code || "",
       phone: company.phone || "",
       email: company.email || "",
+      responsible_person_name: company.responsible_person_name || "",
+      responsible_person_email: company.responsible_person_email || "",
+      responsible_person_jmbg: company.responsible_person_jmbg || "",
+      api_token: company.api_token || "",
+      api_demo_token: company.api_demo_token || "",
+      invoice_note_1: company.invoice_note_1 || "",
+      invoice_note_2: company.invoice_note_2 || "",
+      quote_note_1: company.quote_note_1 || "",
+      quote_note_2: company.quote_note_2 || "",
+      logo_url: company.logo_url || "",
+      logo_text: company.logo_text || "",
     });
+    setActiveFormTab("basic");
     setIsDialogOpen(true);
   };
 
   const handleAdd = () => {
     setEditingCompany(null);
-    setFormData({
-      code: "",
-      name: "",
-      pib: "",
-      mb: "",
-      address: "",
-      city: "",
-      phone: "",
-      email: "",
-    });
+    setFormData(emptyFormData);
+    setActiveFormTab("basic");
     setIsDialogOpen(true);
+  };
+
+  const updateFormField = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const filteredCompanies = companies.filter(
@@ -177,103 +263,254 @@ export function CompaniesTab() {
               Nova firma
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingCompany ? "Izmeni firmu" : "Nova firma"}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="code">Šifra *</Label>
-                  <Input
-                    id="code"
-                    value={formData.code}
-                    onChange={(e) =>
-                      setFormData({ ...formData, code: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="name">Naziv *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="pib">PIB</Label>
-                  <Input
-                    id="pib"
-                    value={formData.pib}
-                    onChange={(e) =>
-                      setFormData({ ...formData, pib: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="mb">Matični broj</Label>
-                  <Input
-                    id="mb"
-                    value={formData.mb}
-                    onChange={(e) =>
-                      setFormData({ ...formData, mb: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Adresa</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="city">Grad</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefon</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
+              <Tabs value={activeFormTab} onValueChange={setActiveFormTab}>
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="basic">Osnovno</TabsTrigger>
+                  <TabsTrigger value="location">Lokacija</TabsTrigger>
+                  <TabsTrigger value="person">Osoba</TabsTrigger>
+                  <TabsTrigger value="api">API</TabsTrigger>
+                  <TabsTrigger value="docs">Dokumenti</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="basic" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="code">Šifra *</Label>
+                      <Input
+                        id="code"
+                        value={formData.code}
+                        onChange={(e) => updateFormField("code", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Naziv *</Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => updateFormField("name", e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="pib">PIB</Label>
+                      <Input
+                        id="pib"
+                        value={formData.pib}
+                        onChange={(e) => updateFormField("pib", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mb">Matični broj</Label>
+                      <Input
+                        id="mb"
+                        value={formData.mb}
+                        onChange={(e) => updateFormField("mb", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="activity_code">Šifra delatnosti</Label>
+                      <Input
+                        id="activity_code"
+                        value={formData.activity_code}
+                        onChange={(e) => updateFormField("activity_code", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Telefon</Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => updateFormField("phone", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => updateFormField("email", e.target.value)}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="location" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Adresa</Label>
+                    <Input
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => updateFormField("address", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">Mesto</Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => updateFormField("city", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="postal_code">Poštanski broj</Label>
+                      <Input
+                        id="postal_code"
+                        value={formData.postal_code}
+                        onChange={(e) => updateFormField("postal_code", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mesto_prometa">Mesto prometa (za fakturisanje)</Label>
+                    <Input
+                      id="mesto_prometa"
+                      value={formData.mesto_prometa}
+                      onChange={(e) => updateFormField("mesto_prometa", e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="municipality_code">Šifra opštine</Label>
+                      <Input
+                        id="municipality_code"
+                        value={formData.municipality_code}
+                        onChange={(e) => updateFormField("municipality_code", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="municipality">Opština</Label>
+                      <Input
+                        id="municipality"
+                        value={formData.municipality}
+                        onChange={(e) => updateFormField("municipality", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="person" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="responsible_person_name">Ime i prezime odgovorne osobe</Label>
+                    <Input
+                      id="responsible_person_name"
+                      value={formData.responsible_person_name}
+                      onChange={(e) => updateFormField("responsible_person_name", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="responsible_person_email">E-mail odgovorne osobe</Label>
+                    <Input
+                      id="responsible_person_email"
+                      type="email"
+                      value={formData.responsible_person_email}
+                      onChange={(e) => updateFormField("responsible_person_email", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="responsible_person_jmbg">JMBG odgovorne osobe</Label>
+                    <Input
+                      id="responsible_person_jmbg"
+                      value={formData.responsible_person_jmbg}
+                      onChange={(e) => updateFormField("responsible_person_jmbg", e.target.value)}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="api" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="api_token">Token (produkcija)</Label>
+                    <Input
+                      id="api_token"
+                      value={formData.api_token}
+                      onChange={(e) => updateFormField("api_token", e.target.value)}
+                      placeholder="Ključ za produkcioni API"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="api_demo_token">Demo Token (testiranje)</Label>
+                    <Input
+                      id="api_demo_token"
+                      value={formData.api_demo_token}
+                      onChange={(e) => updateFormField("api_demo_token", e.target.value)}
+                      placeholder="Ključ za testni API"
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="docs" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="logo_url">Logo URL (memorandum)</Label>
+                      <Input
+                        id="logo_url"
+                        value={formData.logo_url}
+                        onChange={(e) => updateFormField("logo_url", e.target.value)}
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="logo_text">Tekst uz logo (header)</Label>
+                      <Input
+                        id="logo_text"
+                        value={formData.logo_text}
+                        onChange={(e) => updateFormField("logo_text", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="invoice_note_1">Napomena faktura 1</Label>
+                    <Textarea
+                      id="invoice_note_1"
+                      value={formData.invoice_note_1}
+                      onChange={(e) => updateFormField("invoice_note_1", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="invoice_note_2">Napomena faktura 2</Label>
+                    <Textarea
+                      id="invoice_note_2"
+                      value={formData.invoice_note_2}
+                      onChange={(e) => updateFormField("invoice_note_2", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="quote_note_1">Napomena ponuda 1</Label>
+                    <Textarea
+                      id="quote_note_1"
+                      value={formData.quote_note_1}
+                      onChange={(e) => updateFormField("quote_note_1", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="quote_note_2">Napomena ponuda 2</Label>
+                    <Textarea
+                      id="quote_note_2"
+                      value={formData.quote_note_2}
+                      onChange={(e) => updateFormField("quote_note_2", e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button
                   type="button"
                   variant="outline"
@@ -307,7 +544,7 @@ export function CompaniesTab() {
                 <TableHead>Šifra</TableHead>
                 <TableHead>Naziv</TableHead>
                 <TableHead>PIB</TableHead>
-                <TableHead>Grad</TableHead>
+                <TableHead>Mesto</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-24">Akcije</TableHead>
               </TableRow>
