@@ -375,7 +375,7 @@ export function CompaniesTab() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="mesto_prometa">Mesto prometa (za fakturisanje)</Label>
+                    <Label htmlFor="mesto_prometa">Mesto prometa</Label>
                     <Input
                       id="mesto_prometa"
                       value={formData.mesto_prometa}
@@ -463,11 +463,12 @@ export function CompaniesTab() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="logo_text">Tekst uz logo (header)</Label>
-                      <Input
+                      <Label htmlFor="logo_text">Tekst uz logo</Label>
+                      <Textarea
                         id="logo_text"
                         value={formData.logo_text}
                         onChange={(e) => updateFormField("logo_text", e.target.value)}
+                        rows={5}
                       />
                     </div>
                   </div>
