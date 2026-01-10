@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Edit2, Search, Building2 } from "lucide-react";
+import { Plus, Edit2, Search, Building2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface Company {
@@ -114,7 +114,10 @@ export function CompaniesTab() {
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [formData, setFormData] = useState<FormData>(emptyFormData);
   const [activeFormTab, setActiveFormTab] = useState("basic");
-
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     fetchCompanies();
   }, []);
@@ -142,6 +145,31 @@ export function CompaniesTab() {
       return;
     }
 
+    let logoUrl = formData.logo_url;
+
+    // Upload logo if a new file was selected
+    if (logoFile) {
+      setUploadingLogo(true);
+      const fileExt = logoFile.name.split('.').pop();
+      const fileName = `${formData.code}-${Date.now()}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('company-logos')
+        .upload(fileName, logoFile, { upsert: true });
+
+      if (uploadError) {
+        toast.error("Greška pri uploadu loga");
+        setUploadingLogo(false);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('company-logos')
+        .getPublicUrl(fileName);
+
+      logoUrl = publicUrlData.publicUrl;
+      setUploadingLogo(false);
+    }
     const companyData = {
       code: formData.code,
       name: formData.name,
@@ -165,7 +193,7 @@ export function CompaniesTab() {
       invoice_note_2: formData.invoice_note_2 || null,
       quote_note_1: formData.quote_note_1 || null,
       quote_note_2: formData.quote_note_2 || null,
-      logo_url: formData.logo_url || null,
+      logo_url: logoUrl || null,
       logo_text: formData.logo_text || null,
     };
 
@@ -223,6 +251,8 @@ export function CompaniesTab() {
       logo_url: company.logo_url || "",
       logo_text: company.logo_text || "",
     });
+    setLogoFile(null);
+    setLogoPreview(company.logo_url || null);
     setActiveFormTab("basic");
     setIsDialogOpen(true);
   };
@@ -230,12 +260,35 @@ export function CompaniesTab() {
   const handleAdd = () => {
     setEditingCompany(null);
     setFormData(emptyFormData);
+    setLogoFile(null);
+    setLogoPreview(null);
     setActiveFormTab("basic");
     setIsDialogOpen(true);
   };
 
   const updateFormField = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+    updateFormField("logo_url", "");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const filteredCompanies = companies.filter(
@@ -454,13 +507,56 @@ export function CompaniesTab() {
                 <TabsContent value="docs" className="space-y-4 mt-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="logo_url">Logo URL (memorandum)</Label>
-                      <Input
-                        id="logo_url"
-                        value={formData.logo_url}
-                        onChange={(e) => updateFormField("logo_url", e.target.value)}
-                        placeholder="https://..."
-                      />
+                      <Label>Logo (memorandum)</Label>
+                      <div className="flex flex-col gap-3">
+                        {logoPreview ? (
+                          <div className="relative w-full max-w-[200px]">
+                            <img 
+                              src={logoPreview} 
+                              alt="Logo preview" 
+                              className="w-full h-auto max-h-24 object-contain border rounded-md p-2 bg-muted"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-2 -right-2 h-6 w-6"
+                              onClick={handleRemoveLogo}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div 
+                            className="w-full max-w-[200px] h-24 border-2 border-dashed rounded-md flex items-center justify-center cursor-pointer hover:border-primary transition-colors bg-muted/50"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <div className="text-center text-muted-foreground">
+                              <Upload className="h-6 w-6 mx-auto mb-1" />
+                              <span className="text-xs">Klikni za upload</span>
+                            </div>
+                          </div>
+                        )}
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoFileChange}
+                          className="hidden"
+                        />
+                        {logoPreview && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="w-fit"
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Promeni logo
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="logo_text">Tekst uz logo</Label>
