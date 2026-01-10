@@ -9,11 +9,11 @@ import { BusinessYearsTab } from "@/components/admin/BusinessYearsTab";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function AdminPanel() {
-  const { isSuperAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState(isSuperAdmin ? "companies" : "years");
+  const { isSuperAdmin, isLocalAdmin } = useAuth();
+  const [activeTab, setActiveTab] = useState(isSuperAdmin || isLocalAdmin ? "companies" : "years");
 
-  // Local admins can only see Years and Access tabs for their companies
-  const tabs = isSuperAdmin
+  // Super admins see all tabs, local admins see Companies, Years, Users, Access (for their companies)
+  const tabs = isSuperAdmin || isLocalAdmin
     ? [
         { value: "companies", label: "Firme", icon: Building2 },
         { value: "years", label: "Godine", icon: Calendar },
@@ -38,7 +38,7 @@ export default function AdminPanel() {
             ))}
           </TabsList>
 
-          {isSuperAdmin && (
+          {(isSuperAdmin || isLocalAdmin) && (
             <TabsContent value="companies" className="mt-6">
               <CompaniesTab />
             </TabsContent>
@@ -48,7 +48,7 @@ export default function AdminPanel() {
             <BusinessYearsTab />
           </TabsContent>
 
-          {isSuperAdmin && (
+          {(isSuperAdmin || isLocalAdmin) && (
             <TabsContent value="users" className="mt-6">
               <UsersTab />
             </TabsContent>

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Edit2, Search, Building2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Company {
   id: string;
@@ -107,6 +108,7 @@ const emptyFormData: FormData = {
 };
 
 export function CompaniesTab() {
+  const { isSuperAdmin, isLocalAdmin, localAdminCompanyIds } = useAuth();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -118,16 +120,25 @@ export function CompaniesTab() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Local admins can only edit, not create new companies
+  const canCreateCompany = isSuperAdmin;
+
   useEffect(() => {
     fetchCompanies();
-  }, []);
+  }, [isSuperAdmin, localAdminCompanyIds]);
 
   const fetchCompanies = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("companies")
-      .select("*")
-      .order("name");
+    
+    let query = supabase.from("companies").select("*").order("name");
+    
+    // Local admins only see their companies
+    if (!isSuperAdmin && isLocalAdmin && localAdminCompanyIds.length > 0) {
+      query = query.in("id", localAdminCompanyIds);
+    }
+    
+    const { data, error } = await query;
 
     if (error) {
       toast.error("Greška pri učitavanju firmi");
@@ -310,12 +321,14 @@ export function CompaniesTab() {
           />
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={handleAdd} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Nova firma
-            </Button>
-          </DialogTrigger>
+          {canCreateCompany && (
+            <DialogTrigger asChild>
+              <Button onClick={handleAdd} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Nova firma
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
