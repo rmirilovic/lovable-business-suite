@@ -126,45 +126,93 @@ export type Database = {
       }
       companies: {
         Row: {
+          activity_code: string | null
           address: string | null
+          api_demo_token: string | null
+          api_token: string | null
           city: string | null
           code: string
           created_at: string | null
           email: string | null
           id: string
+          invoice_note_1: string | null
+          invoice_note_2: string | null
           is_active: boolean | null
+          logo_text: string | null
+          logo_url: string | null
           mb: string | null
+          mesto_prometa: string | null
+          municipality: string | null
+          municipality_code: string | null
           name: string
           phone: string | null
           pib: string | null
+          postal_code: string | null
+          quote_note_1: string | null
+          quote_note_2: string | null
+          responsible_person_email: string | null
+          responsible_person_jmbg: string | null
+          responsible_person_name: string | null
           updated_at: string | null
         }
         Insert: {
+          activity_code?: string | null
           address?: string | null
+          api_demo_token?: string | null
+          api_token?: string | null
           city?: string | null
           code: string
           created_at?: string | null
           email?: string | null
           id?: string
+          invoice_note_1?: string | null
+          invoice_note_2?: string | null
           is_active?: boolean | null
+          logo_text?: string | null
+          logo_url?: string | null
           mb?: string | null
+          mesto_prometa?: string | null
+          municipality?: string | null
+          municipality_code?: string | null
           name: string
           phone?: string | null
           pib?: string | null
+          postal_code?: string | null
+          quote_note_1?: string | null
+          quote_note_2?: string | null
+          responsible_person_email?: string | null
+          responsible_person_jmbg?: string | null
+          responsible_person_name?: string | null
           updated_at?: string | null
         }
         Update: {
+          activity_code?: string | null
           address?: string | null
+          api_demo_token?: string | null
+          api_token?: string | null
           city?: string | null
           code?: string
           created_at?: string | null
           email?: string | null
           id?: string
+          invoice_note_1?: string | null
+          invoice_note_2?: string | null
           is_active?: boolean | null
+          logo_text?: string | null
+          logo_url?: string | null
           mb?: string | null
+          mesto_prometa?: string | null
+          municipality?: string | null
+          municipality_code?: string | null
           name?: string
           phone?: string | null
           pib?: string | null
+          postal_code?: string | null
+          quote_note_1?: string | null
+          quote_note_2?: string | null
+          responsible_person_email?: string | null
+          responsible_person_jmbg?: string | null
+          responsible_person_name?: string | null
           updated_at?: string | null
         }
         Relationships: []
