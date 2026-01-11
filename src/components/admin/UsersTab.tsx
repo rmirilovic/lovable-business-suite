@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Shield, Users, Building2, UserPlus } from "lucide-react";
+import { Search, Shield, Users, Building2, UserPlus, KeyRound, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -92,6 +92,12 @@ export function UsersTab() {
   const [newUserCompanyIds, setNewUserCompanyIds] = useState<string[]>([]);
   const [newUserLocalAdminIds, setNewUserLocalAdminIds] = useState<string[]>([]);
 
+  // Reset password dialog
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
+  const [resetPasswordValue, setResetPasswordValue] = useState("");
+  const [resetPasswordResult, setResetPasswordResult] = useState<string | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+
   // Filter companies for local admins in create dialog
   const availableCompaniesForCreate = isSuperAdmin 
     ? companies 
@@ -106,10 +112,14 @@ export function UsersTab() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    
+
+    const rolesPromise = isSuperAdmin
+      ? supabase.from("user_roles").select("*")
+      : Promise.resolve({ data: [], error: null } as any);
+
     const [profilesRes, rolesRes, userCompaniesRes, companiesRes] = await Promise.all([
       supabase.from("profiles").select("*").order("email"),
-      supabase.from("user_roles").select("*"),
+      rolesPromise as any,
       supabase.from("user_companies").select("*"),
       supabase.from("companies").select("id, name, code").eq("is_active", true).order("name"),
     ]);
@@ -120,7 +130,9 @@ export function UsersTab() {
       return;
     }
 
-    if (rolesRes.error || userCompaniesRes.error || companiesRes.error) {
+    // Lokalni admini nemaju pravo da čitaju tabelu user_roles za druge korisnike
+    // (RLS), pa to ne sme da bude fatalna greška.
+    if ((isSuperAdmin && (rolesRes as any).error) || userCompaniesRes.error || companiesRes.error) {
       toast.error("Greška pri učitavanju podataka");
       setLoading(false);
       return;
@@ -132,8 +144,10 @@ export function UsersTab() {
 
     setCompanies(companiesRes.data || []);
 
+    const rolesData = ((rolesRes as any).data || []) as Array<{ id: string; user_id: string; role: AppRole }>;
+
     const usersWithRoles: UserWithRole[] = (profilesRes.data || []).map((profile) => {
-      const userRole = rolesRes.data?.find((r) => r.user_id === profile.id);
+      const userRole = rolesData.find((r) => r.user_id === profile.id);
       const userCompanyAssignments = (userCompaniesRes.data || [])
         .filter((uc) => uc.user_id === profile.id)
         .map((uc) => ({
@@ -144,7 +158,7 @@ export function UsersTab() {
 
       return {
         ...profile,
-        role: userRole?.role,
+        role: userRole?.role ?? "user",
         roleId: userRole?.id,
         assignedCompanies: userCompanyAssignments,
       };
@@ -339,19 +353,17 @@ export function UsersTab() {
     if (user.role === "super_admin") return "Super Admin";
     if (user.role === "local_admin") return "Admin";
     // Check if user is local admin for any company
-    const isLocalAdminForAnyCompany = user.assignedCompanies.some(uc => uc.is_local_admin);
+    const isLocalAdminForAnyCompany = user.assignedCompanies.some((uc) => uc.is_local_admin);
     if (isLocalAdminForAnyCompany) return "Admin";
-    if (user.role === "user") return "Korisnik";
-    return "Bez uloge";
+    return "Korisnik";
   };
 
   const getRoleBadgeClassForUser = (user: UserWithRole) => {
     if (user.role === "super_admin") return "bg-destructive/10 text-destructive border-destructive/20";
     if (user.role === "local_admin") return "bg-primary/10 text-primary border-primary/20";
-    const isLocalAdminForAnyCompany = user.assignedCompanies.some(uc => uc.is_local_admin);
+    const isLocalAdminForAnyCompany = user.assignedCompanies.some((uc) => uc.is_local_admin);
     if (isLocalAdminForAnyCompany) return "bg-primary/10 text-primary border-primary/20";
-    if (user.role === "user") return "bg-secondary text-secondary-foreground";
-    return "bg-muted text-muted-foreground";
+    return "bg-secondary text-secondary-foreground";
   };
 
   const filteredUsers = users.filter(
@@ -455,6 +467,49 @@ export function UsersTab() {
     }
   };
 
+  const handleOpenResetPassword = (user: UserWithRole) => {
+    setSelectedUser(user);
+    setResetPasswordValue("");
+    setResetPasswordResult(null);
+    setIsResetPasswordDialogOpen(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser) return;
+
+    if (resetPasswordValue && resetPasswordValue.length < 6) {
+      toast.error("Lozinka mora imati najmanje 6 karaktera");
+      return;
+    }
+
+    setIsResettingPassword(true);
+    try {
+      const response = await supabase.functions.invoke("reset-user-password", {
+        body: {
+          user_id: selectedUser.id,
+          new_password: resetPasswordValue || null,
+        },
+      });
+
+      if (response.error) {
+        toast.error(response.error.message || "Greška pri resetovanju lozinke");
+        return;
+      }
+
+      if (response.data?.error) {
+        toast.error(response.data.error);
+        return;
+      }
+
+      setResetPasswordResult(response.data?.password || null);
+      toast.success("Lozinka resetovana");
+    } catch (e) {
+      console.error("Reset password error:", e);
+      toast.error("Greška pri resetovanju lozinke");
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -548,6 +603,14 @@ export function UsersTab() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => handleOpenResetPassword(user)}
+                        title="Resetuj lozinku"
+                      >
+                        <KeyRound className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleEditCompanies(user)}
                         title="Dodeli firme"
                       >
@@ -561,6 +624,74 @@ export function UsersTab() {
           </Table>
         )}
       </div>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Resetovanje lozinke</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Korisnik</Label>
+              <p className="text-sm text-muted-foreground">{selectedUser?.email}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="resetPassword">Nova lozinka (opciono)</Label>
+              <Input
+                id="resetPassword"
+                type="password"
+                value={resetPasswordValue}
+                onChange={(e) => setResetPasswordValue(e.target.value)}
+                placeholder="Ostavite prazno za automatsku lozinku"
+              />
+              <p className="text-xs text-muted-foreground">
+                Ako ostavite prazno, sistem će generisati privremenu lozinku.
+              </p>
+            </div>
+
+            {resetPasswordResult && (
+              <div className="space-y-2">
+                <Label>Privremena lozinka</Label>
+                <div className="flex items-center gap-2">
+                  <Input value={resetPasswordResult} readOnly />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(resetPasswordResult);
+                        toast.success("Kopirano");
+                      } catch {
+                        toast.error("Ne mogu da kopiram");
+                      }
+                    }}
+                    title="Kopiraj"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsResetPasswordDialogOpen(false)}
+                disabled={isResettingPassword}
+              >
+                Zatvori
+              </Button>
+              <Button onClick={handleResetPassword} disabled={isResettingPassword}>
+                {isResettingPassword ? "Resetujem..." : "Resetuj"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Role Dialog */}
       <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
