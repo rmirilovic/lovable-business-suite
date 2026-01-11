@@ -592,14 +592,16 @@ export function UsersTab() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditRole(user)}
-                        title="Dodeli ulogu"
-                      >
-                        <Shield className="w-4 h-4" />
-                      </Button>
+                      {isSuperAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditRole(user)}
+                          title="Dodeli ulogu"
+                        >
+                          <Shield className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -779,7 +781,7 @@ export function UsersTab() {
                             </span>
                           </label>
                         </div>
-                        {selectedCompanyIds.includes(company.id) && (
+                        {isSuperAdmin && selectedCompanyIds.includes(company.id) && (
                           <div className="flex items-center gap-2">
                             <Checkbox
                               id={`admin-${company.id}`}
