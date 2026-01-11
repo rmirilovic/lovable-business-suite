@@ -111,15 +111,14 @@ Deno.serve(async (req) => {
 
     const newUserId = userData.user.id;
 
-    // Assign role if provided - only super admins can assign roles
-    if (role && role !== "" && isSuperAdmin) {
-      const { error: roleError } = await supabaseAdmin
-        .from("user_roles")
-        .insert({ user_id: newUserId, role });
+    // Assign role - super admins can assign any role, others get 'user' by default
+    const roleToAssign = (role && role !== "" && isSuperAdmin) ? role : "user";
+    const { error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: newUserId, role: roleToAssign });
 
-      if (roleError) {
-        console.error("Role assignment error:", roleError);
-      }
+    if (roleError) {
+      console.error("Role assignment error:", roleError);
     }
 
     // Assign companies if provided
