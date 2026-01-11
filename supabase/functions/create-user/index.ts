@@ -94,8 +94,17 @@ Deno.serve(async (req) => {
     });
 
     if (createError) {
+      let errorMessage = createError.message;
+      
+      // Translate common Supabase Auth errors to Serbian
+      if (createError.message.includes("already been registered")) {
+        errorMessage = "Korisnik sa ovom email adresom već postoji";
+      } else if (createError.message.includes("invalid email")) {
+        errorMessage = "Neispravna email adresa";
+      }
+      
       return new Response(
-        JSON.stringify({ error: createError.message }),
+        JSON.stringify({ error: errorMessage }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
