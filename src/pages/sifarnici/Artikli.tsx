@@ -103,6 +103,7 @@ interface ArticleForm {
 interface ArticleFilters {
   svk: string;
   articleGroup: string;
+  unit: string;
   kgPoJmMin: string;
   kgPoJmMax: string;
   purchasePriceMin: string;
@@ -114,6 +115,7 @@ interface ArticleFilters {
 const emptyFilters: ArticleFilters = {
   svk: "",
   articleGroup: "",
+  unit: "",
   kgPoJmMin: "",
   kgPoJmMax: "",
   purchasePriceMin: "",
@@ -166,6 +168,12 @@ export default function Artikli() {
     return [...new Set(groups)].sort();
   }, [articles]);
 
+  // Get unique units for filter dropdown
+  const uniqueUnits = useMemo(() => {
+    const units = articles.map(a => a.unit).filter(Boolean);
+    return [...new Set(units)].sort();
+  }, [articles]);
+
   // Check if any filter is active
   const hasActiveFilters = useMemo(() => {
     return Object.values(filters).some(v => v !== "");
@@ -212,6 +220,9 @@ export default function Artikli() {
 
       // Group filter
       if (filters.articleGroup && article.article_group !== filters.articleGroup) return false;
+
+      // Unit filter
+      if (filters.unit && article.unit !== filters.unit) return false;
 
       // kg po JM filters
       if (filters.kgPoJmMin) {
@@ -467,6 +478,27 @@ export default function Artikli() {
                         {uniqueGroups.map((group) => (
                           <SelectItem key={group} value={group}>
                             {group}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Unit Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">JM</Label>
+                    <Select
+                      value={filters.unit}
+                      onValueChange={(value) => setFilters({ ...filters, unit: value === "all" ? "" : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sve" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Sve</SelectItem>
+                        {uniqueUnits.map((unit) => (
+                          <SelectItem key={unit} value={unit}>
+                            {unit}
                           </SelectItem>
                         ))}
                       </SelectContent>
