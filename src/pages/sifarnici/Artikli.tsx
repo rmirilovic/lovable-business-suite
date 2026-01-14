@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Search,
@@ -10,6 +10,8 @@ import {
   Eye,
   Loader2,
   HelpCircle,
+  X,
+  ChevronDown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,6 +45,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -86,6 +100,28 @@ interface ArticleForm {
   kol_mas: string;
 }
 
+interface ArticleFilters {
+  svk: string;
+  articleGroup: string;
+  kgPoJmMin: string;
+  kgPoJmMax: string;
+  purchasePriceMin: string;
+  purchasePriceMax: string;
+  sellingPriceMin: string;
+  sellingPriceMax: string;
+}
+
+const emptyFilters: ArticleFilters = {
+  svk: "",
+  articleGroup: "",
+  kgPoJmMin: "",
+  kgPoJmMax: "",
+  purchasePriceMin: "",
+  purchasePriceMax: "",
+  sellingPriceMin: "",
+  sellingPriceMax: "",
+};
+
 const emptyForm: ArticleForm = {
   code: "",
   name: "",
@@ -107,6 +143,8 @@ export default function Artikli() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<ArticleFilters>(emptyFilters);
   
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -119,6 +157,19 @@ export default function Artikli() {
   const [saving, setSaving] = useState(false);
 
   const canEdit = isSuperAdmin || isLocalAdmin;
+
+  // Get unique groups for filter dropdown
+  const uniqueGroups = useMemo(() => {
+    const groups = articles
+      .map(a => a.article_group)
+      .filter((g): g is string => !!g);
+    return [...new Set(groups)].sort();
+  }, [articles]);
+
+  // Check if any filter is active
+  const hasActiveFilters = useMemo(() => {
+    return Object.values(filters).some(v => v !== "");
+  }, [filters]);
 
   useEffect(() => {
     if (selectedCompany && selectedYear) {
@@ -147,11 +198,58 @@ export default function Artikli() {
     }
   };
 
-  const filteredArticles = articles.filter(
-    (article) =>
-      article.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.code.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredArticles = useMemo(() => {
+    return articles.filter((article) => {
+      // Search filter
+      const matchesSearch = 
+        article.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        article.code.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      if (!matchesSearch) return false;
+
+      // SVK filter
+      if (filters.svk && article.svk !== filters.svk) return false;
+
+      // Group filter
+      if (filters.articleGroup && article.article_group !== filters.articleGroup) return false;
+
+      // kg po JM filters
+      if (filters.kgPoJmMin) {
+        const min = parseLocaleNumber(filters.kgPoJmMin);
+        if ((article.kg_po_jm ?? 0) < min) return false;
+      }
+      if (filters.kgPoJmMax) {
+        const max = parseLocaleNumber(filters.kgPoJmMax);
+        if ((article.kg_po_jm ?? 0) > max) return false;
+      }
+
+      // Purchase price filters
+      if (filters.purchasePriceMin) {
+        const min = parseLocaleNumber(filters.purchasePriceMin);
+        if (article.purchase_price < min) return false;
+      }
+      if (filters.purchasePriceMax) {
+        const max = parseLocaleNumber(filters.purchasePriceMax);
+        if (article.purchase_price > max) return false;
+      }
+
+      // Selling price filters
+      if (filters.sellingPriceMin) {
+        const min = parseLocaleNumber(filters.sellingPriceMin);
+        if (article.selling_price < min) return false;
+      }
+      if (filters.sellingPriceMax) {
+        const max = parseLocaleNumber(filters.sellingPriceMax);
+        if (article.selling_price > max) return false;
+      }
+
+      return true;
+    });
+  }, [articles, searchTerm, filters]);
+
+  const clearFilters = () => {
+    setFilters(emptyFilters);
+  };
 
   const toggleSelectAll = () => {
     if (selectedItems.length === filteredArticles.length) {
@@ -287,35 +385,174 @@ export default function Artikli() {
     <MainLayout title="Šifarnik artikala">
       {/* Toolbar */}
       <div className="erp-card p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex flex-1 gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Pretraži po šifri ili nazivu..."
-                className="erp-input w-full pl-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <button className="erp-btn-primary gap-2 hidden md:inline-flex">
-              <Filter className="w-4 h-4" />
-              Filteri
-            </button>
-          </div>
-          <div className="flex gap-3">
-            <button className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80">
-              <Download className="w-4 h-4" />
-              <span className="hidden md:inline">Izvoz</span>
-            </button>
-            {canEdit && (
-              <button className="erp-btn-accent gap-2" onClick={handleAdd}>
-                <Plus className="w-4 h-4" />
-                <span>Novi artikal</span>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+            <div className="flex flex-1 gap-3 w-full md:w-auto">
+              <div className="relative flex-1 md:w-80">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Pretraži po šifri ili nazivu..."
+                  className="erp-input w-full pl-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <button 
+                className={`erp-btn-primary gap-2 ${hasActiveFilters ? 'bg-primary text-primary-foreground' : ''}`}
+                onClick={() => setFiltersOpen(!filtersOpen)}
+              >
+                <Filter className="w-4 h-4" />
+                <span className="hidden md:inline">Filteri</span>
+                {hasActiveFilters && (
+                  <span className="bg-primary-foreground text-primary text-xs px-1.5 py-0.5 rounded-full">
+                    !
+                  </span>
+                )}
+                <ChevronDown className={`w-4 h-4 transition-transform ${filtersOpen ? 'rotate-180' : ''}`} />
               </button>
-            )}
+            </div>
+            <div className="flex gap-3">
+              <button className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                <Download className="w-4 h-4" />
+                <span className="hidden md:inline">Izvoz</span>
+              </button>
+              {canEdit && (
+                <button className="erp-btn-accent gap-2" onClick={handleAdd}>
+                  <Plus className="w-4 h-4" />
+                  <span>Novi artikal</span>
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Filters Panel */}
+          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <CollapsibleContent>
+              <div className="pt-4 border-t border-border">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                  {/* SVK Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">SVK</Label>
+                    <Select
+                      value={filters.svk}
+                      onValueChange={(value) => setFilters({ ...filters, svk: value === "all" ? "" : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Svi" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Svi</SelectItem>
+                        {SVK_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Group Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Grupa</Label>
+                    <Select
+                      value={filters.articleGroup}
+                      onValueChange={(value) => setFilters({ ...filters, articleGroup: value === "all" ? "" : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sve" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Sve</SelectItem>
+                        {uniqueGroups.map((group) => (
+                          <SelectItem key={group} value={group}>
+                            {group}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* kg po JM Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">kg po JM (od - do)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="Od"
+                        className="flex-1"
+                        value={filters.kgPoJmMin}
+                        onChange={(e) => setFilters({ ...filters, kgPoJmMin: e.target.value })}
+                      />
+                      <Input
+                        type="text"
+                        placeholder="Do"
+                        className="flex-1"
+                        value={filters.kgPoJmMax}
+                        onChange={(e) => setFilters({ ...filters, kgPoJmMax: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Purchase Price Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Nabavna cena (od - do)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="Od"
+                        className="flex-1"
+                        value={filters.purchasePriceMin}
+                        onChange={(e) => setFilters({ ...filters, purchasePriceMin: e.target.value })}
+                      />
+                      <Input
+                        type="text"
+                        placeholder="Do"
+                        className="flex-1"
+                        value={filters.purchasePriceMax}
+                        onChange={(e) => setFilters({ ...filters, purchasePriceMax: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Selling Price Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Prodajna cena (od - do)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="Od"
+                        className="flex-1"
+                        value={filters.sellingPriceMin}
+                        onChange={(e) => setFilters({ ...filters, sellingPriceMin: e.target.value })}
+                      />
+                      <Input
+                        type="text"
+                        placeholder="Do"
+                        className="flex-1"
+                        value={filters.sellingPriceMax}
+                        onChange={(e) => setFilters({ ...filters, sellingPriceMax: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Clear Filters */}
+                  <div className="space-y-2 flex items-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearFilters}
+                      disabled={!hasActiveFilters}
+                      className="w-full"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Obriši filtere
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
 
