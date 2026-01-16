@@ -107,10 +107,9 @@ interface ArticleFilters {
   svk: string;
   articleGroup: string;
   unit: string;
+  status: string;
   kgPoJmMin: string;
   kgPoJmMax: string;
-  purchasePriceMin: string;
-  purchasePriceMax: string;
   sellingPriceMin: string;
   sellingPriceMax: string;
 }
@@ -119,10 +118,9 @@ const emptyFilters: ArticleFilters = {
   svk: "",
   articleGroup: "",
   unit: "",
+  status: "",
   kgPoJmMin: "",
   kgPoJmMax: "",
-  purchasePriceMin: "",
-  purchasePriceMax: "",
   sellingPriceMin: "",
   sellingPriceMax: "",
 };
@@ -253,14 +251,10 @@ export default function Artikli() {
         if ((article.kg_po_jm ?? 0) > max) return false;
       }
 
-      // Purchase price filters
-      if (filters.purchasePriceMin) {
-        const min = parseLocaleNumber(filters.purchasePriceMin);
-        if (article.purchase_price < min) return false;
-      }
-      if (filters.purchasePriceMax) {
-        const max = parseLocaleNumber(filters.purchasePriceMax);
-        if (article.purchase_price > max) return false;
+      // Status filter
+      if (filters.status) {
+        const isActive = filters.status === 'active';
+        if (article.is_active !== isActive) return false;
       }
 
       // Selling price filters
@@ -624,25 +618,22 @@ export default function Artikli() {
                     </div>
                   </div>
 
-                  {/* Purchase Price Filter */}
+                  {/* Status Filter */}
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Nabavna cena (od - do)</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        placeholder="Od"
-                        className="flex-1"
-                        value={filters.purchasePriceMin}
-                        onChange={(e) => setFilters({ ...filters, purchasePriceMin: e.target.value })}
-                      />
-                      <Input
-                        type="text"
-                        placeholder="Do"
-                        className="flex-1"
-                        value={filters.purchasePriceMax}
-                        onChange={(e) => setFilters({ ...filters, purchasePriceMax: e.target.value })}
-                      />
-                    </div>
+                    <Label className="text-xs text-muted-foreground">Status</Label>
+                    <Select
+                      value={filters.status}
+                      onValueChange={(value) => setFilters({ ...filters, status: value === "all" ? "" : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Svi" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Svi</SelectItem>
+                        <SelectItem value="active">Aktivan</SelectItem>
+                        <SelectItem value="inactive">Neaktivan</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Selling Price Filter */}
