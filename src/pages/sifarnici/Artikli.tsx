@@ -618,24 +618,6 @@ export default function Artikli() {
                     </div>
                   </div>
 
-                  {/* Status Filter */}
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Status</Label>
-                    <Select
-                      value={filters.status}
-                      onValueChange={(value) => setFilters({ ...filters, status: value === "all" ? "" : value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Svi" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Svi</SelectItem>
-                        <SelectItem value="active">Aktivan</SelectItem>
-                        <SelectItem value="inactive">Neaktivan</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   {/* Selling Price Filter */}
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Prodajna cena (od - do)</Label>
@@ -655,6 +637,24 @@ export default function Artikli() {
                         onChange={(e) => setFilters({ ...filters, sellingPriceMax: e.target.value })}
                       />
                     </div>
+                  </div>
+
+                  {/* Status Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Status</Label>
+                    <Select
+                      value={filters.status}
+                      onValueChange={(value) => setFilters({ ...filters, status: value === "all" ? "" : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Svi" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Svi</SelectItem>
+                        <SelectItem value="active">Aktivan</SelectItem>
+                        <SelectItem value="inactive">Neaktivan</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Clear Filters */}
@@ -764,15 +764,6 @@ export default function Artikli() {
                       </div>
                     </th>
                     <th 
-                      className="p-3 text-right font-medium cursor-pointer hover:bg-muted/50 select-none"
-                      onClick={() => handleSort('stock')}
-                    >
-                      <div className="flex items-center justify-end">
-                        Stanje
-                        <SortIndicator column="stock" />
-                      </div>
-                    </th>
-                    <th 
                       className="p-3 text-center font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('is_active')}
                     >
@@ -787,7 +778,7 @@ export default function Artikli() {
                 <tbody className="divide-y divide-border">
                   {sortedArticles.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={10} className="p-8 text-center text-muted-foreground">
                         {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
@@ -828,9 +819,6 @@ export default function Artikli() {
                         </td>
                         <td className="p-3 text-right font-mono">
                           {formatPrice(article.selling_price)}
-                        </td>
-                        <td className="p-3 text-right font-mono">
-                          {formatInteger(article.stock)}
                         </td>
                         <td className="p-3 text-center">
                           <span
