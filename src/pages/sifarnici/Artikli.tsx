@@ -568,10 +568,14 @@ export default function Artikli() {
             return;
           }
           
-          // Parse SVK
-          let svk = row['SVK'] || row['svk'] || '1';
-          if (!['0', '1', '2', '6', '8', '9'].includes(String(svk))) {
-            svk = '1';
+          // Parse SVK - accept both numeric (0, 1, 2, 6, 8, 9) and string values
+          let svkRaw = row['SVK'] || row['svk'];
+          let svk = '1'; // default
+          if (svkRaw !== undefined && svkRaw !== null && svkRaw !== '') {
+            const svkStr = String(svkRaw).trim().charAt(0); // Take first character (handles "0 - Usluge" format)
+            if (['0', '1', '2', '6', '8', '9'].includes(svkStr)) {
+              svk = svkStr;
+            }
           }
           
           // Parse numeric values
