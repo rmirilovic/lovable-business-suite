@@ -12,6 +12,9 @@ import {
   HelpCircle,
   X,
   ChevronDown,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -148,6 +151,10 @@ export default function Artikli() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<ArticleFilters>(emptyFilters);
   
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
@@ -270,15 +277,105 @@ export default function Artikli() {
     });
   }, [articles, searchTerm, filters]);
 
+  // Sorted articles
+  const sortedArticles = useMemo(() => {
+    if (!sortColumn) return filteredArticles;
+
+    return [...filteredArticles].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortColumn) {
+        case 'code':
+          aValue = a.code || '';
+          bValue = b.code || '';
+          break;
+        case 'name':
+          aValue = a.name || '';
+          bValue = b.name || '';
+          break;
+        case 'article_group':
+          aValue = a.article_group || '';
+          bValue = b.article_group || '';
+          break;
+        case 'svk':
+          aValue = a.svk || '';
+          bValue = b.svk || '';
+          break;
+        case 'unit':
+          aValue = a.unit || '';
+          bValue = b.unit || '';
+          break;
+        case 'purchase_price':
+          aValue = a.purchase_price ?? 0;
+          bValue = b.purchase_price ?? 0;
+          break;
+        case 'selling_price':
+          aValue = a.selling_price ?? 0;
+          bValue = b.selling_price ?? 0;
+          break;
+        case 'stock':
+          aValue = a.stock ?? 0;
+          bValue = b.stock ?? 0;
+          break;
+        case 'is_active':
+          aValue = a.is_active ? 1 : 0;
+          bValue = b.is_active ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      // String comparison
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue, 'sr');
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+
+      // Number comparison
+      if (sortDirection === 'asc') {
+        return aValue - bValue;
+      } else {
+        return bValue - aValue;
+      }
+    });
+  }, [filteredArticles, sortColumn, sortDirection]);
+
+  // Handle column header click for sorting
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Toggle direction or clear
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else {
+        setSortColumn(null);
+        setSortDirection('asc');
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort indicator component
+  const SortIndicator = ({ column }: { column: string }) => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="w-4 h-4 ml-1 opacity-40" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="w-4 h-4 ml-1 text-primary" />
+      : <ArrowDown className="w-4 h-4 ml-1 text-primary" />;
+  };
+
   const clearFilters = () => {
     setFilters(emptyFilters);
   };
 
   const toggleSelectAll = () => {
-    if (selectedItems.length === filteredArticles.length) {
+    if (selectedItems.length === sortedArticles.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(filteredArticles.map((a) => a.id));
+      setSelectedItems(sortedArticles.map((a) => a.id));
     }
   };
 
@@ -606,33 +703,105 @@ export default function Artikli() {
                         type="checkbox"
                         className="rounded border-border"
                         checked={
-                          selectedItems.length === filteredArticles.length &&
-                          filteredArticles.length > 0
+                          selectedItems.length === sortedArticles.length &&
+                          sortedArticles.length > 0
                         }
                         onChange={toggleSelectAll}
                       />
                     </th>
-                    <th className="p-3 text-left font-medium">Šifra</th>
-                    <th className="p-3 text-left font-medium">Naziv</th>
-                    <th className="p-3 text-left font-medium">Grupa</th>
-                    <th className="p-3 text-center font-medium">SVK</th>
-                    <th className="p-3 text-left font-medium">JM</th>
-                    <th className="p-3 text-right font-medium">Nabavna cena</th>
-                    <th className="p-3 text-right font-medium">Prodajna cena</th>
-                    <th className="p-3 text-right font-medium">Stanje</th>
-                    <th className="p-3 text-center font-medium">Status</th>
+                    <th 
+                      className="p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('code')}
+                    >
+                      <div className="flex items-center">
+                        Šifra
+                        <SortIndicator column="code" />
+                      </div>
+                    </th>
+                    <th 
+                      className="p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center">
+                        Naziv
+                        <SortIndicator column="name" />
+                      </div>
+                    </th>
+                    <th 
+                      className="p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('article_group')}
+                    >
+                      <div className="flex items-center">
+                        Grupa
+                        <SortIndicator column="article_group" />
+                      </div>
+                    </th>
+                    <th 
+                      className="p-3 text-center font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('svk')}
+                    >
+                      <div className="flex items-center justify-center">
+                        SVK
+                        <SortIndicator column="svk" />
+                      </div>
+                    </th>
+                    <th 
+                      className="p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('unit')}
+                    >
+                      <div className="flex items-center">
+                        JM
+                        <SortIndicator column="unit" />
+                      </div>
+                    </th>
+                    <th 
+                      className="p-3 text-right font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('purchase_price')}
+                    >
+                      <div className="flex items-center justify-end">
+                        Nabavna cena
+                        <SortIndicator column="purchase_price" />
+                      </div>
+                    </th>
+                    <th 
+                      className="p-3 text-right font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('selling_price')}
+                    >
+                      <div className="flex items-center justify-end">
+                        Prodajna cena
+                        <SortIndicator column="selling_price" />
+                      </div>
+                    </th>
+                    <th 
+                      className="p-3 text-right font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('stock')}
+                    >
+                      <div className="flex items-center justify-end">
+                        Stanje
+                        <SortIndicator column="stock" />
+                      </div>
+                    </th>
+                    <th 
+                      className="p-3 text-center font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      onClick={() => handleSort('is_active')}
+                    >
+                      <div className="flex items-center justify-center">
+                        Status
+                        <SortIndicator column="is_active" />
+                      </div>
+                    </th>
                     <th className="w-12 p-3"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {filteredArticles.length === 0 ? (
+                  {sortedArticles.length === 0 ? (
                     <tr>
                       <td colSpan={11} className="p-8 text-center text-muted-foreground">
                         {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
                   ) : (
-                    filteredArticles.map((article, index) => (
+                    sortedArticles.map((article, index) => (
                       <tr
                         key={article.id}
                         className="hover:bg-table-hover transition-colors animate-fade-in"
