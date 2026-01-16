@@ -213,15 +213,31 @@ export default function Artikli() {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("articles")
-        .select("*")
-        .eq("company_id", selectedCompany.id)
-        .eq("business_year_id", selectedYear.id)
-        .order("code");
+      // Fetch all articles without the default 1000 row limit
+      let allArticles: any[] = [];
+      let from = 0;
+      const batchSize = 1000;
+      
+      while (true) {
+        const { data, error } = await supabase
+          .from("articles")
+          .select("*")
+          .eq("company_id", selectedCompany.id)
+          .eq("business_year_id", selectedYear.id)
+          .order("code")
+          .range(from, from + batchSize - 1);
 
-      if (error) throw error;
-      setArticles(data || []);
+        if (error) throw error;
+        
+        if (!data || data.length === 0) break;
+        
+        allArticles = [...allArticles, ...data];
+        
+        if (data.length < batchSize) break;
+        from += batchSize;
+      }
+
+      setArticles(allArticles);
     } catch (error: any) {
       toast.error("Greška pri učitavanju artikala: " + error.message);
     } finally {
