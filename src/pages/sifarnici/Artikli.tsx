@@ -15,6 +15,10 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -152,6 +156,10 @@ export default function Artikli() {
   // Sorting state
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -359,6 +367,21 @@ export default function Artikli() {
     return sortDirection === 'asc' 
       ? <ArrowUp className="w-4 h-4 ml-1 text-primary" />
       : <ArrowDown className="w-4 h-4 ml-1 text-primary" />;
+  };
+
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedArticles.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedArticles = sortedArticles.slice(startIndex, endIndex);
+
+  // Reset to first page when filters/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filters, sortColumn, sortDirection]);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
   const clearFilters = () => {
@@ -776,14 +799,14 @@ export default function Artikli() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {sortedArticles.length === 0 ? (
+                  {paginatedArticles.length === 0 ? (
                     <tr>
                       <td colSpan={10} className="p-8 text-center text-muted-foreground">
                         {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
                   ) : (
-                    sortedArticles.map((article, index) => (
+                    paginatedArticles.map((article, index) => (
                       <tr
                         key={article.id}
                         className="hover:bg-table-hover transition-colors animate-fade-in"
@@ -864,11 +887,103 @@ export default function Artikli() {
               </table>
             </div>
 
-            {/* Pagination info */}
-            <div className="p-4 border-t border-border">
-              <p className="text-sm text-muted-foreground">
-                Prikazano {filteredArticles.length} od {articles.length} artikala
-              </p>
+            {/* Pagination */}
+            <div className="p-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <p className="text-sm text-muted-foreground">
+                  Prikazano {startIndex + 1}-{Math.min(endIndex, sortedArticles.length)} od {sortedArticles.length} artikala
+                  {sortedArticles.length !== articles.length && ` (ukupno ${articles.length})`}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm text-muted-foreground">Po stranici:</Label>
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => goToPage(1)}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronsLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  <div className="flex items-center gap-1 mx-2">
+                    {/* Page numbers */}
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => goToPage(pageNum)}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => goToPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  >
+                    <ChevronsRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </>
         )}
