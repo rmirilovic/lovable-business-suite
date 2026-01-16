@@ -218,8 +218,20 @@ export default function Artikli() {
       // SVK filter
       if (filters.svk && article.svk !== filters.svk) return false;
 
-      // Group filter
-      if (filters.articleGroup && article.article_group !== filters.articleGroup) return false;
+      // Group filter (supports prefix matching with *)
+      if (filters.articleGroup) {
+        const groupFilter = filters.articleGroup.trim();
+        const articleGroup = article.article_group || "";
+        
+        if (groupFilter.endsWith("*")) {
+          // Prefix matching: "011*" matches all groups starting with "011"
+          const prefix = groupFilter.slice(0, -1);
+          if (!articleGroup.startsWith(prefix)) return false;
+        } else {
+          // Exact match
+          if (articleGroup !== groupFilter) return false;
+        }
+      }
 
       // Unit filter
       if (filters.unit && article.unit !== filters.unit) return false;
@@ -465,23 +477,12 @@ export default function Artikli() {
 
                   {/* Group Filter */}
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Grupa</Label>
-                    <Select
+                    <Label className="text-xs text-muted-foreground">Grupa (npr. 011*)</Label>
+                    <Input
+                      placeholder="Unesite grupu ili prefiks*"
                       value={filters.articleGroup}
-                      onValueChange={(value) => setFilters({ ...filters, articleGroup: value === "all" ? "" : value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sve" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Sve</SelectItem>
-                        {uniqueGroups.map((group) => (
-                          <SelectItem key={group} value={group}>
-                            {group}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={(e) => setFilters({ ...filters, articleGroup: e.target.value })}
+                    />
                   </div>
 
                   {/* Unit Filter */}
