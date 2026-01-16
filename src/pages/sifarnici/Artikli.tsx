@@ -569,13 +569,22 @@ export default function Artikli() {
           }
           
           // Parse SVK - accept both numeric (0, 1, 2, 6, 8, 9) and string values
-          let svkRaw = row['SVK'] || row['svk'];
+          // Check multiple possible column names for SVK
+          let svkRaw = row['SVK'] ?? row['svk'] ?? row['Svk'] ?? row['S.V.K.'] ?? row['s.v.k.'];
           let svk = '1'; // default
+          
+          // Debug: log all column names and SVK value for first few rows
+          if (index < 3) {
+            console.log(`Row ${rowNum} columns:`, Object.keys(row));
+            console.log(`Row ${rowNum} SVK raw value:`, svkRaw, 'type:', typeof svkRaw);
+          }
+          
           if (svkRaw !== undefined && svkRaw !== null && svkRaw !== '') {
             const svkStr = String(svkRaw).trim().charAt(0); // Take first character (handles "0 - Usluge" format)
             if (['0', '1', '2', '6', '8', '9'].includes(svkStr)) {
               svk = svkStr;
             }
+            console.log(`Row ${rowNum} SVK parsed:`, svk, 'from:', svkRaw);
           }
           
           // Parse numeric values
