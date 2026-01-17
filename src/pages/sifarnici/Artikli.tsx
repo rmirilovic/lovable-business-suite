@@ -808,8 +808,9 @@ export default function Artikli() {
                     paginatedArticles.map((article, index) => (
                       <tr
                         key={article.id}
-                        className="hover:bg-table-hover transition-colors animate-fade-in"
+                        className={`hover:bg-table-hover transition-colors animate-fade-in ${canEdit ? 'cursor-pointer' : ''}`}
                         style={{ animationDelay: `${index * 30}ms` }}
+                        onClick={() => canEdit && handleEdit(article)}
                       >
                         <td className="p-3">
                           <span className="font-mono text-sm text-primary">
@@ -845,7 +846,7 @@ export default function Artikli() {
                             {article.is_active ? "Aktivan" : "Neaktivan"}
                           </span>
                         </td>
-                        <td className="p-3">
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end">
                             <button
                               className="p-1.5 rounded hover:bg-secondary transition-colors"
