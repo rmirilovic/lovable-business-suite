@@ -165,23 +165,20 @@ export function ExportColumnsDialog({
 
           <div className="grid grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2">
             {columns.map((col) => (
-              <div
+              <label
                 key={col.key}
+                htmlFor={`col-${col.key}`}
                 className="flex items-center space-x-2 p-2 rounded hover:bg-muted/50 cursor-pointer"
-                onClick={() => toggleColumn(col.key)}
               >
                 <Checkbox
                   id={`col-${col.key}`}
                   checked={col.checked}
-                  onCheckedChange={() => {}}
-                  onClick={(e) => e.stopPropagation()}
+                  onCheckedChange={() => toggleColumn(col.key)}
                 />
-                <Label
-                  className="text-sm cursor-pointer flex-1"
-                >
+                <span className="text-sm flex-1">
                   {col.label}
-                </Label>
-              </div>
+                </span>
+              </label>
             ))}
           </div>
 
