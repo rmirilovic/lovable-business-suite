@@ -48,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [selectedYear, setSelectedYear] = useState<BusinessYear | null>(null);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [localAdminCompanyIds, setLocalAdminCompanyIds] = useState<string[]>([]);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   const isSuperAdmin = userRole === "super_admin";
   const isLocalAdmin = localAdminCompanyIds.length > 0;
@@ -87,19 +88,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        if (session?.user) {
+        // Only fetch data on initial sign in or when user changes
+        // Ignore TOKEN_REFRESHED events to prevent reloads on window focus
+        if (session?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
           setTimeout(() => {
             fetchUserCompanies(session.user.id);
             fetchUserRole(session.user.id);
             fetchLocalAdminCompanies(session.user.id);
+            setInitialLoadDone(true);
           }, 0);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           setCompanies([]);
           setBusinessYears([]);
           setSelectedCompany(null);
           setSelectedYear(null);
           setUserRole(null);
           setLocalAdminCompanyIds([]);
+          setInitialLoadDone(false);
         }
       }
     );
@@ -109,10 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       setLoading(false);
 
-      if (session?.user) {
+      if (session?.user && !initialLoadDone) {
         fetchUserCompanies(session.user.id);
         fetchUserRole(session.user.id);
         fetchLocalAdminCompanies(session.user.id);
+        setInitialLoadDone(true);
       }
     });
 
