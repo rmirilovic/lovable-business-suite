@@ -176,7 +176,8 @@ export default function Artikli() {
   const [deletingArticle, setDeletingArticle] = useState<Article | null>(null);
   const [formData, setFormData] = useState<ArticleForm>(emptyForm);
   const [saving, setSaving] = useState(false);
-  
+
+  const lastFetchKeyRef = useRef<string | null>(null);
 
   const canEdit = isSuperAdmin || isLocalAdmin;
 
@@ -200,10 +201,16 @@ export default function Artikli() {
   }, [filters]);
 
   useEffect(() => {
-    if (selectedCompany && selectedYear) {
-      fetchArticles();
-    }
-  }, [selectedCompany, selectedYear]);
+    const companyId = selectedCompany?.id;
+    const yearId = selectedYear?.id;
+    if (!companyId || !yearId) return;
+
+    const key = `${companyId}:${yearId}`;
+    if (lastFetchKeyRef.current === key) return;
+    lastFetchKeyRef.current = key;
+
+    fetchArticles();
+  }, [selectedCompany?.id, selectedYear?.id]);
 
   const fetchArticles = async () => {
     if (!selectedCompany || !selectedYear) return;
