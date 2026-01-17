@@ -68,6 +68,7 @@ import {
 import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog";
 import { ArticleHistoryDialog } from "@/components/sifarnici/ArticleHistoryDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
+import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -543,6 +544,11 @@ export default function Artikli() {
       if (['purchase_price', 'selling_price', 'stock', 'min_stock', 'kg_po_jm', 'kol_mas'].includes(field)) {
         updateValue = parseLocaleNumber(value);
       }
+      
+      // Parse boolean fields
+      if (field === 'is_active') {
+        updateValue = value === 'true';
+      }
 
       const { error } = await supabase
         .from("articles")
@@ -912,10 +918,15 @@ export default function Artikli() {
                             className="text-muted-foreground"
                           />
                         </td>
-                        <td className="p-3 text-center">
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-secondary text-secondary-foreground text-xs font-medium">
-                            {article.svk || "1"}
-                          </span>
+                        <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <InlineSelectCell
+                            value={article.svk || "1"}
+                            options={SVK_OPTIONS}
+                            onSave={(val) => handleInlineEdit(article.id, 'svk', val)}
+                            disabled={!canEdit}
+                            displayValue={article.svk || "1"}
+                            className="inline-flex items-center justify-center w-6 h-6 rounded bg-secondary text-secondary-foreground text-xs font-medium"
+                          />
                         </td>
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
                           <InlineEditCell
@@ -947,16 +958,24 @@ export default function Artikli() {
                             className="font-mono"
                           />
                         </td>
-                        <td className="p-3 text-center">
-                          <span
+                        <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <InlineSelectCell
+                            value={article.is_active ? "active" : "inactive"}
+                            options={[
+                              { value: "active", label: "Aktivan" },
+                              { value: "inactive", label: "Neaktivan" },
+                            ]}
+                            onSave={async (val) => {
+                              const isActive = val === "active";
+                              await handleInlineEdit(article.id, 'is_active', String(isActive));
+                            }}
+                            disabled={!canEdit}
                             className={
                               article.is_active
                                 ? "erp-badge-success"
                                 : "erp-badge-destructive"
                             }
-                          >
-                            {article.is_active ? "Aktivan" : "Neaktivan"}
-                          </span>
+                          />
                         </td>
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end">
