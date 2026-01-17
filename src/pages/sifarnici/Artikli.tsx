@@ -968,6 +968,27 @@ export default function Artikli() {
                   >
                     <ChevronsRight className="h-4 w-4" />
                   </Button>
+                  
+                  <div className="flex items-center gap-2 ml-4 pl-4 border-l border-border">
+                    <Label className="text-sm text-muted-foreground whitespace-nowrap">Idi na stranicu:</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={totalPages}
+                      className="w-16 h-8 text-center"
+                      placeholder="1"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const value = parseInt((e.target as HTMLInputElement).value);
+                          if (value >= 1 && value <= totalPages) {
+                            goToPage(value);
+                            (e.target as HTMLInputElement).value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">od {totalPages}</span>
+                  </div>
                 </div>
               )}
             </div>
