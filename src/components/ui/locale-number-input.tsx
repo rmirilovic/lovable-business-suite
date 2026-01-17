@@ -1,6 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { getUserLocale } from "@/lib/formatting";
+import { getUserLocale, parseLocaleNumber } from "@/lib/formatting";
 
 export interface LocaleNumberInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
@@ -14,44 +14,93 @@ const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputPr
     const [displayValue, setDisplayValue] = React.useState(value);
     
     // Get locale-specific separators
-    const decimalSeparator = React.useMemo(() => {
-      return new Intl.NumberFormat(getUserLocale())
-        .formatToParts(1.1)
-        .find(part => part.type === 'decimal')?.value || '.';
+    const { decimalSeparator, groupSeparator } = React.useMemo(() => {
+      const locale = getUserLocale();
+      const parts = new Intl.NumberFormat(locale).formatToParts(1234.5);
+      return {
+        decimalSeparator: parts.find(p => p.type === 'decimal')?.value || ',',
+        groupSeparator: parts.find(p => p.type === 'group')?.value || '.',
+      };
     }, []);
 
-    // Convert stored value (with dot) to display value (with locale separator)
-    React.useEffect(() => {
-      if (value !== undefined) {
-        const display = value.toString().replace('.', decimalSeparator);
-        setDisplayValue(display);
+    // Normalize input: handle dot-decimal input in comma-locale
+    const normalizeInput = React.useCallback((input: string): string => {
+      let normalized = input.trim();
+      
+      // Remove any whitespace/NBSP characters (some locales use them)
+      normalized = normalized.replace(/[\s\u00A0]/g, '');
+      
+      // If locale uses comma as decimal and user typed dot-decimal (e.g. "7215.00"),
+      // convert to locale format. Heuristic: looks like "digits.1-2digits" with no comma
+      if (decimalSeparator === ',' && normalized.includes('.') && !normalized.includes(',')) {
+        // Check if it matches a dot-decimal pattern (e.g., "7215.00", "-123.5")
+        if (/^-?\d+\.\d{1,}$/.test(normalized)) {
+          normalized = normalized.replace('.', ',');
+        }
       }
-    }, [value, decimalSeparator]);
+      
+      return normalized;
+    }, [decimalSeparator]);
+
+    // Format number for display (locale string without grouping for editing clarity)
+    const formatForEdit = React.useCallback((num: number): string => {
+      if (isNaN(num)) return '';
+      // Use toFixed for precision, then replace dot with locale decimal separator
+      const fixed = num.toFixed(decimalPlaces);
+      return fixed.replace('.', decimalSeparator);
+    }, [decimalPlaces, decimalSeparator]);
+
+    // Convert stored value to display value when external value changes
+    React.useEffect(() => {
+      if (value !== undefined && value !== null) {
+        // Value from form state is in locale format - use as-is
+        setDisplayValue(value.toString());
+      }
+    }, [value]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let inputValue = e.target.value;
       
-      // Allow empty, minus sign, and numbers with decimal separator
-      const validPattern = new RegExp(`^-?[0-9]*[${decimalSeparator}.]?[0-9]*$`);
+      // Build regex that allows: minus, digits, group separator, one decimal separator
+      const escapedDecimal = decimalSeparator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedGroup = groupSeparator ? groupSeparator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') : '';
+      
+      // Allow both locale separators and also dot (for user convenience - will normalize on blur)
+      const validPattern = new RegExp(`^-?[0-9${escapedGroup}]*[${escapedDecimal}.]?[0-9]*$`);
       
       if (inputValue === '' || inputValue === '-' || validPattern.test(inputValue)) {
         setDisplayValue(inputValue);
         
-        // Convert to standard format (with dot) for storage
-        const standardValue = inputValue.replace(decimalSeparator, '.');
-        onChange(standardValue);
+        // Normalize and send to form state
+        const normalized = normalizeInput(inputValue);
+        onChange(normalized);
       }
     };
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-      // Format the number on blur
       if (displayValue && displayValue !== '-') {
-        const numValue = parseFloat(displayValue.replace(decimalSeparator, '.'));
-        if (!isNaN(numValue)) {
-          const formatted = numValue.toFixed(decimalPlaces).replace('.', decimalSeparator);
-          setDisplayValue(formatted);
-          onChange(numValue.toFixed(decimalPlaces));
+        // Normalize input first (handle dot-decimal, whitespace, etc.)
+        const normalized = normalizeInput(displayValue);
+        
+        // Remove group separators for parsing
+        let forParsing = normalized;
+        if (groupSeparator) {
+          forParsing = forParsing.split(groupSeparator).join('');
         }
+        
+        // Parse using locale-aware parser
+        const numValue = parseLocaleNumber(forParsing);
+        
+        if (!isNaN(numValue)) {
+          // Format back to locale string (without grouping, for edit clarity)
+          const formatted = formatForEdit(numValue);
+          setDisplayValue(formatted);
+          onChange(formatted);
+        }
+      } else if (displayValue === '' || displayValue === '-') {
+        const formatted = formatForEdit(0);
+        setDisplayValue(formatted);
+        onChange(formatted);
       }
       props.onBlur?.(e);
     };

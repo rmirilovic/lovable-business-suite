@@ -57,9 +57,17 @@ export const formatInteger = (value: number | null | undefined): string => {
 /**
  * Parse a locale-formatted number string to a number
  * Handles both comma and dot as decimal separators
+ * Includes defensive heuristic for dot-decimal strings in comma-locales
  */
 export const parseLocaleNumber = (value: string): number => {
   if (!value || value.trim() === '') {
+    return 0;
+  }
+  
+  // Clean whitespace and NBSP
+  let normalized = value.toString().trim().replace(/[\s\u00A0]/g, '');
+  
+  if (normalized === '' || normalized === '-') {
     return 0;
   }
   
@@ -72,15 +80,23 @@ export const parseLocaleNumber = (value: string): number => {
     .formatToParts(1000)
     .find(part => part.type === 'group')?.value || ',';
   
-  // Remove thousand separators and replace decimal separator with dot
-  let normalized = value.toString();
+  // DEFENSIVE HEURISTIC: If locale uses comma as decimal but input looks like
+  // a pure dot-decimal number (e.g., "7215.00"), treat dot as decimal.
+  // This prevents "7215.00" becoming 721500.
+  if (decimalSeparator === ',' && normalized.includes('.') && !normalized.includes(',')) {
+    // Pattern: optional minus, digits, dot, 1+ digits (no comma present)
+    if (/^-?\d+\.\d+$/.test(normalized)) {
+      // It's a dot-decimal number - parse directly
+      const parsed = parseFloat(normalized);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+  }
   
-  // Remove thousand separators
+  // Standard locale parsing: remove thousand separators, replace decimal with dot
   if (thousandSeparator) {
     normalized = normalized.split(thousandSeparator).join('');
   }
   
-  // Replace decimal separator with dot for parsing
   if (decimalSeparator !== '.') {
     normalized = normalized.replace(decimalSeparator, '.');
   }
