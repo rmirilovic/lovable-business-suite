@@ -149,7 +149,7 @@ export default function Artikli() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<ArticleFilters>(emptyFilters);
   
@@ -405,19 +405,6 @@ export default function Artikli() {
     setFilters(emptyFilters);
   };
 
-  const toggleSelectAll = () => {
-    if (selectedItems.length === sortedArticles.length) {
-      setSelectedItems([]);
-    } else {
-      setSelectedItems(sortedArticles.map((a) => a.id));
-    }
-  };
-
-  const toggleSelect = (id: string) => {
-    setSelectedItems((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
 
   const handleAdd = () => {
     setEditingArticle(null);
@@ -730,17 +717,6 @@ export default function Artikli() {
               <table className="w-full">
                 <thead>
                   <tr className="erp-table-header">
-                    <th className="w-12 p-3 text-left">
-                      <input
-                        type="checkbox"
-                        className="rounded border-border"
-                        checked={
-                          selectedItems.length === sortedArticles.length &&
-                          sortedArticles.length > 0
-                        }
-                        onChange={toggleSelectAll}
-                      />
-                    </th>
                     <th 
                       className="p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('code')}
@@ -819,7 +795,7 @@ export default function Artikli() {
                 <tbody className="divide-y divide-border">
                   {paginatedArticles.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={9} className="p-8 text-center text-muted-foreground">
                         {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
@@ -830,14 +806,6 @@ export default function Artikli() {
                         className="hover:bg-table-hover transition-colors animate-fade-in"
                         style={{ animationDelay: `${index * 30}ms` }}
                       >
-                        <td className="p-3">
-                          <input
-                            type="checkbox"
-                            className="rounded border-border"
-                            checked={selectedItems.includes(article.id)}
-                            onChange={() => toggleSelect(article.id)}
-                          />
-                        </td>
                         <td className="p-3">
                           <span className="font-mono text-sm text-primary">
                             {article.code}
