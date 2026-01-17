@@ -808,9 +808,9 @@ export default function Artikli() {
                     paginatedArticles.map((article, index) => (
                       <tr
                         key={article.id}
-                        className={`hover:bg-table-hover transition-colors animate-fade-in ${canEdit ? 'cursor-pointer' : ''}`}
+                        className="hover:bg-table-hover transition-colors animate-fade-in cursor-pointer"
                         style={{ animationDelay: `${index * 30}ms` }}
-                        onClick={() => canEdit && handleEdit(article)}
+                        onClick={() => canEdit ? handleEdit(article) : handleView(article)}
                       >
                         <td className="p-3">
                           <span className="font-mono text-sm text-primary">
