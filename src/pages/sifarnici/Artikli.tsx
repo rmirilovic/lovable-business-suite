@@ -726,7 +726,7 @@ export default function Artikli() {
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Klasa (npr. 011*)</Label>
                     <Input
-                      placeholder="Unesite grupu ili prefiks*"
+                      placeholder="Unesite klasu ili prefiks*"
                       value={filters.articleGroup}
                       onChange={(e) => setFilters({ ...filters, articleGroup: e.target.value })}
                     />
