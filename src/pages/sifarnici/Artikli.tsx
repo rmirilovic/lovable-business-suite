@@ -179,9 +179,16 @@ export default function Artikli() {
   const [formData, setFormData] = useState<ArticleForm>(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  // Inline editing navigation state
+  const [activeEditCell, setActiveEditCell] = useState<{ articleId: string; field: string } | null>(null);
+
   const lastFetchKeyRef = useRef<string | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const savedScrollPositionRef = useRef<number | null>(null);
+
+  // Define editable fields order for Tab navigation
+  const editableFields = ['name', 'article_group', 'unit', 'purchase_price', 'selling_price'] as const;
+  type EditableField = typeof editableFields[number];
 
   const canEdit = isSuperAdmin || isLocalAdmin;
 
@@ -577,6 +584,40 @@ export default function Artikli() {
     }
   };
 
+  // Navigation functions for inline editing
+  const navigateToCell = (articleId: string, field: string, direction: 'next' | 'prev') => {
+    const currentFieldIndex = editableFields.indexOf(field as EditableField);
+    const currentArticleIndex = paginatedArticles.findIndex(a => a.id === articleId);
+    
+    if (currentFieldIndex === -1 || currentArticleIndex === -1) {
+      setActiveEditCell(null);
+      return;
+    }
+
+    let nextFieldIndex = direction === 'next' ? currentFieldIndex + 1 : currentFieldIndex - 1;
+    let nextArticleIndex = currentArticleIndex;
+
+    // Handle field overflow
+    if (nextFieldIndex >= editableFields.length) {
+      nextFieldIndex = 0;
+      nextArticleIndex = currentArticleIndex + 1;
+    } else if (nextFieldIndex < 0) {
+      nextFieldIndex = editableFields.length - 1;
+      nextArticleIndex = currentArticleIndex - 1;
+    }
+
+    // Check article bounds
+    if (nextArticleIndex < 0 || nextArticleIndex >= paginatedArticles.length) {
+      setActiveEditCell(null);
+      return;
+    }
+
+    const nextArticle = paginatedArticles[nextArticleIndex];
+    const nextField = editableFields[nextFieldIndex];
+    
+    setActiveEditCell({ articleId: nextArticle.id, field: nextField });
+  };
+
   const handleDelete = async () => {
     if (!deletingArticle) return;
 
@@ -904,6 +945,11 @@ export default function Artikli() {
                             onSave={(val) => handleInlineEdit(article.id, 'name', val)}
                             disabled={!canEdit}
                             className="font-medium text-foreground"
+                            isEditing={activeEditCell?.articleId === article.id && activeEditCell?.field === 'name'}
+                            onStartEdit={() => setActiveEditCell({ articleId: article.id, field: 'name' })}
+                            onTabNext={() => navigateToCell(article.id, 'name', 'next')}
+                            onTabPrev={() => navigateToCell(article.id, 'name', 'prev')}
+                            onCancel={() => setActiveEditCell(null)}
                           />
                         </td>
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
@@ -913,6 +959,11 @@ export default function Artikli() {
                             disabled={!canEdit}
                             displayValue={article.article_group || "-"}
                             className="text-muted-foreground"
+                            isEditing={activeEditCell?.articleId === article.id && activeEditCell?.field === 'article_group'}
+                            onStartEdit={() => setActiveEditCell({ articleId: article.id, field: 'article_group' })}
+                            onTabNext={() => navigateToCell(article.id, 'article_group', 'next')}
+                            onTabPrev={() => navigateToCell(article.id, 'article_group', 'prev')}
+                            onCancel={() => setActiveEditCell(null)}
                           />
                         </td>
                         <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -931,6 +982,11 @@ export default function Artikli() {
                             onSave={(val) => handleInlineEdit(article.id, 'unit', val)}
                             disabled={!canEdit}
                             className="text-muted-foreground"
+                            isEditing={activeEditCell?.articleId === article.id && activeEditCell?.field === 'unit'}
+                            onStartEdit={() => setActiveEditCell({ articleId: article.id, field: 'unit' })}
+                            onTabNext={() => navigateToCell(article.id, 'unit', 'next')}
+                            onTabPrev={() => navigateToCell(article.id, 'unit', 'prev')}
+                            onCancel={() => setActiveEditCell(null)}
                           />
                         </td>
                         <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
@@ -942,6 +998,11 @@ export default function Artikli() {
                             disabled={!canEdit}
                             displayValue={formatPrice(article.purchase_price)}
                             className="font-mono"
+                            isEditing={activeEditCell?.articleId === article.id && activeEditCell?.field === 'purchase_price'}
+                            onStartEdit={() => setActiveEditCell({ articleId: article.id, field: 'purchase_price' })}
+                            onTabNext={() => navigateToCell(article.id, 'purchase_price', 'next')}
+                            onTabPrev={() => navigateToCell(article.id, 'purchase_price', 'prev')}
+                            onCancel={() => setActiveEditCell(null)}
                           />
                         </td>
                         <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
@@ -953,6 +1014,11 @@ export default function Artikli() {
                             disabled={!canEdit}
                             displayValue={formatPrice(article.selling_price)}
                             className="font-mono"
+                            isEditing={activeEditCell?.articleId === article.id && activeEditCell?.field === 'selling_price'}
+                            onStartEdit={() => setActiveEditCell({ articleId: article.id, field: 'selling_price' })}
+                            onTabNext={() => navigateToCell(article.id, 'selling_price', 'next')}
+                            onTabPrev={() => navigateToCell(article.id, 'selling_price', 'prev')}
+                            onCancel={() => setActiveEditCell(null)}
                           />
                         </td>
                         <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
