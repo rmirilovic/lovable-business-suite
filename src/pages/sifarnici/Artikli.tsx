@@ -609,7 +609,7 @@ export default function Artikli() {
 
                   {/* Group Filter */}
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Grupa (npr. 011*)</Label>
+                    <Label className="text-xs text-muted-foreground">Klasa (npr. 011*)</Label>
                     <Input
                       placeholder="Unesite grupu ili prefiks*"
                       value={filters.articleGroup}
@@ -764,7 +764,7 @@ export default function Artikli() {
                       onClick={() => handleSort('article_group')}
                     >
                       <div className="flex items-center">
-                        Grupa
+                        Klasa
                         <SortIndicator column="article_group" />
                       </div>
                     </th>
@@ -1043,7 +1043,7 @@ export default function Artikli() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="group">Grupa</Label>
+              <Label htmlFor="group">Klasa</Label>
               <Input
                 id="group"
                 value={formData.article_group}
@@ -1201,7 +1201,7 @@ export default function Artikli() {
                 <p className="font-medium">{viewingArticle.name}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Grupa</p>
+                <p className="text-sm text-muted-foreground">Klasa</p>
                 <p className="font-medium">{viewingArticle.article_group || "-"}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
