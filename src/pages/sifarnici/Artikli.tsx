@@ -64,6 +64,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -165,6 +166,7 @@ export default function Artikli() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [viewingArticle, setViewingArticle] = useState<Article | null>(null);
   const [deletingArticle, setDeletingArticle] = useState<Article | null>(null);
@@ -555,7 +557,10 @@ export default function Artikli() {
               </button>
             </div>
             <div className="flex gap-3">
-              <button className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80">
+              <button 
+                className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                onClick={() => setIsExportOpen(true)}
+              >
                 <Download className="w-4 h-4" />
                 <span className="hidden md:inline">Izvoz</span>
               </button>
@@ -1263,6 +1268,14 @@ export default function Artikli() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Export Dialog */}
+      <ExportColumnsDialog
+        open={isExportOpen}
+        onOpenChange={setIsExportOpen}
+        articles={sortedArticles}
+        companyName={selectedCompany?.name}
+      />
 
     </MainLayout>
   );
