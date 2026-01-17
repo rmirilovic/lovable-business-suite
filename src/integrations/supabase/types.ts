@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_history: {
+        Row: {
+          article_id: string
+          change_type: string
+          changed_at: string
+          changed_by: string
+          company_id: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+        }
+        Insert: {
+          article_id: string
+          change_type: string
+          changed_at?: string
+          changed_by: string
+          company_id: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+        }
+        Update: {
+          article_id?: string
+          change_type?: string
+          changed_at?: string
+          changed_by?: string
+          company_id?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+        }
+        Relationships: []
+      }
       articles: {
         Row: {
           article_group: string | null
