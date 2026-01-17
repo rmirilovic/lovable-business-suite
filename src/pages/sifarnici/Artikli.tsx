@@ -67,6 +67,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog";
 import { ArticleHistoryDialog } from "@/components/sifarnici/ArticleHistoryDialog";
+import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -528,6 +529,48 @@ export default function Artikli() {
     }
   };
 
+  // Inline edit handler - updates single field without opening dialog
+  const handleInlineEdit = async (articleId: string, field: keyof Article, value: string) => {
+    // Save scroll position
+    if (tableContainerRef.current) {
+      savedScrollPositionRef.current = tableContainerRef.current.scrollTop;
+    }
+
+    try {
+      let updateValue: any = value;
+      
+      // Parse numeric fields
+      if (['purchase_price', 'selling_price', 'stock', 'min_stock', 'kg_po_jm', 'kol_mas'].includes(field)) {
+        updateValue = parseLocaleNumber(value);
+      }
+
+      const { error } = await supabase
+        .from("articles")
+        .update({ [field]: updateValue })
+        .eq("id", articleId);
+
+      if (error) throw error;
+      
+      // Update local state immediately for responsiveness
+      setArticles(prev => prev.map(a => 
+        a.id === articleId ? { ...a, [field]: updateValue } : a
+      ));
+      
+      toast.success("Izmena sačuvana");
+      
+      // Restore scroll position
+      requestAnimationFrame(() => {
+        if (tableContainerRef.current && savedScrollPositionRef.current !== null) {
+          tableContainerRef.current.scrollTop = savedScrollPositionRef.current;
+          savedScrollPositionRef.current = null;
+        }
+      });
+    } catch (error: any) {
+      toast.error("Greška pri čuvanju: " + error.message);
+      throw error; // Re-throw to keep cell in edit mode
+    }
+  };
+
   const handleDelete = async () => {
     if (!deletingArticle) return;
 
@@ -841,32 +884,68 @@ export default function Artikli() {
                     paginatedArticles.map((article, index) => (
                       <tr
                         key={article.id}
-                        className="hover:bg-table-hover transition-colors animate-fade-in cursor-pointer"
+                        className="hover:bg-table-hover transition-colors animate-fade-in"
                         style={{ animationDelay: `${index * 30}ms` }}
-                        onClick={() => canEdit ? handleEdit(article) : handleView(article)}
                       >
-                        <td className="p-3">
-                          <span className="font-mono text-sm text-primary">
-                            {article.code}
-                          </span>
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                          <InlineEditCell
+                            value={article.code}
+                            onSave={(val) => handleInlineEdit(article.id, 'code', val)}
+                            disabled={!canEdit}
+                            className="font-mono text-sm text-primary"
+                          />
                         </td>
-                        <td className="p-3 font-medium text-foreground">
-                          {article.name}
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                          <InlineEditCell
+                            value={article.name}
+                            onSave={(val) => handleInlineEdit(article.id, 'name', val)}
+                            disabled={!canEdit}
+                            className="font-medium text-foreground"
+                          />
                         </td>
-                        <td className="p-3 text-muted-foreground">
-                          {article.article_group || "-"}
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                          <InlineEditCell
+                            value={article.article_group || ""}
+                            onSave={(val) => handleInlineEdit(article.id, 'article_group', val)}
+                            disabled={!canEdit}
+                            displayValue={article.article_group || "-"}
+                            className="text-muted-foreground"
+                          />
                         </td>
                         <td className="p-3 text-center">
                           <span className="inline-flex items-center justify-center w-6 h-6 rounded bg-secondary text-secondary-foreground text-xs font-medium">
                             {article.svk || "1"}
                           </span>
                         </td>
-                        <td className="p-3 text-muted-foreground">{article.unit}</td>
-                        <td className="p-3 text-right font-mono">
-                          {formatPrice(article.purchase_price)}
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                          <InlineEditCell
+                            value={article.unit}
+                            onSave={(val) => handleInlineEdit(article.id, 'unit', val)}
+                            disabled={!canEdit}
+                            className="text-muted-foreground"
+                          />
                         </td>
-                        <td className="p-3 text-right font-mono">
-                          {formatPrice(article.selling_price)}
+                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          <InlineEditCell
+                            value={String(article.purchase_price)}
+                            onSave={(val) => handleInlineEdit(article.id, 'purchase_price', val)}
+                            type="number"
+                            decimalPlaces={2}
+                            disabled={!canEdit}
+                            displayValue={formatPrice(article.purchase_price)}
+                            className="font-mono"
+                          />
+                        </td>
+                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          <InlineEditCell
+                            value={String(article.selling_price)}
+                            onSave={(val) => handleInlineEdit(article.id, 'selling_price', val)}
+                            type="number"
+                            decimalPlaces={2}
+                            disabled={!canEdit}
+                            displayValue={formatPrice(article.selling_price)}
+                            className="font-mono"
+                          />
                         </td>
                         <td className="p-3 text-center">
                           <span
@@ -900,7 +979,7 @@ export default function Artikli() {
                                 <button
                                   className="p-1.5 rounded hover:bg-secondary transition-colors"
                                   onClick={() => handleEdit(article)}
-                                  title="Izmeni"
+                                  title="Izmeni sve"
                                 >
                                   <Edit2 className="w-4 h-4 text-muted-foreground" />
                                 </button>
