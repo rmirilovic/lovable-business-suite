@@ -84,20 +84,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // Keep session/user in sync, but avoid expensive re-fetching on token refresh.
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Only fetch data on initial sign in or when user changes
-        // Ignore TOKEN_REFRESHED events to prevent reloads on window focus
-        if (session?.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-          setTimeout(() => {
-            fetchUserCompanies(session.user.id);
-            fetchUserRole(session.user.id);
-            fetchLocalAdminCompanies(session.user.id);
-            setInitialLoadDone(true);
-          }, 0);
-        } else if (event === 'SIGNED_OUT') {
+        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+          if (session?.user) {
+            setTimeout(() => {
+              fetchUserCompanies(session.user.id);
+              fetchUserRole(session.user.id);
+              fetchLocalAdminCompanies(session.user.id);
+              setInitialLoadDone(true);
+            }, 0);
+          }
+          return;
+        }
+
+        if (event === "SIGNED_OUT") {
           setCompanies([]);
           setBusinessYears([]);
           setSelectedCompany(null);
@@ -105,7 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUserRole(null);
           setLocalAdminCompanyIds([]);
           setInitialLoadDone(false);
+          return;
         }
+
+        // Ignore TOKEN_REFRESHED/USER_UPDATED/etc.
       }
     );
 
