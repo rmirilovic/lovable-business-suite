@@ -19,6 +19,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  History,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -65,6 +66,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog";
+import { ArticleHistoryDialog } from "@/components/sifarnici/ArticleHistoryDialog";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -167,6 +169,8 @@ export default function Artikli() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historyArticle, setHistoryArticle] = useState<Article | null>(null);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [viewingArticle, setViewingArticle] = useState<Article | null>(null);
   const [deletingArticle, setDeletingArticle] = useState<Article | null>(null);
@@ -436,6 +440,11 @@ export default function Artikli() {
   const handleView = (article: Article) => {
     setViewingArticle(article);
     setIsViewOpen(true);
+  };
+
+  const handleHistory = (article: Article) => {
+    setHistoryArticle(article);
+    setIsHistoryOpen(true);
   };
 
   const handleDeleteClick = (article: Article) => {
@@ -851,20 +860,30 @@ export default function Artikli() {
                             <button
                               className="p-1.5 rounded hover:bg-secondary transition-colors"
                               onClick={() => handleView(article)}
+                              title="Pregled"
                             >
                               <Eye className="w-4 h-4 text-muted-foreground" />
+                            </button>
+                            <button
+                              className="p-1.5 rounded hover:bg-secondary transition-colors"
+                              onClick={() => handleHistory(article)}
+                              title="Istorija izmena"
+                            >
+                              <History className="w-4 h-4 text-muted-foreground" />
                             </button>
                             {canEdit && (
                               <>
                                 <button
                                   className="p-1.5 rounded hover:bg-secondary transition-colors"
                                   onClick={() => handleEdit(article)}
+                                  title="Izmeni"
                                 >
                                   <Edit2 className="w-4 h-4 text-muted-foreground" />
                                 </button>
                                 <button
                                   className="p-1.5 rounded hover:bg-secondary transition-colors"
                                   onClick={() => handleDeleteClick(article)}
+                                  title="Obriši"
                                 >
                                   <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                                 </button>
@@ -1243,7 +1262,18 @@ export default function Artikli() {
               </div>
             </div>
           )}
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                if (viewingArticle) {
+                  handleHistory(viewingArticle);
+                }
+              }}
+            >
+              <History className="w-4 h-4 mr-2" />
+              Istorija
+            </Button>
             <Button variant="outline" onClick={() => setIsViewOpen(false)}>
               Zatvori
             </Button>
@@ -1277,6 +1307,16 @@ export default function Artikli() {
         articles={sortedArticles}
         companyName={selectedCompany?.name}
       />
+
+      {/* History Dialog */}
+      {historyArticle && (
+        <ArticleHistoryDialog
+          open={isHistoryOpen}
+          onOpenChange={setIsHistoryOpen}
+          articleId={historyArticle.id}
+          articleName={historyArticle.name}
+        />
+      )}
 
     </MainLayout>
   );
