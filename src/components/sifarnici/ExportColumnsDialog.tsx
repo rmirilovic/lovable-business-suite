@@ -173,10 +173,10 @@ export function ExportColumnsDialog({
                 <Checkbox
                   id={`col-${col.key}`}
                   checked={col.checked}
-                  onCheckedChange={() => toggleColumn(col.key)}
+                  onCheckedChange={() => {}}
+                  onClick={(e) => e.stopPropagation()}
                 />
                 <Label
-                  htmlFor={`col-${col.key}`}
                   className="text-sm cursor-pointer flex-1"
                 >
                   {col.label}
