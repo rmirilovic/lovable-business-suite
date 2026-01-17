@@ -5,7 +5,6 @@ import {
   Plus,
   Filter,
   Download,
-  Upload,
   Edit2,
   Trash2,
   Eye,
@@ -20,9 +19,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  FileSpreadsheet,
 } from "lucide-react";
-import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -174,12 +171,6 @@ export default function Artikli() {
   const [formData, setFormData] = useState<ArticleForm>(emptyForm);
   const [saving, setSaving] = useState(false);
   
-  // Import state
-  const [isImportOpen, setIsImportOpen] = useState(false);
-  const [importData, setImportData] = useState<any[]>([]);
-  const [importErrors, setImportErrors] = useState<string[]>([]);
-  const [importing, setImporting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canEdit = isSuperAdmin || isLocalAdmin;
 
@@ -534,193 +525,6 @@ export default function Artikli() {
     }
   };
 
-  // Excel Import Functions
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = e.target?.result;
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
-        
-        // Validate and transform data
-        const errors: string[] = [];
-        const validData: any[] = [];
-        
-        jsonData.forEach((row: any, index: number) => {
-          const rowNum = index + 2; // Excel row number (1-indexed + header)
-          
-          // Check required fields
-          const code = row['Šifra'] || row['sifra'] || row['Code'] || row['code'];
-          const name = row['Naziv'] || row['naziv'] || row['Name'] || row['name'];
-          
-          if (!code) {
-            errors.push(`Red ${rowNum}: Nedostaje šifra`);
-            return;
-          }
-          if (!name) {
-            errors.push(`Red ${rowNum}: Nedostaje naziv`);
-            return;
-          }
-          
-          // Parse SVK - accept both numeric (0, 1, 2, 6, 8, 9) and string values
-          // Check multiple possible column names for SVK
-          let svkRaw = row['SVK'] ?? row['svk'] ?? row['Svk'] ?? row['S.V.K.'] ?? row['s.v.k.'];
-          let svk = '1'; // default
-          
-          // Debug: log all column names and SVK value for first few rows
-          if (index < 3) {
-            console.log(`Row ${rowNum} columns:`, Object.keys(row));
-            console.log(`Row ${rowNum} SVK raw value:`, svkRaw, 'type:', typeof svkRaw);
-          }
-          
-          if (svkRaw !== undefined && svkRaw !== null && svkRaw !== '') {
-            const svkStr = String(svkRaw).trim().charAt(0); // Take first character (handles "0 - Usluge" format)
-            if (['0', '1', '2', '6', '8', '9'].includes(svkStr)) {
-              svk = svkStr;
-            }
-            console.log(`Row ${rowNum} SVK parsed:`, svk, 'from:', svkRaw);
-          }
-          
-          // Parse numeric values
-          const parseNumber = (val: any): number => {
-            if (val === null || val === undefined || val === '') return 0;
-            if (typeof val === 'number') return val;
-            // Handle comma as decimal separator
-            const parsed = parseFloat(String(val).replace(/\s/g, '').replace(',', '.'));
-            return isNaN(parsed) ? 0 : parsed;
-          };
-          
-          validData.push({
-            code: String(code).trim(),
-            name: String(name).trim(),
-            article_group: row['Grupa'] || row['grupa'] || row['Group'] || row['group'] || null,
-            unit: row['JM'] || row['jm'] || row['Unit'] || row['unit'] || 'kom',
-            svk: String(svk),
-            purchase_price: parseNumber(row['Nabavna cena'] || row['nabavna_cena'] || row['PurchasePrice'] || row['purchase_price']),
-            selling_price: parseNumber(row['Prodajna cena'] || row['prodajna_cena'] || row['SellingPrice'] || row['selling_price']),
-            stock: parseNumber(row['Stanje'] || row['stanje'] || row['Stock'] || row['stock']),
-            min_stock: parseNumber(row['Min stanje'] || row['min_stanje'] || row['MinStock'] || row['min_stock']),
-            kg_po_jm: parseNumber(row['kg po JM'] || row['kg_po_jm'] || row['KgPoJm']),
-            kol_mas: parseNumber(row['Kol mas'] || row['kol_mas'] || row['KolMas']) || 1,
-            is_active: row['Aktivan'] !== false && row['aktivan'] !== false && row['is_active'] !== false,
-          });
-        });
-        
-        setImportData(validData);
-        setImportErrors(errors);
-        setIsImportOpen(true);
-      } catch (err: any) {
-        toast.error("Greška pri čitanju fajla: " + err.message);
-      }
-    };
-    reader.readAsBinaryString(file);
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleImport = async () => {
-    if (!selectedCompany || !selectedYear || importData.length === 0) return;
-    
-    setImporting(true);
-    try {
-      // Get existing codes to check for duplicates
-      const { data: existingArticles } = await supabase
-        .from("articles")
-        .select("code")
-        .eq("company_id", selectedCompany.id)
-        .eq("business_year_id", selectedYear.id);
-      
-      const existingCodes = new Set(existingArticles?.map(a => a.code) || []);
-      
-      // Separate new and update articles
-      const newArticles = importData.filter(a => !existingCodes.has(a.code));
-      const updateArticles = importData.filter(a => existingCodes.has(a.code));
-      
-      let inserted = 0;
-      let updated = 0;
-      
-      // Insert new articles
-      if (newArticles.length > 0) {
-        const toInsert = newArticles.map(a => ({
-          ...a,
-          company_id: selectedCompany.id,
-          business_year_id: selectedYear.id,
-        }));
-        
-        const { error } = await supabase.from("articles").insert(toInsert);
-        if (error) throw error;
-        inserted = newArticles.length;
-      }
-      
-      // Update existing articles
-      for (const article of updateArticles) {
-        const { error } = await supabase
-          .from("articles")
-          .update({
-            name: article.name,
-            article_group: article.article_group,
-            unit: article.unit,
-            svk: article.svk,
-            purchase_price: article.purchase_price,
-            selling_price: article.selling_price,
-            stock: article.stock,
-            min_stock: article.min_stock,
-            kg_po_jm: article.kg_po_jm,
-            kol_mas: article.kol_mas,
-            is_active: article.is_active,
-          })
-          .eq("company_id", selectedCompany.id)
-          .eq("business_year_id", selectedYear.id)
-          .eq("code", article.code);
-        
-        if (error) throw error;
-        updated++;
-      }
-      
-      toast.success(`Uvoz završen: ${inserted} novih, ${updated} ažuriranih artikala`);
-      setIsImportOpen(false);
-      setImportData([]);
-      setImportErrors([]);
-      fetchArticles();
-    } catch (error: any) {
-      toast.error("Greška pri uvozu: " + error.message);
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  const downloadTemplate = () => {
-    const template = [
-      {
-        'Šifra': '001',
-        'Naziv': 'Primer artikla',
-        'Grupa': 'GRUPA1',
-        'JM': 'kom',
-        'SVK': '1',
-        'Nabavna cena': 100,
-        'Prodajna cena': 150,
-        'Stanje': 0,
-        'Min stanje': 5,
-        'kg po JM': 0,
-        'Kol mas': 1,
-        'Aktivan': true,
-      }
-    ];
-    
-    const ws = XLSX.utils.json_to_sheet(template);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Artikli');
-    XLSX.writeFile(wb, 'sablon_artikli.xlsx');
-  };
 
   if (!selectedCompany || !selectedYear) {
     return (
@@ -764,24 +568,6 @@ export default function Artikli() {
               </button>
             </div>
             <div className="flex gap-3">
-              {canEdit && (
-                <>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept=".xlsx,.xls"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <button 
-                    className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="w-4 h-4" />
-                    <span className="hidden md:inline">Uvoz</span>
-                  </button>
-                </>
-              )}
               <button className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80">
                 <Download className="w-4 h-4" />
                 <span className="hidden md:inline">Izvoz</span>
@@ -1489,106 +1275,6 @@ export default function Artikli() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Import Dialog */}
-      <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileSpreadsheet className="w-5 h-5" />
-              Uvoz artikala iz Excel-a
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="flex-1 overflow-auto py-4">
-            {importErrors.length > 0 && (
-              <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <p className="text-sm font-medium text-destructive mb-2">
-                  Greške pri učitavanju ({importErrors.length}):
-                </p>
-                <ul className="text-sm text-destructive space-y-1 max-h-24 overflow-auto">
-                  {importErrors.slice(0, 10).map((err, i) => (
-                    <li key={i}>• {err}</li>
-                  ))}
-                  {importErrors.length > 10 && (
-                    <li>... i još {importErrors.length - 10} grešaka</li>
-                  )}
-                </ul>
-              </div>
-            )}
-            
-            {importData.length > 0 && (
-              <>
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Pronađeno <span className="font-medium text-foreground">{importData.length}</span> artikala za uvoz
-                  </p>
-                </div>
-                
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto max-h-[400px]">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted sticky top-0">
-                        <tr>
-                          <th className="p-2 text-left font-medium">Šifra</th>
-                          <th className="p-2 text-left font-medium">Naziv</th>
-                          <th className="p-2 text-left font-medium">Grupa</th>
-                          <th className="p-2 text-center font-medium">SVK</th>
-                          <th className="p-2 text-left font-medium">JM</th>
-                          <th className="p-2 text-right font-medium">Nab. cena</th>
-                          <th className="p-2 text-right font-medium">Prod. cena</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {importData.slice(0, 100).map((article, index) => (
-                          <tr key={index} className="hover:bg-muted/50">
-                            <td className="p-2 font-mono text-primary">{article.code}</td>
-                            <td className="p-2">{article.name}</td>
-                            <td className="p-2 text-muted-foreground">{article.article_group || '-'}</td>
-                            <td className="p-2 text-center">{article.svk}</td>
-                            <td className="p-2">{article.unit}</td>
-                            <td className="p-2 text-right font-mono">{formatPrice(article.purchase_price)}</td>
-                            <td className="p-2 text-right font-mono">{formatPrice(article.selling_price)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  {importData.length > 100 && (
-                    <div className="p-2 bg-muted text-center text-sm text-muted-foreground">
-                      Prikazano prvih 100 od {importData.length} artikala
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-            
-            {importData.length === 0 && importErrors.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileSpreadsheet className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>Nema podataka za uvoz</p>
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter className="flex-shrink-0 gap-2">
-            <Button variant="outline" size="sm" onClick={downloadTemplate}>
-              <Download className="w-4 h-4 mr-2" />
-              Preuzmi šablon
-            </Button>
-            <div className="flex-1" />
-            <Button variant="outline" onClick={() => setIsImportOpen(false)}>
-              Otkaži
-            </Button>
-            <Button 
-              onClick={handleImport} 
-              disabled={importData.length === 0 || importing}
-            >
-              {importing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Uvezi {importData.length} artikala
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </MainLayout>
   );
 }
