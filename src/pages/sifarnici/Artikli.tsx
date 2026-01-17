@@ -178,6 +178,8 @@ export default function Artikli() {
   const [saving, setSaving] = useState(false);
 
   const lastFetchKeyRef = useRef<string | null>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const savedScrollPositionRef = useRef<number | null>(null);
 
   const canEdit = isSuperAdmin || isLocalAdmin;
 
@@ -466,6 +468,11 @@ export default function Artikli() {
       return;
     }
 
+    // Save scroll position before updating
+    if (tableContainerRef.current) {
+      savedScrollPositionRef.current = tableContainerRef.current.scrollTop;
+    }
+
     setSaving(true);
     try {
       const articleData = {
@@ -503,7 +510,17 @@ export default function Artikli() {
       }
 
       setIsFormOpen(false);
-      fetchArticles();
+      
+      // Fetch articles and restore scroll position after re-render
+      await fetchArticles();
+      
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        if (tableContainerRef.current && savedScrollPositionRef.current !== null) {
+          tableContainerRef.current.scrollTop = savedScrollPositionRef.current;
+          savedScrollPositionRef.current = null;
+        }
+      });
     } catch (error: any) {
       toast.error("Greška: " + error.message);
     } finally {
@@ -734,7 +751,7 @@ export default function Artikli() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div ref={tableContainerRef} className="overflow-x-auto max-h-[calc(100vh-350px)] overflow-y-auto">
               <table className="w-full">
                 <thead>
                   <tr className="erp-table-header">
