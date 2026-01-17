@@ -26,15 +26,19 @@ export function InlineEditCell({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(String(value));
   const [isSaving, setIsSaving] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textInputRef = useRef<HTMLInputElement>(null);
+  const numberInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
+    if (isEditing) {
+      const inputRef = type === "number" ? numberInputRef : textInputRef;
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.select();
+      }
     }
-  }, [isEditing]);
+  }, [isEditing, type]);
 
   useEffect(() => {
     setEditValue(String(value));
@@ -92,7 +96,7 @@ export function InlineEditCell({
       <div ref={containerRef} className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
         {type === "number" ? (
           <LocaleNumberInput
-            ref={inputRef}
+            ref={numberInputRef}
             value={editValue}
             onChange={setEditValue}
             decimalPlaces={decimalPlaces}
@@ -103,7 +107,7 @@ export function InlineEditCell({
           />
         ) : (
           <Input
-            ref={inputRef}
+            ref={textInputRef}
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleKeyDown}

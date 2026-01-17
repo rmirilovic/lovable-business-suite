@@ -893,13 +893,10 @@ export default function Artikli() {
                         className="hover:bg-table-hover transition-colors animate-fade-in"
                         style={{ animationDelay: `${index * 30}ms` }}
                       >
-                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                          <InlineEditCell
-                            value={article.code}
-                            onSave={(val) => handleInlineEdit(article.id, 'code', val)}
-                            disabled={!canEdit}
-                            className="font-mono text-sm text-primary"
-                          />
+                        <td className="p-3">
+                          <span className="font-mono text-sm text-primary">
+                            {article.code}
+                          </span>
                         </td>
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
                           <InlineEditCell
