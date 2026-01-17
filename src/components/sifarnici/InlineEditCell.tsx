@@ -29,14 +29,18 @@ export function InlineEditCell({
   const textInputRef = useRef<HTMLInputElement>(null);
   const numberInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const pendingSaveRef = useRef(false);
 
   useEffect(() => {
     if (isEditing) {
-      const inputRef = type === "number" ? numberInputRef : textInputRef;
-      if (inputRef.current) {
-        inputRef.current.focus();
-        inputRef.current.select();
-      }
+      // Small delay to ensure input is rendered
+      setTimeout(() => {
+        const inputRef = type === "number" ? numberInputRef : textInputRef;
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.select();
+        }
+      }, 10);
     }
   }, [isEditing, type]);
 
@@ -51,32 +55,44 @@ export function InlineEditCell({
     setEditValue(String(value));
   };
 
-  const handleSave = async () => {
-    if (editValue === String(value)) {
+  const doSave = async (valueToSave: string) => {
+    if (valueToSave === String(value)) {
       setIsEditing(false);
       return;
     }
 
     setIsSaving(true);
     try {
-      await onSave(editValue);
+      await onSave(valueToSave);
       setIsEditing(false);
     } catch (error) {
       // Keep editing mode on error
     } finally {
       setIsSaving(false);
+      pendingSaveRef.current = false;
     }
+  };
+
+  const handleSave = () => {
+    doSave(editValue);
   };
 
   const handleCancel = () => {
     setEditValue(String(value));
     setIsEditing(false);
+    pendingSaveRef.current = false;
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      handleSave();
+      pendingSaveRef.current = true;
+      // For number inputs, we need to get the current input value directly
+      if (type === "number" && numberInputRef.current) {
+        doSave(numberInputRef.current.value);
+      } else {
+        handleSave();
+      }
     } else if (e.key === "Escape") {
       e.preventDefault();
       handleCancel();
@@ -88,7 +104,28 @@ export function InlineEditCell({
     if (containerRef.current?.contains(e.relatedTarget as Node)) {
       return;
     }
-    handleSave();
+    
+    // Don't double-save if Enter was already pressed
+    if (pendingSaveRef.current) {
+      return;
+    }
+    
+    // For number inputs, get the value from the input element directly after LocaleNumberInput's blur formatting
+    if (type === "number" && numberInputRef.current) {
+      // Use setTimeout to get value after LocaleNumberInput's onBlur has run
+      setTimeout(() => {
+        if (numberInputRef.current && isEditing) {
+          doSave(numberInputRef.current.value);
+        }
+      }, 0);
+    } else {
+      handleSave();
+    }
+  };
+
+  // Handle value changes from LocaleNumberInput
+  const handleNumberChange = (val: string) => {
+    setEditValue(val);
   };
 
   if (isEditing) {
@@ -98,12 +135,12 @@ export function InlineEditCell({
           <LocaleNumberInput
             ref={numberInputRef}
             value={editValue}
-            onChange={setEditValue}
+            onChange={handleNumberChange}
             decimalPlaces={decimalPlaces}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
             disabled={isSaving}
-            className="h-7 text-sm w-24 text-right"
+            className="h-7 text-sm w-28 text-right"
           />
         ) : (
           <Input
