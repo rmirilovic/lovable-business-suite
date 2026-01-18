@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Plus,
@@ -8,9 +8,10 @@ import {
   Search,
   Loader2,
   Tags,
-  List,
   ChevronDown,
   ChevronRight,
+  Check,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,6 +64,7 @@ import {
   useArticleAttributes,
   usePredefinedValues,
   ArticleAttribute,
+  AttributePredefinedValue,
   AttributeDataType,
   DATA_TYPE_LABELS,
   DATA_TYPE_SHORT_LABELS,
@@ -104,23 +106,9 @@ export default function AtributiArtikala() {
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isPredefinedOpen, setIsPredefinedOpen] = useState(false);
   const [editingAttribute, setEditingAttribute] = useState<ArticleAttribute | null>(null);
   const [deletingAttribute, setDeletingAttribute] = useState<ArticleAttribute | null>(null);
-  const [managingPredefined, setManagingPredefined] = useState<ArticleAttribute | null>(null);
   const [formData, setFormData] = useState<AttributeForm>(emptyForm);
-  const [saving, setSaving] = useState(false);
-
-  // Predefined values state
-  const [newPredefinedValue, setNewPredefinedValue] = useState("");
-  const [editingPredefinedId, setEditingPredefinedId] = useState<string | null>(null);
-  const [editingPredefinedValue, setEditingPredefinedValue] = useState("");
-
-  const { 
-    values: predefinedValues, 
-    refetch: refetchPredefined,
-    isLoading: loadingPredefined 
-  } = usePredefinedValues(managingPredefined?.id);
 
   // Filter attributes
   const filteredAttributes = useMemo(() => {
@@ -156,12 +144,6 @@ export default function AtributiArtikala() {
     setIsDeleteOpen(true);
   };
 
-  const handleManagePredefined = (attr: ArticleAttribute) => {
-    setManagingPredefined(attr);
-    setNewPredefinedValue("");
-    setIsPredefinedOpen(true);
-  };
-
   const toggleExpand = (id: string) => {
     setExpandedAttributes((prev) => {
       const next = new Set(prev);
@@ -173,6 +155,8 @@ export default function AtributiArtikala() {
       return next;
     });
   };
+
+  const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     if (!selectedCompany || !formData.code.trim() || !formData.name.trim()) {
@@ -259,76 +243,6 @@ export default function AtributiArtikala() {
     }
   };
 
-  // Predefined values handlers
-  const handleAddPredefined = async () => {
-    if (!managingPredefined || !newPredefinedValue.trim()) return;
-    if (newPredefinedValue.length > 31) {
-      toast.error("Vrednost ne sme biti duža od 31 karakter");
-      return;
-    }
-
-    try {
-      const maxOrder = Math.max(0, ...predefinedValues.map((v) => v.sort_order));
-      const { error } = await supabase.from("article_attribute_predefined_values").insert({
-        attribute_id: managingPredefined.id,
-        value: newPredefinedValue.trim(),
-        sort_order: maxOrder + 1,
-      });
-
-      if (error) {
-        if (error.code === "23505") {
-          toast.error("Ova vrednost već postoji");
-          return;
-        }
-        throw error;
-      }
-
-      setNewPredefinedValue("");
-      refetchPredefined();
-      toast.success("Vrednost dodana");
-    } catch (error: any) {
-      toast.error("Greška: " + error.message);
-    }
-  };
-
-  const handleUpdatePredefined = async (id: string) => {
-    if (!editingPredefinedValue.trim()) return;
-    if (editingPredefinedValue.length > 31) {
-      toast.error("Vrednost ne sme biti duža od 31 karakter");
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from("article_attribute_predefined_values")
-        .update({ value: editingPredefinedValue.trim() })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      setEditingPredefinedId(null);
-      setEditingPredefinedValue("");
-      refetchPredefined();
-      toast.success("Vrednost ažurirana");
-    } catch (error: any) {
-      toast.error("Greška: " + error.message);
-    }
-  };
-
-  const handleDeletePredefined = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from("article_attribute_predefined_values")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-      refetchPredefined();
-      toast.success("Vrednost obrisana");
-    } catch (error: any) {
-      toast.error("Greška: " + error.message);
-    }
-  };
 
   return (
     <MainLayout title="Atributi artikala">
@@ -415,8 +329,8 @@ export default function AtributiArtikala() {
                     onToggleExpand={() => toggleExpand(attr.id)}
                     onEdit={() => handleEdit(attr)}
                     onDelete={() => handleDeleteClick(attr)}
-                    onManagePredefined={() => handleManagePredefined(attr)}
                     canEdit={canEdit}
+                    companyId={selectedCompany?.id}
                   />
                 ))}
               </TableBody>
@@ -532,207 +446,300 @@ export default function AtributiArtikala() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Predefined Values Dialog */}
-        <Dialog open={isPredefinedOpen} onOpenChange={setIsPredefinedOpen}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Predefinisane vrednosti</DialogTitle>
-              <DialogDescription>
-                Upravljanje predefinisanim vrednostima za atribut "{managingPredefined?.name}"
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4">
-              {/* Add new value */}
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Nova vrednost (max 31 znak)"
-                  value={newPredefinedValue}
-                  onChange={(e) => setNewPredefinedValue(e.target.value)}
-                  maxLength={31}
-                  onKeyDown={(e) => e.key === "Enter" && handleAddPredefined()}
-                />
-                <Button onClick={handleAddPredefined} disabled={!newPredefinedValue.trim()}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* Values list */}
-              <div className="border rounded-md max-h-64 overflow-y-auto">
-                {loadingPredefined ? (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  </div>
-                ) : predefinedValues.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nema predefinisanih vrednosti
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                    {predefinedValues.map((pv) => (
-                      <div key={pv.id} className="flex items-center gap-2 p-2">
-                        {editingPredefinedId === pv.id ? (
-                          <>
-                            <Input
-                              value={editingPredefinedValue}
-                              onChange={(e) => setEditingPredefinedValue(e.target.value)}
-                              maxLength={31}
-                              className="flex-1"
-                              autoFocus
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") handleUpdatePredefined(pv.id);
-                                if (e.key === "Escape") {
-                                  setEditingPredefinedId(null);
-                                  setEditingPredefinedValue("");
-                                }
-                              }}
-                            />
-                            <Button size="sm" onClick={() => handleUpdatePredefined(pv.id)}>
-                              Sačuvaj
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditingPredefinedId(null);
-                                setEditingPredefinedValue("");
-                              }}
-                            >
-                              Odustani
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="flex-1">{pv.value}</span>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              onClick={() => {
-                                setEditingPredefinedId(pv.id);
-                                setEditingPredefinedValue(pv.value);
-                              }}
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8 text-destructive"
-                              onClick={() => handleDeletePredefined(pv.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button onClick={() => setIsPredefinedOpen(false)}>Zatvori</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </MainLayout>
   );
 }
 
-// Separate component for table row
+// Separate component for table row with inline editing of predefined values
 function AttributeRow({
   attribute,
   isExpanded,
   onToggleExpand,
   onEdit,
   onDelete,
-  onManagePredefined,
   canEdit,
+  companyId,
 }: {
   attribute: ArticleAttribute;
   isExpanded: boolean;
   onToggleExpand: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  onManagePredefined: () => void;
   canEdit: boolean;
+  companyId?: string;
 }) {
   const isPredefined = attribute.data_type === "predefined";
+  const { values: predefinedValues, refetch: refetchPredefined, isLoading: loadingPredefined } = usePredefinedValues(
+    isExpanded && isPredefined ? attribute.id : undefined
+  );
+
+  // Inline editing states
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [newValue, setNewValue] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const handleAddValue = async () => {
+    if (!newValue.trim() || newValue.length > 31) {
+      if (newValue.length > 31) toast.error("Maksimalno 31 karakter");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const maxOrder = Math.max(0, ...predefinedValues.map((v) => v.sort_order));
+      const { error } = await supabase.from("article_attribute_predefined_values").insert({
+        attribute_id: attribute.id,
+        value: newValue.trim(),
+        sort_order: maxOrder + 1,
+      });
+
+      if (error) {
+        if (error.code === "23505") {
+          toast.error("Vrednost već postoji");
+          return;
+        }
+        throw error;
+      }
+
+      setNewValue("");
+      refetchPredefined();
+      toast.success("Vrednost dodana");
+    } catch (error: any) {
+      toast.error("Greška: " + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    if (!editValue.trim() || editValue.length > 31) {
+      if (editValue.length > 31) toast.error("Maksimalno 31 karakter");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("article_attribute_predefined_values")
+        .update({ value: editValue.trim() })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setEditingId(null);
+      setEditValue("");
+      refetchPredefined();
+      toast.success("Vrednost ažurirana");
+    } catch (error: any) {
+      toast.error("Greška: " + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteValue = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("article_attribute_predefined_values")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      refetchPredefined();
+      toast.success("Vrednost obrisana");
+    } catch (error: any) {
+      toast.error("Greška: " + error.message);
+    }
+  };
+
+  const startEdit = (pv: AttributePredefinedValue) => {
+    setEditingId(pv.id);
+    setEditValue(pv.value);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditValue("");
+  };
 
   return (
-    <TableRow>
-      <TableCell>
-        {isPredefined && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={onToggleExpand}
-          >
-            {isExpanded ? (
-              <ChevronDown className="w-4 h-4" />
-            ) : (
-              <ChevronRight className="w-4 h-4" />
-            )}
-          </Button>
-        )}
-      </TableCell>
-      <TableCell className="font-mono">{attribute.code}</TableCell>
-      <TableCell className="font-medium">{attribute.name}</TableCell>
-      <TableCell>
-        <Badge variant="secondary">{DATA_TYPE_SHORT_LABELS[attribute.data_type]}</Badge>
-      </TableCell>
-      <TableCell className="text-center">
-        {attribute.is_repeatable ? (
-          <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-            Da
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
-            Ne
-          </Badge>
-        )}
-      </TableCell>
-      {canEdit && (
+    <Fragment>
+      <TableRow className={cn(isPredefined && isExpanded && "border-b-0")}>
         <TableCell>
-          <div className="flex items-center justify-end gap-1">
-            {isPredefined && (
+          {isPredefined && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={onToggleExpand}
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </Button>
+          )}
+        </TableCell>
+        <TableCell className="font-mono">{attribute.code}</TableCell>
+        <TableCell className="font-medium">{attribute.name}</TableCell>
+        <TableCell>
+          <Badge variant="secondary">{DATA_TYPE_SHORT_LABELS[attribute.data_type]}</Badge>
+        </TableCell>
+        <TableCell className="text-center">
+          {attribute.is_repeatable ? (
+            <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+              Da
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-gray-50 text-gray-500 dark:bg-gray-900 dark:text-gray-400">
+              Ne
+            </Badge>
+          )}
+        </TableCell>
+        {canEdit && (
+          <TableCell>
+            <div className="flex items-center justify-end gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onManagePredefined}>
-                    <List className="w-4 h-4" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit}>
+                    <Edit2 className="w-4 h-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Upravljaj predefinisanim vrednostima</TooltipContent>
+                <TooltipContent>Izmeni</TooltipContent>
               </Tooltip>
-            )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit}>
-                  <Edit2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Izmeni</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive"
-                  onClick={onDelete}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Obriši</TooltipContent>
-            </Tooltip>
-          </div>
-        </TableCell>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive"
+                    onClick={onDelete}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Obriši</TooltipContent>
+              </Tooltip>
+            </div>
+          </TableCell>
+        )}
+      </TableRow>
+
+      {/* Expanded predefined values */}
+      {isPredefined && isExpanded && (
+        <TableRow className="bg-muted/30 hover:bg-muted/30">
+          <TableCell colSpan={canEdit ? 6 : 5} className="py-3">
+            <div className="ml-8 space-y-2">
+              <div className="text-sm font-medium text-muted-foreground mb-2">
+                Predefinisane vrednosti:
+              </div>
+              
+              {loadingPredefined ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm">Učitavanje...</span>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {/* Existing values */}
+                  {predefinedValues.map((pv) => (
+                    <div key={pv.id} className="flex items-center gap-2 group">
+                      {editingId === pv.id ? (
+                        <>
+                          <Input
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            maxLength={31}
+                            className="h-8 w-64"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleSaveEdit(pv.id);
+                              if (e.key === "Escape") cancelEdit();
+                            }}
+                          />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 text-green-600"
+                            onClick={() => handleSaveEdit(pv.id)}
+                            disabled={saving}
+                          >
+                            <Check className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            onClick={cancelEdit}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <span 
+                            className={cn(
+                              "px-2 py-1 rounded text-sm bg-background border cursor-default min-w-[100px]",
+                              canEdit && "cursor-pointer hover:bg-accent"
+                            )}
+                            onClick={() => canEdit && startEdit(pv)}
+                          >
+                            {pv.value}
+                          </span>
+                          {canEdit && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive"
+                              onClick={() => handleDeleteValue(pv.id)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Add new value inline */}
+                  {canEdit && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <Input
+                        value={newValue}
+                        onChange={(e) => setNewValue(e.target.value)}
+                        placeholder="Nova vrednost..."
+                        maxLength={31}
+                        className="h-8 w-64"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleAddValue();
+                        }}
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-primary"
+                        onClick={handleAddValue}
+                        disabled={!newValue.trim() || saving}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {predefinedValues.length === 0 && !canEdit && (
+                    <span className="text-sm text-muted-foreground italic">
+                      Nema predefinisanih vrednosti
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </TableCell>
+        </TableRow>
       )}
-    </TableRow>
+    </Fragment>
   );
 }
