@@ -72,6 +72,7 @@ import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { ClassificationTreePicker, getClassificationPath, formatClassificationPath } from "@/components/sifarnici/ClassificationTreePicker";
 import { ClassificationBadge } from "@/components/sifarnici/ClassificationBadge";
+import { InlineClassificationCell } from "@/components/sifarnici/InlineClassificationCell";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useClassifications } from "@/hooks/useClassifications";
 
@@ -933,10 +934,11 @@ export default function Artikli() {
                           />
                         </td>
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                          <ClassificationBadge
-                            code={article.article_group}
+                          <InlineClassificationCell
+                            value={article.article_group}
                             classifications={classifications}
-                            className="text-sm"
+                            onSave={(code) => handleInlineEdit(article.id, 'article_group', code || '')}
+                            disabled={!canEdit}
                           />
                         </td>
                         <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
