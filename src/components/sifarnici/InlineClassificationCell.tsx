@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { ChevronRight, ChevronDown, Folder, FolderOpen, Check, Search, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,12 @@ interface InlineClassificationCellProps {
   onSave: (code: string | null) => void;
   disabled?: boolean;
   className?: string;
+  // Navigation props
+  isEditing?: boolean;
+  onStartEdit?: () => void;
+  onTabNext?: () => void;
+  onTabPrev?: () => void;
+  onCancel?: () => void;
 }
 
 export function InlineClassificationCell({
@@ -23,10 +29,33 @@ export function InlineClassificationCell({
   onSave,
   disabled = false,
   className,
+  isEditing: externalIsEditing,
+  onStartEdit,
+  onTabNext,
+  onTabPrev,
+  onCancel,
 }: InlineClassificationCellProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  // Use external control if provided, otherwise manage internally
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsEditing !== undefined ? externalIsEditing : internalIsOpen;
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus search input when opened externally
+  useEffect(() => {
+    if (isOpen) {
+      // Expand parent nodes of selected value
+      if (value) {
+        const { codes } = getClassificationPath(value, classifications);
+        setExpandedNodes(new Set(codes));
+      }
+      // Focus search input after a short delay to ensure popover is rendered
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    }
+  }, [isOpen, value, classifications]);
 
   // Build tree structure
   const tree = useMemo(() => buildTree(classifications), [classifications]);
@@ -62,6 +91,14 @@ export function InlineClassificationCell({
       setExpandedNodes(new Set(allCodes));
     }
   }, [searchTerm, filteredList]);
+
+  const setIsOpen = (open: boolean) => {
+    if (externalIsEditing === undefined) {
+      setInternalIsOpen(open);
+    } else if (!open) {
+      onCancel?.();
+    }
+  };
 
   // Expand parent nodes of selected value when opening
   const handleOpen = (open: boolean) => {
@@ -103,12 +140,34 @@ export function InlineClassificationCell({
     return true;
   };
 
-  const handleSelect = (code: string | null) => {
+  const handleSelect = (code: string | null, navigateAfter?: 'next' | 'prev') => {
     if (code !== value) {
       onSave(code);
     }
-    setIsOpen(false);
     setSearchTerm("");
+    
+    // Handle navigation after selection
+    if (navigateAfter === 'next' && onTabNext) {
+      setIsOpen(false);
+      onTabNext();
+    } else if (navigateAfter === 'prev' && onTabPrev) {
+      setIsOpen(false);
+      onTabPrev();
+    } else {
+      setIsOpen(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const direction = e.shiftKey ? 'prev' : 'next';
+      // Save current value and navigate
+      handleSelect(value ?? null, direction);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setIsOpen(false);
+    }
   };
 
   return (
@@ -120,7 +179,15 @@ export function InlineClassificationCell({
             disabled && "cursor-default hover:bg-transparent",
             className
           )}
-          onDoubleClick={() => !disabled && setIsOpen(true)}
+          onDoubleClick={() => {
+            if (!disabled) {
+              if (onStartEdit) {
+                onStartEdit();
+              } else {
+                setIsOpen(true);
+              }
+            }
+          }}
         >
           <ClassificationBadge
             code={value}
@@ -135,17 +202,19 @@ export function InlineClassificationCell({
         align="start"
         side="bottom"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onKeyDown={handleKeyDown}
       >
         {/* Search */}
         <div className="p-2 border-b">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
+              ref={searchInputRef}
               placeholder="Pretraži..."
               className="pl-9 h-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              autoFocus
+              onKeyDown={handleKeyDown}
             />
           </div>
         </div>

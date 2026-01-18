@@ -198,8 +198,8 @@ export default function Artikli() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const savedScrollPositionRef = useRef<number | null>(null);
 
-  // Define editable fields order for Tab navigation (article_group removed - uses picker dialog)
-  const editableFields = ['name', 'unit', 'purchase_price', 'selling_price'] as const;
+  // Define editable fields order for Tab navigation
+  const editableFields = ['name', 'article_group', 'unit', 'purchase_price', 'selling_price'] as const;
   type EditableField = typeof editableFields[number];
 
   const canEdit = isSuperAdmin || isLocalAdmin;
@@ -939,6 +939,11 @@ export default function Artikli() {
                             classifications={classifications}
                             onSave={(code) => handleInlineEdit(article.id, 'article_group', code || '')}
                             disabled={!canEdit}
+                            isEditing={activeEditCell?.articleId === article.id && activeEditCell?.field === 'article_group'}
+                            onStartEdit={() => setActiveEditCell({ articleId: article.id, field: 'article_group' })}
+                            onTabNext={() => navigateToCell(article.id, 'article_group', 'next')}
+                            onTabPrev={() => navigateToCell(article.id, 'article_group', 'prev')}
+                            onCancel={() => setActiveEditCell(null)}
                           />
                         </td>
                         <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
