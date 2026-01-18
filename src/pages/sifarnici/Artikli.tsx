@@ -20,6 +20,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   History,
+  RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -69,6 +70,7 @@ import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog"
 import { ArticleHistoryDialog } from "@/components/sifarnici/ArticleHistoryDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
+import { useArticles, Article } from "@/hooks/useArticles";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -81,21 +83,7 @@ const SVK_OPTIONS: { value: SvkType; label: string }[] = [
   { value: '9', label: '9 - Gotovi proizvodi' },
 ];
 
-interface Article {
-  id: string;
-  code: string;
-  name: string;
-  article_group: string | null;
-  unit: string;
-  purchase_price: number;
-  selling_price: number;
-  stock: number;
-  min_stock: number;
-  is_active: boolean;
-  svk: SvkType | null;
-  kg_po_jm: number | null;
-  kol_mas: number | null;
-}
+// Article interface imported from useArticles hook
 
 interface ArticleForm {
   code: string;
@@ -151,8 +139,18 @@ const emptyForm: ArticleForm = {
 
 export default function Artikli() {
   const { selectedCompany, selectedYear, isSuperAdmin, isLocalAdmin } = useAuth();
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Use cached articles hook
+  const {
+    articles,
+    isLoading: loading,
+    isFetching,
+    updateArticleInCache,
+    addArticleToCache,
+    removeArticleFromCache,
+    refetch,
+  } = useArticles(selectedCompany?.id, selectedYear?.id);
+  
   const [searchTerm, setSearchTerm] = useState("");
   
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -190,7 +188,6 @@ export default function Artikli() {
   // Inline editing navigation state
   const [activeEditCell, setActiveEditCell] = useState<{ articleId: string; field: string } | null>(null);
 
-  const lastFetchKeyRef = useRef<string | null>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const savedScrollPositionRef = useRef<number | null>(null);
 
@@ -219,54 +216,7 @@ export default function Artikli() {
     return Object.values(filters).some(v => v !== "");
   }, [filters]);
 
-  useEffect(() => {
-    const companyId = selectedCompany?.id;
-    const yearId = selectedYear?.id;
-    if (!companyId || !yearId) return;
-
-    const key = `${companyId}:${yearId}`;
-    if (lastFetchKeyRef.current === key) return;
-    lastFetchKeyRef.current = key;
-
-    fetchArticles();
-  }, [selectedCompany?.id, selectedYear?.id]);
-
-  const fetchArticles = async () => {
-    if (!selectedCompany || !selectedYear) return;
-    
-    setLoading(true);
-    try {
-      // Fetch all articles without the default 1000 row limit
-      let allArticles: any[] = [];
-      let from = 0;
-      const batchSize = 1000;
-      
-      while (true) {
-        const { data, error } = await supabase
-          .from("articles")
-          .select("*")
-          .eq("company_id", selectedCompany.id)
-          .eq("business_year_id", selectedYear.id)
-          .order("code")
-          .range(from, from + batchSize - 1);
-
-        if (error) throw error;
-        
-        if (!data || data.length === 0) break;
-        
-        allArticles = [...allArticles, ...data];
-        
-        if (data.length < batchSize) break;
-        from += batchSize;
-      }
-
-      setArticles(allArticles);
-    } catch (error: any) {
-      toast.error("Greška pri učitavanju artikala: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Articles are now fetched automatically by useArticles hook with caching
 
   const filteredArticles = useMemo(() => {
     return articles.filter((article) => {
@@ -528,8 +478,8 @@ export default function Artikli() {
 
       setIsFormOpen(false);
       
-      // Fetch articles and restore scroll position after re-render
-      await fetchArticles();
+      // Refetch articles to get updated data with cache update
+      await refetch();
       
       // Use requestAnimationFrame to ensure DOM has updated
       requestAnimationFrame(() => {
@@ -572,10 +522,11 @@ export default function Artikli() {
 
       if (error) throw error;
       
-      // Update local state immediately for responsiveness
-      setArticles(prev => prev.map(a => 
-        a.id === articleId ? { ...a, [field]: updateValue } : a
-      ));
+      // Update cache immediately for responsiveness
+      const article = articles.find(a => a.id === articleId);
+      if (article) {
+        updateArticleInCache({ ...article, [field]: updateValue });
+      }
       
       toast.success("Izmena sačuvana");
       
@@ -638,8 +589,8 @@ export default function Artikli() {
       if (error) throw error;
       toast.success("Artikal uspešno obrisan");
       setIsDeleteOpen(false);
+      removeArticleFromCache(deletingArticle.id);
       setDeletingArticle(null);
-      fetchArticles();
     } catch (error: any) {
       toast.error("Greška pri brisanju: " + error.message);
     }
@@ -688,6 +639,21 @@ export default function Artikli() {
               </button>
             </div>
             <div className="flex gap-3">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button 
+                    className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                    onClick={() => refetch()}
+                    disabled={isFetching}
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+                    <span className="hidden md:inline">Osveži</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Osveži listu artikala sa servera</p>
+                </TooltipContent>
+              </Tooltip>
               <button 
                 className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 onClick={() => setIsExportOpen(true)}
