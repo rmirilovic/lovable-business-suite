@@ -198,14 +198,14 @@ export function InlineClassificationCell({
       </PopoverTrigger>
       
       <PopoverContent 
-        className="w-80 p-0" 
+        className="w-80 p-0 max-h-[60vh] flex flex-col overflow-hidden" 
         align="start"
         side="bottom"
         onOpenAutoFocus={(e) => e.preventDefault()}
         onKeyDown={handleKeyDown}
       >
         {/* Search */}
-        <div className="p-2 border-b">
+        <div className="p-2 border-b shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -220,7 +220,7 @@ export function InlineClassificationCell({
         </div>
 
         {/* Tree */}
-        <ScrollArea className="max-h-64">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="p-1">
             {/* Clear option */}
             <div
