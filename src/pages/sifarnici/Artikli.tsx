@@ -164,7 +164,15 @@ export default function Artikli() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    const companyId = selectedCompany?.id;
+    const yearId = selectedYear?.id;
+    if (companyId && yearId) {
+      const saved = localStorage.getItem(`artikli-itemsPerPage-${companyId}-${yearId}`);
+      if (saved) return parseInt(saved, 10);
+    }
+    return 20;
+  });
   
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -1095,8 +1103,15 @@ export default function Artikli() {
                   <Select
                     value={itemsPerPage.toString()}
                     onValueChange={(value) => {
-                      setItemsPerPage(Number(value));
+                      const newValue = Number(value);
+                      setItemsPerPage(newValue);
                       setCurrentPage(1);
+                      if (selectedCompany?.id && selectedYear?.id) {
+                        localStorage.setItem(
+                          `artikli-itemsPerPage-${selectedCompany.id}-${selectedYear.id}`,
+                          value
+                        );
+                      }
                     }}
                   >
                     <SelectTrigger className="w-20 h-8">
