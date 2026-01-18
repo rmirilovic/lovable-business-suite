@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_classifications: {
+        Row: {
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          name: string
+          parent_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          name: string
+          parent_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          parent_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_classifications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_history: {
         Row: {
           article_id: string

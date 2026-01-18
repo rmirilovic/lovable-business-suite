@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import SelectCompany from "./pages/SelectCompany";
 import Artikli from "./pages/sifarnici/Artikli";
 import Partneri from "./pages/sifarnici/Partneri";
+import KlasifikacijaArtikala from "./pages/sifarnici/KlasifikacijaArtikala";
 import AdminPanel from "./pages/admin/AdminPanel";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,11 @@ const App = () => (
               <Route path="/sifarnici/partneri" element={
                 <ProtectedRoute>
                   <Partneri />
+                </ProtectedRoute>
+              } />
+              <Route path="/sifarnici/grupe" element={
+                <ProtectedRoute>
+                  <KlasifikacijaArtikala />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
