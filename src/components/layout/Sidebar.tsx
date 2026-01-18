@@ -31,9 +31,9 @@ const navigation: NavItem[] = [
     icon: Package,
     children: [
       { label: "Artikli", href: "/sifarnici/artikli" },
+      { label: "Klasifikacija artikala", href: "/sifarnici/grupe" },
       { label: "Partneri", href: "/sifarnici/partneri" },
       { label: "Magacini", href: "/sifarnici/magacini" },
-      { label: "Klasifikacija artikala", href: "/sifarnici/grupe" },
     ],
   },
   {
