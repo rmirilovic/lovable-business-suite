@@ -12,6 +12,8 @@ import {
   ChevronRight,
   Check,
   X,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -554,6 +556,38 @@ function AttributeRow({
     }
   };
 
+  const handleMoveValue = async (id: string, direction: 'up' | 'down') => {
+    const currentIndex = predefinedValues.findIndex(v => v.id === id);
+    if (currentIndex === -1) return;
+    
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= predefinedValues.length) return;
+
+    const currentItem = predefinedValues[currentIndex];
+    const targetItem = predefinedValues[targetIndex];
+
+    try {
+      // Swap sort_order values
+      const { error: error1 } = await supabase
+        .from("article_attribute_predefined_values")
+        .update({ sort_order: targetItem.sort_order })
+        .eq("id", currentItem.id);
+
+      if (error1) throw error1;
+
+      const { error: error2 } = await supabase
+        .from("article_attribute_predefined_values")
+        .update({ sort_order: currentItem.sort_order })
+        .eq("id", targetItem.id);
+
+      if (error2) throw error2;
+
+      refetchPredefined();
+    } catch (error: any) {
+      toast.error("Greška pri sortiranju: " + error.message);
+    }
+  };
+
   const startEdit = (pv: AttributePredefinedValue) => {
     setEditingId(pv.id);
     setEditValue(pv.value);
@@ -645,7 +679,7 @@ function AttributeRow({
               ) : (
                 <div className="space-y-1">
                   {/* Existing values */}
-                  {predefinedValues.map((pv) => (
+                  {predefinedValues.map((pv, index) => (
                     <div key={pv.id} className="flex items-center gap-2 group">
                       {editingId === pv.id ? (
                         <>
@@ -680,6 +714,28 @@ function AttributeRow({
                         </>
                       ) : (
                         <>
+                          {canEdit && (
+                            <div className="flex flex-col opacity-0 group-hover:opacity-100">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-5 w-5"
+                                onClick={() => handleMoveValue(pv.id, 'up')}
+                                disabled={index === 0}
+                              >
+                                <ArrowUp className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-5 w-5"
+                                onClick={() => handleMoveValue(pv.id, 'down')}
+                                disabled={index === predefinedValues.length - 1}
+                              >
+                                <ArrowDown className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          )}
                           <span 
                             className={cn(
                               "px-2 py-1 rounded text-sm bg-background border cursor-default min-w-[100px]",
