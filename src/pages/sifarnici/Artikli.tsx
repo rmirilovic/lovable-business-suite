@@ -70,7 +70,10 @@ import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog"
 import { ArticleHistoryDialog } from "@/components/sifarnici/ArticleHistoryDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
+import { ClassificationTreePicker, getClassificationPath, formatClassificationPath } from "@/components/sifarnici/ClassificationTreePicker";
+import { ClassificationBadge } from "@/components/sifarnici/ClassificationBadge";
 import { useArticles, Article } from "@/hooks/useArticles";
+import { useClassifications } from "@/hooks/useClassifications";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -150,6 +153,9 @@ export default function Artikli() {
     removeArticleFromCache,
     refetch,
   } = useArticles(selectedCompany?.id, selectedYear?.id);
+
+  // Use cached classifications hook
+  const { classifications } = useClassifications(selectedCompany?.id);
   
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -191,8 +197,8 @@ export default function Artikli() {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const savedScrollPositionRef = useRef<number | null>(null);
 
-  // Define editable fields order for Tab navigation
-  const editableFields = ['name', 'article_group', 'unit', 'purchase_price', 'selling_price'] as const;
+  // Define editable fields order for Tab navigation (article_group removed - uses picker dialog)
+  const editableFields = ['name', 'unit', 'purchase_price', 'selling_price'] as const;
   type EditableField = typeof editableFields[number];
 
   const canEdit = isSuperAdmin || isLocalAdmin;
@@ -927,17 +933,10 @@ export default function Artikli() {
                           />
                         </td>
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                          <InlineEditCell
-                            value={article.article_group || ""}
-                            onSave={(val) => handleInlineEdit(article.id, 'article_group', val)}
-                            disabled={!canEdit}
-                            displayValue={article.article_group || "-"}
-                            className="text-muted-foreground"
-                            isEditing={activeEditCell?.articleId === article.id && activeEditCell?.field === 'article_group'}
-                            onStartEdit={() => setActiveEditCell({ articleId: article.id, field: 'article_group' })}
-                            onTabNext={() => navigateToCell(article.id, 'article_group', 'next')}
-                            onTabPrev={() => navigateToCell(article.id, 'article_group', 'prev')}
-                            onCancel={() => setActiveEditCell(null)}
+                          <ClassificationBadge
+                            code={article.article_group}
+                            classifications={classifications}
+                            className="text-sm"
                           />
                         </td>
                         <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -1224,10 +1223,10 @@ export default function Artikli() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="group">Klasa</Label>
-              <Input
-                id="group"
-                value={formData.article_group}
-                onChange={(e) => setFormData({ ...formData, article_group: e.target.value })}
+              <ClassificationTreePicker
+                classifications={classifications}
+                value={formData.article_group || null}
+                onChange={(code) => setFormData({ ...formData, article_group: code || "" })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -1382,7 +1381,13 @@ export default function Artikli() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Klasa</p>
-                <p className="font-medium">{viewingArticle.article_group || "-"}</p>
+                <div className="font-medium">
+                  <ClassificationBadge
+                    code={viewingArticle.article_group}
+                    classifications={classifications}
+                    showFullPath
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
