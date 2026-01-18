@@ -272,6 +272,26 @@ export default function KlasifikacijaArtikala() {
       return;
     }
 
+    // Check if any articles are assigned to this classification
+    try {
+      const { count, error: countError } = await supabase
+        .from("articles")
+        .select("*", { count: "exact", head: true })
+        .eq("company_id", selectedCompany?.id)
+        .eq("article_group", deletingClassification.code);
+
+      if (countError) throw countError;
+
+      if (count && count > 0) {
+        toast.error(`Ne možete obrisati klasifikaciju kojoj ${count === 1 ? 'je dodeljen 1 artikal' : `su dodeljena ${count} artikla`}`);
+        setIsDeleteOpen(false);
+        return;
+      }
+    } catch (error: any) {
+      toast.error("Greška pri proveri artikala: " + error.message);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("article_classifications")
