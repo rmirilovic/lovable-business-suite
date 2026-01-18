@@ -172,16 +172,16 @@ export function ClassificationTreePicker({
         variant="outline"
         role="combobox"
         className={cn(
-          "w-full justify-between font-normal",
+          "w-full justify-between font-normal h-auto min-h-10 py-2",
           !value && "text-muted-foreground"
         )}
         disabled={disabled}
         onClick={() => setIsOpen(true)}
       >
-        <span className="truncate text-left flex-1">
+        <span className="text-left flex-1 whitespace-normal break-words leading-snug">
           {displayValue || placeholder}
         </span>
-        <div className="flex items-center gap-1 ml-2">
+        <div className="flex items-center gap-1 ml-2 shrink-0 self-start mt-0.5">
           {value && !disabled && (
             <X 
               className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100" 
