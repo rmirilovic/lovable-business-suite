@@ -21,6 +21,7 @@ import {
   ChevronsRight,
   History,
   RefreshCw,
+  Tags,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -75,6 +76,7 @@ import { ClassificationBadge } from "@/components/sifarnici/ClassificationBadge"
 import { InlineClassificationCell } from "@/components/sifarnici/InlineClassificationCell";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useClassifications } from "@/hooks/useClassifications";
+import { ArticleAttributesDialog } from "@/components/sifarnici/ArticleAttributesDialog";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -185,7 +187,9 @@ export default function Artikli() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isAttributesOpen, setIsAttributesOpen] = useState(false);
   const [historyArticle, setHistoryArticle] = useState<Article | null>(null);
+  const [attributesArticle, setAttributesArticle] = useState<Article | null>(null);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
   const [viewingArticle, setViewingArticle] = useState<Article | null>(null);
   const [deletingArticle, setDeletingArticle] = useState<Article | null>(null);
@@ -428,6 +432,11 @@ export default function Artikli() {
   const handleHistory = (article: Article) => {
     setHistoryArticle(article);
     setIsHistoryOpen(true);
+  };
+
+  const handleAttributes = (article: Article) => {
+    setAttributesArticle(article);
+    setIsAttributesOpen(true);
   };
 
   const handleDeleteClick = (article: Article) => {
@@ -1036,6 +1045,13 @@ export default function Artikli() {
                             >
                               <History className="w-4 h-4 text-muted-foreground" />
                             </button>
+                            <button
+                              className="p-1.5 rounded hover:bg-secondary transition-colors"
+                              onClick={() => handleAttributes(article)}
+                              title="Atributi artikla"
+                            >
+                              <Tags className="w-4 h-4 text-muted-foreground" />
+                            </button>
                             {canEdit && (
                               <>
                                 <button
@@ -1493,6 +1509,16 @@ export default function Artikli() {
           onOpenChange={setIsHistoryOpen}
           articleId={historyArticle.id}
           articleName={historyArticle.name}
+        />
+      )}
+
+      {/* Attributes Dialog */}
+      {selectedCompany && (
+        <ArticleAttributesDialog
+          article={attributesArticle}
+          companyId={selectedCompany.id}
+          open={isAttributesOpen}
+          onOpenChange={setIsAttributesOpen}
         />
       )}
 
