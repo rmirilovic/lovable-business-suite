@@ -14,6 +14,131 @@ export type Database = {
   }
   public: {
     Tables: {
+      article_attribute_assignments: {
+        Row: {
+          article_id: string
+          attribute_id: string
+          company_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          article_id: string
+          attribute_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          article_id?: string
+          attribute_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_attribute_assignments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_attribute_assignments_attribute_id_fkey"
+            columns: ["attribute_id"]
+            isOneToOne: false
+            referencedRelation: "article_attributes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_attribute_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      article_attribute_predefined_values: {
+        Row: {
+          attribute_id: string
+          created_at: string
+          id: string
+          sort_order: number
+          value: string
+        }
+        Insert: {
+          attribute_id: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          value: string
+        }
+        Update: {
+          attribute_id?: string
+          created_at?: string
+          id?: string
+          sort_order?: number
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_attribute_predefined_values_attribute_id_fkey"
+            columns: ["attribute_id"]
+            isOneToOne: false
+            referencedRelation: "article_attributes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      article_attributes: {
+        Row: {
+          code: string
+          company_id: string
+          created_at: string
+          data_type: Database["public"]["Enums"]["attribute_data_type"]
+          id: string
+          is_repeatable: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          company_id: string
+          created_at?: string
+          data_type?: Database["public"]["Enums"]["attribute_data_type"]
+          id?: string
+          is_repeatable?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          created_at?: string
+          data_type?: Database["public"]["Enums"]["attribute_data_type"]
+          id?: string
+          is_repeatable?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_attributes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_classifications: {
         Row: {
           code: string
@@ -394,6 +519,14 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "local_admin" | "user"
+      attribute_data_type:
+        | "text"
+        | "string"
+        | "predefined"
+        | "bit"
+        | "integer"
+        | "decimal"
+        | "date"
       svk_type: "0" | "1" | "2" | "6" | "8" | "9"
     }
     CompositeTypes: {
@@ -523,6 +656,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "local_admin", "user"],
+      attribute_data_type: [
+        "text",
+        "string",
+        "predefined",
+        "bit",
+        "integer",
+        "decimal",
+        "date",
+      ],
       svk_type: ["0", "1", "2", "6", "8", "9"],
     },
   },

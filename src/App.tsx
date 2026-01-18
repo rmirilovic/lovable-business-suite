@@ -14,6 +14,7 @@ import SelectCompany from "./pages/SelectCompany";
 import Artikli from "./pages/sifarnici/Artikli";
 import Partneri from "./pages/sifarnici/Partneri";
 import KlasifikacijaArtikala from "./pages/sifarnici/KlasifikacijaArtikala";
+import AtributiArtikala from "./pages/sifarnici/AtributiArtikala";
 import AdminPanel from "./pages/admin/AdminPanel";
 import NotFound from "./pages/NotFound";
 
@@ -58,6 +59,11 @@ const App = () => (
               <Route path="/sifarnici/grupe" element={
                 <ProtectedRoute>
                   <KlasifikacijaArtikala />
+                </ProtectedRoute>
+              } />
+              <Route path="/sifarnici/atributi" element={
+                <ProtectedRoute>
+                  <AtributiArtikala />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
