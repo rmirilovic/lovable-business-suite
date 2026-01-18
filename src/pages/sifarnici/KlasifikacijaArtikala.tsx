@@ -512,20 +512,10 @@ export default function KlasifikacijaArtikala() {
               </TooltipContent>
             </Tooltip>
             {canEdit && (
-              <>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsImportOpen(true)} 
-                  className="gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Uvezi
-                </Button>
-                <Button onClick={() => handleAdd()} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Nova klasifikacija
-                </Button>
-              </>
+              <Button onClick={() => handleAdd()} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Nova klasifikacija
+              </Button>
             )}
           </div>
         </div>
