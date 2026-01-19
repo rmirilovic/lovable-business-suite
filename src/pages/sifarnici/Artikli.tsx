@@ -76,6 +76,7 @@ import { ClassificationBadge } from "@/components/sifarnici/ClassificationBadge"
 import { InlineClassificationCell } from "@/components/sifarnici/InlineClassificationCell";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useClassifications } from "@/hooks/useClassifications";
+import { useArticleAttributeCounts } from "@/hooks/useArticleAttributeCounts";
 import { ArticleAttributesDialog } from "@/components/sifarnici/ArticleAttributesDialog";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
@@ -159,6 +160,9 @@ export default function Artikli() {
 
   // Use cached classifications hook
   const { classifications } = useClassifications(selectedCompany?.id);
+  
+  // Use attribute counts hook
+  const { attributeCounts, refetch: refetchAttributeCounts } = useArticleAttributeCounts(selectedCompany?.id);
   
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -1046,11 +1050,16 @@ export default function Artikli() {
                               <History className="w-4 h-4 text-muted-foreground" />
                             </button>
                             <button
-                              className="p-1.5 rounded hover:bg-secondary transition-colors"
+                              className="p-1.5 rounded hover:bg-secondary transition-colors relative"
                               onClick={() => handleAttributes(article)}
                               title="Atributi artikla"
                             >
                               <Tags className="w-4 h-4 text-muted-foreground" />
+                              {(attributeCounts[article.id] || 0) > 0 && (
+                                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[10px] font-medium bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                  {attributeCounts[article.id]}
+                                </span>
+                              )}
                             </button>
                             {canEdit && (
                               <>
@@ -1518,7 +1527,13 @@ export default function Artikli() {
           article={attributesArticle}
           companyId={selectedCompany.id}
           open={isAttributesOpen}
-          onOpenChange={setIsAttributesOpen}
+          onOpenChange={(open) => {
+            setIsAttributesOpen(open);
+            if (!open) {
+              // Refresh attribute counts when dialog closes
+              refetchAttributeCounts();
+            }
+          }}
         />
       )}
 
