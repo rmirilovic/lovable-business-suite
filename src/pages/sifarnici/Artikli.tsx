@@ -1493,6 +1493,38 @@ export default function Artikli() {
                   {viewingArticle.is_active ? "Aktivan" : "Neaktivan"}
                 </span>
               </div>
+
+              {/* Attributes section */}
+              <div className="border-t pt-3 mt-2">
+                <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                  <Tags className="w-4 h-4" />
+                  Dodeljeni atributi ({getCount(viewingArticle.id)})
+                </p>
+                {getCount(viewingArticle.id) > 0 ? (
+                  <div className="max-h-48 overflow-y-auto border rounded-md">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/50 sticky top-0">
+                        <tr>
+                          <th className="text-left px-3 py-2 font-medium">Šifra</th>
+                          <th className="text-left px-3 py-2 font-medium">Naziv</th>
+                          <th className="text-left px-3 py-2 font-medium">Vrednost</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getAttributes(viewingArticle.id).map((attr, idx) => (
+                          <tr key={idx} className="border-t">
+                            <td className="px-3 py-2 font-mono text-xs">{attr.code}</td>
+                            <td className="px-3 py-2">{attr.name}</td>
+                            <td className="px-3 py-2 font-medium">{attr.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">Nema dodeljenih atributa</p>
+                )}
+              </div>
             </div>
           )}
           <DialogFooter className="gap-2 sm:gap-0">
