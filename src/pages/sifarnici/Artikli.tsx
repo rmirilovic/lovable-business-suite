@@ -1502,20 +1502,20 @@ export default function Artikli() {
                 </p>
                 {getCount(viewingArticle.id) > 0 ? (
                   <div className="max-h-48 overflow-y-auto border rounded-md">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm table-fixed">
                       <thead className="bg-muted/50 sticky top-0">
                         <tr>
-                          <th className="text-left px-3 py-2 font-medium">Šifra</th>
-                          <th className="text-left px-3 py-2 font-medium">Naziv</th>
+                          <th className="text-left px-3 py-2 font-medium w-16">Šifra</th>
+                          <th className="text-left px-3 py-2 font-medium w-28">Naziv</th>
                           <th className="text-left px-3 py-2 font-medium">Vrednost</th>
                         </tr>
                       </thead>
                       <tbody>
                         {getAttributes(viewingArticle.id).map((attr, idx) => (
-                          <tr key={idx} className="border-t">
+                          <tr key={idx} className="border-t align-top">
                             <td className="px-3 py-2 font-mono text-xs">{attr.code}</td>
                             <td className="px-3 py-2">{attr.name}</td>
-                            <td className="px-3 py-2 font-medium">{attr.value}</td>
+                            <td className="px-3 py-2 font-medium whitespace-pre-wrap break-words">{attr.value}</td>
                           </tr>
                         ))}
                       </tbody>
