@@ -162,7 +162,7 @@ export default function Artikli() {
   const { classifications } = useClassifications(selectedCompany?.id);
   
   // Use attribute counts hook
-  const { attributeCounts, refetch: refetchAttributeCounts } = useArticleAttributeCounts(selectedCompany?.id);
+  const { getCount, getAttributes, refetch: refetchAttributeCounts } = useArticleAttributeCounts(selectedCompany?.id);
   
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -1049,18 +1049,36 @@ export default function Artikli() {
                             >
                               <History className="w-4 h-4 text-muted-foreground" />
                             </button>
-                            <button
-                              className="p-1.5 rounded hover:bg-secondary transition-colors relative"
-                              onClick={() => handleAttributes(article)}
-                              title="Atributi artikla"
-                            >
-                              <Tags className="w-4 h-4 text-muted-foreground" />
-                              {(attributeCounts[article.id] || 0) > 0 && (
-                                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[10px] font-medium bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                                  {attributeCounts[article.id]}
-                                </span>
-                              )}
-                            </button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  className="p-1.5 rounded hover:bg-secondary transition-colors relative"
+                                  onClick={() => handleAttributes(article)}
+                                >
+                                  <Tags className="w-4 h-4 text-muted-foreground" />
+                                  {getCount(article.id) > 0 && (
+                                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[10px] font-medium bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                      {getCount(article.id)}
+                                    </span>
+                                  )}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="left" className="max-w-xs">
+                                {getCount(article.id) > 0 ? (
+                                  <div className="space-y-1">
+                                    <p className="font-medium text-xs mb-1">Atributi:</p>
+                                    {getAttributes(article.id).map((attr, idx) => (
+                                      <div key={idx} className="text-xs">
+                                        <span className="text-muted-foreground">{attr.name}:</span>{" "}
+                                        <span>{attr.value}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs">Nema dodeljenih atributa</p>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
                             {canEdit && (
                               <>
                                 <button
