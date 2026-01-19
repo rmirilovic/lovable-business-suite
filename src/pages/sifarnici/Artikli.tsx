@@ -234,11 +234,23 @@ export default function Artikli() {
   // Articles are now fetched automatically by useArticles hook with caching
 
   const filteredArticles = useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    
     return articles.filter((article) => {
-      // Search filter
-      const matchesSearch = 
-        article.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        article.code.toLowerCase().includes(searchTerm.toLowerCase());
+      // Search filter - includes attributes
+      let matchesSearch = 
+        article.name.toLowerCase().includes(lowerSearchTerm) ||
+        article.code.toLowerCase().includes(lowerSearchTerm);
+      
+      // Also search in attributes if no match yet
+      if (!matchesSearch && searchTerm) {
+        const attrs = getAttributes(article.id);
+        matchesSearch = attrs.some(
+          (attr) =>
+            attr.name.toLowerCase().includes(lowerSearchTerm) ||
+            attr.value.toLowerCase().includes(lowerSearchTerm)
+        );
+      }
       
       if (!matchesSearch) return false;
 
@@ -291,7 +303,7 @@ export default function Artikli() {
 
       return true;
     });
-  }, [articles, searchTerm, filters]);
+  }, [articles, searchTerm, filters, getAttributes]);
 
   // Sorted articles
   const sortedArticles = useMemo(() => {
