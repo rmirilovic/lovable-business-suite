@@ -33,8 +33,8 @@ const navigation: NavItem[] = [
       { label: "Artikli", href: "/sifarnici/artikli" },
       { label: "Klasifikacija artikala", href: "/sifarnici/grupe" },
       { label: "Atributi artikala", href: "/sifarnici/atributi" },
-      { label: "Partneri", href: "/sifarnici/partneri" },
       { label: "Magacini", href: "/sifarnici/magacini" },
+      { label: "Partneri", href: "/sifarnici/partneri" },
     ],
   },
   {
