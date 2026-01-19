@@ -197,6 +197,7 @@ export function InlineEditCell({
             onBlur={handleBlur}
             disabled={isSaving}
             className="h-7 text-sm"
+            autoComplete="off"
           />
         )}
         <button

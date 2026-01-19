@@ -473,6 +473,7 @@ export default function Partneri() {
                   }}
                   className="w-16 h-8"
                   placeholder={String(currentPage)}
+                  autoComplete="off"
                 />
                 <span className="text-sm text-muted-foreground">/ {totalPages}</span>
               </div>
