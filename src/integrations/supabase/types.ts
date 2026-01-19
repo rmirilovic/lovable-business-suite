@@ -413,6 +413,245 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_bank_accounts: {
+        Row: {
+          account_number: string
+          company_id: string
+          created_at: string
+          id: string
+          partner_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          account_number: string
+          company_id: string
+          created_at?: string
+          id?: string
+          partner_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          partner_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_bank_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_bank_accounts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_contacts: {
+        Row: {
+          company_id: string
+          contact_name: string
+          created_at: string
+          email: string | null
+          id: string
+          note: string | null
+          partner_id: string
+          phone1: string | null
+          phone2: string | null
+          position: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          contact_name: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          note?: string | null
+          partner_id: string
+          phone1?: string | null
+          phone2?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          contact_name?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          note?: string | null
+          partner_id?: string
+          phone1?: string | null
+          phone2?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_contacts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_groups: {
+        Row: {
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_groups_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partners: {
+        Row: {
+          activity_code: string | null
+          address: string | null
+          assigned_to: string | null
+          city: string | null
+          code: string
+          company_id: string
+          country: string | null
+          created_at: string
+          email: string | null
+          group_id: string | null
+          id: string
+          is_active: boolean
+          is_customer: boolean
+          is_supplier: boolean
+          jbkjs: string | null
+          legal_status: number
+          mb: string | null
+          name: string
+          note: string | null
+          other_data: string | null
+          phone: string | null
+          pib: string | null
+          postal_code: string | null
+          responsible_person: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          activity_code?: string | null
+          address?: string | null
+          assigned_to?: string | null
+          city?: string | null
+          code: string
+          company_id: string
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          group_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_customer?: boolean
+          is_supplier?: boolean
+          jbkjs?: string | null
+          legal_status?: number
+          mb?: string | null
+          name: string
+          note?: string | null
+          other_data?: string | null
+          phone?: string | null
+          pib?: string | null
+          postal_code?: string | null
+          responsible_person?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          activity_code?: string | null
+          address?: string | null
+          assigned_to?: string | null
+          city?: string | null
+          code?: string
+          company_id?: string
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          group_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_customer?: boolean
+          is_supplier?: boolean
+          jbkjs?: string | null
+          legal_status?: number
+          mb?: string | null
+          name?: string
+          note?: string | null
+          other_data?: string | null
+          phone?: string | null
+          pib?: string | null
+          postal_code?: string | null
+          responsible_person?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partners_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partners_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "partner_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
