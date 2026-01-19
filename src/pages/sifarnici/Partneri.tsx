@@ -210,6 +210,7 @@ export default function Partneri() {
                   className="pl-9"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  autoComplete="off"
                 />
               </div>
 
