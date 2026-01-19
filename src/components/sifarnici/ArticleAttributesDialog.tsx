@@ -337,6 +337,7 @@ function AttributeValueInput({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Unesite broj (0-65535)..."
+          autoComplete="off"
         />
       );
 
@@ -349,6 +350,7 @@ function AttributeValueInput({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Unesite decimalni broj..."
+          autoComplete="off"
         />
       );
 
@@ -370,6 +372,7 @@ function AttributeValueInput({
           onKeyDown={handleKeyDown}
           placeholder="Unesite tekst (max 511 znakova)..."
           maxLength={511}
+          autoComplete="off"
         />
       );
 
@@ -382,6 +385,7 @@ function AttributeValueInput({
           onKeyDown={handleKeyDown}
           placeholder="Unesite tekst (max 31 znak)..."
           maxLength={31}
+          autoComplete="off"
         />
       );
   }
