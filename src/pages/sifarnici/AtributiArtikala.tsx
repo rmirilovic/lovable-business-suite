@@ -249,52 +249,55 @@ export default function AtributiArtikala() {
   return (
     <MainLayout title="Atributi artikala">
       <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Tags className="w-6 h-6" />
-              Atributi artikala
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Upravljanje atributima koji se mogu dodeliti artiklima
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Pretraži atribute..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
-              />
+        {/* Header - Sticky */}
+        <div className="sticky top-0 z-10 bg-background pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-border/50">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <Tags className="w-6 h-6" />
+                Atributi artikala
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Upravljanje atributima koji se mogu dodeliti artiklima
+              </p>
             </div>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => refetch()}
-                  disabled={isFetching}
-                >
-                  <RefreshCw className={cn("w-4 h-4", isFetching && "animate-spin")} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Osveži listu atributa</p>
-              </TooltipContent>
-            </Tooltip>
+            <div className="flex items-center gap-2">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Pretraži atribute..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-64"
+                  autoComplete="off"
+                />
+              </div>
 
-            {canEdit && (
-              <Button onClick={handleAdd} className="gap-2">
-                <Plus className="w-4 h-4" />
-                Novi atribut
-              </Button>
-            )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => refetch()}
+                    disabled={isFetching}
+                  >
+                    <RefreshCw className={cn("w-4 h-4", isFetching && "animate-spin")} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Osveži listu atributa</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {canEdit && (
+                <Button onClick={handleAdd} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Novi atribut
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
