@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface AttributeInfo {
+export interface AttributeInfo {
+  code: string;
   name: string;
   value: string;
 }
@@ -12,14 +13,14 @@ interface ArticleAttributeData {
 }
 
 async function fetchAttributeData(companyId: string): Promise<Record<string, ArticleAttributeData>> {
-  // Fetch assignments with attribute names
+  // Fetch assignments with attribute names and codes
   const { data: assignments, error: assignmentsError } = await supabase
     .from("article_attribute_assignments")
     .select(`
       article_id,
       value,
       attribute_id,
-      article_attributes!inner(name)
+      article_attributes!inner(code, name)
     `)
     .eq("company_id", companyId);
 
@@ -30,7 +31,9 @@ async function fetchAttributeData(companyId: string): Promise<Record<string, Art
   
   for (const row of assignments || []) {
     const articleId = row.article_id;
-    const attrName = (row.article_attributes as any)?.name || "Nepoznat atribut";
+    const attrData = row.article_attributes as any;
+    const attrCode = attrData?.code || "";
+    const attrName = attrData?.name || "Nepoznat atribut";
     const attrValue = row.value;
 
     if (!result[articleId]) {
@@ -38,7 +41,12 @@ async function fetchAttributeData(companyId: string): Promise<Record<string, Art
     }
     
     result[articleId].count++;
-    result[articleId].attributes.push({ name: attrName, value: attrValue });
+    result[articleId].attributes.push({ code: attrCode, name: attrName, value: attrValue });
+  }
+
+  // Sort attributes by code within each article
+  for (const articleId in result) {
+    result[articleId].attributes.sort((a, b) => a.code.localeCompare(b.code));
   }
 
   return result;
