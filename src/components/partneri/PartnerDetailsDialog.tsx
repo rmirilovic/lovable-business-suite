@@ -29,8 +29,9 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { PartnerBankAccountsTab } from "./PartnerBankAccountsTab";
 import { PartnerContactsTab } from "./PartnerContactsTab";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PartnerDetailsDialogProps {
   open: boolean;
@@ -145,18 +146,62 @@ export function PartnerDetailsDialog({
   };
 
   const handleAprLookup = async () => {
-    const searchValue = formData.pib?.trim() || formData.mb?.trim();
-    if (!searchValue) {
-      toast.error("Unesite PIB ili Matični broj za pretragu");
+    const pibValue = formData.pib?.trim().replace(/\D/g, "");
+    const mbValue = formData.mb?.trim().replace(/\D/g, "");
+    
+    let searchValue: string;
+    let searchType: "pib" | "mb";
+    
+    if (pibValue && pibValue.length === 9) {
+      searchValue = pibValue;
+      searchType = "pib";
+    } else if (mbValue && mbValue.length === 8) {
+      searchValue = mbValue;
+      searchType = "mb";
+    } else {
+      toast.error("Unesite validan PIB (9 cifara) ili Matični broj (8 cifara)");
       return;
     }
 
     setIsLookingUp(true);
     try {
-      // APR API lookup would go here
-      // For now, show a message that this feature requires APR API integration
-      toast.info("APR integracija će biti dostupna u sledećoj verziji");
+      const { data, error } = await supabase.functions.invoke("apr-lookup", {
+        body: { searchValue, searchType },
+      });
+
+      if (error) {
+        console.error("APR lookup error:", error);
+        toast.error("Greška pri povezivanju sa APR servisom");
+        return;
+      }
+
+      if (!data?.success) {
+        toast.error(data?.error || "Subjekt nije pronađen u APR registru");
+        return;
+      }
+
+      const aprData = data.data;
+      
+      // Update form with APR data
+      setFormData((prev) => ({
+        ...prev,
+        name: aprData.name || prev.name,
+        pib: aprData.pib || prev.pib,
+        mb: aprData.mb || prev.mb,
+        address: aprData.address || prev.address,
+        city: aprData.city || prev.city,
+        postal_code: aprData.postalCode || prev.postal_code,
+        activity_code: aprData.activityCode || prev.activity_code,
+      }));
+
+      toast.success(
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-success" />
+          <span>Podaci uspešno preuzeti iz APR registra</span>
+        </div>
+      );
     } catch (error) {
+      console.error("APR lookup error:", error);
       toast.error("Greška pri pretrazi APR registra");
     } finally {
       setIsLookingUp(false);
