@@ -43,6 +43,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 
 interface WarehouseFormData {
   code: string;
@@ -79,6 +81,7 @@ export default function Magacini() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [addressFilter, setAddressFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -99,8 +102,13 @@ export default function Magacini() {
     
     const matchesAddress =
       addressFilter === "all" || w.address === addressFilter;
+    
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && w.is_active) ||
+      (statusFilter === "inactive" && !w.is_active);
 
-    return matchesSearch && matchesType && matchesAddress;
+    return matchesSearch && matchesType && matchesAddress && matchesStatus;
   });
 
   const handleAdd = () => {
@@ -205,13 +213,25 @@ export default function Magacini() {
             </SelectContent>
           </Select>
 
-          {(typeFilter !== "all" || addressFilter !== "all") && (
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Svi statusi</SelectItem>
+              <SelectItem value="active">Aktivni</SelectItem>
+              <SelectItem value="inactive">Neaktivni</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {(typeFilter !== "all" || addressFilter !== "all" || statusFilter !== "active") && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
                 setTypeFilter("all");
                 setAddressFilter("all");
+                setStatusFilter("active");
               }}
             >
               Poništi filtere
@@ -229,7 +249,8 @@ export default function Magacini() {
                 <TableHead>Tip magacina</TableHead>
                 <TableHead>Računopolagač</TableHead>
                 <TableHead>Konto zaliha</TableHead>
-                <TableHead className="w-[100px] text-right">Akcije</TableHead>
+                <TableHead className="w-[80px] text-center">Status</TableHead>
+                <TableHead className="w-[80px] text-right">Akcije</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -242,13 +263,14 @@ export default function Magacini() {
                     <TableCell><Skeleton className="h-4 w-36" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : filteredWarehouses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                    {searchTerm ? "Nema rezultata pretrage" : "Nema magacina. Kliknite 'Novi magacin' da dodate."}
+                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                    {searchTerm || statusFilter !== "active" ? "Nema rezultata pretrage" : "Nema magacina. Kliknite 'Novi magacin' da dodate."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -313,6 +335,14 @@ export default function Magacini() {
                         displayValue={warehouse.inventory_account || "—"}
                         onSave={async (val) => {
                           await updateWarehouse({ id: warehouse.id, updates: { inventory_account: val || null } });
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Switch
+                        checked={warehouse.is_active}
+                        onCheckedChange={async (checked) => {
+                          await updateWarehouse({ id: warehouse.id, updates: { is_active: checked } });
                         }}
                       />
                     </TableCell>
