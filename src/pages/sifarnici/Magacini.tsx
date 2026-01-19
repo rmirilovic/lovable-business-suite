@@ -45,7 +45,7 @@ interface WarehouseFormData {
   code: string;
   name: string;
   address: string;
-  warehouse_type: "1" | "2" | "6" | "9";
+  warehouse_type: "1" | "2" | "6" | "9" | "12";
   accountant: string;
   inventory_account: string;
 }
@@ -318,7 +318,7 @@ export default function Magacini() {
               </Label>
               <Select
                 value={form.warehouse_type}
-                onValueChange={(value: "1" | "2" | "6" | "9") =>
+                onValueChange={(value: "1" | "2" | "6" | "9" | "12") =>
                   setForm({ ...form, warehouse_type: value })
                 }
               >
@@ -330,6 +330,7 @@ export default function Magacini() {
                   <SelectItem value="2">2 - Magacin repromaterijala</SelectItem>
                   <SelectItem value="6">6 - Magacin rezervnih delova</SelectItem>
                   <SelectItem value="9">9 - Magacin gotovih proizvoda</SelectItem>
+                  <SelectItem value="12">12 - Magacin materijala za gradnju</SelectItem>
                 </SelectContent>
               </Select>
             </div>

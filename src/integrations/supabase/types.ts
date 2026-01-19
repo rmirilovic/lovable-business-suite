@@ -578,7 +578,7 @@ export type Database = {
         | "decimal"
         | "date"
       svk_type: "0" | "1" | "2" | "6" | "8" | "9"
-      warehouse_type: "1" | "2" | "6" | "9"
+      warehouse_type: "1" | "2" | "6" | "9" | "12"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -717,7 +717,7 @@ export const Constants = {
         "date",
       ],
       svk_type: ["0", "1", "2", "6", "8", "9"],
-      warehouse_type: ["1", "2", "6", "9"],
+      warehouse_type: ["1", "2", "6", "9", "12"],
     },
   },
 } as const
