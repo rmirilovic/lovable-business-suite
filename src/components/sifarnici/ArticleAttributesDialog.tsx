@@ -338,6 +338,20 @@ function AttributeValueInput({
 
   switch (attribute.data_type) {
     case "predefined":
+      // If no predefined values exist for this attribute (misconfiguration), allow manual entry
+      if (predefinedValues.length === 0) {
+        return (
+          <Input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Nema predefinisanih vrednosti – unesite ručno..."
+            maxLength={31}
+            autoComplete="off"
+          />
+        );
+      }
+
       return (
         <Select value={value} onValueChange={onChange}>
           <SelectTrigger>
