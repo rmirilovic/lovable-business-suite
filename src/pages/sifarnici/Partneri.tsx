@@ -1,15 +1,16 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Search,
   Plus,
-  Building2,
-  Phone,
-  Mail,
   Edit2,
   Trash2,
   Users,
   RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,13 +47,17 @@ import { PartnerGroupsDialog } from "@/components/partneri/PartnerGroupsDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 
 type TypeFilter = "all" | "customer" | "supplier";
 type StatusFilter = "all" | "active" | "inactive";
 
+const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+
 export default function Partneri() {
   const { partners, isLoading, updatePartner, deletePartner } = usePartners();
   const { groups } = usePartnerGroups();
+  const { selectedCompany } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -66,9 +71,37 @@ export default function Partneri() {
   const [groupsDialogOpen, setGroupsDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [goToPageInput, setGoToPageInput] = useState("");
+
+  // Persist itemsPerPage in localStorage per company
+  const storageKey = selectedCompany ? `partners_itemsPerPage_${selectedCompany.id}` : null;
+
+  useEffect(() => {
+    if (storageKey) {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        if (ITEMS_PER_PAGE_OPTIONS.includes(parsed)) {
+          setItemsPerPage(parsed);
+        }
+      }
+    }
+  }, [storageKey]);
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newValue = parseInt(value, 10);
+    setItemsPerPage(newValue);
+    setCurrentPage(1);
+    if (storageKey) {
+      localStorage.setItem(storageKey, value);
+    }
+  };
+
   const filteredPartners = useMemo(() => {
     return partners.filter((partner) => {
-      // Search filter
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         !searchTerm ||
@@ -77,19 +110,16 @@ export default function Partneri() {
         partner.pib?.includes(searchTerm) ||
         partner.mb?.includes(searchTerm);
 
-      // Type filter
       const matchesType =
         typeFilter === "all" ||
         (typeFilter === "customer" && partner.is_customer) ||
         (typeFilter === "supplier" && partner.is_supplier);
 
-      // Status filter
       const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "active" && partner.is_active) ||
         (statusFilter === "inactive" && !partner.is_active);
 
-      // Group filter
       const matchesGroup =
         groupFilter === "all" ||
         (groupFilter === "none" && !partner.group_id) ||
@@ -98,6 +128,33 @@ export default function Partneri() {
       return matchesSearch && matchesType && matchesStatus && matchesGroup;
     });
   }, [partners, searchTerm, typeFilter, statusFilter, groupFilter]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter, statusFilter, groupFilter]);
+
+  // Pagination calculations
+  const totalItems = filteredPartners.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const paginatedPartners = filteredPartners.slice(startIndex, endIndex);
+
+  // Ensure current page is valid
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const handleGoToPage = () => {
+    const page = parseInt(goToPageInput, 10);
+    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      setGoToPageInput("");
+    }
+  };
 
   const handleCreate = () => {
     setSelectedPartner(null);
@@ -122,6 +179,7 @@ export default function Partneri() {
     setTypeFilter("all");
     setStatusFilter("active");
     setGroupFilter("all");
+    setCurrentPage(1);
   };
 
   const hasActiveFilters =
@@ -145,7 +203,6 @@ export default function Partneri() {
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             {/* Search and Filters */}
             <div className="flex flex-wrap gap-3 flex-1">
-              {/* Search */}
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -156,7 +213,6 @@ export default function Partneri() {
                 />
               </div>
 
-              {/* Type filter */}
               <Select
                 value={typeFilter}
                 onValueChange={(val) => setTypeFilter(val as TypeFilter)}
@@ -171,7 +227,6 @@ export default function Partneri() {
                 </SelectContent>
               </Select>
 
-              {/* Status filter */}
               <Select
                 value={statusFilter}
                 onValueChange={(val) => setStatusFilter(val as StatusFilter)}
@@ -186,7 +241,6 @@ export default function Partneri() {
                 </SelectContent>
               </Select>
 
-              {/* Group filter */}
               <Select value={groupFilter} onValueChange={setGroupFilter}>
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Grupa" />
@@ -244,7 +298,7 @@ export default function Partneri() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
+                Array.from({ length: itemsPerPage }).map((_, i) => (
                   <TableRow key={i}>
                     {Array.from({ length: 10 }).map((_, j) => (
                       <TableCell key={j}>
@@ -253,14 +307,14 @@ export default function Partneri() {
                     ))}
                   </TableRow>
                 ))
-              ) : filteredPartners.length === 0 ? (
+              ) : paginatedPartners.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                     Nema pronađenih partnera
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredPartners.map((partner) => (
+                paginatedPartners.map((partner) => (
                   <TableRow
                     key={partner.id}
                     className={!partner.is_active ? "opacity-60" : ""}
@@ -373,6 +427,98 @@ export default function Partneri() {
             </TableBody>
           </Table>
         </div>
+
+        {/* Pagination Footer */}
+        {!isLoading && totalItems > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t">
+            {/* Items info and per page selector */}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>
+                Prikazano {startIndex + 1}-{endIndex} od {totalItems}
+              </span>
+              <div className="flex items-center gap-2">
+                <span>Po stranici:</span>
+                <Select
+                  value={String(itemsPerPage)}
+                  onValueChange={handleItemsPerPageChange}
+                >
+                  <SelectTrigger className="w-[70px] h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={String(option)}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Pagination controls */}
+            <div className="flex items-center gap-2">
+              {/* Go to page */}
+              <div className="flex items-center gap-2 mr-4">
+                <span className="text-sm text-muted-foreground">Idi na:</span>
+                <Input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={goToPageInput}
+                  onChange={(e) => setGoToPageInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleGoToPage();
+                  }}
+                  className="w-16 h-8"
+                  placeholder={String(currentPage)}
+                />
+                <span className="text-sm text-muted-foreground">/ {totalPages}</span>
+              </div>
+
+              {/* Navigation buttons */}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm px-2">
+                {currentPage} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Partner Details Dialog */}
