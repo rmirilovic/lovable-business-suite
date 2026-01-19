@@ -77,6 +77,7 @@ import { InlineClassificationCell } from "@/components/sifarnici/InlineClassific
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useClassifications } from "@/hooks/useClassifications";
 import { useArticleAttributeCounts } from "@/hooks/useArticleAttributeCounts";
+import { useArticleAttributes } from "@/hooks/useArticleAttributes";
 import { ArticleAttributesDialog } from "@/components/sifarnici/ArticleAttributesDialog";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
@@ -116,6 +117,8 @@ interface ArticleFilters {
   kgPoJmMax: string;
   sellingPriceMin: string;
   sellingPriceMax: string;
+  attributeId: string;
+  attributeValue: string;
 }
 
 const emptyFilters: ArticleFilters = {
@@ -127,6 +130,8 @@ const emptyFilters: ArticleFilters = {
   kgPoJmMax: "",
   sellingPriceMin: "",
   sellingPriceMax: "",
+  attributeId: "",
+  attributeValue: "",
 };
 
 const emptyForm: ArticleForm = {
@@ -163,6 +168,9 @@ export default function Artikli() {
   
   // Use attribute counts hook
   const { getCount, getAttributes, refetch: refetchAttributeCounts } = useArticleAttributeCounts(selectedCompany?.id);
+  
+  // Use article attributes hook for filter dropdown
+  const { attributes: availableAttributes } = useArticleAttributes(selectedCompany?.id);
   
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -301,9 +309,31 @@ export default function Artikli() {
         if (article.selling_price > max) return false;
       }
 
+      // Attribute filter
+      if (filters.attributeId) {
+        const attrs = getAttributes(article.id);
+        const matchingAttrs = attrs.filter(a => {
+          // Find attribute by matching the name (since we have name in attrs, we need to match by attributeId)
+          const selectedAttr = availableAttributes.find(aa => aa.id === filters.attributeId);
+          if (!selectedAttr) return false;
+          return a.code === selectedAttr.code;
+        });
+        
+        if (matchingAttrs.length === 0) return false;
+        
+        // If value filter is also set, check value
+        if (filters.attributeValue) {
+          const lowerValue = filters.attributeValue.toLowerCase();
+          const hasMatchingValue = matchingAttrs.some(a => 
+            a.value.toLowerCase().includes(lowerValue)
+          );
+          if (!hasMatchingValue) return false;
+        }
+      }
+
       return true;
     });
-  }, [articles, searchTerm, filters, getAttributes]);
+  }, [articles, searchTerm, filters, getAttributes, availableAttributes]);
 
   // Sorted articles
   const sortedArticles = useMemo(() => {
@@ -817,6 +847,42 @@ export default function Artikli() {
                         <SelectItem value="inactive">Neaktivan</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* Attribute Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Atribut</Label>
+                    <Select
+                      value={filters.attributeId}
+                      onValueChange={(value) => setFilters({ 
+                        ...filters, 
+                        attributeId: value === "all" ? "" : value,
+                        attributeValue: value === "all" ? "" : filters.attributeValue 
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Svi" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Svi</SelectItem>
+                        {availableAttributes.map((attr) => (
+                          <SelectItem key={attr.id} value={attr.id}>
+                            {attr.code} - {attr.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Attribute Value Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Vrednost atributa</Label>
+                    <Input
+                      placeholder={filters.attributeId ? "Pretraži vrednost..." : "Izaberite atribut"}
+                      value={filters.attributeValue}
+                      onChange={(e) => setFilters({ ...filters, attributeValue: e.target.value })}
+                      disabled={!filters.attributeId}
+                    />
                   </div>
 
                   {/* Clear Filters */}
