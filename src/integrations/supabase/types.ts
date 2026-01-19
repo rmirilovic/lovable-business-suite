@@ -496,6 +496,56 @@ export type Database = {
         }
         Relationships: []
       }
+      warehouses: {
+        Row: {
+          accountant: string | null
+          address: string | null
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          inventory_account: string | null
+          is_active: boolean
+          name: string
+          updated_at: string
+          warehouse_type: Database["public"]["Enums"]["warehouse_type"]
+        }
+        Insert: {
+          accountant?: string | null
+          address?: string | null
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          inventory_account?: string | null
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          warehouse_type?: Database["public"]["Enums"]["warehouse_type"]
+        }
+        Update: {
+          accountant?: string | null
+          address?: string | null
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          inventory_account?: string | null
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          warehouse_type?: Database["public"]["Enums"]["warehouse_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -528,6 +578,7 @@ export type Database = {
         | "decimal"
         | "date"
       svk_type: "0" | "1" | "2" | "6" | "8" | "9"
+      warehouse_type: "1" | "2" | "6" | "9"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -666,6 +717,7 @@ export const Constants = {
         "date",
       ],
       svk_type: ["0", "1", "2", "6", "8", "9"],
+      warehouse_type: ["1", "2", "6", "9"],
     },
   },
 } as const
