@@ -170,39 +170,87 @@ export function PartnerDetailsDialog({
       });
 
       if (error) {
-        console.error("APR lookup error:", error);
-        toast.error("Greška pri povezivanju sa APR servisom");
+        console.error("NBS lookup error:", error);
+        toast.error("Greška pri povezivanju sa NBS servisom. Unesite podatke ručno.");
         return;
       }
 
-      if (!data?.success) {
-        toast.error(data?.error || "Subjekt nije pronađen u APR registru");
-        return;
-      }
-
-      const aprData = data.data;
+      // Even if not fully successful, try to use any partial data returned
+      const apiData = data?.data;
       
-      // Update form with APR data
-      setFormData((prev) => ({
-        ...prev,
-        name: aprData.name || prev.name,
-        pib: aprData.pib || prev.pib,
-        mb: aprData.mb || prev.mb,
-        address: aprData.address || prev.address,
-        city: aprData.city || prev.city,
-        postal_code: aprData.postalCode || prev.postal_code,
-        activity_code: aprData.activityCode || prev.activity_code,
-      }));
+      if (data?.success && apiData) {
+        // Count how many fields were populated
+        const populatedFields: string[] = [];
+        const missingFields: string[] = [];
+        
+        const checkField = (value: string | undefined, fieldName: string) => {
+          if (value && value.trim()) {
+            populatedFields.push(fieldName);
+            return true;
+          }
+          missingFields.push(fieldName);
+          return false;
+        };
+        
+        checkField(apiData.name, "Naziv");
+        checkField(apiData.address, "Adresa");
+        checkField(apiData.city, "Mesto");
+        checkField(apiData.postalCode, "Poštanski broj");
+        checkField(apiData.activityCode, "Šifra delatnosti");
+        
+        // Update form with whatever data we got
+        setFormData((prev) => ({
+          ...prev,
+          name: apiData.name || prev.name,
+          pib: apiData.pib || prev.pib,
+          mb: apiData.mb || prev.mb,
+          address: apiData.address || prev.address,
+          city: apiData.city || prev.city,
+          postal_code: apiData.postalCode || prev.postal_code,
+          activity_code: apiData.activityCode || prev.activity_code,
+        }));
 
-      toast.success(
-        <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-success" />
-          <span>Podaci uspešno preuzeti iz APR registra</span>
-        </div>
-      );
+        if (missingFields.length === 0) {
+          // All fields populated
+          toast.success(
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-success" />
+              <span>Podaci uspešno preuzeti iz NBS registra</span>
+            </div>
+          );
+        } else if (populatedFields.length > 0) {
+          // Partial data - show info toast
+          toast.info(
+            <div className="space-y-1">
+              <div className="font-medium">Delimični podaci preuzeti</div>
+              <div className="text-sm text-muted-foreground">
+                Popunjeno: {populatedFields.join(", ")}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Dopunite ručno: {missingFields.join(", ")}
+              </div>
+            </div>,
+            { duration: 6000 }
+          );
+        } else {
+          // No useful data found
+          toast.warning("NBS registar nije vratio podatke. Unesite podatke ručno.");
+        }
+      } else {
+        // API returned error - show message and let user enter manually
+        toast.warning(
+          <div className="space-y-1">
+            <div className="font-medium">Pretraga nije uspela</div>
+            <div className="text-sm text-muted-foreground">
+              {data?.error || "Subjekt nije pronađen"}. Unesite podatke ručno.
+            </div>
+          </div>,
+          { duration: 5000 }
+        );
+      }
     } catch (error) {
-      console.error("APR lookup error:", error);
-      toast.error("Greška pri pretrazi APR registra");
+      console.error("NBS lookup error:", error);
+      toast.warning("NBS servis nije dostupan. Unesite podatke ručno.");
     } finally {
       setIsLookingUp(false);
     }
