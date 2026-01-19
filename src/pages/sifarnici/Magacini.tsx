@@ -277,12 +277,7 @@ export default function Magacini() {
                 filteredWarehouses.map((warehouse) => (
                   <TableRow key={warehouse.id}>
                     <TableCell className="font-medium">
-                      <InlineEditCell
-                        value={warehouse.code}
-                        onSave={async (val) => {
-                          await updateWarehouse({ id: warehouse.id, updates: { code: val } });
-                        }}
-                      />
+                      {warehouse.code}
                     </TableCell>
                     <TableCell>
                       <InlineEditCell
