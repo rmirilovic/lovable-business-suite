@@ -74,18 +74,32 @@ export default function Magacini() {
   } = useWarehouses(companyId);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [addressFilter, setAddressFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form, setForm] = useState<WarehouseFormData>(emptyForm);
 
-  const filteredWarehouses = warehouses.filter(
-    (w) =>
+  // Get unique addresses for filter
+  const uniqueAddresses = Array.from(
+    new Set(warehouses.map((w) => w.address).filter(Boolean))
+  ).sort() as string[];
+
+  const filteredWarehouses = warehouses.filter((w) => {
+    const matchesSearch =
       w.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (w.address && w.address.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+      (w.address && w.address.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesType = typeFilter === "all" || w.warehouse_type === typeFilter;
+    
+    const matchesAddress =
+      addressFilter === "all" || w.address === addressFilter;
+
+    return matchesSearch && matchesType && matchesAddress;
+  });
 
   const handleAdd = () => {
     setEditingId(null);
@@ -177,16 +191,57 @@ export default function Magacini() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Pretraži po šifri, nazivu ili adresi..."
+              placeholder="Pretraži po šifri, nazivu..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9"
             />
           </div>
+
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Tip magacina" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Svi tipovi</SelectItem>
+              <SelectItem value="1">1 - Magacin robe</SelectItem>
+              <SelectItem value="2">2 - Magacin repromaterijala</SelectItem>
+              <SelectItem value="6">6 - Magacin rezervnih delova</SelectItem>
+              <SelectItem value="9">9 - Magacin gotovih proizvoda</SelectItem>
+              <SelectItem value="12">12 - Magacin materijala za gradnju</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={addressFilter} onValueChange={setAddressFilter}>
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="Adresa / Lokacija" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Sve adrese</SelectItem>
+              {uniqueAddresses.map((addr) => (
+                <SelectItem key={addr} value={addr}>
+                  {addr}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {(typeFilter !== "all" || addressFilter !== "all") && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setTypeFilter("all");
+                setAddressFilter("all");
+              }}
+            >
+              Poništi filtere
+            </Button>
+          )}
         </div>
 
         <div className="border rounded-lg">
