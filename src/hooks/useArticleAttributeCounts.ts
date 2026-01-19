@@ -1,40 +1,73 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface AttributeCount {
-  article_id: string;
-  count: number;
+interface AttributeInfo {
+  name: string;
+  value: string;
 }
 
-async function fetchAttributeCounts(companyId: string): Promise<Record<string, number>> {
-  const { data, error } = await supabase
+interface ArticleAttributeData {
+  count: number;
+  attributes: AttributeInfo[];
+}
+
+async function fetchAttributeData(companyId: string): Promise<Record<string, ArticleAttributeData>> {
+  // Fetch assignments with attribute names
+  const { data: assignments, error: assignmentsError } = await supabase
     .from("article_attribute_assignments")
-    .select("article_id")
+    .select(`
+      article_id,
+      value,
+      attribute_id,
+      article_attributes!inner(name)
+    `)
     .eq("company_id", companyId);
 
-  if (error) throw error;
+  if (assignmentsError) throw assignmentsError;
 
-  // Count occurrences per article
-  const counts: Record<string, number> = {};
-  for (const row of data || []) {
-    counts[row.article_id] = (counts[row.article_id] || 0) + 1;
+  // Group by article_id
+  const result: Record<string, ArticleAttributeData> = {};
+  
+  for (const row of assignments || []) {
+    const articleId = row.article_id;
+    const attrName = (row.article_attributes as any)?.name || "Nepoznat atribut";
+    const attrValue = row.value;
+
+    if (!result[articleId]) {
+      result[articleId] = { count: 0, attributes: [] };
+    }
+    
+    result[articleId].count++;
+    result[articleId].attributes.push({ name: attrName, value: attrValue });
   }
 
-  return counts;
+  return result;
 }
 
 export function useArticleAttributeCounts(companyId: string | undefined) {
   const query = useQuery({
-    queryKey: ["article-attribute-counts", companyId],
-    queryFn: () => fetchAttributeCounts(companyId!),
+    queryKey: ["article-attribute-data", companyId],
+    queryFn: () => fetchAttributeData(companyId!),
     enabled: !!companyId,
-    staleTime: 2 * 60 * 1000, // Fresh for 2 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
+  // Helper to get just count (for backward compatibility)
+  const getCount = (articleId: string): number => {
+    return query.data?.[articleId]?.count || 0;
+  };
+
+  // Helper to get attributes list
+  const getAttributes = (articleId: string): AttributeInfo[] => {
+    return query.data?.[articleId]?.attributes || [];
+  };
+
   return {
-    attributeCounts: query.data ?? {},
+    attributeData: query.data ?? {},
+    getCount,
+    getAttributes,
     isLoading: query.isLoading,
     refetch: query.refetch,
   };
