@@ -363,6 +363,7 @@ export default function AtributiArtikala() {
                   onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   placeholder="npr. 0101"
                   disabled={!!editingAttribute}
+                  autoComplete="off"
                 />
                 {editingAttribute && (
                   <p className="text-xs text-muted-foreground">
@@ -378,6 +379,7 @@ export default function AtributiArtikala() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="npr. Dužina cevi"
+                  autoComplete="off"
                 />
               </div>
 
@@ -689,6 +691,7 @@ function AttributeRow({
                             maxLength={31}
                             className="h-8 w-64"
                             autoFocus
+                            autoComplete="off"
                             onKeyDown={(e) => {
                               if (e.key === "Enter") handleSaveEdit(pv.id);
                               if (e.key === "Escape") cancelEdit();
@@ -769,6 +772,7 @@ function AttributeRow({
                         placeholder="Nova vrednost..."
                         maxLength={31}
                         className="h-8 w-64"
+                        autoComplete="off"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") handleAddValue();
                         }}
