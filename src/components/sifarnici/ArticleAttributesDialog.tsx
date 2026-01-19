@@ -56,6 +56,11 @@ export function ArticleAttributesDialog({
   // Get selected attribute details
   const selectedAttribute = attributes.find(a => a.id === selectedAttributeId);
 
+  // If selected attribute is predefined, load its predefined values (for auto-pick)
+  const { values: selectedPredefinedValues } = usePredefinedValues(
+    selectedAttribute?.data_type === "predefined" ? selectedAttribute.id : undefined
+  );
+
   // Reset form when dialog opens/closes or article changes
   useEffect(() => {
     if (open && article) {
@@ -63,6 +68,40 @@ export function ArticleAttributesDialog({
       setNewValue("");
     }
   }, [open, article?.id]);
+
+  // Auto-pick first available predefined value (including when there is only 1 option)
+  useEffect(() => {
+    if (!selectedAttribute) return;
+
+    if (selectedAttribute.data_type !== "predefined") {
+      // When switching away from predefined, clear value so user can type
+      setNewValue("");
+      return;
+    }
+
+    if (selectedPredefinedValues.length === 0) {
+      setNewValue("");
+      return;
+    }
+
+    const assignedValues = assignments
+      .filter(a => a.attribute_id === selectedAttribute.id)
+      .map(a => a.value);
+
+    const firstAvailable = selectedPredefinedValues.find(pv => !assignedValues.includes(pv.value));
+
+    // For non-repeatable attributes, if there is no available value, keep empty
+    if (!firstAvailable) {
+      if (selectedAttribute.is_repeatable) {
+        setNewValue(selectedPredefinedValues[0].value);
+      } else {
+        setNewValue("");
+      }
+      return;
+    }
+
+    setNewValue(firstAvailable.value);
+  }, [selectedAttributeId, selectedAttribute?.data_type, selectedAttribute?.is_repeatable, selectedPredefinedValues, assignments]);
 
   const handleAddAssignment = async () => {
     if (!article || !selectedAttributeId || !newValue.trim()) {
@@ -196,7 +235,6 @@ export function ArticleAttributesDialog({
                   value={newValue}
                   onChange={setNewValue}
                   onEnter={handleAddAssignment}
-                  existingAssignments={assignments}
                 />
               </div>
 
@@ -272,54 +310,15 @@ function AttributeValueInput({
   value,
   onChange,
   onEnter,
-  existingAssignments,
 }: {
   attribute: ArticleAttribute | undefined;
   value: string;
   onChange: (value: string) => void;
   onEnter: () => void;
-  existingAssignments: ArticleAttributeAssignment[];
 }) {
-  const { values: predefinedValues, isLoading: loadingPredefined } = usePredefinedValues(
+  const { values: predefinedValues } = usePredefinedValues(
     attribute?.data_type === "predefined" ? attribute.id : undefined
   );
-
-  // Track which attribute we've auto-selected for
-  const [autoSelectedForAttr, setAutoSelectedForAttr] = useState<string | null>(null);
-
-  // Auto-select first available predefined value when attribute is selected or predefined values load
-  useEffect(() => {
-    if (
-      attribute?.data_type === "predefined" && 
-      predefinedValues.length > 0 && 
-      !loadingPredefined &&
-      autoSelectedForAttr !== attribute.id
-    ) {
-      // Get already assigned values for this attribute
-      const assignedValues = existingAssignments
-        .filter(a => a.attribute_id === attribute.id)
-        .map(a => a.value);
-      
-      // Find first predefined value not already assigned
-      const firstAvailable = predefinedValues.find(pv => !assignedValues.includes(pv.value));
-      
-      if (firstAvailable) {
-        onChange(firstAvailable.value);
-        setAutoSelectedForAttr(attribute.id);
-      } else if (attribute.is_repeatable && predefinedValues.length > 0) {
-        // If repeatable and all values are used, just select the first one
-        onChange(predefinedValues[0].value);
-        setAutoSelectedForAttr(attribute.id);
-      }
-    }
-  }, [attribute?.id, attribute?.data_type, attribute?.is_repeatable, predefinedValues, loadingPredefined, existingAssignments, onChange, autoSelectedForAttr]);
-
-  // Reset auto-selected tracking when attribute changes
-  useEffect(() => {
-    if (!attribute) {
-      setAutoSelectedForAttr(null);
-    }
-  }, [attribute?.id]);
 
   if (!attribute) {
     return (
