@@ -38,8 +38,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Search, Loader2, Warehouse } from "lucide-react";
+import { Plus, Trash2, Search, Loader2, Warehouse } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
+import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
+import { toast } from "sonner";
 
 interface WarehouseFormData {
   code: string;
@@ -78,7 +81,6 @@ export default function Magacini() {
   const [addressFilter, setAddressFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [form, setForm] = useState<WarehouseFormData>(emptyForm);
 
@@ -102,21 +104,7 @@ export default function Magacini() {
   });
 
   const handleAdd = () => {
-    setEditingId(null);
     setForm(emptyForm);
-    setDialogOpen(true);
-  };
-
-  const handleEdit = (warehouse: typeof warehouses[0]) => {
-    setEditingId(warehouse.id);
-    setForm({
-      code: warehouse.code,
-      name: warehouse.name,
-      address: warehouse.address ?? "",
-      warehouse_type: warehouse.warehouse_type,
-      accountant: warehouse.accountant ?? "",
-      inventory_account: warehouse.inventory_account ?? "",
-    });
     setDialogOpen(true);
   };
 
@@ -140,32 +128,19 @@ export default function Magacini() {
       return;
     }
 
-    if (editingId) {
-      const updates: WarehouseUpdate = {
-        code: form.code.trim(),
-        name: form.name.trim(),
-        address: form.address.trim() || null,
-        warehouse_type: form.warehouse_type,
-        accountant: form.accountant.trim() || null,
-        inventory_account: form.inventory_account.trim() || null,
-      };
-      await updateWarehouse({ id: editingId, updates });
-    } else {
-      const newWarehouse: WarehouseInsert = {
-        company_id: companyId,
-        code: form.code.trim(),
-        name: form.name.trim(),
-        address: form.address.trim() || null,
-        warehouse_type: form.warehouse_type,
-        accountant: form.accountant.trim() || null,
-        inventory_account: form.inventory_account.trim() || null,
-        is_active: true,
-      };
-      await createWarehouse(newWarehouse);
-    }
+    const newWarehouse: WarehouseInsert = {
+      company_id: companyId,
+      code: form.code.trim(),
+      name: form.name.trim(),
+      address: form.address.trim() || null,
+      warehouse_type: form.warehouse_type,
+      accountant: form.accountant.trim() || null,
+      inventory_account: form.inventory_account.trim() || null,
+      is_active: true,
+    };
+    await createWarehouse(newWarehouse);
 
     setDialogOpen(false);
-    setEditingId(null);
     setForm(emptyForm);
   };
 
@@ -279,31 +254,76 @@ export default function Magacini() {
               ) : (
                 filteredWarehouses.map((warehouse) => (
                   <TableRow key={warehouse.id}>
-                    <TableCell className="font-medium">{warehouse.code}</TableCell>
-                    <TableCell>{warehouse.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {warehouse.address || "—"}
+                    <TableCell className="font-medium">
+                      <InlineEditCell
+                        value={warehouse.code}
+                        onSave={async (val) => {
+                          await updateWarehouse({ id: warehouse.id, updates: { code: val } });
+                        }}
+                      />
                     </TableCell>
-                    <TableCell>{WAREHOUSE_TYPE_LABELS[warehouse.warehouse_type]}</TableCell>
-                    <TableCell>{warehouse.accountant || "—"}</TableCell>
-                    <TableCell>{warehouse.inventory_account || "—"}</TableCell>
+                    <TableCell>
+                      <InlineEditCell
+                        value={warehouse.name}
+                        onSave={async (val) => {
+                          await updateWarehouse({ id: warehouse.id, updates: { name: val } });
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <InlineEditCell
+                        value={warehouse.address || ""}
+                        displayValue={warehouse.address || "—"}
+                        onSave={async (val) => {
+                          await updateWarehouse({ id: warehouse.id, updates: { address: val || null } });
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <InlineSelectCell
+                        value={warehouse.warehouse_type}
+                        displayValue={WAREHOUSE_TYPE_LABELS[warehouse.warehouse_type]}
+                        options={[
+                          { value: "1", label: "1 - Magacin robe" },
+                          { value: "2", label: "2 - Magacin repromaterijala" },
+                          { value: "6", label: "6 - Magacin rezervnih delova" },
+                          { value: "9", label: "9 - Magacin gotovih proizvoda" },
+                          { value: "12", label: "12 - Magacin materijala za gradnju" },
+                        ]}
+                        onSave={async (val) => {
+                          await updateWarehouse({ 
+                            id: warehouse.id, 
+                            updates: { warehouse_type: val as "1" | "2" | "6" | "9" | "12" } 
+                          });
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <InlineEditCell
+                        value={warehouse.accountant || ""}
+                        displayValue={warehouse.accountant || "—"}
+                        onSave={async (val) => {
+                          await updateWarehouse({ id: warehouse.id, updates: { accountant: val || null } });
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <InlineEditCell
+                        value={warehouse.inventory_account || ""}
+                        displayValue={warehouse.inventory_account || "—"}
+                        onSave={async (val) => {
+                          await updateWarehouse({ id: warehouse.id, updates: { inventory_account: val || null } });
+                        }}
+                      />
+                    </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(warehouse)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteClick(warehouse.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClick(warehouse.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -317,13 +337,9 @@ export default function Magacini() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>
-              {editingId ? "Izmeni magacin" : "Novi magacin"}
-            </DialogTitle>
+            <DialogTitle>Novi magacin</DialogTitle>
             <DialogDescription>
-              {editingId
-                ? "Izmenite podatke o magacinu"
-                : "Unesite podatke za novi magacin"}
+              Unesite podatke za novi magacin
             </DialogDescription>
           </DialogHeader>
 
@@ -429,7 +445,7 @@ export default function Magacini() {
             </Button>
             <Button onClick={handleSave} disabled={!canSave || isSaving}>
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editingId ? "Sačuvaj izmene" : "Kreiraj"}
+              Kreiraj
             </Button>
           </DialogFooter>
         </DialogContent>
