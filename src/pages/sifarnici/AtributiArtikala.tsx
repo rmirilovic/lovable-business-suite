@@ -1,4 +1,4 @@
-import { useState, useMemo, Fragment } from "react";
+import { useState, useMemo, Fragment, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Plus,
@@ -14,6 +14,7 @@ import {
   X,
   ArrowUp,
   ArrowDown,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -111,6 +112,45 @@ export default function AtributiArtikala() {
   const [editingAttribute, setEditingAttribute] = useState<ArticleAttribute | null>(null);
   const [deletingAttribute, setDeletingAttribute] = useState<ArticleAttribute | null>(null);
   const [formData, setFormData] = useState<AttributeForm>(emptyForm);
+  const [predefinedValuesCount, setPredefinedValuesCount] = useState<number | null>(null);
+  const [checkingPredefined, setCheckingPredefined] = useState(false);
+
+  // Check predefined values count when editing an attribute with type "predefined"
+  useEffect(() => {
+    const checkPredefinedValues = async () => {
+      if (!editingAttribute || formData.data_type !== "predefined") {
+        setPredefinedValuesCount(null);
+        return;
+      }
+
+      setCheckingPredefined(true);
+      try {
+        const { count, error } = await supabase
+          .from("article_attribute_predefined_values")
+          .select("*", { count: "exact", head: true })
+          .eq("attribute_id", editingAttribute.id);
+
+        if (!error) {
+          setPredefinedValuesCount(count ?? 0);
+        }
+      } catch {
+        // Ignore errors
+      } finally {
+        setCheckingPredefined(false);
+      }
+    };
+
+    checkPredefinedValues();
+  }, [editingAttribute, formData.data_type]);
+
+  // For new attributes, predefined count is 0 if type is predefined
+  const isPredefinedType = formData.data_type === "predefined";
+  const isNewAttribute = !editingAttribute;
+  const hasPredefinedWarning = isPredefinedType && (
+    (isNewAttribute) || 
+    (predefinedValuesCount !== null && predefinedValuesCount === 0)
+  );
+  const canSave = !hasPredefinedWarning || !isNewAttribute;
 
   // Filter attributes
   const filteredAttributes = useMemo(() => {
@@ -127,6 +167,7 @@ export default function AtributiArtikala() {
   const handleAdd = () => {
     setEditingAttribute(null);
     setFormData(emptyForm);
+    setPredefinedValuesCount(null);
     setIsFormOpen(true);
   };
 
@@ -198,12 +239,28 @@ export default function AtributiArtikala() {
           }
           throw error;
         }
-        toast.success("Atribut uspešno kreiran");
+        toast.success("Atribut uspešno kreiran. Proširite red u tabeli da dodate predefinisane vrednosti.");
+        // Auto-expand the new attribute row if it's predefined type
+        if (formData.data_type === "predefined") {
+          // We need to refetch first to get the new attribute
+          await refetch();
+          // Find and expand the newly created attribute
+          const { data: newAttrs } = await supabase
+            .from("article_attributes")
+            .select("id")
+            .eq("company_id", selectedCompany.id)
+            .eq("code", formData.code.trim())
+            .single();
+          if (newAttrs) {
+            setExpandedAttributes((prev) => new Set([...prev, newAttrs.id]));
+          }
+        }
       }
 
       setIsFormOpen(false);
       setEditingAttribute(null);
       setFormData(emptyForm);
+      setPredefinedValuesCount(null);
       refetch();
     } catch (error: any) {
       toast.error("Greška: " + error.message);
@@ -403,6 +460,24 @@ export default function AtributiArtikala() {
                     ))}
                   </SelectContent>
                 </Select>
+                {isPredefinedType && isNewAttribute && (
+                  <div className="flex items-start gap-2 p-3 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400">
+                    <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm">
+                      Za tip "Predefinisana vrednost" morate prvo sačuvati atribut, 
+                      a zatim dodati bar jednu predefinisanu vrednost (proširite red u tabeli).
+                    </p>
+                  </div>
+                )}
+                {isPredefinedType && !isNewAttribute && predefinedValuesCount === 0 && !checkingPredefined && (
+                  <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/30 text-destructive">
+                    <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm">
+                      Ovaj atribut nema definisanih vrednosti! Zatvorite dijalog i proširite red 
+                      u tabeli da biste dodali predefinisane vrednosti.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center space-x-2">
