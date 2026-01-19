@@ -196,6 +196,7 @@ export function ArticleAttributesDialog({
                   value={newValue}
                   onChange={setNewValue}
                   onEnter={handleAddAssignment}
+                  existingAssignments={assignments}
                 />
               </div>
 
@@ -271,15 +272,37 @@ function AttributeValueInput({
   value,
   onChange,
   onEnter,
+  existingAssignments,
 }: {
   attribute: ArticleAttribute | undefined;
   value: string;
   onChange: (value: string) => void;
   onEnter: () => void;
+  existingAssignments: ArticleAttributeAssignment[];
 }) {
   const { values: predefinedValues } = usePredefinedValues(
     attribute?.data_type === "predefined" ? attribute.id : undefined
   );
+
+  // Auto-select first available predefined value when attribute is selected
+  useEffect(() => {
+    if (attribute?.data_type === "predefined" && predefinedValues.length > 0 && !value) {
+      // Get already assigned values for this attribute
+      const assignedValues = existingAssignments
+        .filter(a => a.attribute_id === attribute.id)
+        .map(a => a.value);
+      
+      // Find first predefined value not already assigned
+      const firstAvailable = predefinedValues.find(pv => !assignedValues.includes(pv.value));
+      
+      if (firstAvailable) {
+        onChange(firstAvailable.value);
+      } else if (attribute.is_repeatable && predefinedValues.length > 0) {
+        // If repeatable and all values are used, just select the first one
+        onChange(predefinedValues[0].value);
+      }
+    }
+  }, [attribute?.id, attribute?.data_type, attribute?.is_repeatable, predefinedValues, value, existingAssignments, onChange]);
 
   if (!attribute) {
     return (
