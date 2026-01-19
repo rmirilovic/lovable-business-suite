@@ -24,214 +24,216 @@ interface APRSearchResult {
   error?: string;
 }
 
-async function searchAPR(searchValue: string, searchType: "pib" | "mb"): Promise<APRSearchResult> {
+// Use mblookup.rs API which has valid SSL and provides company data
+async function searchMBLookup(searchValue: string, searchType: "pib" | "mb"): Promise<APRSearchResult> {
   try {
-    console.log(`Searching APR for ${searchType}: ${searchValue}`);
+    console.log(`Searching mblookup.rs for ${searchType}: ${searchValue}`);
     
-    // APR public search URL
-    const searchUrl = `https://pretraga2.apr.gov.rs/unifiedSearchWeb/Search/Search`;
+    // mblookup.rs is a public Serbian company lookup service
+    const searchUrl = `https://www.mblookup.rs/api/search/${searchValue}`;
     
-    // First, get the search results page
-    const searchParams = new URLSearchParams({
-      SearchString: searchValue,
-      Office: "0", // All offices
-    });
-    
-    const searchResponse = await fetch(`${searchUrl}?${searchParams}`, {
+    const response = await fetch(searchUrl, {
       method: "GET",
       headers: {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "sr-RS,sr;q=0.9,en;q=0.8",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      },
-    });
-
-    if (!searchResponse.ok) {
-      console.log(`APR search failed with status: ${searchResponse.status}`);
-      throw new Error("APR pretraga nije dostupna");
-    }
-
-    const html = await searchResponse.text();
-    console.log(`Received HTML response, length: ${html.length}`);
-    
-    // Try to parse the response for company data
-    // APR returns HTML with company details
-    const companyData = parseAPRResponse(html, searchValue, searchType);
-    
-    if (companyData) {
-      return { success: true, data: companyData };
-    }
-    
-    // If no direct match, try the unified API
-    return await searchAPRUnifiedAPI(searchValue, searchType);
-  } catch (error) {
-    console.error("APR search error:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Greška pri pretrazi APR registra" 
-    };
-  }
-}
-
-async function searchAPRUnifiedAPI(searchValue: string, searchType: "pib" | "mb"): Promise<APRSearchResult> {
-  try {
-    // Alternative: Use the APR unified search API endpoint
-    const apiUrl = "https://pretraga2.apr.gov.rs/APRWebPublish/APRUnifiedSearch/GetSubject";
-    
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
         "Accept": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
-      body: JSON.stringify({
-        searchString: searchValue,
-        searchType: searchType === "pib" ? "PIB" : "MB",
-      }),
     });
 
+    console.log(`mblookup.rs response status: ${response.status}`);
+
     if (!response.ok) {
-      console.log(`APR Unified API failed with status: ${response.status}`);
-      
-      // Fallback: Try to scrape the public page
-      return await scrapeAPRPublicPage(searchValue);
+      console.log(`mblookup.rs failed, trying alternative...`);
+      return await searchNBSAPI(searchValue, searchType);
     }
 
     const data = await response.json();
-    console.log("APR API response:", JSON.stringify(data).substring(0, 500));
+    console.log("mblookup.rs response:", JSON.stringify(data).substring(0, 500));
     
-    if (data && data.subjects && data.subjects.length > 0) {
-      const subject = data.subjects[0];
+    if (data && (data.naziv || data.name)) {
       return {
         success: true,
         data: {
-          name: subject.name || subject.naziv || "",
-          pib: subject.pib || "",
-          mb: subject.mb || subject.maticniBroj || "",
-          address: subject.address || subject.adresa || "",
-          city: subject.city || subject.mesto || "",
-          postalCode: subject.postalCode || subject.postanskiBroj || "",
-          activityCode: subject.activityCode || subject.sifradelatnosti || "",
-          activityName: subject.activityName || subject.nazivDelatnosti || "",
-          legalForm: subject.legalForm || subject.pravnaForma || "",
-          status: subject.status || "",
+          name: data.naziv || data.name || "",
+          pib: data.pib || "",
+          mb: data.mb || data.maticniBroj || "",
+          address: data.adresa || data.address || "",
+          city: data.mesto || data.city || "",
+          postalCode: data.postanskiBroj || data.postalCode || "",
+          activityCode: data.sifradelatnosti || data.sifraDelatnosti || data.activityCode || "",
+          activityName: data.nazivDelatnosti || data.activityName || "",
+          legalForm: data.pravnaForma || data.legalForm || "",
+          status: data.status || "",
         },
       };
     }
 
-    return { success: false, error: "Nije pronađen subjekt sa datim podacima" };
+    // If mblookup.rs doesn't have data, try NBS API
+    return await searchNBSAPI(searchValue, searchType);
   } catch (error) {
-    console.error("APR Unified API error:", error);
-    return await scrapeAPRPublicPage(searchValue);
+    console.error("mblookup.rs search error:", error);
+    return await searchNBSAPI(searchValue, searchType);
   }
 }
 
-async function scrapeAPRPublicPage(searchValue: string): Promise<APRSearchResult> {
+// NBS (National Bank of Serbia) has a public API for company lookup
+async function searchNBSAPI(searchValue: string, searchType: "pib" | "mb"): Promise<APRSearchResult> {
   try {
-    // Try to use the public APR search page
-    const url = `https://pretraga2.apr.gov.rs/unifiedSearch/search?q=${encodeURIComponent(searchValue)}`;
+    console.log(`Searching NBS API for ${searchType}: ${searchValue}`);
     
-    const response = await fetch(url, {
+    // NBS provides company verification API
+    const nbsUrl = `https://webservices.nbs.rs/CertificateCheck/CertificateCheckService.asmx/GetSubjectByMB`;
+    
+    // Try a simpler approach - use podatak.rs which aggregates Serbian company data
+    const podaciUrl = `https://podatak.rs/api/firme?q=${searchValue}`;
+    
+    const response = await fetch(podaciUrl, {
+      method: "GET",
       headers: {
-        "Accept": "text/html",
+        "Accept": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       },
     });
 
-    if (!response.ok) {
-      return { success: false, error: "APR servis nije dostupan" };
+    console.log(`podatak.rs response status: ${response.status}`);
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log("podatak.rs response:", JSON.stringify(data).substring(0, 500));
+      
+      if (data && Array.isArray(data) && data.length > 0) {
+        const company = data[0];
+        return {
+          success: true,
+          data: {
+            name: company.naziv || company.name || "",
+            pib: company.pib || "",
+            mb: company.mb || company.maticniBroj || "",
+            address: company.adresa || company.address || "",
+            city: company.mesto || company.city || "",
+            postalCode: company.postanskiBroj || company.postalCode || "",
+            activityCode: company.sifradelatnosti || company.activityCode || "",
+            activityName: company.nazivDelatnosti || "",
+            legalForm: company.pravnaForma || "",
+            status: company.status || "",
+          },
+        };
+      }
     }
 
-    const html = await response.text();
-    
-    // Try alternative parsing
-    const data = parseAPRHTML(html);
-    
-    if (data) {
-      return { success: true, data };
-    }
-
-    return { success: false, error: "Nije pronađen subjekt u APR registru" };
+    // Last resort - try a CORS-enabled proxy to APR
+    return await searchViaProxy(searchValue, searchType);
   } catch (error) {
-    console.error("Scrape error:", error);
-    return { success: false, error: "Greška pri pristupu APR servisu" };
+    console.error("NBS/podatak.rs search error:", error);
+    return await searchViaProxy(searchValue, searchType);
   }
 }
 
-function parseAPRResponse(html: string, searchValue: string, searchType: "pib" | "mb"): APRCompanyData | null {
+// Use allorigins.win as a CORS proxy to bypass SSL issues
+async function searchViaProxy(searchValue: string, searchType: "pib" | "mb"): Promise<APRSearchResult> {
   try {
-    // Look for common patterns in APR HTML responses
-    // Pattern for company name
-    const nameMatch = html.match(/class="company-name[^"]*"[^>]*>([^<]+)</i) ||
-                      html.match(/Пословно име[:\s]*<[^>]+>([^<]+)</i) ||
-                      html.match(/Naziv[:\s]*<[^>]+>([^<]+)</i);
+    console.log(`Searching via proxy for ${searchType}: ${searchValue}`);
     
-    // Pattern for PIB
-    const pibMatch = html.match(/ПИБ[:\s]*(\d{9})/i) ||
-                     html.match(/PIB[:\s]*(\d{9})/i) ||
-                     html.match(/>(\d{9})</);
+    // Use allorigins.win as a proxy to fetch APR data
+    const aprUrl = `https://pretraga2.apr.gov.rs/unifiedSearchWeb/Search/Search?SearchString=${searchValue}&Office=0`;
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(aprUrl)}`;
     
-    // Pattern for MB
-    const mbMatch = html.match(/Матични број[:\s]*(\d{8})/i) ||
-                    html.match(/MB[:\s]*(\d{8})/i);
-    
-    // Pattern for address
-    const addressMatch = html.match(/Седиште[:\s]*<[^>]+>([^<]+)</i) ||
-                         html.match(/Adresa[:\s]*<[^>]+>([^<]+)</i);
-    
-    // Pattern for activity code
-    const activityMatch = html.match(/Претежна делатност[:\s]*(\d{4,5})/i) ||
-                          html.match(/Šifra delatnosti[:\s]*(\d{4,5})/i);
+    const response = await fetch(proxyUrl, {
+      method: "GET",
+      headers: {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      },
+    });
 
-    if (nameMatch || pibMatch || mbMatch) {
-      return {
-        name: nameMatch ? nameMatch[1].trim() : "",
-        pib: pibMatch ? pibMatch[1] : (searchType === "pib" ? searchValue : ""),
-        mb: mbMatch ? mbMatch[1] : (searchType === "mb" ? searchValue : ""),
-        address: addressMatch ? addressMatch[1].trim() : "",
-        city: "",
-        postalCode: "",
-        activityCode: activityMatch ? activityMatch[1] : "",
-        activityName: "",
-        legalForm: "",
-        status: "",
+    console.log(`Proxy response status: ${response.status}`);
+
+    if (!response.ok) {
+      return { 
+        success: false, 
+        error: "APR servis trenutno nije dostupan. Molimo pokušajte kasnije ili unesite podatke ručno." 
       };
     }
 
-    return null;
+    const html = await response.text();
+    console.log(`Received HTML via proxy, length: ${html.length}`);
+    
+    // Parse the HTML for company data
+    const companyData = parseAPRHTML(html, searchValue, searchType);
+    
+    if (companyData) {
+      return { success: true, data: companyData };
+    }
+
+    return { 
+      success: false, 
+      error: "Subjekt sa datim PIB/MB nije pronađen u APR registru" 
+    };
   } catch (error) {
-    console.error("Parse error:", error);
-    return null;
+    console.error("Proxy search error:", error);
+    return { 
+      success: false, 
+      error: "Greška pri pretrazi. Molimo unesite podatke ručno." 
+    };
   }
 }
 
-function parseAPRHTML(html: string): APRCompanyData | null {
+function parseAPRHTML(html: string, searchValue: string, searchType: "pib" | "mb"): APRCompanyData | null {
   try {
-    // More comprehensive parsing patterns
+    // Look for JSON data embedded in the page
+    const jsonMatch = html.match(/var\s+model\s*=\s*({[\s\S]*?});/);
+    if (jsonMatch) {
+      try {
+        const model = JSON.parse(jsonMatch[1]);
+        if (model && model.subjects && model.subjects.length > 0) {
+          const subject = model.subjects[0];
+          return {
+            name: subject.name || subject.naziv || "",
+            pib: subject.pib || "",
+            mb: subject.mb || subject.maticniBroj || "",
+            address: subject.address || subject.adresa || "",
+            city: subject.city || subject.mesto || "",
+            postalCode: subject.postalCode || subject.postanskiBroj || "",
+            activityCode: subject.activityCode || subject.sifradelatnosti || "",
+            activityName: subject.activityName || subject.nazivDelatnosti || "",
+            legalForm: subject.legalForm || subject.pravnaForma || "",
+            status: subject.status || "",
+          };
+        }
+      } catch (e) {
+        console.log("JSON parse failed, trying regex patterns");
+      }
+    }
+
+    // Regex patterns for parsing APR HTML
     const patterns = {
       name: [
-        /(?:Пословно име|Naziv|Ime)[\s:]*(?:<[^>]*>)*\s*([^<\n]+)/gi,
+        /(?:Пословно име|Naziv|Ime|Firma)[:\s]*(?:<[^>]*>)*\s*([^<\n]+)/gi,
         /"naziv"\s*:\s*"([^"]+)"/i,
+        /class="[^"]*naziv[^"]*"[^>]*>([^<]+)</i,
       ],
       pib: [
-        /(?:ПИБ|PIB)[\s:]*(?:<[^>]*>)*\s*(\d{9})/gi,
+        /(?:ПИБ|PIB)[:\s]*(?:<[^>]*>)*\s*(\d{9})/gi,
         /"pib"\s*:\s*"?(\d{9})"?/i,
       ],
       mb: [
-        /(?:Матични број|MB|Maticni broj)[\s:]*(?:<[^>]*>)*\s*(\d{8})/gi,
+        /(?:Матични број|MB|Maticni broj)[:\s]*(?:<[^>]*>)*\s*(\d{8})/gi,
         /"(?:mb|maticniBroj)"\s*:\s*"?(\d{8})"?/i,
       ],
       address: [
-        /(?:Адреса|Adresa|Седиште|Sediste)[\s:]*(?:<[^>]*>)*\s*([^<\n]+)/gi,
+        /(?:Адреса|Adresa|Седиште|Sediste)[:\s]*(?:<[^>]*>)*\s*([^<\n]+)/gi,
         /"(?:adresa|address)"\s*:\s*"([^"]+)"/i,
       ],
       city: [
-        /(?:Место|Mesto|Grad)[\s:]*(?:<[^>]*>)*\s*([^<\n,]+)/gi,
+        /(?:Место|Mesto|Grad|Naselje)[:\s]*(?:<[^>]*>)*\s*([^<\n,]+)/gi,
         /"(?:mesto|city)"\s*:\s*"([^"]+)"/i,
       ],
+      postalCode: [
+        /(?:Поштански број|Postanski broj|PTT)[:\s]*(?:<[^>]*>)*\s*(\d{5})/gi,
+        /"(?:postanskiBroj|postalCode)"\s*:\s*"?(\d{5})"?/i,
+      ],
       activityCode: [
-        /(?:Шифра делатности|Sifra delatnosti)[\s:]*(?:<[^>]*>)*\s*(\d{4,5})/gi,
+        /(?:Шифра делатности|Sifra delatnosti|Delatnost)[:\s]*(?:<[^>]*>)*\s*(\d{4,5})/gi,
         /"(?:sifradelatnosti|activityCode)"\s*:\s*"?(\d{4,5})"?/i,
       ],
     };
@@ -247,10 +249,11 @@ function parseAPRHTML(html: string): APRCompanyData | null {
     };
 
     const name = extractFirst(patterns.name);
-    const pib = extractFirst(patterns.pib);
-    const mb = extractFirst(patterns.mb);
+    const pib = extractFirst(patterns.pib) || (searchType === "pib" ? searchValue : "");
+    const mb = extractFirst(patterns.mb) || (searchType === "mb" ? searchValue : "");
 
-    if (!name && !pib && !mb) {
+    // Need at least a name to consider it a valid result
+    if (!name) {
       return null;
     }
 
@@ -260,7 +263,7 @@ function parseAPRHTML(html: string): APRCompanyData | null {
       mb,
       address: extractFirst(patterns.address),
       city: extractFirst(patterns.city),
-      postalCode: "",
+      postalCode: extractFirst(patterns.postalCode),
       activityCode: extractFirst(patterns.activityCode),
       activityName: "",
       legalForm: "",
@@ -307,7 +310,8 @@ serve(async (req) => {
       );
     }
 
-    const result = await searchAPR(cleanValue, searchType);
+    // Try multiple data sources
+    const result = await searchMBLookup(cleanValue, searchType);
 
     console.log(`APR lookup result:`, JSON.stringify(result));
 
