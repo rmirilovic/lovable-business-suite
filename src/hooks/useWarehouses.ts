@@ -8,7 +8,7 @@ export interface Warehouse {
   code: string;
   name: string;
   address: string | null;
-  warehouse_type: "1" | "2" | "6" | "9";
+  warehouse_type: "1" | "2" | "6" | "9" | "12";
   accountant: string | null;
   inventory_account: string | null;
   is_active: boolean;
@@ -24,6 +24,7 @@ export const WAREHOUSE_TYPE_LABELS: Record<string, string> = {
   "2": "2 - Magacin repromaterijala",
   "6": "6 - Magacin rezervnih delova",
   "9": "9 - Magacin gotovih proizvoda",
+  "12": "12 - Magacin materijala za gradnju",
 };
 
 async function fetchWarehouses(companyId: string): Promise<Warehouse[]> {
