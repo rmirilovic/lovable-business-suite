@@ -280,13 +280,21 @@ function AttributeValueInput({
   onEnter: () => void;
   existingAssignments: ArticleAttributeAssignment[];
 }) {
-  const { values: predefinedValues } = usePredefinedValues(
+  const { values: predefinedValues, isLoading: loadingPredefined } = usePredefinedValues(
     attribute?.data_type === "predefined" ? attribute.id : undefined
   );
 
-  // Auto-select first available predefined value when attribute is selected
+  // Track which attribute we've auto-selected for
+  const [autoSelectedForAttr, setAutoSelectedForAttr] = useState<string | null>(null);
+
+  // Auto-select first available predefined value when attribute is selected or predefined values load
   useEffect(() => {
-    if (attribute?.data_type === "predefined" && predefinedValues.length > 0 && !value) {
+    if (
+      attribute?.data_type === "predefined" && 
+      predefinedValues.length > 0 && 
+      !loadingPredefined &&
+      autoSelectedForAttr !== attribute.id
+    ) {
       // Get already assigned values for this attribute
       const assignedValues = existingAssignments
         .filter(a => a.attribute_id === attribute.id)
@@ -297,12 +305,21 @@ function AttributeValueInput({
       
       if (firstAvailable) {
         onChange(firstAvailable.value);
+        setAutoSelectedForAttr(attribute.id);
       } else if (attribute.is_repeatable && predefinedValues.length > 0) {
         // If repeatable and all values are used, just select the first one
         onChange(predefinedValues[0].value);
+        setAutoSelectedForAttr(attribute.id);
       }
     }
-  }, [attribute?.id, attribute?.data_type, attribute?.is_repeatable, predefinedValues, value, existingAssignments, onChange]);
+  }, [attribute?.id, attribute?.data_type, attribute?.is_repeatable, predefinedValues, loadingPredefined, existingAssignments, onChange, autoSelectedForAttr]);
+
+  // Reset auto-selected tracking when attribute changes
+  useEffect(() => {
+    if (!attribute) {
+      setAutoSelectedForAttr(null);
+    }
+  }, [attribute?.id]);
 
   if (!attribute) {
     return (
