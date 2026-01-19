@@ -249,6 +249,7 @@ export function PartnerDetailsDialog({
                     value={formData.code}
                     onChange={(e) => updateField("code", e.target.value)}
                     disabled={mode === "edit"}
+                    autoComplete="off"
                   />
                 </div>
                 <div className="col-span-3">
@@ -257,6 +258,7 @@ export function PartnerDetailsDialog({
                     id="name"
                     value={formData.name}
                     onChange={(e) => updateField("name", e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -334,6 +336,7 @@ export function PartnerDetailsDialog({
                     id="pib"
                     value={formData.pib}
                     onChange={(e) => updateField("pib", e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -342,6 +345,7 @@ export function PartnerDetailsDialog({
                     id="mb"
                     value={formData.mb}
                     onChange={(e) => updateField("mb", e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -350,6 +354,7 @@ export function PartnerDetailsDialog({
                     id="activity_code"
                     value={formData.activity_code}
                     onChange={(e) => updateField("activity_code", e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
                 <div className="flex items-end">
@@ -379,6 +384,7 @@ export function PartnerDetailsDialog({
                       id="jbkjs"
                       value={formData.jbkjs}
                       onChange={(e) => updateField("jbkjs", e.target.value)}
+                      autoComplete="off"
                     />
                   </div>
                 </div>
@@ -392,6 +398,7 @@ export function PartnerDetailsDialog({
                     id="address"
                     value={formData.address}
                     onChange={(e) => updateField("address", e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -404,6 +411,7 @@ export function PartnerDetailsDialog({
                       updateField("postal_code", val);
                     }}
                     maxLength={10}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -412,6 +420,7 @@ export function PartnerDetailsDialog({
                     id="city"
                     value={formData.city}
                     onChange={(e) => updateField("city", e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -425,6 +434,7 @@ export function PartnerDetailsDialog({
                     value={formData.country}
                     onChange={(e) => updateField("country", e.target.value)}
                     disabled={[1, 2, 3].includes(formData.legal_status)}
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -437,6 +447,7 @@ export function PartnerDetailsDialog({
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => updateField("phone", e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -446,6 +457,7 @@ export function PartnerDetailsDialog({
                     type="email"
                     value={formData.email}
                     onChange={(e) => updateField("email", e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -455,6 +467,7 @@ export function PartnerDetailsDialog({
                     value={formData.website}
                     onChange={(e) => updateField("website", e.target.value)}
                     placeholder="www.example.com"
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -467,6 +480,7 @@ export function PartnerDetailsDialog({
                     id="responsible_person"
                     value={formData.responsible_person}
                     onChange={(e) => updateField("responsible_person", e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -478,6 +492,7 @@ export function PartnerDetailsDialog({
                       updateField("assigned_to", e.target.value.slice(0, 63))
                     }
                     maxLength={63}
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -503,6 +518,7 @@ export function PartnerDetailsDialog({
                   value={formData.note}
                   onChange={(e) => updateField("note", e.target.value.slice(0, 63))}
                   maxLength={63}
+                  autoComplete="off"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   {formData.note?.length || 0}/63 karaktera
@@ -519,6 +535,7 @@ export function PartnerDetailsDialog({
                   }
                   maxLength={511}
                   rows={5}
+                  autoComplete="off"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   {formData.other_data?.length || 0}/511 karaktera

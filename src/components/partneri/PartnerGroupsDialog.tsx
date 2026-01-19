@@ -81,6 +81,7 @@ export function PartnerGroupsDialog({ open, onOpenChange }: PartnerGroupsDialogP
                   value={newCode}
                   onChange={(e) => setNewCode(e.target.value)}
                   placeholder="Šifra grupe"
+                  autoComplete="off"
                 />
               </div>
               <div className="flex-[2]">
@@ -90,6 +91,7 @@ export function PartnerGroupsDialog({ open, onOpenChange }: PartnerGroupsDialogP
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="Naziv grupe"
+                  autoComplete="off"
                 />
               </div>
               <Button

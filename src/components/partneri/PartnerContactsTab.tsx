@@ -193,6 +193,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                 value={formData.contact_name}
                 onChange={(e) => updateField("contact_name", e.target.value.slice(0, 63))}
                 maxLength={63}
+                autoComplete="off"
               />
             </div>
 
@@ -202,6 +203,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                 id="position"
                 value={formData.position}
                 onChange={(e) => updateField("position", e.target.value)}
+                autoComplete="off"
               />
             </div>
 
@@ -212,6 +214,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                   id="phone1"
                   value={formData.phone1}
                   onChange={(e) => updateField("phone1", e.target.value)}
+                  autoComplete="off"
                 />
               </div>
               <div>
@@ -220,6 +223,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                   id="phone2"
                   value={formData.phone2}
                   onChange={(e) => updateField("phone2", e.target.value)}
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -231,6 +235,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                 type="email"
                 value={formData.email}
                 onChange={(e) => updateField("email", e.target.value)}
+                autoComplete="off"
               />
             </div>
 
@@ -241,6 +246,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                 value={formData.note}
                 onChange={(e) => updateField("note", e.target.value.slice(0, 63))}
                 maxLength={63}
+                autoComplete="off"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 {formData.note?.length || 0}/63 karaktera

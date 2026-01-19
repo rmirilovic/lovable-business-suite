@@ -108,6 +108,7 @@ export function PartnerBankAccountsTab({ partnerId }: PartnerBankAccountsTabProp
           onChange={(e) => setNewAccountNumber(e.target.value.replace(/[^\d-]/g, ""))}
           placeholder="Broj tekućeg računa (samo brojevi i crtice)"
           className="flex-1"
+          autoComplete="off"
         />
         <Button
           onClick={handleCreate}
