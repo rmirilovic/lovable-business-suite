@@ -418,7 +418,7 @@ export function PartnerDetailsDialog({
                     ) : (
                       <Search className="w-4 h-4 mr-2" />
                     )}
-                    APR pretraga
+                    NBS pretraga
                   </Button>
                 </div>
               </div>
