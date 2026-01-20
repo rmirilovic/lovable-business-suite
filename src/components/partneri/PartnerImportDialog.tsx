@@ -258,6 +258,9 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
           .replace(/đ/g, 'd');
       };
       
+      console.log("Excel headers:", headers);
+      console.log("First row data:", jsonData[0]);
+      
       headers.forEach((header) => {
         // Normalize: lowercase, trim, remove extra spaces
         const normalizedHeader = header.toLowerCase().trim().replace(/\s+/g, ' ');
@@ -267,17 +270,26 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
         const noDiacriticsHeader = removeDiacritics(normalizedHeader);
         const noDiacriticsNoSpaceHeader = removeDiacritics(noSpaceHeader);
         
+        console.log(`Header "${header}" -> normalized: "${normalizedHeader}", noSpace: "${noSpaceHeader}", noDiacritics: "${noDiacriticsHeader}"`);
+        
         if (COLUMN_MAPPINGS[normalizedHeader]) {
           detectedMapping[header] = COLUMN_MAPPINGS[normalizedHeader];
+          console.log(`  Matched via normalizedHeader: ${COLUMN_MAPPINGS[normalizedHeader]}`);
         } else if (COLUMN_MAPPINGS[noSpaceHeader]) {
           detectedMapping[header] = COLUMN_MAPPINGS[noSpaceHeader];
+          console.log(`  Matched via noSpaceHeader: ${COLUMN_MAPPINGS[noSpaceHeader]}`);
         } else if (COLUMN_MAPPINGS[noDiacriticsHeader]) {
           detectedMapping[header] = COLUMN_MAPPINGS[noDiacriticsHeader];
+          console.log(`  Matched via noDiacriticsHeader: ${COLUMN_MAPPINGS[noDiacriticsHeader]}`);
         } else if (COLUMN_MAPPINGS[noDiacriticsNoSpaceHeader]) {
           detectedMapping[header] = COLUMN_MAPPINGS[noDiacriticsNoSpaceHeader];
+          console.log(`  Matched via noDiacriticsNoSpaceHeader: ${COLUMN_MAPPINGS[noDiacriticsNoSpaceHeader]}`);
+        } else {
+          console.log(`  NO MATCH FOUND`);
         }
       });
       
+      console.log("Detected mapping:", detectedMapping);
       setColumnMapping(detectedMapping);
       
       // Parse data
