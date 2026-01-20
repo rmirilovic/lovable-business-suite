@@ -48,7 +48,7 @@ const defaultFormData: Omit<PartnerInsert, "company_id"> = {
   address: "",
   postal_code: "",
   city: "",
-  country: "Republika Srbija",
+  country: "Srbija",
   email: "",
   group_id: null,
   pib: "",
@@ -64,7 +64,7 @@ const defaultFormData: Omit<PartnerInsert, "company_id"> = {
   note: "",
   other_data: "",
   is_active: true,
-  payment_priority: null,
+  payment_priority: 3,
 };
 
 export function PartnerDetailsDialog({
@@ -89,7 +89,7 @@ export function PartnerDetailsDialog({
         address: partner.address || "",
         postal_code: partner.postal_code || "",
         city: partner.city || "",
-        country: partner.country || "Republika Srbija",
+        country: partner.country || "Srbija",
         email: partner.email || "",
         group_id: partner.group_id,
         pib: partner.pib || "",
@@ -115,7 +115,7 @@ export function PartnerDetailsDialog({
   // Auto-set country for Serbian legal statuses
   useEffect(() => {
     if ([1, 2, 3].includes(formData.legal_status)) {
-      setFormData((prev) => ({ ...prev, country: "Republika Srbija" }));
+      setFormData((prev) => ({ ...prev, country: "Srbija" }));
     }
   }, [formData.legal_status]);
 
