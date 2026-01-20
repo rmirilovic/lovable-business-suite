@@ -94,11 +94,13 @@ const COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = {
   "matični broj": "mb",
   "maticni broj": "mb",
   "matičnibroj": "mb",
+  "maticnibroj": "mb",
   "mb": "mb",
-  // Sifra delatnosti
+  // Sifra delatnosti - sve varijante
   "sifra delatnosti": "activity_code",
   "šifra delatnosti": "activity_code",
   "sifradelatnosti": "activity_code",
+  "šifradelatnosti": "activity_code",
   "activity_code": "activity_code",
   // Pravni status
   "pravni status": "legal_status",
@@ -247,16 +249,32 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       const headers = Object.keys(jsonData[0]);
       const detectedMapping: Record<string, string> = {};
       
+      // Function to normalize diacritics (č->c, š->s, ž->z, ć->c, đ->d)
+      const removeDiacritics = (str: string): string => {
+        return str
+          .replace(/[čć]/g, 'c')
+          .replace(/š/g, 's')
+          .replace(/ž/g, 'z')
+          .replace(/đ/g, 'd');
+      };
+      
       headers.forEach((header) => {
         // Normalize: lowercase, trim, remove extra spaces
         const normalizedHeader = header.toLowerCase().trim().replace(/\s+/g, ' ');
         // Also try without any spaces
         const noSpaceHeader = normalizedHeader.replace(/\s/g, '');
+        // Also try without diacritics
+        const noDiacriticsHeader = removeDiacritics(normalizedHeader);
+        const noDiacriticsNoSpaceHeader = removeDiacritics(noSpaceHeader);
         
         if (COLUMN_MAPPINGS[normalizedHeader]) {
           detectedMapping[header] = COLUMN_MAPPINGS[normalizedHeader];
         } else if (COLUMN_MAPPINGS[noSpaceHeader]) {
           detectedMapping[header] = COLUMN_MAPPINGS[noSpaceHeader];
+        } else if (COLUMN_MAPPINGS[noDiacriticsHeader]) {
+          detectedMapping[header] = COLUMN_MAPPINGS[noDiacriticsHeader];
+        } else if (COLUMN_MAPPINGS[noDiacriticsNoSpaceHeader]) {
+          detectedMapping[header] = COLUMN_MAPPINGS[noDiacriticsNoSpaceHeader];
         }
       });
       
