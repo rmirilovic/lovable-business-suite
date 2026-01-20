@@ -93,13 +93,28 @@ export const PAYMENT_PRIORITY_LABELS: Record<number, string> = {
 };
 
 async function fetchPartners(companyId: string): Promise<Partner[]> {
-  const { data, error } = await supabase
-    .from("partners")
-    .select("*, partner_groups(*)")
-    .eq("company_id", companyId)
-    .order("code");
-  if (error) throw error;
-  return data as Partner[];
+  const allPartners: Partner[] = [];
+  const batchSize = 1000;
+  let from = 0;
+  
+  while (true) {
+    const { data, error } = await supabase
+      .from("partners")
+      .select("*, partner_groups(*)")
+      .eq("company_id", companyId)
+      .order("code")
+      .range(from, from + batchSize - 1);
+    
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    
+    allPartners.push(...(data as Partner[]));
+    
+    if (data.length < batchSize) break;
+    from += batchSize;
+  }
+  
+  return allPartners;
 }
 
 async function fetchPartnerGroups(companyId: string): Promise<PartnerGroup[]> {
