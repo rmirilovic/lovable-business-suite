@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, X, Save, FolderOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,6 +85,37 @@ interface ImportResult {
   skipped: number;
   errors: { row: number; code: string; error: string }[];
 }
+
+interface MappingTemplate {
+  name: string;
+  mapping: Record<string, string>;
+}
+
+// All mappable fields with labels
+const MAPPABLE_FIELDS: { key: keyof ParsedPartner; label: string; required?: boolean }[] = [
+  { key: "code", label: "Šifra", required: true },
+  { key: "name", label: "Naziv", required: true },
+  { key: "address", label: "Adresa" },
+  { key: "postal_code", label: "Poštanski broj" },
+  { key: "city", label: "Mesto" },
+  { key: "country", label: "Država" },
+  { key: "pib", label: "PIB" },
+  { key: "mb", label: "Matični broj" },
+  { key: "jbkjs", label: "JBKJS" },
+  { key: "activity_code", label: "Šifra delatnosti" },
+  { key: "legal_status", label: "Pravni status" },
+  { key: "payment_priority", label: "Prioritet plaćanja" },
+  { key: "is_customer", label: "Kupac" },
+  { key: "is_supplier", label: "Dobavljač" },
+  { key: "is_active", label: "Aktivan" },
+  { key: "phone", label: "Telefon" },
+  { key: "email", label: "Email" },
+  { key: "website", label: "Web adresa" },
+  { key: "responsible_person", label: "Odgovorno lice" },
+  { key: "assigned_to", label: "Zadužen" },
+  { key: "note", label: "Napomena" },
+  { key: "other_data", label: "Ostali podaci" },
+];
 
 // Expected column order: Šifra, Naziv, Adresa, PB, Mesto, PIB, JBKJS, Maticni, Sifra delatnosti, 
 // Pravni status, Prioritet placanja, Kupac, Dobavljac, Aktivan, Telefon, Email, Web adresa, 
@@ -193,6 +232,21 @@ Object.entries(PAYMENT_PRIORITY_LABELS).forEach(([key, value]) => {
   PAYMENT_PRIORITY_REVERSE[value.toLowerCase()] = Number(key);
 });
 
+const TEMPLATES_STORAGE_KEY = "partner-import-templates";
+
+const loadTemplates = (): MappingTemplate[] => {
+  try {
+    const stored = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveTemplates = (templates: MappingTemplate[]) => {
+  localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates));
+};
+
 export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogProps) {
   const { selectedCompany } = useAuth();
   const queryClient = useQueryClient();
@@ -201,31 +255,45 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
   const [parsedData, setParsedData] = useState<ParsedPartner[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [rawRows, setRawRows] = useState<Record<string, any>[]>([]);
+  const [excelHeaders, setExcelHeaders] = useState<string[]>([]);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
-  const [step, setStep] = useState<"upload" | "preview" | "importing" | "complete">("upload");
+  const [step, setStep] = useState<"upload" | "mapping" | "preview" | "importing" | "complete">("upload");
   const [updateExisting, setUpdateExisting] = useState(false);
+  
+  // Template management
+  const [templates, setTemplates] = useState<MappingTemplate[]>([]);
+  const [newTemplateName, setNewTemplateName] = useState("");
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+
+  useEffect(() => {
+    setTemplates(loadTemplates());
+  }, []);
 
   const resetState = useCallback(() => {
     setFile(null);
     setParsedData([]);
     setColumnMapping({});
     setRawRows([]);
+    setExcelHeaders([]);
     setImporting(false);
     setProgress(0);
     setResult(null);
     setStep("upload");
     setUpdateExisting(false);
+    setNewTemplateName("");
+    setShowSaveTemplate(false);
   }, []);
 
-  const getExcelColForField = useCallback(
-    (field: keyof ParsedPartner): string | undefined => {
-      const entry = Object.entries(columnMapping).find(([, mapped]) => mapped === field);
-      return entry?.[0];
-    },
-    [columnMapping]
-  );
+  // Inverted mapping: field -> excelCol
+  const fieldToExcelCol = useMemo(() => {
+    const inverted: Record<string, string> = {};
+    Object.entries(columnMapping).forEach(([excelCol, field]) => {
+      inverted[field] = excelCol;
+    });
+    return inverted;
+  }, [columnMapping]);
 
   const handleClose = () => {
     resetState();
@@ -287,6 +355,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       
       // Detect column mappings from headers
       const headers = Object.keys(jsonData[0]);
+      setExcelHeaders(headers);
       const detectedMapping: Record<string, string> = {};
       
       headers.forEach((header) => {
@@ -321,35 +390,123 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
 
       setColumnMapping(detectedMapping);
       setRawRows(jsonData);
-      
-      // Parse data
-      const parsed: ParsedPartner[] = jsonData.map((row) => {
-        const partner: Partial<ParsedPartner> = {
-          is_customer: true,
-          is_supplier: false,
-          is_active: true,
-          payment_priority: 3,
-          legal_status: 1,
-          country: "Srbija",
-        };
-        
-        Object.entries(detectedMapping).forEach(([excelCol, partnerField]) => {
-          const value = parseExcelValue(row[excelCol], partnerField as keyof ParsedPartner);
-          if (value !== undefined) {
-            (partner as any)[partnerField] = value;
-          }
-        });
-        
-        return partner as ParsedPartner;
-      }).filter((p) => p.code && p.name); // Only keep rows with code and name
-      
-      setParsedData(parsed);
-      setStep("preview");
+      setStep("mapping");
       
     } catch (error) {
       console.error("Error parsing Excel:", error);
       toast.error("Greška pri čitanju Excel fajla");
     }
+  };
+
+  const updateFieldMapping = (field: string, excelCol: string | null) => {
+    setColumnMapping((prev) => {
+      const newMapping = { ...prev };
+      
+      // Remove old mapping for this field
+      Object.keys(newMapping).forEach((key) => {
+        if (newMapping[key] === field) {
+          delete newMapping[key];
+        }
+      });
+      
+      // Add new mapping if excelCol is provided
+      if (excelCol) {
+        newMapping[excelCol] = field;
+      }
+      
+      return newMapping;
+    });
+  };
+
+  const applyMappingAndContinue = () => {
+    // Validate required fields
+    const hasCode = Object.values(columnMapping).includes("code");
+    const hasName = Object.values(columnMapping).includes("name");
+    
+    if (!hasCode || !hasName) {
+      toast.error("Morate mapirati obavezna polja: Šifra i Naziv");
+      return;
+    }
+
+    // Parse data with current mapping
+    const parsed: ParsedPartner[] = rawRows.map((row) => {
+      const partner: Partial<ParsedPartner> = {
+        is_customer: true,
+        is_supplier: false,
+        is_active: true,
+        payment_priority: 3,
+        legal_status: 1,
+        country: "Srbija",
+      };
+      
+      Object.entries(columnMapping).forEach(([excelCol, partnerField]) => {
+        const value = parseExcelValue(row[excelCol], partnerField as keyof ParsedPartner);
+        if (value !== undefined) {
+          (partner as any)[partnerField] = value;
+        }
+      });
+      
+      return partner as ParsedPartner;
+    }).filter((p) => p.code && p.name);
+    
+    setParsedData(parsed);
+    setStep("preview");
+  };
+
+  const saveTemplate = () => {
+    if (!newTemplateName.trim()) {
+      toast.error("Unesite naziv šablona");
+      return;
+    }
+    
+    const existingIndex = templates.findIndex((t) => t.name === newTemplateName.trim());
+    let updatedTemplates: MappingTemplate[];
+    
+    if (existingIndex >= 0) {
+      updatedTemplates = [...templates];
+      updatedTemplates[existingIndex] = { name: newTemplateName.trim(), mapping: { ...columnMapping } };
+      toast.success("Šablon ažuriran");
+    } else {
+      updatedTemplates = [...templates, { name: newTemplateName.trim(), mapping: { ...columnMapping } }];
+      toast.success("Šablon sačuvan");
+    }
+    
+    setTemplates(updatedTemplates);
+    saveTemplates(updatedTemplates);
+    setNewTemplateName("");
+    setShowSaveTemplate(false);
+  };
+
+  const loadTemplate = (template: MappingTemplate) => {
+    // Apply template mapping to current headers
+    const newMapping: Record<string, string> = {};
+    
+    // Match template mapping to current excel headers
+    Object.entries(template.mapping).forEach(([excelCol, field]) => {
+      // Check if exact header exists
+      if (excelHeaders.includes(excelCol)) {
+        newMapping[excelCol] = field;
+      } else {
+        // Try to find by normalized comparison
+        const normalizedTemplateCol = normalizeHeaderKey(excelCol);
+        const matchingHeader = excelHeaders.find(
+          (h) => normalizeHeaderKey(h) === normalizedTemplateCol
+        );
+        if (matchingHeader) {
+          newMapping[matchingHeader] = field;
+        }
+      }
+    });
+    
+    setColumnMapping(newMapping);
+    toast.success(`Šablon "${template.name}" učitan`);
+  };
+
+  const deleteTemplate = (templateName: string) => {
+    const updatedTemplates = templates.filter((t) => t.name !== templateName);
+    setTemplates(updatedTemplates);
+    saveTemplates(updatedTemplates);
+    toast.success("Šablon obrisan");
   };
 
   const handleImport = async () => {
@@ -509,14 +666,18 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
+      <DialogContent className="max-w-3xl max-h-[85vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5" />
             Uvoz partnera iz Excel fajla
           </DialogTitle>
           <DialogDescription>
-            Uvezite partnere iz .xlsx fajla. Sistem će automatski prepoznati kolone.
+            {step === "upload" && "Uvezite partnere iz .xlsx fajla. Sistem će automatski prepoznati kolone."}
+            {step === "mapping" && "Proverite i prilagodite mapiranje kolona pre uvoza."}
+            {step === "preview" && "Pregledajte podatke pre uvoza."}
+            {step === "importing" && "Uvoz u toku..."}
+            {step === "complete" && "Uvoz završen."}
           </DialogDescription>
         </DialogHeader>
 
@@ -562,6 +723,132 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
           </div>
         )}
 
+        {step === "mapping" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="w-4 h-4" />
+                <span className="text-sm font-medium">{file?.name}</span>
+              </div>
+              <Badge>{rawRows.length} redova</Badge>
+            </div>
+
+            {/* Template management */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {templates.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <FolderOpen className="w-4 h-4 text-muted-foreground" />
+                  <Select onValueChange={(name) => {
+                    const t = templates.find((tpl) => tpl.name === name);
+                    if (t) loadTemplate(t);
+                  }}>
+                    <SelectTrigger className="w-[180px] h-8">
+                      <SelectValue placeholder="Učitaj šablon..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover z-50">
+                      {templates.map((t) => (
+                        <SelectItem key={t.name} value={t.name}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {templates.length > 0 && (
+                    <Select onValueChange={(name) => deleteTemplate(name)}>
+                      <SelectTrigger className="w-8 h-8 p-0 justify-center">
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover z-50">
+                        {templates.map((t) => (
+                          <SelectItem key={t.name} value={t.name}>
+                            Obriši: {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              )}
+              
+              {showSaveTemplate ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Naziv šablona..."
+                    value={newTemplateName}
+                    onChange={(e) => setNewTemplateName(e.target.value)}
+                    className="h-8 w-40"
+                    onKeyDown={(e) => e.key === "Enter" && saveTemplate()}
+                  />
+                  <Button size="sm" variant="outline" onClick={saveTemplate}>
+                    <Save className="w-3 h-3 mr-1" />
+                    Sačuvaj
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setShowSaveTemplate(false)}>
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Button size="sm" variant="outline" onClick={() => setShowSaveTemplate(true)}>
+                  <Save className="w-3 h-3 mr-1" />
+                  Sačuvaj kao šablon
+                </Button>
+              )}
+            </div>
+
+            <ScrollArea className="h-[340px] border rounded-lg">
+              <div className="p-3 space-y-2">
+                {MAPPABLE_FIELDS.map((field) => {
+                  const currentExcelCol = fieldToExcelCol[field.key];
+                  return (
+                    <div key={field.key} className="flex items-center gap-3 py-1.5 border-b last:border-0">
+                      <div className="w-40 flex items-center gap-1.5">
+                        <span className={`text-sm ${field.required ? "font-medium" : ""}`}>
+                          {field.label}
+                        </span>
+                        {field.required && (
+                          <span className="text-destructive text-xs">*</span>
+                        )}
+                      </div>
+                      <Select
+                        value={currentExcelCol || "__none__"}
+                        onValueChange={(val) => updateFieldMapping(field.key, val === "__none__" ? null : val)}
+                      >
+                        <SelectTrigger className="flex-1 h-8">
+                          <SelectValue placeholder="Izaberite kolonu..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover z-50 max-h-60">
+                          <SelectItem value="__none__">
+                            <span className="text-muted-foreground italic">— Nije mapirano —</span>
+                          </SelectItem>
+                          {excelHeaders.map((header) => (
+                            <SelectItem key={header} value={header}>
+                              {header}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {currentExcelCol && rawRows[0] && (
+                        <span className="text-xs text-muted-foreground truncate max-w-32">
+                          npr: {rawRows[0][currentExcelCol] ?? "(prazno)"}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={resetState}>
+                Nazad
+              </Button>
+              <Button onClick={applyMappingAndContinue}>
+                Nastavi na pregled
+              </Button>
+            </div>
+          </div>
+        )}
+
         {step === "preview" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
@@ -599,16 +886,6 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
                         <div>
                           <span className="font-medium text-foreground/70">Adresa:</span>{" "}
                           {partner.address || <span className="italic text-destructive/60">—</span>}
-                          {(() => {
-                            const excelCol = getExcelColForField("address");
-                            if (!excelCol) return null;
-                            const raw = rawRows[idx]?.[excelCol];
-                            return (
-                              <div className="text-[11px] text-muted-foreground/80">
-                                Excel: {excelCol} = {raw === undefined || raw === null || raw === "" ? "(prazno)" : String(raw)}
-                              </div>
-                            );
-                          })()}
                         </div>
                         <div>
                           <span className="font-medium text-foreground/70">PB/Mesto:</span>{" "}
@@ -619,48 +896,14 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
                           ) : (
                             <span className="italic text-destructive/60">—</span>
                           )}
-                          {(() => {
-                            const excelPb = getExcelColForField("postal_code");
-                            const excelCity = getExcelColForField("city");
-                            if (!excelPb && !excelCity) return null;
-                            const rawPb = excelPb ? rawRows[idx]?.[excelPb] : undefined;
-                            const rawCity = excelCity ? rawRows[idx]?.[excelCity] : undefined;
-                            return (
-                              <div className="text-[11px] text-muted-foreground/80">
-                                {excelPb ? `Excel: ${excelPb} = ${rawPb === undefined || rawPb === null || rawPb === "" ? "(prazno)" : String(rawPb)}` : null}
-                                {excelPb && excelCity ? " • " : null}
-                                {excelCity ? `Excel: ${excelCity} = ${rawCity === undefined || rawCity === null || rawCity === "" ? "(prazno)" : String(rawCity)}` : null}
-                              </div>
-                            );
-                          })()}
                         </div>
                         <div>
                           <span className="font-medium text-foreground/70">PIB:</span>{" "}
                           {partner.pib || <span className="italic text-destructive/60">—</span>}
-                          {(() => {
-                            const excelCol = getExcelColForField("pib");
-                            if (!excelCol) return null;
-                            const raw = rawRows[idx]?.[excelCol];
-                            return (
-                              <div className="text-[11px] text-muted-foreground/80">
-                                Excel: {excelCol} = {raw === undefined || raw === null || raw === "" ? "(prazno)" : String(raw)}
-                              </div>
-                            );
-                          })()}
                         </div>
                         <div>
                           <span className="font-medium text-foreground/70">MB:</span>{" "}
                           {partner.mb || <span className="italic text-destructive/60">—</span>}
-                          {(() => {
-                            const excelCol = getExcelColForField("mb");
-                            if (!excelCol) return null;
-                            const raw = rawRows[idx]?.[excelCol];
-                            return (
-                              <div className="text-[11px] text-muted-foreground/80">
-                                Excel: {excelCol} = {raw === undefined || raw === null || raw === "" ? "(prazno)" : String(raw)}
-                              </div>
-                            );
-                          })()}
                         </div>
                       </div>
                     </div>
@@ -686,7 +929,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
                 </Label>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={resetState}>
+                <Button variant="outline" onClick={() => setStep("mapping")}>
                   Nazad
                 </Button>
                 <Button onClick={handleImport}>
