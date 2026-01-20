@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, X } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
@@ -202,6 +204,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [step, setStep] = useState<"upload" | "preview" | "importing" | "complete">("upload");
+  const [updateExisting, setUpdateExisting] = useState(false);
 
   const resetState = useCallback(() => {
     setFile(null);
@@ -211,6 +214,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
     setProgress(0);
     setResult(null);
     setStep("upload");
+    setUpdateExisting(false);
   }, []);
 
   const handleClose = () => {
@@ -332,13 +336,18 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       errors: [],
     };
     
+    // Track updated count separately
+    let updatedCount = 0;
+    
     // Get existing partner codes to check for duplicates
     const { data: existingPartners } = await supabase
       .from("partners")
-      .select("code")
+      .select("code, id")
       .eq("company_id", selectedCompany.id);
     
-    const existingCodes = new Set(existingPartners?.map((p) => p.code) || []);
+    const existingPartnersMap = new Map(
+      existingPartners?.map((p) => [p.code, p.id]) || []
+    );
     
     const BATCH_SIZE = 50;
     const totalBatches = Math.ceil(parsedData.length / BATCH_SIZE);
@@ -348,14 +357,23 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       const end = Math.min(start + BATCH_SIZE, parsedData.length);
       const batch = parsedData.slice(start, end);
       
-      const toInsert = batch.filter((p) => {
-        if (existingCodes.has(p.code)) {
-          importResult.skipped++;
-          return false;
+      const toInsert: ParsedPartner[] = [];
+      const toUpdate: { id: string; data: ParsedPartner }[] = [];
+      
+      batch.forEach((p) => {
+        const existingId = existingPartnersMap.get(p.code);
+        if (existingId) {
+          if (updateExisting) {
+            toUpdate.push({ id: existingId, data: p });
+          } else {
+            importResult.skipped++;
+          }
+        } else {
+          toInsert.push(p);
         }
-        return true;
       });
       
+      // Insert new partners
       if (toInsert.length > 0) {
         const insertData = toInsert.map((p) => ({
           company_id: selectedCompany.id,
@@ -389,19 +407,63 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
           toInsert.forEach((p, i) => {
             importResult.failed++;
             importResult.errors.push({
-              row: start + i + 2, // +2 for header and 0-index
+              row: start + i + 2,
               code: p.code,
               error: error.message,
             });
           });
         } else {
           importResult.success += toInsert.length;
-          toInsert.forEach((p) => existingCodes.add(p.code));
+          toInsert.forEach((p) => existingPartnersMap.set(p.code, "inserted"));
+        }
+      }
+      
+      // Update existing partners
+      for (const { id, data: p } of toUpdate) {
+        const { error } = await supabase
+          .from("partners")
+          .update({
+            name: p.name,
+            legal_status: p.legal_status,
+            address: p.address || null,
+            postal_code: p.postal_code || null,
+            city: p.city || null,
+            country: p.country || "Srbija",
+            pib: p.pib || null,
+            mb: p.mb || null,
+            activity_code: p.activity_code || null,
+            jbkjs: p.jbkjs || null,
+            phone: p.phone || null,
+            email: p.email || null,
+            website: p.website || null,
+            responsible_person: p.responsible_person || null,
+            is_customer: p.is_customer,
+            is_supplier: p.is_supplier,
+            is_active: p.is_active,
+            payment_priority: p.payment_priority,
+            note: p.note || null,
+            other_data: p.other_data || null,
+            assigned_to: p.assigned_to || null,
+          })
+          .eq("id", id);
+        
+        if (error) {
+          importResult.failed++;
+          importResult.errors.push({
+            row: 0,
+            code: p.code,
+            error: error.message,
+          });
+        } else {
+          updatedCount++;
         }
       }
       
       setProgress(Math.round(((batchIndex + 1) / totalBatches) * 100));
     }
+    
+    // Add updated count to success for display purposes
+    importResult.success += updatedCount;
     
     setResult(importResult);
     setImporting(false);
@@ -515,14 +577,26 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
               </ScrollArea>
             </div>
 
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={resetState}>
-                Nazad
-              </Button>
-              <Button onClick={handleImport}>
-                <Upload className="w-4 h-4 mr-2" />
-                Uvezi {parsedData.length} partnera
-              </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="updateExisting"
+                  checked={updateExisting}
+                  onCheckedChange={(checked) => setUpdateExisting(checked === true)}
+                />
+                <Label htmlFor="updateExisting" className="text-sm cursor-pointer">
+                  Ažuriraj postojeće partnere (po šifri)
+                </Label>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={resetState}>
+                  Nazad
+                </Button>
+                <Button onClick={handleImport}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Uvezi {parsedData.length} partnera
+                </Button>
+              </div>
             </div>
           </div>
         )}
