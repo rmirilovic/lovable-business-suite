@@ -574,17 +574,40 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
 
             <div>
               <h4 className="text-sm font-medium mb-2">Pregled podataka (prvih 5):</h4>
-              <ScrollArea className="h-48 border rounded-lg">
+              <ScrollArea className="h-64 border rounded-lg">
                 <div className="p-2 space-y-2">
                   {parsedData.slice(0, 5).map((partner, idx) => (
-                    <div key={idx} className="p-2 bg-muted/30 rounded text-sm">
-                      <span className="font-mono text-xs text-muted-foreground mr-2">
-                        {partner.code}
-                      </span>
-                      <span>{partner.name}</span>
-                      {partner.city && (
-                        <span className="text-muted-foreground ml-2">• {partner.city}</span>
-                      )}
+                    <div key={idx} className="p-3 bg-muted/30 rounded text-sm space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs bg-primary/10 px-1.5 py-0.5 rounded">
+                          {partner.code}
+                        </span>
+                        <span className="font-medium">{partner.name}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
+                        <div>
+                          <span className="font-medium text-foreground/70">Adresa:</span>{" "}
+                          {partner.address || <span className="italic text-destructive/60">—</span>}
+                        </div>
+                        <div>
+                          <span className="font-medium text-foreground/70">PB/Mesto:</span>{" "}
+                          {partner.postal_code || partner.city ? (
+                            <>
+                              {partner.postal_code || "—"} {partner.city || ""}
+                            </>
+                          ) : (
+                            <span className="italic text-destructive/60">—</span>
+                          )}
+                        </div>
+                        <div>
+                          <span className="font-medium text-foreground/70">PIB:</span>{" "}
+                          {partner.pib || <span className="italic text-destructive/60">—</span>}
+                        </div>
+                        <div>
+                          <span className="font-medium text-foreground/70">MB:</span>{" "}
+                          {partner.mb || <span className="italic text-destructive/60">—</span>}
+                        </div>
+                      </div>
                     </div>
                   ))}
                   {parsedData.length > 5 && (
