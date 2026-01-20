@@ -89,21 +89,25 @@ const COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = {
   "pib": "pib",
   // JBKJS
   "jbkjs": "jbkjs",
-  // Maticni (Matični broj)
+  // Maticni (Matični broj) - sve varijante
   "maticni": "mb",
   "matični broj": "mb",
   "maticni broj": "mb",
+  "matičnibroj": "mb",
   "mb": "mb",
   // Sifra delatnosti
   "sifra delatnosti": "activity_code",
   "šifra delatnosti": "activity_code",
+  "sifradelatnosti": "activity_code",
   "activity_code": "activity_code",
   // Pravni status
   "pravni status": "legal_status",
+  "pravnistatus": "legal_status",
   "legal_status": "legal_status",
-  // Prioritet placanja
+  // Prioritet placanja - sve varijante
   "prioritet placanja": "payment_priority",
   "prioritet plaćanja": "payment_priority",
+  "prioritetplacanja": "payment_priority",
   "payment_priority": "payment_priority",
   // Kupac
   "kupac": "is_customer",
@@ -123,11 +127,13 @@ const COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = {
   "e-mail": "email",
   // Web adresa
   "web adresa": "website",
+  "webadresa": "website",
   "web": "website",
   "website": "website",
   "sajt": "website",
   // Odgovorno lice
   "odgovorno lice": "responsible_person",
+  "odgovornorlice": "responsible_person",
   "responsible_person": "responsible_person",
   // Zadužen
   "zadužen": "assigned_to",
@@ -138,6 +144,7 @@ const COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = {
   "note": "note",
   // Ostali podaci
   "ostali podaci": "other_data",
+  "ostalipodaci": "other_data",
   "ostalo": "other_data",
   "other_data": "other_data",
   // Država (za kompatibilnost sa starijim fajlovima)
@@ -241,9 +248,15 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       const detectedMapping: Record<string, string> = {};
       
       headers.forEach((header) => {
-        const normalizedHeader = header.toLowerCase().trim();
+        // Normalize: lowercase, trim, remove extra spaces
+        const normalizedHeader = header.toLowerCase().trim().replace(/\s+/g, ' ');
+        // Also try without any spaces
+        const noSpaceHeader = normalizedHeader.replace(/\s/g, '');
+        
         if (COLUMN_MAPPINGS[normalizedHeader]) {
           detectedMapping[header] = COLUMN_MAPPINGS[normalizedHeader];
+        } else if (COLUMN_MAPPINGS[noSpaceHeader]) {
+          detectedMapping[header] = COLUMN_MAPPINGS[noSpaceHeader];
         }
       });
       
