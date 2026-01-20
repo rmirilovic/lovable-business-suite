@@ -404,8 +404,8 @@ export function PartnerDetailsDialog({
                 </div>
               </div>
 
-              {/* PIB, MB, Activity code with APR lookup */}
-              <div className="grid grid-cols-4 gap-4">
+              {/* PIB, MB, Activity code, JBKJS with APR lookup */}
+              <div className="grid grid-cols-5 gap-4">
                 <div>
                   <Label htmlFor="pib">PIB</Label>
                   <Input
@@ -433,6 +433,16 @@ export function PartnerDetailsDialog({
                     autoComplete="off"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="jbkjs">JBKJS</Label>
+                  <Input
+                    id="jbkjs"
+                    value={formData.jbkjs}
+                    onChange={(e) => updateField("jbkjs", e.target.value.slice(0, 31))}
+                    maxLength={31}
+                    autoComplete="off"
+                  />
+                </div>
                 <div className="flex items-end">
                   <Button
                     type="button"
@@ -450,21 +460,6 @@ export function PartnerDetailsDialog({
                   </Button>
                 </div>
               </div>
-
-              {/* JBKJS - only for legal_status 3 */}
-              {formData.legal_status === 3 && (
-                <div className="grid grid-cols-4 gap-4">
-                  <div>
-                    <Label htmlFor="jbkjs">JBKJS</Label>
-                    <Input
-                      id="jbkjs"
-                      value={formData.jbkjs}
-                      onChange={(e) => updateField("jbkjs", e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-                </div>
-              )}
 
               {/* Address */}
               <div className="grid grid-cols-4 gap-4">
