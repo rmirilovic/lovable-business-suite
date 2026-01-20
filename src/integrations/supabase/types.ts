@@ -572,6 +572,7 @@ export type Database = {
           name: string
           note: string | null
           other_data: string | null
+          payment_priority: number | null
           phone: string | null
           pib: string | null
           postal_code: string | null
@@ -600,6 +601,7 @@ export type Database = {
           name: string
           note?: string | null
           other_data?: string | null
+          payment_priority?: number | null
           phone?: string | null
           pib?: string | null
           postal_code?: string | null
@@ -628,6 +630,7 @@ export type Database = {
           name?: string
           note?: string | null
           other_data?: string | null
+          payment_priority?: number | null
           phone?: string | null
           pib?: string | null
           postal_code?: string | null
