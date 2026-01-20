@@ -25,6 +25,7 @@ import {
   usePartners,
   usePartnerGroups,
   LEGAL_STATUS_LABELS,
+  PAYMENT_PRIORITY_LABELS,
 } from "@/hooks/usePartners";
 import { useAuth } from "@/contexts/AuthContext";
 import { PartnerBankAccountsTab } from "./PartnerBankAccountsTab";
@@ -63,6 +64,7 @@ const defaultFormData: Omit<PartnerInsert, "company_id"> = {
   note: "",
   other_data: "",
   is_active: true,
+  payment_priority: null,
 };
 
 export function PartnerDetailsDialog({
@@ -103,6 +105,7 @@ export function PartnerDetailsDialog({
         note: partner.note || "",
         other_data: partner.other_data || "",
         is_active: partner.is_active,
+        payment_priority: partner.payment_priority,
       });
     } else {
       setFormData(defaultFormData);
@@ -369,6 +372,31 @@ export function PartnerDetailsDialog({
                       {groups.map((group) => (
                         <SelectItem key={group.id} value={group.id}>
                           {group.code} - {group.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Payment Priority */}
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <Label>Prioritet plaćanja</Label>
+                  <Select
+                    value={formData.payment_priority ? String(formData.payment_priority) : "none"}
+                    onValueChange={(val) =>
+                      updateField("payment_priority", val === "none" ? null : Number(val))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Nije definisan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nije definisan</SelectItem>
+                      {Object.entries(PAYMENT_PRIORITY_LABELS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
                         </SelectItem>
                       ))}
                     </SelectContent>

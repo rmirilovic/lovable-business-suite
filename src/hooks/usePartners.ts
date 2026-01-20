@@ -28,6 +28,7 @@ export interface Partner {
   note: string | null;
   other_data: string | null;
   is_active: boolean;
+  payment_priority: number | null;
   created_at: string;
   updated_at: string;
   partner_groups?: PartnerGroup | null;
@@ -83,6 +84,12 @@ export const LEGAL_STATUS_LABELS: Record<number, string> = {
   2: "Fizičko lice",
   3: "Javno preduzeće",
   4: "Ino partner",
+};
+
+export const PAYMENT_PRIORITY_LABELS: Record<number, string> = {
+  1: "I prioritet",
+  2: "II prioritet",
+  3: "III prioritet",
 };
 
 async function fetchPartners(companyId: string): Promise<Partner[]> {
