@@ -354,7 +354,16 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       }
       
       // Detect column mappings from headers
-      const headers = Object.keys(jsonData[0]);
+      // NOTE: sheet_to_json creates object keys only for cells that exist.
+      // If the first row has empty cells, Object.keys(jsonData[0]) can miss columns.
+      // So we build a stable union of keys across all rows.
+      const headers = jsonData.reduce<string[]>((acc, row) => {
+        Object.keys(row).forEach((k) => {
+          if (!acc.includes(k)) acc.push(k);
+        });
+        return acc;
+      }, []);
+
       setExcelHeaders(headers);
       const detectedMapping: Record<string, string> = {};
       
