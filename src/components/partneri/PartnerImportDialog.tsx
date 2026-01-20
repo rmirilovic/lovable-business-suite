@@ -18,6 +18,27 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { LEGAL_STATUS_LABELS, PAYMENT_PRIORITY_LABELS } from "@/hooks/usePartners";
 
+// Normalization helpers for Excel headers (handles diacritics + non-breaking spaces)
+const removeDiacritics = (str: string): string => {
+  return str
+    .replace(/[čć]/g, "c")
+    .replace(/š/g, "s")
+    .replace(/ž/g, "z")
+    .replace(/đ/g, "d");
+};
+
+const normalizeHeaderKey = (input: string): string => {
+  const cleanedWhitespace = input
+    // normalize common unicode spaces to regular spaces
+    .replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000]/g, " ")
+    .trim()
+    .toLowerCase();
+
+  // keep letters/numbers/spaces only (strip punctuation like '-' etc)
+  const stripped = cleanedWhitespace.replace(/[^\p{L}\p{N}\s]/gu, " ");
+  return removeDiacritics(stripped).replace(/\s+/g, " ").trim();
+};
+
 interface PartnerImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -155,6 +176,11 @@ const COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = {
   "country": "country",
 };
 
+// Build a normalized lookup so we can match headers robustly
+const NORMALIZED_COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = Object.fromEntries(
+  Object.entries(COLUMN_MAPPINGS).map(([k, v]) => [normalizeHeaderKey(k), v])
+) as Record<string, keyof ParsedPartner>;
+
 const LEGAL_STATUS_REVERSE: Record<string, number> = {};
 Object.entries(LEGAL_STATUS_LABELS).forEach(([key, value]) => {
   LEGAL_STATUS_REVERSE[value.toLowerCase()] = Number(key);
@@ -249,47 +275,17 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       const headers = Object.keys(jsonData[0]);
       const detectedMapping: Record<string, string> = {};
       
-      // Function to normalize diacritics (č->c, š->s, ž->z, ć->c, đ->d)
-      const removeDiacritics = (str: string): string => {
-        return str
-          .replace(/[čć]/g, 'c')
-          .replace(/š/g, 's')
-          .replace(/ž/g, 'z')
-          .replace(/đ/g, 'd');
-      };
-      
-      console.log("Excel headers:", headers);
-      console.log("First row data:", jsonData[0]);
-      
       headers.forEach((header) => {
-        // Normalize: lowercase, trim, remove extra spaces
-        const normalizedHeader = header.toLowerCase().trim().replace(/\s+/g, ' ');
-        // Also try without any spaces
-        const noSpaceHeader = normalizedHeader.replace(/\s/g, '');
-        // Also try without diacritics
-        const noDiacriticsHeader = removeDiacritics(normalizedHeader);
-        const noDiacriticsNoSpaceHeader = removeDiacritics(noSpaceHeader);
-        
-        console.log(`Header "${header}" -> normalized: "${normalizedHeader}", noSpace: "${noSpaceHeader}", noDiacritics: "${noDiacriticsHeader}"`);
-        
-        if (COLUMN_MAPPINGS[normalizedHeader]) {
-          detectedMapping[header] = COLUMN_MAPPINGS[normalizedHeader];
-          console.log(`  Matched via normalizedHeader: ${COLUMN_MAPPINGS[normalizedHeader]}`);
-        } else if (COLUMN_MAPPINGS[noSpaceHeader]) {
-          detectedMapping[header] = COLUMN_MAPPINGS[noSpaceHeader];
-          console.log(`  Matched via noSpaceHeader: ${COLUMN_MAPPINGS[noSpaceHeader]}`);
-        } else if (COLUMN_MAPPINGS[noDiacriticsHeader]) {
-          detectedMapping[header] = COLUMN_MAPPINGS[noDiacriticsHeader];
-          console.log(`  Matched via noDiacriticsHeader: ${COLUMN_MAPPINGS[noDiacriticsHeader]}`);
-        } else if (COLUMN_MAPPINGS[noDiacriticsNoSpaceHeader]) {
-          detectedMapping[header] = COLUMN_MAPPINGS[noDiacriticsNoSpaceHeader];
-          console.log(`  Matched via noDiacriticsNoSpaceHeader: ${COLUMN_MAPPINGS[noDiacriticsNoSpaceHeader]}`);
-        } else {
-          console.log(`  NO MATCH FOUND`);
-        }
+        const normalized = normalizeHeaderKey(header);
+        const noSpace = normalized.replace(/\s/g, "");
+
+        const direct = NORMALIZED_COLUMN_MAPPINGS[normalized];
+        const directNoSpace = NORMALIZED_COLUMN_MAPPINGS[noSpace];
+
+        const mapped = direct ?? directNoSpace;
+        if (mapped) detectedMapping[header] = mapped;
       });
-      
-      console.log("Detected mapping:", detectedMapping);
+
       setColumnMapping(detectedMapping);
       
       // Parse data
