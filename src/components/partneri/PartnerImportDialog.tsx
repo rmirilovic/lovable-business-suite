@@ -290,6 +290,25 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
         if (mapped) detectedMapping[header] = mapped;
       });
 
+      // Fallback: if header-based detection missed most columns, use the expected column order.
+      // This helps with Excel files that contain hidden/unusual characters in header names.
+      if (Object.keys(detectedMapping).length <= 4 && headers.length >= 2) {
+        headers.forEach((header, idx) => {
+          if (detectedMapping[header]) return;
+          const expectedHeader = EXPECTED_COLUMNS[idx];
+          if (!expectedHeader) return;
+
+          const expectedNormalized = normalizeHeaderKey(expectedHeader);
+          const expectedNoSpace = expectedNormalized.replace(/\s/g, "");
+
+          const mapped =
+            NORMALIZED_COLUMN_MAPPINGS[expectedNormalized] ??
+            NORMALIZED_COLUMN_MAPPINGS[expectedNoSpace];
+
+          if (mapped) detectedMapping[header] = mapped;
+        });
+      }
+
       setColumnMapping(detectedMapping);
       
       // Parse data
