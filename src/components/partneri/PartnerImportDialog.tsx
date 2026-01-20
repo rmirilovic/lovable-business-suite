@@ -55,59 +55,95 @@ interface ImportResult {
   errors: { row: number; code: string; error: string }[];
 }
 
+// Expected column order: Šifra, Naziv, Adresa, PB, Mesto, PIB, JBKJS, Maticni, Sifra delatnosti, 
+// Pravni status, Prioritet placanja, Kupac, Dobavljac, Aktivan, Telefon, Email, Web adresa, 
+// Odgovorno lice, Zadužen, Napomena, Ostali podaci
+const EXPECTED_COLUMNS = [
+  "Šifra", "Naziv", "Adresa", "PB", "Mesto", "PIB", "JBKJS", "Maticni", 
+  "Sifra delatnosti", "Pravni status", "Prioritet placanja", "Kupac", "Dobavljac", 
+  "Aktivan", "Telefon", "Email", "Web adresa", "Odgovorno lice", "Zadužen", 
+  "Napomena", "Ostali podaci"
+];
+
 const COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = {
+  // Šifra
   "šifra": "code",
   "sifra": "code",
   "code": "code",
+  // Naziv
   "naziv": "name",
   "name": "name",
-  "pravni status": "legal_status",
-  "legal_status": "legal_status",
+  // Adresa
   "adresa": "address",
   "address": "address",
+  // PB (Poštanski broj)
+  "pb": "postal_code",
   "poštanski broj": "postal_code",
   "postanski broj": "postal_code",
   "postal_code": "postal_code",
+  // Mesto
   "mesto": "city",
   "grad": "city",
   "city": "city",
-  "država": "country",
-  "drzava": "country",
-  "country": "country",
+  // PIB
   "pib": "pib",
-  "mb": "mb",
+  // JBKJS
+  "jbkjs": "jbkjs",
+  // Maticni (Matični broj)
+  "maticni": "mb",
   "matični broj": "mb",
   "maticni broj": "mb",
-  "šifra delatnosti": "activity_code",
+  "mb": "mb",
+  // Sifra delatnosti
   "sifra delatnosti": "activity_code",
+  "šifra delatnosti": "activity_code",
   "activity_code": "activity_code",
-  "jbkjs": "jbkjs",
+  // Pravni status
+  "pravni status": "legal_status",
+  "legal_status": "legal_status",
+  // Prioritet placanja
+  "prioritet placanja": "payment_priority",
+  "prioritet plaćanja": "payment_priority",
+  "payment_priority": "payment_priority",
+  // Kupac
+  "kupac": "is_customer",
+  "is_customer": "is_customer",
+  // Dobavljac
+  "dobavljac": "is_supplier",
+  "dobavljač": "is_supplier",
+  "is_supplier": "is_supplier",
+  // Aktivan
+  "aktivan": "is_active",
+  "is_active": "is_active",
+  // Telefon
   "telefon": "phone",
   "phone": "phone",
+  // Email
   "email": "email",
   "e-mail": "email",
+  // Web adresa
+  "web adresa": "website",
   "web": "website",
   "website": "website",
   "sajt": "website",
+  // Odgovorno lice
   "odgovorno lice": "responsible_person",
   "responsible_person": "responsible_person",
-  "kupac": "is_customer",
-  "is_customer": "is_customer",
-  "dobavljač": "is_supplier",
-  "dobavljac": "is_supplier",
-  "is_supplier": "is_supplier",
-  "aktivan": "is_active",
-  "is_active": "is_active",
-  "prioritet plaćanja": "payment_priority",
-  "prioritet placanja": "payment_priority",
-  "payment_priority": "payment_priority",
-  "napomena": "note",
-  "note": "note",
-  "ostalo": "other_data",
-  "other_data": "other_data",
+  // Zadužen
   "zadužen": "assigned_to",
   "zaduzen": "assigned_to",
   "assigned_to": "assigned_to",
+  // Napomena
+  "napomena": "note",
+  "note": "note",
+  // Ostali podaci
+  "ostali podaci": "other_data",
+  "ostalo": "other_data",
+  "other_data": "other_data",
+  // Država (za kompatibilnost sa starijim fajlovima)
+  "država": "country",
+  "drzava": "country",
+  "country": "country",
 };
 
 const LEGAL_STATUS_REVERSE: Record<string, number> = {};
@@ -376,22 +412,20 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
             </label>
             
             <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <h4 className="font-medium mb-2">Očekivane kolone:</h4>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <Badge variant="outline">Šifra*</Badge>
-                <Badge variant="outline">Naziv*</Badge>
-                <Badge variant="outline">Pravni status</Badge>
-                <Badge variant="outline">Adresa</Badge>
-                <Badge variant="outline">Mesto</Badge>
-                <Badge variant="outline">PIB</Badge>
-                <Badge variant="outline">MB</Badge>
-                <Badge variant="outline">Telefon</Badge>
-                <Badge variant="outline">Email</Badge>
-                <Badge variant="outline">Kupac</Badge>
-                <Badge variant="outline">Dobavljač</Badge>
+              <h4 className="font-medium mb-2">Očekivane kolone (redosled):</h4>
+              <div className="flex flex-wrap gap-1.5 text-xs">
+                {EXPECTED_COLUMNS.map((col, idx) => (
+                  <Badge 
+                    key={col} 
+                    variant={col === "Šifra" || col === "Naziv" ? "default" : "outline"}
+                    className="text-xs"
+                  >
+                    {idx + 1}. {col}{(col === "Šifra" || col === "Naziv") ? "*" : ""}
+                  </Badge>
+                ))}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                * Obavezne kolone
+                * Obavezne kolone. Ostale kolone su opcione.
               </p>
             </div>
           </div>
