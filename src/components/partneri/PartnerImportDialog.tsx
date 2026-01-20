@@ -200,6 +200,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
   const [file, setFile] = useState<File | null>(null);
   const [parsedData, setParsedData] = useState<ParsedPartner[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+  const [rawRows, setRawRows] = useState<Record<string, any>[]>([]);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ImportResult | null>(null);
@@ -210,12 +211,21 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
     setFile(null);
     setParsedData([]);
     setColumnMapping({});
+    setRawRows([]);
     setImporting(false);
     setProgress(0);
     setResult(null);
     setStep("upload");
     setUpdateExisting(false);
   }, []);
+
+  const getExcelColForField = useCallback(
+    (field: keyof ParsedPartner): string | undefined => {
+      const entry = Object.entries(columnMapping).find(([, mapped]) => mapped === field);
+      return entry?.[0];
+    },
+    [columnMapping]
+  );
 
   const handleClose = () => {
     resetState();
@@ -310,6 +320,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       }
 
       setColumnMapping(detectedMapping);
+      setRawRows(jsonData);
       
       // Parse data
       const parsed: ParsedPartner[] = jsonData.map((row) => {
@@ -588,6 +599,16 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
                         <div>
                           <span className="font-medium text-foreground/70">Adresa:</span>{" "}
                           {partner.address || <span className="italic text-destructive/60">—</span>}
+                          {(() => {
+                            const excelCol = getExcelColForField("address");
+                            if (!excelCol) return null;
+                            const raw = rawRows[idx]?.[excelCol];
+                            return (
+                              <div className="text-[11px] text-muted-foreground/80">
+                                Excel: {excelCol} = {raw === undefined || raw === null || raw === "" ? "(prazno)" : String(raw)}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div>
                           <span className="font-medium text-foreground/70">PB/Mesto:</span>{" "}
@@ -598,14 +619,48 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
                           ) : (
                             <span className="italic text-destructive/60">—</span>
                           )}
+                          {(() => {
+                            const excelPb = getExcelColForField("postal_code");
+                            const excelCity = getExcelColForField("city");
+                            if (!excelPb && !excelCity) return null;
+                            const rawPb = excelPb ? rawRows[idx]?.[excelPb] : undefined;
+                            const rawCity = excelCity ? rawRows[idx]?.[excelCity] : undefined;
+                            return (
+                              <div className="text-[11px] text-muted-foreground/80">
+                                {excelPb ? `Excel: ${excelPb} = ${rawPb === undefined || rawPb === null || rawPb === "" ? "(prazno)" : String(rawPb)}` : null}
+                                {excelPb && excelCity ? " • " : null}
+                                {excelCity ? `Excel: ${excelCity} = ${rawCity === undefined || rawCity === null || rawCity === "" ? "(prazno)" : String(rawCity)}` : null}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div>
                           <span className="font-medium text-foreground/70">PIB:</span>{" "}
                           {partner.pib || <span className="italic text-destructive/60">—</span>}
+                          {(() => {
+                            const excelCol = getExcelColForField("pib");
+                            if (!excelCol) return null;
+                            const raw = rawRows[idx]?.[excelCol];
+                            return (
+                              <div className="text-[11px] text-muted-foreground/80">
+                                Excel: {excelCol} = {raw === undefined || raw === null || raw === "" ? "(prazno)" : String(raw)}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div>
                           <span className="font-medium text-foreground/70">MB:</span>{" "}
                           {partner.mb || <span className="italic text-destructive/60">—</span>}
+                          {(() => {
+                            const excelCol = getExcelColForField("mb");
+                            if (!excelCol) return null;
+                            const raw = rawRows[idx]?.[excelCol];
+                            return (
+                              <div className="text-[11px] text-muted-foreground/80">
+                                Excel: {excelCol} = {raw === undefined || raw === null || raw === "" ? "(prazno)" : String(raw)}
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
