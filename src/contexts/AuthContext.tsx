@@ -89,16 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // PASSWORD_RECOVERY event - user clicked recovery link
-        // Don't fetch company data, just let the reset password page handle it
-        if (event === "PASSWORD_RECOVERY") {
-          // Redirect to reset password page if not already there
-          if (!window.location.pathname.includes("reset-password")) {
-            window.location.href = "/reset-password";
-          }
-          return;
-        }
-
         if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
           if (session?.user) {
             setTimeout(() => {

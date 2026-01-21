@@ -24,58 +24,74 @@ export default function ResetPassword() {
   const { toast } = useToast();
 
   useEffect(() => {
-    let isMounted = true;
-    
-    // Listen for auth state changes FIRST (recovery token will trigger this)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!isMounted) return;
-      
-      console.log("Auth state change:", event, session?.user?.email);
-      
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-        // User came from recovery link or already signed in via recovery
-        if (session) {
-          setIsValidSession(true);
-          setIsChecking(false);
-        }
-      } else if (event === "SIGNED_OUT") {
+    let cancelled = false;
+
+    // 1) Subscribe first so we don't miss PASSWORD_RECOVERY.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+
+      if ((event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") && session) {
+        setIsValidSession(true);
+        setIsChecking(false);
+      }
+
+      if (event === "SIGNED_OUT") {
         setIsValidSession(false);
         setIsChecking(false);
       }
     });
 
-    // Check for existing session after setting up listener
-    // This handles the case where the page is already loaded with a valid session
-    const checkSession = async () => {
-      // Small delay to allow Supabase to process the URL hash/tokens
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      if (!isMounted) return;
-      
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      console.log("Check session result:", session?.user?.email, error);
-      
-      if (session) {
-        setIsValidSession(true);
-      } else if (isChecking) {
-        // Only show error if we haven't already validated through onAuthStateChange
+    // 2) Handle PKCE-style recovery links: `?code=...` (needs exchange).
+    const init = async () => {
+      try {
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get("code");
+
+        if (code) {
+          await supabase.auth.exchangeCodeForSession(code);
+        }
+
+        // Give the client a tick to persist the session.
+        await new Promise((r) => setTimeout(r, 50));
+        if (cancelled) return;
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          setIsValidSession(true);
+        } else {
+          toast({
+            title: "Nevažeći link",
+            description: "Link za resetovanje lozinke je istekao ili nije validan. Zatražite novi link.",
+            variant: "destructive",
+          });
+          setIsValidSession(false);
+        }
+
+        setIsChecking(false);
+      } catch {
+        if (cancelled) return;
         toast({
           title: "Nevažeći link",
           description: "Link za resetovanje lozinke je istekao ili nije validan. Zatražite novi link.",
           variant: "destructive",
         });
+        setIsValidSession(false);
+        setIsChecking(false);
       }
-      setIsChecking(false);
     };
 
-    checkSession();
+    init();
 
     return () => {
-      isMounted = false;
+      cancelled = true;
       subscription.unsubscribe();
     };
-  }, [toast, isChecking]);
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors: { password?: string; confirmPassword?: string } = {};
