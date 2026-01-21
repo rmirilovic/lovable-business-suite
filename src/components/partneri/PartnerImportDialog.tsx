@@ -189,12 +189,17 @@ const COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = {
   // Email
   "email": "email",
   "e-mail": "email",
-  // Web adresa
+  // Web adresa - sve varijante
   "web adresa": "website",
   "webadresa": "website",
   "web": "website",
   "website": "website",
   "sajt": "website",
+  "www": "website",
+  "url": "website",
+  "web site": "website",
+  "internet adresa": "website",
+  "internetadresa": "website",
   // Odgovorno lice
   "odgovorno lice": "responsible_person",
   "odgovornorlice": "responsible_person",
@@ -804,7 +809,31 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
               )}
             </div>
 
-            <ScrollArea className="h-[340px] border rounded-lg">
+            {/* Debug: Show all detected Excel headers */}
+            <div className="p-3 bg-muted/60 border border-border rounded-lg">
+              <h4 className="text-xs font-medium text-foreground mb-2">
+                Pronađena zaglavlja iz Excel fajla ({excelHeaders.length}):
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {excelHeaders.map((header, idx) => {
+                  const isMapped = Object.keys(columnMapping).includes(header);
+                  return (
+                    <Badge 
+                      key={idx} 
+                      variant={isMapped ? "default" : "outline"}
+                      className={`text-xs font-mono ${!isMapped ? "border-destructive/50 text-destructive" : ""}`}
+                    >
+                      {header}
+                    </Badge>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Plave oznake su automatski mapirane. Crvene nisu prepoznate - možete ih ručno dodeliti ispod.
+              </p>
+            </div>
+
+            <ScrollArea className="h-[280px] border rounded-lg">
               <div className="p-3 space-y-2">
                 {MAPPABLE_FIELDS.map((field) => {
                   const currentExcelCol = fieldToExcelCol[field.key];
