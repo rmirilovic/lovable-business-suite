@@ -46,6 +46,7 @@ import { usePartners, usePartnerGroups, LEGAL_STATUS_LABELS, Partner } from "@/h
 import { PartnerDetailsDialog } from "@/components/partneri/PartnerDetailsDialog";
 import { PartnerGroupsDialog } from "@/components/partneri/PartnerGroupsDialog";
 import { PartnerImportDialog } from "@/components/partneri/PartnerImportDialog";
+import { BankAccountImportDialog } from "@/components/partneri/BankAccountImportDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,6 +80,7 @@ export default function Partneri() {
 
   const [groupsDialogOpen, setGroupsDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [bankAccountImportDialogOpen, setBankAccountImportDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Pagination state
@@ -428,7 +430,11 @@ export default function Partneri() {
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
                 <Upload className="w-4 h-4 mr-2" />
-                Uvoz
+                Uvoz partnera
+              </Button>
+              <Button variant="outline" onClick={() => setBankAccountImportDialogOpen(true)}>
+                <Upload className="w-4 h-4 mr-2" />
+                Uvoz računa
               </Button>
               <Button variant="outline" onClick={() => setGroupsDialogOpen(true)}>
                 <Users className="w-4 h-4 mr-2" />
@@ -712,6 +718,9 @@ export default function Partneri() {
 
       {/* Partner Import Dialog */}
       <PartnerImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
+
+      {/* Bank Account Import Dialog */}
+      <BankAccountImportDialog open={bankAccountImportDialogOpen} onOpenChange={setBankAccountImportDialogOpen} />
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
