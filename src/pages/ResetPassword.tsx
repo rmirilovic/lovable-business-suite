@@ -24,36 +24,58 @@ export default function ResetPassword() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if we have a valid recovery session
+    let isMounted = true;
+    
+    // Listen for auth state changes FIRST (recovery token will trigger this)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
+      
+      console.log("Auth state change:", event, session?.user?.email);
+      
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+        // User came from recovery link or already signed in via recovery
+        if (session) {
+          setIsValidSession(true);
+          setIsChecking(false);
+        }
+      } else if (event === "SIGNED_OUT") {
+        setIsValidSession(false);
+        setIsChecking(false);
+      }
+    });
+
+    // Check for existing session after setting up listener
+    // This handles the case where the page is already loaded with a valid session
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Small delay to allow Supabase to process the URL hash/tokens
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      if (!isMounted) return;
+      
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      console.log("Check session result:", session?.user?.email, error);
       
       if (session) {
         setIsValidSession(true);
-      } else {
+      } else if (isChecking) {
+        // Only show error if we haven't already validated through onAuthStateChange
         toast({
           title: "Nevažeći link",
-          description: "Link za resetovanje lozinke je istekao ili nije validan.",
+          description: "Link za resetovanje lozinke je istekao ili nije validan. Zatražite novi link.",
           variant: "destructive",
         });
       }
       setIsChecking(false);
     };
 
-    // Listen for auth state changes (recovery token will trigger this)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setIsValidSession(true);
-        setIsChecking(false);
-      }
-    });
-
     checkSession();
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, [toast, isChecking]);
 
   const validateForm = () => {
     const newErrors: { password?: string; confirmPassword?: string } = {};
