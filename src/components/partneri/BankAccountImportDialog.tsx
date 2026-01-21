@@ -384,27 +384,64 @@ export function BankAccountImportDialog({ open, onOpenChange }: BankAccountImpor
       errors: [],
     };
     
-    // Get all partners for this company to map codes to IDs
-    const { data: partners } = await supabase
-      .from("partners")
-      .select("id, code")
-      .eq("company_id", selectedCompany.id);
+    // Get all partners for this company to map codes to IDs (batch fetch to handle >1000 rows)
+    const allPartners: { id: string; code: string }[] = [];
+    let partnerFrom = 0;
+    const FETCH_BATCH = 1000;
     
-    const partnerCodeToId = new Map(partners?.map((p) => [p.code, p.id]) || []);
+    while (true) {
+      const { data: partnerBatch, error: partnerError } = await supabase
+        .from("partners")
+        .select("id, code")
+        .eq("company_id", selectedCompany.id)
+        .range(partnerFrom, partnerFrom + FETCH_BATCH - 1);
+      
+      if (partnerError) {
+        toast.error("Greška pri učitavanju partnera");
+        setImporting(false);
+        setStep("preview");
+        return;
+      }
+      
+      if (!partnerBatch || partnerBatch.length === 0) break;
+      allPartners.push(...partnerBatch);
+      if (partnerBatch.length < FETCH_BATCH) break;
+      partnerFrom += FETCH_BATCH;
+    }
     
-    // Get existing bank accounts to check for duplicates
-    const { data: existingAccounts } = await supabase
-      .from("partner_bank_accounts")
-      .select("partner_id, account_number")
-      .eq("company_id", selectedCompany.id);
+    const partnerCodeToId = new Map(allPartners.map((p) => [p.code, p.id]));
+    
+    // Get existing bank accounts to check for duplicates (batch fetch to handle >1000 rows)
+    const allExistingAccounts: { partner_id: string; account_number: string }[] = [];
+    let accountFrom = 0;
+    
+    while (true) {
+      const { data: accountBatch, error: accountError } = await supabase
+        .from("partner_bank_accounts")
+        .select("partner_id, account_number")
+        .eq("company_id", selectedCompany.id)
+        .range(accountFrom, accountFrom + FETCH_BATCH - 1);
+      
+      if (accountError) {
+        toast.error("Greška pri učitavanju postojećih računa");
+        setImporting(false);
+        setStep("preview");
+        return;
+      }
+      
+      if (!accountBatch || accountBatch.length === 0) break;
+      allExistingAccounts.push(...accountBatch);
+      if (accountBatch.length < FETCH_BATCH) break;
+      accountFrom += FETCH_BATCH;
+    }
     
     const existingAccountSet = new Set(
-      existingAccounts?.map((a) => `${a.partner_id}|${a.account_number}`) || []
+      allExistingAccounts.map((a) => `${a.partner_id}|${a.account_number}`)
     );
     
     // Group accounts by partner for sort_order calculation
     const partnerAccountCounts = new Map<string, number>();
-    existingAccounts?.forEach((a) => {
+    allExistingAccounts.forEach((a) => {
       const count = partnerAccountCounts.get(a.partner_id) || 0;
       partnerAccountCounts.set(a.partner_id, count + 1);
     });
