@@ -29,6 +29,27 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // If the user opened an email recovery link but landed on /auth (common when redirect URLs
+    // are misconfigured or emails point to a different route), forward them to /reset-password
+    // while preserving the URL params/hash that the auth client needs to complete the flow.
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const searchParams = new URLSearchParams(window.location.search);
+
+    const isRecoveryFlow =
+      hashParams.get("type") === "recovery" ||
+      searchParams.get("type") === "recovery" ||
+      searchParams.has("code") ||
+      hashParams.has("access_token") ||
+      hashParams.has("refresh_token");
+
+    if (isRecoveryFlow && !window.location.pathname.startsWith("/reset-password")) {
+      window.location.replace(
+        `/reset-password${window.location.search}${window.location.hash}`
+      );
+    }
+  }, []);
+
+  useEffect(() => {
     // Don't redirect if the user is in the password recovery flow.
     // Supabase can pass `type=recovery` either in URL hash or query params.
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
