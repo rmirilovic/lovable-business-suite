@@ -200,6 +200,7 @@ const COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = {
   "web site": "website",
   "internet adresa": "website",
   "internetadresa": "website",
+  "prezentacija": "website",
   // Odgovorno lice
   "odgovorno lice": "responsible_person",
   "odgovornorlice": "responsible_person",
@@ -351,23 +352,41 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       const data = await selectedFile.arrayBuffer();
       const workbook = XLSX.read(data, { type: "array" });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json<Record<string, any>>(firstSheet);
+      
+      // First, get all column headers from the sheet range (includes empty columns)
+      const range = XLSX.utils.decode_range(firstSheet["!ref"] || "A1");
+      const allHeaders: string[] = [];
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: range.s.r, c: col });
+        const cell = firstSheet[cellAddress];
+        const headerValue = cell ? String(cell.v).trim() : "";
+        if (headerValue) {
+          allHeaders.push(headerValue);
+        }
+      }
+      
+      // Parse JSON data with defval to include empty cells
+      const jsonData = XLSX.utils.sheet_to_json<Record<string, any>>(firstSheet, { defval: "" });
       
       if (jsonData.length === 0) {
         toast.error("Excel fajl je prazan");
         return;
       }
       
-      // Detect column mappings from headers
-      // NOTE: sheet_to_json creates object keys only for cells that exist.
-      // If the first row has empty cells, Object.keys(jsonData[0]) can miss columns.
-      // So we build a stable union of keys across all rows.
-      const headers = jsonData.reduce<string[]>((acc, row) => {
+      // Use headers from the first row parsing (more reliable)
+      // Combine with union of all row keys as fallback
+      const rowHeaders = jsonData.reduce<string[]>((acc, row) => {
         Object.keys(row).forEach((k) => {
           if (!acc.includes(k)) acc.push(k);
         });
         return acc;
       }, []);
+      
+      // Merge: prefer allHeaders order, add any missing from rowHeaders
+      const headers = [...allHeaders];
+      rowHeaders.forEach(h => {
+        if (!headers.includes(h)) headers.push(h);
+      });
 
       setExcelHeaders(headers);
       const detectedMapping: Record<string, string> = {};
