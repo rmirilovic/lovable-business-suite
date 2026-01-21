@@ -61,7 +61,7 @@ const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 export default function Partneri() {
   const { partners, isLoading, updatePartner, deletePartner } = usePartners();
   const { groups } = usePartnerGroups();
-  const { selectedCompany } = useAuth();
+  const { selectedCompany, isSuperAdmin } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -430,18 +430,22 @@ export default function Partneri() {
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
-                <Upload className="w-4 h-4 mr-2" />
-                Uvoz partnera
-              </Button>
-              <Button variant="outline" onClick={() => setBankAccountImportDialogOpen(true)}>
-                <Upload className="w-4 h-4 mr-2" />
-                Uvoz računa
-              </Button>
-              <Button variant="outline" onClick={() => setContactImportDialogOpen(true)}>
-                <Upload className="w-4 h-4 mr-2" />
-                Uvoz kontakata
-              </Button>
+              {isSuperAdmin && (
+                <>
+                  <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Uvoz partnera
+                  </Button>
+                  <Button variant="outline" onClick={() => setBankAccountImportDialogOpen(true)}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Uvoz računa
+                  </Button>
+                  <Button variant="outline" onClick={() => setContactImportDialogOpen(true)}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Uvoz kontakata
+                  </Button>
+                </>
+              )}
               <Button variant="outline" onClick={() => setGroupsDialogOpen(true)}>
                 <Users className="w-4 h-4 mr-2" />
                 Grupe
