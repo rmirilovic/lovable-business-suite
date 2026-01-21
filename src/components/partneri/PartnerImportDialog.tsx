@@ -73,6 +73,7 @@ interface ParsedPartner {
   is_customer: boolean;
   is_supplier: boolean;
   is_active: boolean;
+  is_in_pdv: boolean;
   payment_priority: number;
   note?: string;
   other_data?: string;
@@ -108,6 +109,7 @@ const MAPPABLE_FIELDS: { key: keyof ParsedPartner; label: string; required?: boo
   { key: "is_customer", label: "Kupac" },
   { key: "is_supplier", label: "Dobavljač" },
   { key: "is_active", label: "Aktivan" },
+  { key: "is_in_pdv", label: "U sistemu PDV-a" },
   { key: "phone", label: "Telefon" },
   { key: "email", label: "Email" },
   { key: "website", label: "Web adresa" },
@@ -183,6 +185,16 @@ const COLUMN_MAPPINGS: Record<string, keyof ParsedPartner> = {
   // Aktivan
   "aktivan": "is_active",
   "is_active": "is_active",
+  // U sistemu PDV-a
+  "pdv": "is_in_pdv",
+  "u sistemu pdv": "is_in_pdv",
+  "u sistemu pdv-a": "is_in_pdv",
+  "usistemupd": "is_in_pdv",
+  "usistemupd a": "is_in_pdv",
+  "is_in_pdv": "is_in_pdv",
+  "updv": "is_in_pdv",
+  "u pdv": "is_in_pdv",
+  "u pdv-u": "is_in_pdv",
   // Telefon
   "telefon": "phone",
   "phone": "phone",
@@ -329,6 +341,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
       case "is_customer":
       case "is_supplier":
       case "is_active":
+      case "is_in_pdv":
         const lowerVal = strValue.toLowerCase();
         return lowerVal === "da" || lowerVal === "yes" || lowerVal === "true" || lowerVal === "1";
         
@@ -467,6 +480,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
         is_customer: true,
         is_supplier: false,
         is_active: true,
+        is_in_pdv: true,
         payment_priority: 3,
         legal_status: 1,
         country: "Srbija",
@@ -616,6 +630,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
           is_customer: p.is_customer,
           is_supplier: p.is_supplier,
           is_active: p.is_active,
+          is_in_pdv: p.is_in_pdv,
           payment_priority: p.payment_priority,
           note: p.note || null,
           other_data: p.other_data || null,
@@ -662,6 +677,7 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
             is_customer: p.is_customer,
             is_supplier: p.is_supplier,
             is_active: p.is_active,
+            is_in_pdv: p.is_in_pdv,
             payment_priority: p.payment_priority,
             note: p.note || null,
             other_data: p.other_data || null,
