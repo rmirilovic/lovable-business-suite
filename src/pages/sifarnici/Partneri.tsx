@@ -71,6 +71,7 @@ export default function Partneri() {
   const [legalStatusFilter, setLegalStatusFilter] = useState<string>("all");
   const [addressFilter, setAddressFilter] = useState<string>("");
   const [countryFilter, setCountryFilter] = useState<string>("all");
+  const [pdvFilter, setPdvFilter] = useState<string>("all");
 
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [detailsMode, setDetailsMode] = useState<"create" | "edit">("create");
@@ -170,6 +171,11 @@ export default function Partneri() {
       const matchesCountry =
         countryFilter === "all" || partner.country === countryFilter;
 
+      const matchesPdv =
+        pdvFilter === "all" ||
+        (pdvFilter === "yes" && partner.is_in_pdv) ||
+        (pdvFilter === "no" && !partner.is_in_pdv);
+
       return (
         matchesSearch &&
         matchesType &&
@@ -180,15 +186,16 @@ export default function Partneri() {
         matchesMb &&
         matchesLegalStatus &&
         matchesAddress &&
-        matchesCountry
+        matchesCountry &&
+        matchesPdv
       );
     });
-  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter]);
+  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter]);
+  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
 
   // Pagination calculations
   const totalItems = filteredPartners.length;
@@ -241,6 +248,7 @@ export default function Partneri() {
     setLegalStatusFilter("all");
     setAddressFilter("");
     setCountryFilter("all");
+    setPdvFilter("all");
     setCurrentPage(1);
   };
 
@@ -254,7 +262,8 @@ export default function Partneri() {
     mbFilter ||
     legalStatusFilter !== "all" ||
     addressFilter ||
-    countryFilter !== "all";
+    countryFilter !== "all" ||
+    pdvFilter !== "all";
 
   const legalStatusOptions = Object.entries(LEGAL_STATUS_LABELS).map(([value, label]) => ({
     value,
@@ -394,6 +403,17 @@ export default function Partneri() {
                 </SelectContent>
               </Select>
 
+              <Select value={pdvFilter} onValueChange={setPdvFilter}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="PDV" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Svi PDV</SelectItem>
+                  <SelectItem value="yes">U PDV-u</SelectItem>
+                  <SelectItem value="no">Nije u PDV-u</SelectItem>
+                </SelectContent>
+              </Select>
+
               {hasActiveFilters && (
                 <Button variant="ghost" size="icon" onClick={resetFilters}>
                   <RotateCcw className="w-4 h-4" />
@@ -433,6 +453,7 @@ export default function Partneri() {
                 <TableHead>PIB</TableHead>
                 <TableHead>Telefon</TableHead>
                 <TableHead className="w-[100px]">Tip</TableHead>
+                <TableHead className="w-[70px]">PDV</TableHead>
                 <TableHead className="w-[140px]">Grupa</TableHead>
                 <TableHead className="w-[80px]">Status</TableHead>
                 <TableHead className="w-[100px]"></TableHead>
@@ -442,7 +463,7 @@ export default function Partneri() {
               {isLoading ? (
                 Array.from({ length: itemsPerPage }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 10 }).map((_, j) => (
+                    {Array.from({ length: 11 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-6 w-full" />
                       </TableCell>
@@ -451,7 +472,7 @@ export default function Partneri() {
                 ))
               ) : paginatedPartners.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                     Nema pronađenih partnera
                   </TableCell>
                 </TableRow>
@@ -519,6 +540,17 @@ export default function Partneri() {
                           </Badge>
                         )}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="outline" 
+                        className={partner.is_in_pdv 
+                          ? "text-xs bg-primary/10 text-primary border-primary/30" 
+                          : "text-xs bg-muted text-muted-foreground border-muted-foreground/30"
+                        }
+                      >
+                        {partner.is_in_pdv ? "Da" : "Ne"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <InlineSelectCell
