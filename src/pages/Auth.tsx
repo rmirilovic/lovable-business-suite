@@ -14,6 +14,22 @@ import { z } from "zod";
 const emailSchema = z.string().email("Unesite validnu email adresu");
 const passwordSchema = z.string().min(6, "Lozinka mora imati najmanje 6 karaktera");
 
+function getPreferredPublicAppUrl() {
+  // Workaround for certain hosted preview domains that route auth links through an auth bridge.
+  // If we are on <projectId>.lovableproject.com, prefer the canonical preview domain:
+  // https://id-preview--<projectId>.lovable.app
+  try {
+    const host = window.location.hostname;
+    if (host.endsWith(".lovableproject.com")) {
+      const projectId = host.split(".")[0];
+      if (projectId) return `https://id-preview--${projectId}.lovable.app`;
+    }
+  } catch {
+    // ignore
+  }
+  return window.location.origin;
+}
+
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -148,8 +164,9 @@ export default function Auth() {
     }
     
     setIsLoading(true);
+    const redirectBase = getPreferredPublicAppUrl();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${redirectBase}/reset-password`,
     });
     setIsLoading(false);
 
