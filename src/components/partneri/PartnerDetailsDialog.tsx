@@ -112,10 +112,14 @@ export function PartnerDetailsDialog({
     }
   }, [mode, partner, open]);
 
-  // Auto-set country for Serbian legal statuses
+  // Auto-set country based on legal status
   useEffect(() => {
     if ([1, 2, 3].includes(formData.legal_status)) {
+      // Serbian legal statuses - set country to Serbia
       setFormData((prev) => ({ ...prev, country: "Srbija" }));
+    } else if (formData.legal_status === 4) {
+      // Ino partner - clear country (not from Serbia)
+      setFormData((prev) => ({ ...prev, country: "" }));
     }
   }, [formData.legal_status]);
 
