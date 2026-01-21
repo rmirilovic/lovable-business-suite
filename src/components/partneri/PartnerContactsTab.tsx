@@ -125,6 +125,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
               <TableHead>Ime i prezime</TableHead>
               <TableHead>Funkcija</TableHead>
               <TableHead>Telefon 1</TableHead>
+              <TableHead>Telefon 2</TableHead>
               <TableHead>E-mail</TableHead>
               <TableHead className="w-[100px]"></TableHead>
             </TableRow>
@@ -132,13 +133,13 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Učitavanje...
                 </TableCell>
               </TableRow>
             ) : contacts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Nema definisanih kontakt osoba
                 </TableCell>
               </TableRow>
@@ -148,6 +149,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                   <TableCell className="font-medium">{contact.contact_name}</TableCell>
                   <TableCell>{contact.position || "-"}</TableCell>
                   <TableCell>{contact.phone1 || "-"}</TableCell>
+                  <TableCell>{contact.phone2 || "-"}</TableCell>
                   <TableCell>{contact.email || "-"}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
