@@ -184,9 +184,11 @@ export function usePartners() {
         .from("partners")
         .update(updates)
         .eq("id", id)
+        .eq("company_id", companyId!)
         .select("*, partner_groups(*)")
-        .single();
+        .maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("Partner nije pronađen ili nemate pristup za izmenu");
       return data;
     },
     onSuccess: () => {
