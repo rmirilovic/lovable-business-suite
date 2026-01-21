@@ -877,8 +877,9 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
                           <SelectItem value="__none__">
                             <span className="text-muted-foreground italic">— Nije mapirano —</span>
                           </SelectItem>
-                          {excelHeaders.map((header) => (
+                          {excelHeaders.map((header, idx) => (
                             <SelectItem key={header} value={header}>
+                              <span className="text-muted-foreground mr-1.5">{idx + 1}.</span>
                               {header}
                             </SelectItem>
                           ))}
