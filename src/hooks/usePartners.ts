@@ -24,6 +24,7 @@ export interface Partner {
   phone: string | null;
   is_customer: boolean;
   is_supplier: boolean;
+  is_in_pdv: boolean;
   assigned_to: string | null;
   note: string | null;
   other_data: string | null;
