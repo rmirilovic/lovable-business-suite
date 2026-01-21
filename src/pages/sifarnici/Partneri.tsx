@@ -65,6 +65,11 @@ export default function Partneri() {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
   const [groupFilter, setGroupFilter] = useState<string>("all");
+  const [cityFilter, setCityFilter] = useState<string>("all");
+  const [pibFilter, setPibFilter] = useState<string>("");
+  const [mbFilter, setMbFilter] = useState<string>("");
+  const [customerFilter, setCustomerFilter] = useState<"all" | "yes" | "no">("all");
+  const [supplierFilter, setSupplierFilter] = useState<"all" | "yes" | "no">("all");
 
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [detailsMode, setDetailsMode] = useState<"create" | "edit">("create");
@@ -103,6 +108,15 @@ export default function Partneri() {
     }
   };
 
+  // Get unique cities for filter dropdown
+  const uniqueCities = useMemo(() => {
+    const cities = new Set<string>();
+    partners.forEach((p) => {
+      if (p.city) cities.add(p.city);
+    });
+    return Array.from(cities).sort();
+  }, [partners]);
+
   const filteredPartners = useMemo(() => {
     return partners.filter((partner) => {
       const searchLower = searchTerm.toLowerCase();
@@ -128,14 +142,43 @@ export default function Partneri() {
         (groupFilter === "none" && !partner.group_id) ||
         partner.group_id === groupFilter;
 
-      return matchesSearch && matchesType && matchesStatus && matchesGroup;
+      const matchesCity =
+        cityFilter === "all" || partner.city === cityFilter;
+
+      const matchesPib =
+        !pibFilter || (partner.pib && partner.pib.includes(pibFilter));
+
+      const matchesMb =
+        !mbFilter || (partner.mb && partner.mb.includes(mbFilter));
+
+      const matchesCustomer =
+        customerFilter === "all" ||
+        (customerFilter === "yes" && partner.is_customer) ||
+        (customerFilter === "no" && !partner.is_customer);
+
+      const matchesSupplier =
+        supplierFilter === "all" ||
+        (supplierFilter === "yes" && partner.is_supplier) ||
+        (supplierFilter === "no" && !partner.is_supplier);
+
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesStatus &&
+        matchesGroup &&
+        matchesCity &&
+        matchesPib &&
+        matchesMb &&
+        matchesCustomer &&
+        matchesSupplier
+      );
     });
-  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter]);
+  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, customerFilter, supplierFilter]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, statusFilter, groupFilter]);
+  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, customerFilter, supplierFilter]);
 
   // Pagination calculations
   const totalItems = filteredPartners.length;
@@ -182,11 +225,24 @@ export default function Partneri() {
     setTypeFilter("all");
     setStatusFilter("active");
     setGroupFilter("all");
+    setCityFilter("all");
+    setPibFilter("");
+    setMbFilter("");
+    setCustomerFilter("all");
+    setSupplierFilter("all");
     setCurrentPage(1);
   };
 
   const hasActiveFilters =
-    searchTerm || typeFilter !== "all" || statusFilter !== "active" || groupFilter !== "all";
+    searchTerm ||
+    typeFilter !== "all" ||
+    statusFilter !== "active" ||
+    groupFilter !== "all" ||
+    cityFilter !== "all" ||
+    pibFilter ||
+    mbFilter ||
+    customerFilter !== "all" ||
+    supplierFilter !== "all";
 
   const legalStatusOptions = Object.entries(LEGAL_STATUS_LABELS).map(([value, label]) => ({
     value,
@@ -257,6 +313,64 @@ export default function Partneri() {
                       {group.code} - {group.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={cityFilter} onValueChange={setCityFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Mesto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Sva mesta</SelectItem>
+                  {uniqueCities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Input
+                placeholder="PIB..."
+                className="w-[120px]"
+                value={pibFilter}
+                onChange={(e) => setPibFilter(e.target.value)}
+                autoComplete="off"
+              />
+
+              <Input
+                placeholder="Mat. broj..."
+                className="w-[120px]"
+                value={mbFilter}
+                onChange={(e) => setMbFilter(e.target.value)}
+                autoComplete="off"
+              />
+
+              <Select
+                value={customerFilter}
+                onValueChange={(val) => setCustomerFilter(val as "all" | "yes" | "no")}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Kupac" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Kupac: Svi</SelectItem>
+                  <SelectItem value="yes">Kupac: Da</SelectItem>
+                  <SelectItem value="no">Kupac: Ne</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={supplierFilter}
+                onValueChange={(val) => setSupplierFilter(val as "all" | "yes" | "no")}
+              >
+                <SelectTrigger className="w-[130px]">
+                  <SelectValue placeholder="Dobavljač" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Dobavljač: Svi</SelectItem>
+                  <SelectItem value="yes">Dobavljač: Da</SelectItem>
+                  <SelectItem value="no">Dobavljač: Ne</SelectItem>
                 </SelectContent>
               </Select>
 
