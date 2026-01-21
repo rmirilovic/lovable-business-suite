@@ -47,6 +47,7 @@ import { PartnerDetailsDialog } from "@/components/partneri/PartnerDetailsDialog
 import { PartnerGroupsDialog } from "@/components/partneri/PartnerGroupsDialog";
 import { PartnerImportDialog } from "@/components/partneri/PartnerImportDialog";
 import { BankAccountImportDialog } from "@/components/partneri/BankAccountImportDialog";
+import { ContactImportDialog } from "@/components/partneri/ContactImportDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -81,6 +82,7 @@ export default function Partneri() {
   const [groupsDialogOpen, setGroupsDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [bankAccountImportDialogOpen, setBankAccountImportDialogOpen] = useState(false);
+  const [contactImportDialogOpen, setContactImportDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Pagination state
@@ -436,6 +438,10 @@ export default function Partneri() {
                 <Upload className="w-4 h-4 mr-2" />
                 Uvoz računa
               </Button>
+              <Button variant="outline" onClick={() => setContactImportDialogOpen(true)}>
+                <Upload className="w-4 h-4 mr-2" />
+                Uvoz kontakata
+              </Button>
               <Button variant="outline" onClick={() => setGroupsDialogOpen(true)}>
                 <Users className="w-4 h-4 mr-2" />
                 Grupe
@@ -721,6 +727,9 @@ export default function Partneri() {
 
       {/* Bank Account Import Dialog */}
       <BankAccountImportDialog open={bankAccountImportDialogOpen} onOpenChange={setBankAccountImportDialogOpen} />
+
+      {/* Contact Import Dialog */}
+      <ContactImportDialog open={contactImportDialogOpen} onOpenChange={setContactImportDialogOpen} />
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
