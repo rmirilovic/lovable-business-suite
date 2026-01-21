@@ -669,14 +669,14 @@ export function BankAccountImportDialog({ open, onOpenChange }: BankAccountImpor
                       {header}
                     </div>
                     <Select
-                      value={columnMapping[header] || ""}
-                      onValueChange={(val) => updateFieldMapping(val, val ? header : null)}
+                      value={columnMapping[header] || "__none__"}
+                      onValueChange={(val) => updateFieldMapping(val === "__none__" ? "" : val, val !== "__none__" ? header : null)}
                     >
                       <SelectTrigger className="h-8">
                         <SelectValue placeholder="Nije mapirano" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover z-50">
-                        <SelectItem value="">Nije mapirano</SelectItem>
+                        <SelectItem value="__none__">Nije mapirano</SelectItem>
                         {MAPPABLE_FIELDS.map((f) => (
                           <SelectItem
                             key={f.key}
