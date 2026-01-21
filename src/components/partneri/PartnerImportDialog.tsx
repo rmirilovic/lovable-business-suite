@@ -603,7 +603,8 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
           address: p.address || null,
           postal_code: p.postal_code || null,
           city: p.city || null,
-          country: p.country || "Srbija",
+          // Don't default to Serbia for Ino partner (legal_status = 4)
+          country: p.country || (p.legal_status === 4 ? null : "Srbija"),
           pib: p.pib || null,
           mb: p.mb || null,
           activity_code: p.activity_code || null,
@@ -648,7 +649,8 @@ export function PartnerImportDialog({ open, onOpenChange }: PartnerImportDialogP
             address: p.address || null,
             postal_code: p.postal_code || null,
             city: p.city || null,
-            country: p.country || "Srbija",
+            // Don't default to Serbia for Ino partner (legal_status = 4)
+            country: p.country || (p.legal_status === 4 ? null : "Srbija"),
             pib: p.pib || null,
             mb: p.mb || null,
             activity_code: p.activity_code || null,
