@@ -68,6 +68,9 @@ export default function Partneri() {
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [pibFilter, setPibFilter] = useState<string>("");
   const [mbFilter, setMbFilter] = useState<string>("");
+  const [legalStatusFilter, setLegalStatusFilter] = useState<string>("all");
+  const [addressFilter, setAddressFilter] = useState<string>("");
+  const [countryFilter, setCountryFilter] = useState<string>("all");
 
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [detailsMode, setDetailsMode] = useState<"create" | "edit">("create");
@@ -115,6 +118,15 @@ export default function Partneri() {
     return Array.from(cities).sort();
   }, [partners]);
 
+  // Get unique countries for filter dropdown
+  const uniqueCountries = useMemo(() => {
+    const countries = new Set<string>();
+    partners.forEach((p) => {
+      if (p.country) countries.add(p.country);
+    });
+    return Array.from(countries).sort();
+  }, [partners]);
+
   const filteredPartners = useMemo(() => {
     return partners.filter((partner) => {
       const searchLower = searchTerm.toLowerCase();
@@ -149,6 +161,15 @@ export default function Partneri() {
       const matchesMb =
         !mbFilter || (partner.mb && partner.mb.includes(mbFilter));
 
+      const matchesLegalStatus =
+        legalStatusFilter === "all" || String(partner.legal_status) === legalStatusFilter;
+
+      const matchesAddress =
+        !addressFilter || (partner.address && partner.address.toLowerCase().includes(addressFilter.toLowerCase()));
+
+      const matchesCountry =
+        countryFilter === "all" || partner.country === countryFilter;
+
       return (
         matchesSearch &&
         matchesType &&
@@ -156,15 +177,18 @@ export default function Partneri() {
         matchesGroup &&
         matchesCity &&
         matchesPib &&
-        matchesMb
+        matchesMb &&
+        matchesLegalStatus &&
+        matchesAddress &&
+        matchesCountry
       );
     });
-  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter]);
+  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter]);
+  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter]);
 
   // Pagination calculations
   const totalItems = filteredPartners.length;
@@ -214,6 +238,9 @@ export default function Partneri() {
     setCityFilter("all");
     setPibFilter("");
     setMbFilter("");
+    setLegalStatusFilter("all");
+    setAddressFilter("");
+    setCountryFilter("all");
     setCurrentPage(1);
   };
 
@@ -224,7 +251,10 @@ export default function Partneri() {
     groupFilter !== "all" ||
     cityFilter !== "all" ||
     pibFilter ||
-    mbFilter;
+    mbFilter ||
+    legalStatusFilter !== "all" ||
+    addressFilter ||
+    countryFilter !== "all";
 
   const legalStatusOptions = Object.entries(LEGAL_STATUS_LABELS).map(([value, label]) => ({
     value,
@@ -328,6 +358,41 @@ export default function Partneri() {
                 autoComplete="off"
               />
 
+              <Select value={legalStatusFilter} onValueChange={setLegalStatusFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Pravni status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Svi statusi</SelectItem>
+                  {Object.entries(LEGAL_STATUS_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Input
+                placeholder="Adresa..."
+                className="w-[130px]"
+                value={addressFilter}
+                onChange={(e) => setAddressFilter(e.target.value)}
+                autoComplete="off"
+              />
+
+              <Select value={countryFilter} onValueChange={setCountryFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Država" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Sve države</SelectItem>
+                  {uniqueCountries.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {hasActiveFilters && (
                 <Button variant="ghost" size="icon" onClick={resetFilters}>
