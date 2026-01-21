@@ -68,8 +68,6 @@ export default function Partneri() {
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [pibFilter, setPibFilter] = useState<string>("");
   const [mbFilter, setMbFilter] = useState<string>("");
-  const [customerFilter, setCustomerFilter] = useState<"all" | "yes" | "no">("all");
-  const [supplierFilter, setSupplierFilter] = useState<"all" | "yes" | "no">("all");
 
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [detailsMode, setDetailsMode] = useState<"create" | "edit">("create");
@@ -151,16 +149,6 @@ export default function Partneri() {
       const matchesMb =
         !mbFilter || (partner.mb && partner.mb.includes(mbFilter));
 
-      const matchesCustomer =
-        customerFilter === "all" ||
-        (customerFilter === "yes" && partner.is_customer) ||
-        (customerFilter === "no" && !partner.is_customer);
-
-      const matchesSupplier =
-        supplierFilter === "all" ||
-        (supplierFilter === "yes" && partner.is_supplier) ||
-        (supplierFilter === "no" && !partner.is_supplier);
-
       return (
         matchesSearch &&
         matchesType &&
@@ -168,17 +156,15 @@ export default function Partneri() {
         matchesGroup &&
         matchesCity &&
         matchesPib &&
-        matchesMb &&
-        matchesCustomer &&
-        matchesSupplier
+        matchesMb
       );
     });
-  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, customerFilter, supplierFilter]);
+  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, customerFilter, supplierFilter]);
+  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter]);
 
   // Pagination calculations
   const totalItems = filteredPartners.length;
@@ -228,8 +214,6 @@ export default function Partneri() {
     setCityFilter("all");
     setPibFilter("");
     setMbFilter("");
-    setCustomerFilter("all");
-    setSupplierFilter("all");
     setCurrentPage(1);
   };
 
@@ -240,9 +224,7 @@ export default function Partneri() {
     groupFilter !== "all" ||
     cityFilter !== "all" ||
     pibFilter ||
-    mbFilter ||
-    customerFilter !== "all" ||
-    supplierFilter !== "all";
+    mbFilter;
 
   const legalStatusOptions = Object.entries(LEGAL_STATUS_LABELS).map(([value, label]) => ({
     value,
@@ -346,33 +328,6 @@ export default function Partneri() {
                 autoComplete="off"
               />
 
-              <Select
-                value={customerFilter}
-                onValueChange={(val) => setCustomerFilter(val as "all" | "yes" | "no")}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Kupac" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Kupac: Svi</SelectItem>
-                  <SelectItem value="yes">Kupac: Da</SelectItem>
-                  <SelectItem value="no">Kupac: Ne</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={supplierFilter}
-                onValueChange={(val) => setSupplierFilter(val as "all" | "yes" | "no")}
-              >
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="Dobavljač" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Dobavljač: Svi</SelectItem>
-                  <SelectItem value="yes">Dobavljač: Da</SelectItem>
-                  <SelectItem value="no">Dobavljač: Ne</SelectItem>
-                </SelectContent>
-              </Select>
 
               {hasActiveFilters && (
                 <Button variant="ghost" size="icon" onClick={resetFilters}>
