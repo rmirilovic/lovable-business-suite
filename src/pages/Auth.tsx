@@ -29,7 +29,12 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user) {
+    // Don't redirect if coming from password recovery flow
+    // The URL will contain hash fragments with recovery tokens
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const isRecoveryFlow = hashParams.get("type") === "recovery";
+    
+    if (user && !isRecoveryFlow) {
       navigate("/");
     }
   }, [user, navigate]);
