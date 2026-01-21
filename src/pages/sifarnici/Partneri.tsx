@@ -169,7 +169,9 @@ export default function Partneri() {
         !addressFilter || (partner.address && partner.address.toLowerCase().includes(addressFilter.toLowerCase()));
 
       const matchesCountry =
-        countryFilter === "all" || partner.country === countryFilter;
+        countryFilter === "all" || 
+        (countryFilter === "none" && (!partner.country || partner.country.trim() === "")) ||
+        partner.country === countryFilter;
 
       const matchesPdv =
         pdvFilter === "all" ||
@@ -395,6 +397,7 @@ export default function Partneri() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Sve države</SelectItem>
+                  <SelectItem value="none">Bez države</SelectItem>
                   {uniqueCountries.map((country) => (
                     <SelectItem key={country} value={country}>
                       {country}
