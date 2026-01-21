@@ -29,14 +29,17 @@ export default function Auth() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Don't redirect if coming from password recovery flow
-    // The URL will contain hash fragments with recovery tokens
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const isRecoveryFlow = hashParams.get("type") === "recovery";
-    
-    if (user && !isRecoveryFlow) {
-      navigate("/");
-    }
+    // Don't redirect if the user is in the password recovery flow.
+    // Supabase can pass `type=recovery` either in URL hash or query params.
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const searchParams = new URLSearchParams(window.location.search);
+    const isRecoveryFlow =
+      hashParams.get("type") === "recovery" || searchParams.get("type") === "recovery";
+
+    // Also don't redirect while user is on reset-password page.
+    const isOnResetPassword = window.location.pathname.startsWith("/reset-password");
+
+    if (user && !isRecoveryFlow && !isOnResetPassword) navigate("/");
   }, [user, navigate]);
 
   const validateForm = () => {
