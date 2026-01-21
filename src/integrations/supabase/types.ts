@@ -565,6 +565,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_customer: boolean
+          is_in_pdv: boolean
           is_supplier: boolean
           jbkjs: string | null
           legal_status: number
@@ -594,6 +595,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_customer?: boolean
+          is_in_pdv?: boolean
           is_supplier?: boolean
           jbkjs?: string | null
           legal_status?: number
@@ -623,6 +625,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_customer?: boolean
+          is_in_pdv?: boolean
           is_supplier?: boolean
           jbkjs?: string | null
           legal_status?: number

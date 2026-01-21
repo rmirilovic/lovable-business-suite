@@ -60,6 +60,7 @@ const defaultFormData: Omit<PartnerInsert, "company_id"> = {
   phone: "",
   is_customer: true,
   is_supplier: false,
+  is_in_pdv: true,
   assigned_to: "",
   note: "",
   other_data: "",
@@ -101,6 +102,7 @@ export function PartnerDetailsDialog({
         phone: partner.phone || "",
         is_customer: partner.is_customer,
         is_supplier: partner.is_supplier,
+        is_in_pdv: partner.is_in_pdv,
         assigned_to: partner.assigned_to || "",
         note: partner.note || "",
         other_data: partner.other_data || "",
@@ -358,6 +360,16 @@ export function PartnerDetailsDialog({
                       }
                     />
                     <Label htmlFor="is_supplier">Dobavljač</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="is_in_pdv"
+                      checked={formData.is_in_pdv}
+                      onCheckedChange={(checked) =>
+                        updateField("is_in_pdv", checked === true)
+                      }
+                    />
+                    <Label htmlFor="is_in_pdv">U sistemu PDV-a</Label>
                   </div>
                 </div>
                 <div>
