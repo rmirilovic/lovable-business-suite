@@ -133,16 +133,18 @@ Deno.serve(async (req) => {
       console.log(`Total partners fetched: ${allPartners.length}`);
 
       // Fetch all bank accounts and contacts in batches
+      // Note: .in() has URL size limits with many UUIDs, so we use smaller batches
       const partnerIds = allPartners.map((p) => p.id);
+      const IN_BATCH_SIZE = 100; // Smaller batch for .in() queries to avoid URL size limits
       
       let bankAccountsMap: Record<string, any[]> = {};
       let contactsMap: Record<string, any[]> = {};
 
       if (partnerIds.length > 0) {
-        // Batch fetch bank accounts
+        // Batch fetch bank accounts with smaller batch size for .in()
         const allBankAccounts: any[] = [];
-        for (let i = 0; i < partnerIds.length; i += BATCH_SIZE) {
-          const batchIds = partnerIds.slice(i, i + BATCH_SIZE);
+        for (let i = 0; i < partnerIds.length; i += IN_BATCH_SIZE) {
+          const batchIds = partnerIds.slice(i, i + IN_BATCH_SIZE);
           const { data: bankBatch, error: bankError } = await supabase
             .from("partner_bank_accounts")
             .select("*")
@@ -150,7 +152,7 @@ Deno.serve(async (req) => {
             .order("sort_order");
 
           if (bankError) {
-            console.error("Error fetching bank accounts batch:", bankError);
+            console.error(`Error fetching bank accounts batch ${i}:`, bankError);
             throw bankError;
           }
           if (bankBatch) allBankAccounts.push(...bankBatch);
@@ -165,10 +167,10 @@ Deno.serve(async (req) => {
 
         console.log(`Total bank accounts fetched: ${allBankAccounts.length}`);
 
-        // Batch fetch contacts
+        // Batch fetch contacts with smaller batch size for .in()
         const allContacts: any[] = [];
-        for (let i = 0; i < partnerIds.length; i += BATCH_SIZE) {
-          const batchIds = partnerIds.slice(i, i + BATCH_SIZE);
+        for (let i = 0; i < partnerIds.length; i += IN_BATCH_SIZE) {
+          const batchIds = partnerIds.slice(i, i + IN_BATCH_SIZE);
           const { data: contactsBatch, error: contactsError } = await supabase
             .from("partner_contacts")
             .select("*")
@@ -176,7 +178,7 @@ Deno.serve(async (req) => {
             .order("created_at");
 
           if (contactsError) {
-            console.error("Error fetching contacts batch:", contactsError);
+            console.error(`Error fetching contacts batch ${i}:`, contactsError);
             throw contactsError;
           }
           if (contactsBatch) allContacts.push(...contactsBatch);
