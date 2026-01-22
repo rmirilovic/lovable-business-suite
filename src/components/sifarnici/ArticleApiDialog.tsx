@@ -23,6 +23,7 @@ import {
   CheckCircle,
   AlertCircle,
   FileText,
+  FolderTree,
 } from "lucide-react";
 
 interface ArticleApiDialogProps {
@@ -32,16 +33,28 @@ interface ArticleApiDialogProps {
 
 interface ExportResult {
   success: boolean;
-  count: number;
-  data: any[];
+  classifications_count: number;
+  articles_count: number;
+  data: {
+    classifications: any[];
+    articles: any[];
+  };
 }
 
 interface ImportResult {
   success: boolean;
-  imported: number;
-  updated: number;
-  skipped: number;
-  errors: { code: string; error: string }[];
+  classifications: {
+    imported: number;
+    updated: number;
+    skipped: number;
+    errors: { code: string; error: string }[];
+  };
+  articles: {
+    imported: number;
+    updated: number;
+    skipped: number;
+    errors: { code: string; error: string }[];
+  };
 }
 
 export function ArticleApiDialog({ open, onOpenChange }: ArticleApiDialogProps) {
@@ -93,7 +106,7 @@ export function ArticleApiDialog({ open, onOpenChange }: ArticleApiDialogProps) 
       }
 
       setExportResult(result);
-      toast.success(`Izvezeno ${result.count} artikala`);
+      toast.success(`Izvezeno ${result.classifications_count} klasifikacija i ${result.articles_count} artikala`);
     } catch (error: any) {
       console.error("Export error:", error);
       setExportError(error.message);
@@ -123,7 +136,7 @@ export function ArticleApiDialog({ open, onOpenChange }: ArticleApiDialogProps) 
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `artikli_${selectedCompany?.name.replace(/\s+/g, "_")}_${selectedYear?.year}_${new Date().toISOString().split("T")[0]}.json`;
+    a.download = `artikli_klasifikacije_${selectedCompany?.name.replace(/\s+/g, "_")}_${selectedYear?.year}_${new Date().toISOString().split("T")[0]}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -132,10 +145,9 @@ export function ArticleApiDialog({ open, onOpenChange }: ArticleApiDialogProps) 
   };
 
   const handleDownloadDocs = () => {
-    // Create documentation content
     const docsContent = `# Articles API Dokumentacija
 
-API za izvoz i uvoz artikala sa atributima.
+API za izvoz i uvoz artikala sa klasifikacijama i atributima.
 
 ## Base URL
 https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api
@@ -148,9 +160,16 @@ Authorization: Bearer <your_jwt_token>
 ### Izvoz (GET)
 GET /articles-api?company_id=<uuid>&business_year_id=<uuid>
 
+Vraća: { classifications: [...], articles: [...] }
+
 ### Uvoz (POST)
 POST /articles-api?company_id=<uuid>&business_year_id=<uuid>
-Body: { "data": [...], "update_existing": false }
+Body: { classifications: [...], articles: [...], update_existing: false }
+
+## Struktura klasifikacije
+- code (obavezan): Šifra klasifikacije
+- name (obavezan): Naziv klasifikacije
+- parent_code: Šifra nadređene klasifikacije (null = koren)
 
 ## Struktura artikla
 - code (obavezan): Šifra artikla
@@ -189,17 +208,26 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
 
     try {
       const parsed = JSON.parse(text);
-      if (!Array.isArray(parsed)) {
-        setJsonValid(false);
-        return false;
+      
+      // Support both new format { classifications, articles } and legacy array format
+      if (typeof parsed === "object" && !Array.isArray(parsed)) {
+        // New format
+        const hasClassifications = !parsed.classifications || (Array.isArray(parsed.classifications) && 
+          parsed.classifications.every((c: any) => c.code && c.name));
+        const hasArticles = Array.isArray(parsed.articles) && 
+          parsed.articles.every((a: any) => a.code && a.name);
+        
+        setJsonValid(hasClassifications && hasArticles);
+        return hasClassifications && hasArticles;
+      } else if (Array.isArray(parsed)) {
+        // Legacy format - array of articles
+        const valid = parsed.every((item) => item.code && item.name);
+        setJsonValid(valid);
+        return valid;
       }
       
-      // Check if all items have required fields
-      const valid = parsed.every(
-        (item) => item.code && item.name
-      );
-      setJsonValid(valid);
-      return valid;
+      setJsonValid(false);
+      return false;
     } catch {
       setJsonValid(false);
       return false;
@@ -213,7 +241,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
     }
 
     if (!validateJson(importJson)) {
-      toast.error("Neispravan JSON format ili nedostaju obavezna polja (code, name)");
+      toast.error("Neispravan JSON format ili nedostaju obavezna polja");
       return;
     }
 
@@ -228,6 +256,23 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
       }
 
       const parsedData = JSON.parse(importJson);
+      
+      // Build request body - support both formats
+      let requestBody: any;
+      if (Array.isArray(parsedData)) {
+        // Legacy format
+        requestBody = {
+          articles: parsedData,
+          update_existing: updateExisting,
+        };
+      } else {
+        // New format
+        requestBody = {
+          classifications: parsedData.classifications || [],
+          articles: parsedData.articles || [],
+          update_existing: updateExisting,
+        };
+      }
 
       const response = await fetch(
         `https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=${selectedCompany.id}&business_year_id=${selectedYear.id}`,
@@ -237,10 +282,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
             Authorization: `Bearer ${session.access_token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            data: parsedData,
-            update_existing: updateExisting,
-          }),
+          body: JSON.stringify(requestBody),
         }
       );
 
@@ -251,8 +293,12 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
       }
 
       setImportResult(result);
+      
+      const classStats = result.classifications;
+      const artStats = result.articles;
       toast.success(
-        `Uvezeno: ${result.imported}, Ažurirano: ${result.updated}, Preskočeno: ${result.skipped}`
+        `Klasifikacije: ${classStats.imported}/${classStats.updated}/${classStats.skipped}, ` +
+        `Artikli: ${artStats.imported}/${artStats.updated}/${artStats.skipped}`
       );
     } catch (error: any) {
       console.error("Import error:", error);
@@ -299,7 +345,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileJson className="h-5 w-5" />
-            Artikli API - Izvoz/Uvoz
+            Artikli API - Izvoz/Uvoz (sa klasifikacijama)
           </DialogTitle>
         </DialogHeader>
 
@@ -318,7 +364,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
           <TabsContent value="export" className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Izvoz svih artikala za firmu{" "}
+                Izvoz klasifikacija i artikala za firmu{" "}
                 <strong>{selectedCompany?.name}</strong>, godina{" "}
                 <strong>{selectedYear?.year}</strong>
               </div>
@@ -336,7 +382,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
                   ) : (
                     <>
                       <Download className="h-4 w-4 mr-2" />
-                      Izvezi artikle
+                      Izvezi sve
                     </>
                   )}
                 </Button>
@@ -354,7 +400,11 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
               <div className="space-y-4">
                 <div className="p-4 bg-primary/10 text-primary rounded-md flex items-center gap-2">
                   <CheckCircle className="h-4 w-4" />
-                  Uspešno izvezeno {exportResult.count} artikala
+                  <span>
+                    Uspešno izvezeno{" "}
+                    <strong>{exportResult.classifications_count}</strong> klasifikacija i{" "}
+                    <strong>{exportResult.articles_count}</strong> artikala
+                  </span>
                 </div>
 
                 <div className="flex gap-2">
@@ -368,13 +418,26 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
                   </Button>
                 </div>
 
-                <div>
-                  <Label>Pregled podataka (prvih 5 artikala)</Label>
-                  <ScrollArea className="h-64 mt-2 rounded-md border">
-                    <pre className="p-4 text-xs">
-                      {JSON.stringify(exportResult.data.slice(0, 5), null, 2)}
-                    </pre>
-                  </ScrollArea>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      <FolderTree className="h-4 w-4" />
+                      Klasifikacije (prvih 5)
+                    </Label>
+                    <ScrollArea className="h-48 mt-2 rounded-md border">
+                      <pre className="p-4 text-xs">
+                        {JSON.stringify(exportResult.data.classifications.slice(0, 5), null, 2)}
+                      </pre>
+                    </ScrollArea>
+                  </div>
+                  <div>
+                    <Label>Artikli (prvih 5)</Label>
+                    <ScrollArea className="h-48 mt-2 rounded-md border">
+                      <pre className="p-4 text-xs">
+                        {JSON.stringify(exportResult.data.articles.slice(0, 5), null, 2)}
+                      </pre>
+                    </ScrollArea>
+                  </div>
                 </div>
               </div>
             )}
@@ -382,7 +445,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
 
           <TabsContent value="import" className="space-y-4">
             <div className="text-sm text-muted-foreground">
-              Uvoz artikala za firmu <strong>{selectedCompany?.name}</strong>,
+              Uvoz klasifikacija i artikala za firmu <strong>{selectedCompany?.name}</strong>,
               godina <strong>{selectedYear?.year}</strong>
             </div>
 
@@ -406,7 +469,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
               </div>
               <Textarea
                 id="import-json"
-                placeholder='[{"code": "001", "name": "Artikal 1", "unit": "kom", ...}]'
+                placeholder='{"classifications": [{"code": "01", "name": "Grupa 1"}], "articles": [{"code": "001", "name": "Artikal 1"}]}'
                 value={importJson}
                 onChange={(e) => {
                   setImportJson(e.target.value);
@@ -417,7 +480,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
               {jsonValid !== null && (
                 <div
                   className={`text-xs flex items-center gap-1 ${
-                    jsonValid ? "text-green-600" : "text-destructive"
+                    jsonValid ? "text-primary" : "text-destructive"
                   }`}
                 >
                   {jsonValid ? (
@@ -443,7 +506,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
                 }
               />
               <Label htmlFor="update-existing" className="text-sm">
-                Ažuriraj postojeće artikle (po šifri)
+                Ažuriraj postojeće (po šifri)
               </Label>
             </div>
 
@@ -460,7 +523,7 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  Uvezi artikle
+                  Uvezi klasifikacije i artikle
                 </>
               )}
             </Button>
@@ -473,34 +536,57 @@ Za kompletnu dokumentaciju pogledajte docs/articles-api.md u projektu.`;
             )}
 
             {importResult && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="p-4 bg-primary/10 text-primary rounded-md">
                   <div className="font-medium flex items-center gap-2">
                     <CheckCircle className="h-4 w-4" />
                     Uvoz završen
                   </div>
-                  <div className="text-sm mt-2 space-y-1">
-                    <div>Uvezeno novih: {importResult.imported}</div>
-                    <div>Ažurirano: {importResult.updated}</div>
-                    <div>Preskočeno: {importResult.skipped}</div>
-                    {importResult.errors.length > 0 && (
-                      <div className="text-destructive">
-                        Greške: {importResult.errors.length}
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
+                    <div className="space-y-1">
+                      <div className="font-medium flex items-center gap-1">
+                        <FolderTree className="h-3 w-3" />
+                        Klasifikacije
                       </div>
-                    )}
+                      <div>Uvezeno: {importResult.classifications.imported}</div>
+                      <div>Ažurirano: {importResult.classifications.updated}</div>
+                      <div>Preskočeno: {importResult.classifications.skipped}</div>
+                      {importResult.classifications.errors.length > 0 && (
+                        <div className="text-destructive">
+                          Greške: {importResult.classifications.errors.length}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="font-medium">Artikli</div>
+                      <div>Uvezeno: {importResult.articles.imported}</div>
+                      <div>Ažurirano: {importResult.articles.updated}</div>
+                      <div>Preskočeno: {importResult.articles.skipped}</div>
+                      {importResult.articles.errors.length > 0 && (
+                        <div className="text-destructive">
+                          Greške: {importResult.articles.errors.length}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {importResult.errors.length > 0 && (
+                {(importResult.classifications.errors.length > 0 || importResult.articles.errors.length > 0) && (
                   <div className="p-4 bg-destructive/10 rounded-md">
                     <div className="font-medium text-destructive mb-2">
                       Greške pri uvozu:
                     </div>
                     <ScrollArea className="h-32">
                       <ul className="text-sm space-y-1">
-                        {importResult.errors.map((err, idx) => (
-                          <li key={idx} className="text-destructive">
-                            <strong>{err.code}:</strong> {err.error}
+                        {importResult.classifications.errors.map((err, idx) => (
+                          <li key={`class-${idx}`} className="text-destructive">
+                            <strong>[Klasifikacija] {err.code}:</strong> {err.error}
+                          </li>
+                        ))}
+                        {importResult.articles.errors.map((err, idx) => (
+                          <li key={`art-${idx}`} className="text-destructive">
+                            <strong>[Artikal] {err.code}:</strong> {err.error}
                           </li>
                         ))}
                       </ul>

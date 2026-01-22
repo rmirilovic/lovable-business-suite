@@ -1,6 +1,6 @@
 # Articles API Dokumentacija
 
-API za izvoz i uvoz artikala sa atributima.
+API za izvoz i uvoz artikala sa klasifikacijama i atributima.
 
 ## Base URL
 
@@ -22,9 +22,9 @@ Token se dobija nakon uspešne prijave korisnika kroz Supabase Auth.
 
 ## Endpoints
 
-### 1. Izvoz artikala (GET)
+### 1. Izvoz artikala i klasifikacija (GET)
 
-Vraća sve artikle za određenu firmu i poslovnu godinu, zajedno sa njihovim atributima.
+Vraća sve artikle i klasifikacije za određenu firmu i poslovnu godinu, zajedno sa atributima artikala.
 
 #### Request
 
@@ -45,41 +45,56 @@ Authorization: Bearer <token>
 ```json
 {
   "success": true,
-  "count": 2,
-  "data": [
-    {
-      "code": "001",
-      "name": "Primer Artikal",
-      "article_group": "01",
-      "unit": "kom",
-      "purchase_price": 100.00,
-      "selling_price": 150.00,
-      "stock": 50,
-      "min_stock": 10,
-      "is_active": true,
-      "svk": "0",
-      "kg_po_jm": 0.5,
-      "kol_mas": null,
-      "attributes": [
-        {
-          "attribute_code": "BOJA",
-          "value": "Crvena"
-        },
-        {
-          "attribute_code": "VELICINA",
-          "value": "XL"
-        }
-      ]
-    }
-  ]
+  "classifications_count": 15,
+  "articles_count": 1200,
+  "data": {
+    "classifications": [
+      {
+        "code": "01",
+        "name": "Prehrambeni proizvodi",
+        "parent_code": null
+      },
+      {
+        "code": "0101",
+        "name": "Mliječni proizvodi",
+        "parent_code": "01"
+      }
+    ],
+    "articles": [
+      {
+        "code": "001",
+        "name": "Primer Artikal",
+        "article_group": "0101",
+        "unit": "kom",
+        "purchase_price": 100.00,
+        "selling_price": 150.00,
+        "stock": 50,
+        "min_stock": 10,
+        "is_active": true,
+        "svk": "0",
+        "kg_po_jm": 0.5,
+        "kol_mas": null,
+        "attributes": [
+          {
+            "attribute_code": "BOJA",
+            "value": "Crvena"
+          },
+          {
+            "attribute_code": "VELICINA",
+            "value": "XL"
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 
 ---
 
-### 2. Uvoz artikala (POST)
+### 2. Uvoz artikala i klasifikacija (POST)
 
-Uvozi artikle sa atributima. Može kreirati nove ili ažurirati postojeće.
+Uvozi klasifikacije i artikle sa atributima. Može kreirati nove ili ažurirati postojeće.
 
 #### Request
 
@@ -100,19 +115,34 @@ Content-Type: application/json
 
 | Polje             | Tip      | Obavezan | Opis                                              |
 |-------------------|----------|----------|---------------------------------------------------|
-| `data`            | Array    | Da       | Niz artikala za uvoz                              |
-| `update_existing` | Boolean  | Ne       | Ako je `true`, ažurira postojeće artikle po šifri (default: `false`) |
+| `classifications` | Array    | Ne       | Niz klasifikacija za uvoz                         |
+| `articles`        | Array    | Da       | Niz artikala za uvoz                              |
+| `update_existing` | Boolean  | Ne       | Ako je `true`, ažurira postojeće po šifri (default: `false`) |
+
+**Napomena:** API podržava i legacy format `{ data: [...] }` za samo artikle.
 
 #### Primer request body
 
 ```json
 {
   "update_existing": true,
-  "data": [
+  "classifications": [
+    {
+      "code": "01",
+      "name": "Prehrambeni proizvodi",
+      "parent_code": null
+    },
+    {
+      "code": "0101",
+      "name": "Mliječni proizvodi",
+      "parent_code": "01"
+    }
+  ],
+  "articles": [
     {
       "code": "001",
       "name": "Primer Artikal",
-      "article_group": "01",
+      "article_group": "0101",
       "unit": "kom",
       "purchase_price": 100.00,
       "selling_price": 150.00,
@@ -138,21 +168,37 @@ Content-Type: application/json
 ```json
 {
   "success": true,
-  "imported": 5,
-  "updated": 2,
-  "skipped": 1,
-  "errors": [
-    {
-      "code": "ERR001",
-      "error": "duplicate key value violates unique constraint"
-    }
-  ]
+  "classifications": {
+    "imported": 10,
+    "updated": 5,
+    "skipped": 2,
+    "errors": []
+  },
+  "articles": {
+    "imported": 100,
+    "updated": 50,
+    "skipped": 10,
+    "errors": [
+      {
+        "code": "ERR001",
+        "error": "duplicate key value violates unique constraint"
+      }
+    ]
+  }
 }
 ```
 
 ---
 
 ## Struktura podataka
+
+### Klasifikacija objekat
+
+| Polje         | Tip    | Obavezan | Opis                                         |
+|---------------|--------|----------|----------------------------------------------|
+| `code`        | String | Da       | Jedinstvena šifra klasifikacije              |
+| `name`        | String | Da       | Naziv klasifikacije                          |
+| `parent_code` | String | Ne       | Šifra nadređene klasifikacije (null = koren) |
 
 ### Artikal objekat
 
@@ -231,10 +277,18 @@ curl -X POST \
   -H "Content-Type: application/json" \
   -d '{
     "update_existing": false,
-    "data": [
+    "classifications": [
+      {
+        "code": "01",
+        "name": "Grupa 1",
+        "parent_code": null
+      }
+    ],
+    "articles": [
       {
         "code": "TEST001",
         "name": "Test Artikal",
+        "article_group": "01",
         "unit": "kom"
       }
     ]
@@ -246,7 +300,7 @@ curl -X POST \
 ```typescript
 import { supabase } from "@/integrations/supabase/client";
 
-// Izvoz artikala
+// Izvoz artikala i klasifikacija
 async function exportArticles(companyId: string, businessYearId: string) {
   const { data: { session } } = await supabase.auth.getSession();
   
@@ -262,8 +316,14 @@ async function exportArticles(companyId: string, businessYearId: string) {
   return res.json();
 }
 
-// Uvoz artikala
-async function importArticles(companyId: string, businessYearId: string, articles: any[], updateExisting = false) {
+// Uvoz artikala i klasifikacija
+async function importArticles(
+  companyId: string, 
+  businessYearId: string, 
+  classifications: any[], 
+  articles: any[], 
+  updateExisting = false
+) {
   const { data: { session } } = await supabase.auth.getSession();
   
   const res = await fetch(
@@ -275,7 +335,8 @@ async function importArticles(companyId: string, businessYearId: string, article
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        data: articles,
+        classifications,
+        articles,
         update_existing: updateExisting,
       }),
     }
@@ -289,14 +350,20 @@ async function importArticles(companyId: string, businessYearId: string, article
 
 ## Napomene
 
-1. **Atributi artikala** - `attribute_code` mora odgovarati postojećoj šifri atributa u bazi za datu firmu. Ako atribut ne postoji, taj par atribut-vrednost se preskače.
+1. **Redosled uvoza** - Klasifikacije se uvoze pre artikala, tako da artikli mogu referisati novouvedene klasifikacije.
 
-2. **Atributi pri ažuriranju** - Kada se ažurira postojeći artikal (`update_existing: true`), svi postojeći atributi se brišu i zamenjuju novim iz zahteva.
+2. **Hijerarhija klasifikacija** - Klasifikacije bez `parent_code` su korenski nivoi. Klasifikacije sa `parent_code` moraju referisati postojeću ili prethodno uvezenu šifru.
 
-3. **Minimalni podaci za uvoz** - Jedini obavezni podaci su `code` i `name`. Svi ostali imaju default vrednosti.
+3. **Atributi artikala** - `attribute_code` mora odgovarati postojećoj šifri atributa u bazi za datu firmu. Ako atribut ne postoji, taj par atribut-vrednost se preskače.
 
-4. **Ograničenje pristupa** - Za izvoz je potreban pristup firmi (bilo koji korisnik sa pristupom). Za uvoz je potrebna admin uloga (super_admin ili local_admin za tu firmu).
+4. **Atributi pri ažuriranju** - Kada se ažurira postojeći artikal (`update_existing: true`), svi postojeći atributi se brišu i zamenjuju novim iz zahteva.
 
-5. **Poslovna godina** - Artikli su vezani za poslovnu godinu. Pri izvozu/uvozu morate navesti ID poslovne godine.
+5. **Minimalni podaci za uvoz** - Za klasifikacije su obavezni `code` i `name`. Za artikle su obavezni `code` i `name`. Svi ostali imaju default vrednosti.
 
-6. **Batch procesiranje** - API koristi batch upite za velike setove podataka (1000 artikala po batch-u za osnovne podatke, 100 ID-ova po batch-u za .in() upite) kako bi se izbegla ograničenja URL dužine.
+6. **Ograničenje pristupa** - Za izvoz je potreban pristup firmi (bilo koji korisnik sa pristupom). Za uvoz je potrebna admin uloga (super_admin ili local_admin za tu firmu).
+
+7. **Poslovna godina** - Artikli su vezani za poslovnu godinu. Klasifikacije su zajedničke za celu firmu (nisu vezane za godinu).
+
+8. **Batch procesiranje** - API koristi batch upite za velike setove podataka (1000 zapisa po batch-u za osnovne podatke, 100 ID-ova po batch-u za .in() upite) kako bi se izbegla ograničenja URL dužine.
+
+9. **Legacy format** - API podržava i stari format `{ data: [...] }` za uvoz samo artikala (bez klasifikacija) radi kompatibilnosti.
