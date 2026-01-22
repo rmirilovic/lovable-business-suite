@@ -12,6 +12,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Upload,
+  FileJson,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ import { PartnerGroupsDialog } from "@/components/partneri/PartnerGroupsDialog";
 import { PartnerImportDialog } from "@/components/partneri/PartnerImportDialog";
 import { BankAccountImportDialog } from "@/components/partneri/BankAccountImportDialog";
 import { ContactImportDialog } from "@/components/partneri/ContactImportDialog";
+import { PartnerApiDialog } from "@/components/partneri/PartnerApiDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -83,6 +85,7 @@ export default function Partneri() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [bankAccountImportDialogOpen, setBankAccountImportDialogOpen] = useState(false);
   const [contactImportDialogOpen, setContactImportDialogOpen] = useState(false);
+  const [apiDialogOpen, setApiDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Pagination state
@@ -429,9 +432,13 @@ export default function Partneri() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {isSuperAdmin && (
                 <>
+                  <Button variant="outline" onClick={() => setApiDialogOpen(true)}>
+                    <FileJson className="w-4 h-4 mr-2" />
+                    API
+                  </Button>
                   <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
                     <Upload className="w-4 h-4 mr-2" />
                     Uvoz partnera
@@ -734,6 +741,10 @@ export default function Partneri() {
 
       {/* Contact Import Dialog */}
       <ContactImportDialog open={contactImportDialogOpen} onOpenChange={setContactImportDialogOpen} />
+
+      {/* Partner API Dialog */}
+      <PartnerApiDialog open={apiDialogOpen} onOpenChange={setApiDialogOpen} />
+
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
