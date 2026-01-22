@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.partners-api]
 verify_jwt = false
+
+[functions.articles-api]
+verify_jwt = false
