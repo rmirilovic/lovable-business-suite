@@ -104,63 +104,95 @@ Deno.serve(async (req) => {
     if (req.method === "GET") {
       console.log(`Exporting partners for company ${companyId}`);
 
-      // Fetch all partners with groups
-      const { data: partners, error: partnersError } = await supabase
-        .from("partners")
-        .select("*, partner_groups(code)")
-        .eq("company_id", companyId)
-        .order("code");
+      // Batch fetch all partners (handles >1000 records)
+      const BATCH_SIZE = 1000;
+      const allPartners: any[] = [];
+      let from = 0;
 
-      if (partnersError) {
-        console.error("Error fetching partners:", partnersError);
-        throw partnersError;
+      while (true) {
+        const { data: batch, error: batchError } = await supabase
+          .from("partners")
+          .select("*, partner_groups(code)")
+          .eq("company_id", companyId)
+          .order("code")
+          .range(from, from + BATCH_SIZE - 1);
+
+        if (batchError) {
+          console.error("Error fetching partners batch:", batchError);
+          throw batchError;
+        }
+
+        if (!batch || batch.length === 0) break;
+        allPartners.push(...batch);
+        console.log(`Fetched partners batch: ${from} to ${from + batch.length - 1}`);
+
+        if (batch.length < BATCH_SIZE) break;
+        from += BATCH_SIZE;
       }
 
-      // Fetch all bank accounts for this company's partners
-      const partnerIds = partners?.map((p) => p.id) || [];
+      console.log(`Total partners fetched: ${allPartners.length}`);
+
+      // Fetch all bank accounts and contacts in batches
+      const partnerIds = allPartners.map((p) => p.id);
       
       let bankAccountsMap: Record<string, any[]> = {};
       let contactsMap: Record<string, any[]> = {};
 
       if (partnerIds.length > 0) {
-        const { data: bankAccounts, error: bankError } = await supabase
-          .from("partner_bank_accounts")
-          .select("*")
-          .in("partner_id", partnerIds)
-          .order("sort_order");
+        // Batch fetch bank accounts
+        const allBankAccounts: any[] = [];
+        for (let i = 0; i < partnerIds.length; i += BATCH_SIZE) {
+          const batchIds = partnerIds.slice(i, i + BATCH_SIZE);
+          const { data: bankBatch, error: bankError } = await supabase
+            .from("partner_bank_accounts")
+            .select("*")
+            .in("partner_id", batchIds)
+            .order("sort_order");
 
-        if (bankError) {
-          console.error("Error fetching bank accounts:", bankError);
-          throw bankError;
+          if (bankError) {
+            console.error("Error fetching bank accounts batch:", bankError);
+            throw bankError;
+          }
+          if (bankBatch) allBankAccounts.push(...bankBatch);
         }
 
         // Group by partner_id
-        bankAccountsMap = (bankAccounts || []).reduce((acc, ba) => {
+        bankAccountsMap = allBankAccounts.reduce((acc, ba) => {
           if (!acc[ba.partner_id]) acc[ba.partner_id] = [];
           acc[ba.partner_id].push(ba);
           return acc;
         }, {} as Record<string, any[]>);
 
-        const { data: contacts, error: contactsError } = await supabase
-          .from("partner_contacts")
-          .select("*")
-          .in("partner_id", partnerIds)
-          .order("created_at");
+        console.log(`Total bank accounts fetched: ${allBankAccounts.length}`);
 
-        if (contactsError) {
-          console.error("Error fetching contacts:", contactsError);
-          throw contactsError;
+        // Batch fetch contacts
+        const allContacts: any[] = [];
+        for (let i = 0; i < partnerIds.length; i += BATCH_SIZE) {
+          const batchIds = partnerIds.slice(i, i + BATCH_SIZE);
+          const { data: contactsBatch, error: contactsError } = await supabase
+            .from("partner_contacts")
+            .select("*")
+            .in("partner_id", batchIds)
+            .order("created_at");
+
+          if (contactsError) {
+            console.error("Error fetching contacts batch:", contactsError);
+            throw contactsError;
+          }
+          if (contactsBatch) allContacts.push(...contactsBatch);
         }
 
-        contactsMap = (contacts || []).reduce((acc, c) => {
+        contactsMap = allContacts.reduce((acc, c) => {
           if (!acc[c.partner_id]) acc[c.partner_id] = [];
           acc[c.partner_id].push(c);
           return acc;
         }, {} as Record<string, any[]>);
+
+        console.log(`Total contacts fetched: ${allContacts.length}`);
       }
 
       // Build export data
-      const exportData: PartnerExport[] = (partners || []).map((p) => ({
+      const exportData: PartnerExport[] = allPartners.map((p) => ({
         code: p.code,
         name: p.name,
         legal_status: p.legal_status,
