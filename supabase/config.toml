@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.apr-lookup]
 verify_jwt = false
+
+[functions.partners-api]
+verify_jwt = false
