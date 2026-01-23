@@ -78,18 +78,10 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const companyId = url.searchParams.get("company_id");
-    const businessYearId = url.searchParams.get("business_year_id");
 
     if (!companyId) {
       return new Response(
         JSON.stringify({ error: "company_id parameter is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!businessYearId) {
-      return new Response(
-        JSON.stringify({ error: "business_year_id parameter is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -109,7 +101,7 @@ Deno.serve(async (req) => {
 
     // EXPORT - GET request
     if (req.method === "GET") {
-      console.log(`Exporting articles for company ${companyId}, year ${businessYearId}`);
+      console.log(`Exporting articles for company ${companyId}`);
 
       // Fetch all classifications for this company (batch)
       const BATCH_SIZE = 1000;
@@ -139,7 +131,7 @@ Deno.serve(async (req) => {
 
       console.log(`Total classifications fetched: ${allClassifications.length}`);
 
-      // Batch fetch all articles (handles >1000 records)
+      // Batch fetch all articles (handles >1000 records) - now company-wide
       const allArticles: any[] = [];
       let from = 0;
 
@@ -148,7 +140,6 @@ Deno.serve(async (req) => {
           .from("articles")
           .select("*")
           .eq("company_id", companyId)
-          .eq("business_year_id", businessYearId)
           .order("code")
           .range(from, from + BATCH_SIZE - 1);
 
@@ -357,13 +348,12 @@ Deno.serve(async (req) => {
       const articleErrors: { code: string; error: string }[] = [];
 
       if (articles.length > 0) {
-        // Fetch existing articles by code
+        // Fetch existing articles by code - now company-wide
         const codes = articles.map((a) => a.code);
         const { data: existingArticles } = await supabase
           .from("articles")
           .select("id, code")
           .eq("company_id", companyId)
-          .eq("business_year_id", businessYearId)
           .in("code", codes);
 
         const existingMap = (existingArticles || []).reduce((acc, a) => {
@@ -395,7 +385,6 @@ Deno.serve(async (req) => {
 
             const articleData = {
               company_id: companyId,
-              business_year_id: businessYearId,
               code: article.code,
               name: article.name,
               article_group: article.article_group,
@@ -502,7 +491,7 @@ Deno.serve(async (req) => {
   } catch (error: any) {
     console.error("Error in articles-api:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
