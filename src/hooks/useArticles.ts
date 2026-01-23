@@ -20,7 +20,7 @@ export interface Article {
   kol_mas: number | null;
 }
 
-async function fetchArticles(companyId: string, yearId: string): Promise<Article[]> {
+async function fetchArticles(companyId: string): Promise<Article[]> {
   let allArticles: Article[] = [];
   let from = 0;
   const batchSize = 1000;
@@ -30,7 +30,6 @@ async function fetchArticles(companyId: string, yearId: string): Promise<Article
       .from("articles")
       .select("*")
       .eq("company_id", companyId)
-      .eq("business_year_id", yearId)
       .order("code")
       .range(from, from + batchSize - 1);
 
@@ -47,13 +46,13 @@ async function fetchArticles(companyId: string, yearId: string): Promise<Article
   return allArticles;
 }
 
-export function useArticles(companyId: string | undefined, yearId: string | undefined) {
+export function useArticles(companyId: string | undefined) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["articles", companyId, yearId],
-    queryFn: () => fetchArticles(companyId!, yearId!),
-    enabled: !!companyId && !!yearId,
+    queryKey: ["articles", companyId],
+    queryFn: () => fetchArticles(companyId!),
+    enabled: !!companyId,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes (formerly cacheTime)
     refetchOnWindowFocus: false, // Don't refetch on window focus
@@ -62,7 +61,7 @@ export function useArticles(companyId: string | undefined, yearId: string | unde
   // Update a single article in the cache
   const updateArticleInCache = (updatedArticle: Article) => {
     queryClient.setQueryData<Article[]>(
-      ["articles", companyId, yearId],
+      ["articles", companyId],
       (oldData) => {
         if (!oldData) return oldData;
         return oldData.map((article) =>
@@ -75,7 +74,7 @@ export function useArticles(companyId: string | undefined, yearId: string | unde
   // Add a new article to the cache
   const addArticleToCache = (newArticle: Article) => {
     queryClient.setQueryData<Article[]>(
-      ["articles", companyId, yearId],
+      ["articles", companyId],
       (oldData) => {
         if (!oldData) return [newArticle];
         return [...oldData, newArticle].sort((a, b) => a.code.localeCompare(b.code));
@@ -86,7 +85,7 @@ export function useArticles(companyId: string | undefined, yearId: string | unde
   // Remove an article from the cache
   const removeArticleFromCache = (articleId: string) => {
     queryClient.setQueryData<Article[]>(
-      ["articles", companyId, yearId],
+      ["articles", companyId],
       (oldData) => {
         if (!oldData) return oldData;
         return oldData.filter((article) => article.id !== articleId);

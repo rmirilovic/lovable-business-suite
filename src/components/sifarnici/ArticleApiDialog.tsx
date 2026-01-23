@@ -58,7 +58,7 @@ interface ImportResult {
 }
 
 export function ArticleApiDialog({ open, onOpenChange }: ArticleApiDialogProps) {
-  const { selectedCompany, selectedYear } = useAuth();
+  const { selectedCompany } = useAuth();
   const [activeTab, setActiveTab] = useState("export");
   
   // Export state
@@ -75,8 +75,8 @@ export function ArticleApiDialog({ open, onOpenChange }: ArticleApiDialogProps) 
   const [jsonValid, setJsonValid] = useState<boolean | null>(null);
 
   const handleExport = async () => {
-    if (!selectedCompany || !selectedYear) {
-      toast.error("Izaberite firmu i poslovnu godinu");
+    if (!selectedCompany) {
+      toast.error("Izaberite firmu");
       return;
     }
 
@@ -91,7 +91,7 @@ export function ArticleApiDialog({ open, onOpenChange }: ArticleApiDialogProps) 
       }
 
       const response = await fetch(
-        `https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=${selectedCompany.id}&business_year_id=${selectedYear.id}`,
+        `https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=${selectedCompany.id}`,
         {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
@@ -136,7 +136,7 @@ export function ArticleApiDialog({ open, onOpenChange }: ArticleApiDialogProps) 
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `artikli_klasifikacije_${selectedCompany?.name.replace(/\s+/g, "_")}_${selectedYear?.year}_${new Date().toISOString().split("T")[0]}.json`;
+    a.download = `artikli_klasifikacije_${selectedCompany?.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -171,21 +171,20 @@ Token se dobija nakon uspešne prijave korisnika kroz Supabase Auth.
 
 ### 1. Izvoz artikala i klasifikacija (GET)
 
-Vraća sve artikle i klasifikacije za određenu firmu i poslovnu godinu, zajedno sa atributima artikala.
+Vraća sve artikle i klasifikacije za određenu firmu, zajedno sa atributima artikala.
 
 #### Request
 
 \`\`\`http
-GET /articles-api?company_id=<uuid>&business_year_id=<uuid>
+GET /articles-api?company_id=<uuid>
 Authorization: Bearer <token>
 \`\`\`
 
 #### Query parametri
 
-| Parametar          | Tip    | Obavezan | Opis                          |
-|--------------------|--------|----------|-------------------------------|
-| \`company_id\`       | UUID   | Da       | ID firme za izvoz             |
-| \`business_year_id\` | UUID   | Da       | ID poslovne godine za izvoz   |
+| Parametar     | Tip    | Obavezan | Opis                |
+|---------------|--------|----------|---------------------|
+| \`company_id\`  | UUID   | Da       | ID firme za izvoz   |
 
 #### Response (200 OK)
 
@@ -246,17 +245,16 @@ Uvozi klasifikacije i artikle sa atributima. Može kreirati nove ili ažurirati 
 #### Request
 
 \`\`\`http
-POST /articles-api?company_id=<uuid>&business_year_id=<uuid>
+POST /articles-api?company_id=<uuid>
 Authorization: Bearer <token>
 Content-Type: application/json
 \`\`\`
 
 #### Query parametri
 
-| Parametar          | Tip    | Obavezan | Opis                          |
-|--------------------|--------|----------|-------------------------------|
-| \`company_id\`       | UUID   | Da       | ID firme za uvoz              |
-| \`business_year_id\` | UUID   | Da       | ID poslovne godine za uvoz    |
+| Parametar     | Tip    | Obavezan | Opis                |
+|---------------|--------|----------|---------------------|
+| \`company_id\`  | UUID   | Da       | ID firme za uvoz    |
 
 #### Body parametri
 
@@ -389,7 +387,7 @@ Content-Type: application/json
 
 | Status | Opis                                          |
 |--------|-----------------------------------------------|
-| 400    | Neispravan zahtev (nedostaje company_id ili business_year_id, loš format) |
+| 400    | Neispravan zahtev (nedostaje company_id, loš format) |
 | 401    | Nedostaje ili nevažeći token                  |
 | 403    | Pristup odbijen (nema pristup firmi ili nije admin za uvoz) |
 | 405    | Metoda nije dozvoljena                        |
@@ -411,7 +409,7 @@ Content-Type: application/json
 
 \`\`\`bash
 curl -X GET \\
-  "https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=<uuid>&business_year_id=<uuid>" \\
+  "https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=<uuid>" \\
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 \`\`\`
 
@@ -419,7 +417,7 @@ curl -X GET \\
 
 \`\`\`bash
 curl -X POST \\
-  "https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=<uuid>&business_year_id=<uuid>" \\
+  "https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=<uuid>" \\
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -448,11 +446,11 @@ curl -X POST \\
 import { supabase } from "@/integrations/supabase/client";
 
 // Izvoz artikala i klasifikacija
-async function exportArticles(companyId: string, businessYearId: string) {
+async function exportArticles(companyId: string) {
   const { data: { session } } = await supabase.auth.getSession();
   
   const res = await fetch(
-    \`https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=\${companyId}&business_year_id=\${businessYearId}\`,
+    \`https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=\${companyId}\`,
     {
       headers: {
         Authorization: \`Bearer \${session?.access_token}\`,
@@ -466,7 +464,6 @@ async function exportArticles(companyId: string, businessYearId: string) {
 // Uvoz artikala i klasifikacija
 async function importArticles(
   companyId: string, 
-  businessYearId: string, 
   classifications: any[], 
   articles: any[], 
   updateExisting = false
@@ -474,7 +471,7 @@ async function importArticles(
   const { data: { session } } = await supabase.auth.getSession();
   
   const res = await fetch(
-    \`https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=\${companyId}&business_year_id=\${businessYearId}\`,
+    \`https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=\${companyId}\`,
     {
       method: "POST",
       headers: {
@@ -509,7 +506,7 @@ async function importArticles(
 
 6. **Ograničenje pristupa** - Za izvoz je potreban pristup firmi (bilo koji korisnik sa pristupom). Za uvoz je potrebna admin uloga (super_admin ili local_admin za tu firmu).
 
-7. **Poslovna godina** - Artikli su vezani za poslovnu godinu. Klasifikacije su zajedničke za celu firmu (nisu vezane za godinu).
+7. **Artikli su jedinstveni za firmu** - Šifarnik artikala je zajednički za sve poslovne godine jedne firme.
 
 8. **Batch procesiranje** - API koristi batch upite za velike setove podataka (1000 zapisa po batch-u za osnovne podatke, 100 ID-ova po batch-u za .in() upite) kako bi se izbegla ograničenja URL dužine.
 
@@ -562,8 +559,8 @@ async function importArticles(
   };
 
   const handleImport = async () => {
-    if (!selectedCompany || !selectedYear) {
-      toast.error("Izaberite firmu i poslovnu godinu");
+    if (!selectedCompany) {
+      toast.error("Izaberite firmu");
       return;
     }
 
@@ -602,7 +599,7 @@ async function importArticles(
       }
 
       const response = await fetch(
-        `https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=${selectedCompany.id}&business_year_id=${selectedYear.id}`,
+        `https://qzehbazhizwwiuomlfer.supabase.co/functions/v1/articles-api?company_id=${selectedCompany.id}`,
         {
           method: "POST",
           headers: {
@@ -692,8 +689,7 @@ async function importArticles(
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
                 Izvoz klasifikacija i artikala za firmu{" "}
-                <strong>{selectedCompany?.name}</strong>, godina{" "}
-                <strong>{selectedYear?.year}</strong>
+                <strong>{selectedCompany?.name}</strong>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={handleDownloadDocs}>
@@ -772,8 +768,7 @@ async function importArticles(
 
           <TabsContent value="import" className="space-y-4">
             <div className="text-sm text-muted-foreground">
-              Uvoz klasifikacija i artikala za firmu <strong>{selectedCompany?.name}</strong>,
-              godina <strong>{selectedYear?.year}</strong>
+              Uvoz klasifikacija i artikala za firmu <strong>{selectedCompany?.name}</strong>
             </div>
 
             <div className="space-y-2">

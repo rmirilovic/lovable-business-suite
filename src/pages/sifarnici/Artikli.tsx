@@ -154,7 +154,7 @@ const emptyForm: ArticleForm = {
 export default function Artikli() {
   const { selectedCompany, selectedYear, isSuperAdmin, isLocalAdmin } = useAuth();
   
-  // Use cached articles hook
+  // Use cached articles hook - now company-wide
   const {
     articles,
     isLoading: loading,
@@ -163,7 +163,7 @@ export default function Artikli() {
     addArticleToCache,
     removeArticleFromCache,
     refetch,
-  } = useArticles(selectedCompany?.id, selectedYear?.id);
+  } = useArticles(selectedCompany?.id);
 
   // Use cached classifications hook
   const { classifications } = useClassifications(selectedCompany?.id);
@@ -494,7 +494,7 @@ export default function Artikli() {
   };
 
   const handleSave = async () => {
-    if (!selectedCompany || !selectedYear) return;
+    if (!selectedCompany) return;
     if (!formData.code.trim() || !formData.name.trim()) {
       toast.error("Šifra i naziv su obavezni");
       return;
@@ -509,7 +509,6 @@ export default function Artikli() {
     try {
       const articleData = {
         company_id: selectedCompany.id,
-        business_year_id: selectedYear.id,
         code: formData.code.trim(),
         name: formData.name.trim(),
         article_group: formData.article_group.trim() || null,

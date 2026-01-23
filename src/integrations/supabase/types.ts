@@ -213,7 +213,6 @@ export type Database = {
       articles: {
         Row: {
           article_group: string | null
-          business_year_id: string
           code: string
           company_id: string
           created_at: string | null
@@ -232,7 +231,6 @@ export type Database = {
         }
         Insert: {
           article_group?: string | null
-          business_year_id: string
           code: string
           company_id: string
           created_at?: string | null
@@ -251,7 +249,6 @@ export type Database = {
         }
         Update: {
           article_group?: string | null
-          business_year_id?: string
           code?: string
           company_id?: string
           created_at?: string | null
@@ -269,13 +266,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "articles_business_year_id_fkey"
-            columns: ["business_year_id"]
-            isOneToOne: false
-            referencedRelation: "business_years"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "articles_company_id_fkey"
             columns: ["company_id"]
