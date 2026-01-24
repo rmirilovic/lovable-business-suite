@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileJson, Upload, Package, Users, RefreshCw, Download } from "lucide-react";
+import { FileJson, Upload, Package, Users, Download, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +9,9 @@ import { ContactImportDialog } from "@/components/partneri/ContactImportDialog";
 import { PartnerApiDialog } from "@/components/partneri/PartnerApiDialog";
 import { ArticleApiDialog } from "@/components/sifarnici/ArticleApiDialog";
 import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog";
+import { OrgUnitApiDialog } from "@/components/sifarnici/OrgUnitApiDialog";
+import { OrgUnitImportDialog } from "@/components/sifarnici/OrgUnitImportDialog";
+import { OrgUnitExportDialog } from "@/components/sifarnici/OrgUnitExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 
@@ -24,6 +27,11 @@ export function DataImportTab() {
   // Dialog states for articles
   const [articleApiOpen, setArticleApiOpen] = useState(false);
   const [articleExportOpen, setArticleExportOpen] = useState(false);
+  
+  // Dialog states for organizational units
+  const [orgUnitApiOpen, setOrgUnitApiOpen] = useState(false);
+  const [orgUnitImportOpen, setOrgUnitImportOpen] = useState(false);
+  const [orgUnitExportOpen, setOrgUnitExportOpen] = useState(false);
   
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
@@ -136,6 +144,60 @@ export function DataImportTab() {
         </CardContent>
       </Card>
 
+      <Separator />
+
+      {/* Organizational Units Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building className="w-5 h-5" />
+            Organizacione jedinice
+          </CardTitle>
+          <CardDescription>
+            Uvoz i izvoz organizacionih jedinica (mesta troška)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setOrgUnitApiOpen(true)}
+            >
+              <FileJson className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">API Org. jedinice</div>
+                <div className="text-xs text-muted-foreground">JSON uvoz/izvoz</div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setOrgUnitImportOpen(true)}
+            >
+              <Upload className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Excel fajl</div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setOrgUnitExportOpen(true)}
+            >
+              <Download className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Izvoz u Excel</div>
+                <div className="text-xs text-muted-foreground">Excel fajl</div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Partner Dialogs */}
       <PartnerImportDialog 
         open={partnerImportOpen} 
@@ -164,6 +226,20 @@ export function DataImportTab() {
         onOpenChange={setArticleExportOpen}
         articles={articles}
         companyName={selectedCompany?.name}
+      />
+
+      {/* Organizational Unit Dialogs */}
+      <OrgUnitApiDialog 
+        open={orgUnitApiOpen} 
+        onOpenChange={setOrgUnitApiOpen} 
+      />
+      <OrgUnitImportDialog 
+        open={orgUnitImportOpen} 
+        onOpenChange={setOrgUnitImportOpen} 
+      />
+      <OrgUnitExportDialog 
+        open={orgUnitExportOpen} 
+        onOpenChange={setOrgUnitExportOpen} 
       />
     </div>
   );
