@@ -22,7 +22,6 @@ import {
   History,
   RefreshCw,
   Tags,
-  FileJson,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -80,7 +79,6 @@ import { useClassifications } from "@/hooks/useClassifications";
 import { useArticleAttributeCounts } from "@/hooks/useArticleAttributeCounts";
 import { useArticleAttributes } from "@/hooks/useArticleAttributes";
 import { ArticleAttributesDialog } from "@/components/sifarnici/ArticleAttributesDialog";
-import { ArticleApiDialog } from "@/components/sifarnici/ArticleApiDialog";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -202,7 +200,6 @@ export default function Artikli() {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAttributesOpen, setIsAttributesOpen] = useState(false);
-  const [isApiOpen, setIsApiOpen] = useState(false);
   const [historyArticle, setHistoryArticle] = useState<Article | null>(null);
   const [attributesArticle, setAttributesArticle] = useState<Article | null>(null);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
@@ -725,22 +722,6 @@ export default function Artikli() {
                 <Download className="w-4 h-4" />
                 <span className="hidden md:inline">Izvoz</span>
               </button>
-              {(isSuperAdmin || isLocalAdmin) && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button 
-                      className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                      onClick={() => setIsApiOpen(true)}
-                    >
-                      <FileJson className="w-4 h-4" />
-                      <span className="hidden md:inline">API</span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Izvoz/Uvoz putem JSON API-ja</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
               {canEdit && (
                 <button className="erp-btn-accent gap-2" onClick={handleAdd}>
                   <Plus className="w-4 h-4" />
@@ -1682,12 +1663,6 @@ export default function Artikli() {
           }}
         />
       )}
-
-      {/* API Dialog */}
-      <ArticleApiDialog
-        open={isApiOpen}
-        onOpenChange={setIsApiOpen}
-      />
 
     </MainLayout>
   );

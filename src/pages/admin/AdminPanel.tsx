@@ -1,24 +1,26 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users, Shield, Calendar } from "lucide-react";
+import { Building2, Users, Shield, Calendar, Database } from "lucide-react";
 import { CompaniesTab } from "@/components/admin/CompaniesTab";
 import { UsersTab } from "@/components/admin/UsersTab";
 import { AccessTab } from "@/components/admin/AccessTab";
 import { BusinessYearsTab } from "@/components/admin/BusinessYearsTab";
+import { DataImportTab } from "@/components/admin/DataImportTab";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function AdminPanel() {
   const { isSuperAdmin, isLocalAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState(isSuperAdmin || isLocalAdmin ? "companies" : "years");
 
-  // Super admins see all tabs, local admins see Companies, Years, Users, Access (for their companies)
+  // Super admins and local admins see all tabs including data import
   const tabs = isSuperAdmin || isLocalAdmin
     ? [
         { value: "companies", label: "Firme", icon: Building2 },
         { value: "years", label: "Godine", icon: Calendar },
         { value: "users", label: "Korisnici", icon: Users },
         { value: "access", label: "Pristupi", icon: Shield },
+        { value: "data", label: "Podaci", icon: Database },
       ]
     : [
         { value: "years", label: "Godine", icon: Calendar },
@@ -57,6 +59,12 @@ export default function AdminPanel() {
           <TabsContent value="access" className="mt-6">
             <AccessTab />
           </TabsContent>
+
+          {(isSuperAdmin || isLocalAdmin) && (
+            <TabsContent value="data" className="mt-6">
+              <DataImportTab />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </MainLayout>
