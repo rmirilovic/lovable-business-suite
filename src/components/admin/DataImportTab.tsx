@@ -8,13 +8,13 @@ import { BankAccountImportDialog } from "@/components/partneri/BankAccountImport
 import { ContactImportDialog } from "@/components/partneri/ContactImportDialog";
 import { PartnerApiDialog } from "@/components/partneri/PartnerApiDialog";
 import { ArticleApiDialog } from "@/components/sifarnici/ArticleApiDialog";
+import { ArticleImportDialog } from "@/components/sifarnici/ArticleImportDialog";
 import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog";
 import { OrgUnitApiDialog } from "@/components/sifarnici/OrgUnitApiDialog";
 import { OrgUnitImportDialog } from "@/components/sifarnici/OrgUnitImportDialog";
 import { OrgUnitExportDialog } from "@/components/sifarnici/OrgUnitExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
-
 export function DataImportTab() {
   const { selectedCompany } = useAuth();
   
@@ -26,6 +26,7 @@ export function DataImportTab() {
   
   // Dialog states for articles
   const [articleApiOpen, setArticleApiOpen] = useState(false);
+  const [articleImportOpen, setArticleImportOpen] = useState(false);
   const [articleExportOpen, setArticleExportOpen] = useState(false);
   
   // Dialog states for organizational units
@@ -132,6 +133,18 @@ export function DataImportTab() {
             <Button 
               variant="outline" 
               className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setArticleImportOpen(true)}
+            >
+              <Upload className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Excel fajl</div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
               onClick={() => setArticleExportOpen(true)}
             >
               <Download className="w-6 h-6" />
@@ -220,6 +233,10 @@ export function DataImportTab() {
       <ArticleApiDialog 
         open={articleApiOpen} 
         onOpenChange={setArticleApiOpen} 
+      />
+      <ArticleImportDialog
+        open={articleImportOpen}
+        onOpenChange={setArticleImportOpen}
       />
       <ExportColumnsDialog
         open={articleExportOpen}
