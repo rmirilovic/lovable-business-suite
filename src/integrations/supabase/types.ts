@@ -403,6 +403,39 @@ export type Database = {
         }
         Relationships: []
       }
+      organizational_units: {
+        Row: {
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          parent_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          parent_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          parent_code?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       partner_bank_accounts: {
         Row: {
           account_number: string

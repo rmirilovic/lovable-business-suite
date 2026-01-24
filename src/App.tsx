@@ -16,6 +16,7 @@ import Partneri from "./pages/sifarnici/Partneri";
 import KlasifikacijaArtikala from "./pages/sifarnici/KlasifikacijaArtikala";
 import AtributiArtikala from "./pages/sifarnici/AtributiArtikala";
 import Magacini from "./pages/sifarnici/Magacini";
+import OrganizacioneJedinice from "./pages/sifarnici/OrganizacioneJedinice";
 import AdminPanel from "./pages/admin/AdminPanel";
 import NotFound from "./pages/NotFound";
 
@@ -70,6 +71,11 @@ const App = () => (
               <Route path="/sifarnici/magacini" element={
                 <ProtectedRoute>
                   <Magacini />
+                </ProtectedRoute>
+              } />
+              <Route path="/sifarnici/org-jedinice" element={
+                <ProtectedRoute>
+                  <OrganizacioneJedinice />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
