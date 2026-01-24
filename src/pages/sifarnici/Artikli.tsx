@@ -4,7 +4,6 @@ import {
   Search,
   Plus,
   Filter,
-  Download,
   Edit2,
   Trash2,
   Eye,
@@ -67,7 +66,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog";
 import { ArticleHistoryDialog } from "@/components/sifarnici/ArticleHistoryDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
@@ -197,7 +195,6 @@ export default function Artikli() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isExportOpen, setIsExportOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAttributesOpen, setIsAttributesOpen] = useState(false);
   const [historyArticle, setHistoryArticle] = useState<Article | null>(null);
@@ -715,13 +712,6 @@ export default function Artikli() {
                   <p>Osveži listu artikala sa servera</p>
                 </TooltipContent>
               </Tooltip>
-              <button 
-                className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                onClick={() => setIsExportOpen(true)}
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden md:inline">Izvoz</span>
-              </button>
               {canEdit && (
                 <button className="erp-btn-accent gap-2" onClick={handleAdd}>
                   <Plus className="w-4 h-4" />
@@ -1629,14 +1619,6 @@ export default function Artikli() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Export Dialog */}
-      <ExportColumnsDialog
-        open={isExportOpen}
-        onOpenChange={setIsExportOpen}
-        articles={sortedArticles}
-        companyName={selectedCompany?.name}
-      />
 
       {/* History Dialog */}
       {historyArticle && (
