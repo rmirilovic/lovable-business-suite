@@ -212,15 +212,33 @@ export function OrgUnitImportDialog({ open, onOpenChange }: OrgUnitImportDialogP
         const workbook = XLSX.read(buffer, { type: "array" });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(sheet);
+        
+        // First, get headers from the first row directly
+        const headerRow = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 })[0];
+        if (!headerRow || headerRow.length === 0) {
+          toast.error("Excel fajl je prazan ili nema zaglavlja");
+          return;
+        }
+        
+        // Filter out empty headers and convert to strings
+        const headers = headerRow
+          .map((h, idx) => (h !== undefined && h !== null && String(h).trim() !== "") ? String(h).trim() : null)
+          .filter((h): h is string => h !== null);
+        
+        if (headers.length === 0) {
+          toast.error("Nije pronađeno nijedno zaglavlje kolone");
+          return;
+        }
+        
+        // Parse data with defval to include empty cells
+        const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
         if (jsonData.length === 0) {
           toast.error("Excel fajl je prazan ili nema podataka");
           return;
         }
 
-        // Extract headers
-        const headers = Object.keys(jsonData[0] as object);
+        console.log("Detected Excel headers:", headers);
         setExcelHeaders(headers);
         setRawRows(jsonData);
 
