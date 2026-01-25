@@ -310,6 +310,59 @@ export type Database = {
           },
         ]
       }
+      chart_of_accounts: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          code: string
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_posting_allowed: boolean
+          level: number
+          name: string
+          parent_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          code: string
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_posting_allowed?: boolean
+          level?: number
+          name: string
+          parent_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"]
+          code?: string
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_posting_allowed?: boolean
+          level?: number
+          name?: string
+          parent_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_of_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           activity_code: string | null
@@ -402,6 +455,158 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      journal_entries: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          description: string
+          document_date: string | null
+          document_number: string | null
+          entry_date: string
+          entry_number: number
+          id: string
+          org_unit_id: string | null
+          posted_at: string | null
+          posted_by: string | null
+          source_document_id: string | null
+          source_document_type: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          total_credit: number
+          total_debit: number
+          updated_at: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          description: string
+          document_date?: string | null
+          document_number?: string | null
+          entry_date: string
+          entry_number: number
+          id?: string
+          org_unit_id?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          source_document_id?: string | null
+          source_document_type?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          document_date?: string | null
+          document_number?: string | null
+          entry_date?: string
+          entry_number?: number
+          id?: string
+          org_unit_id?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          source_document_id?: string | null
+          source_document_type?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entry_items: {
+        Row: {
+          account_code: string
+          company_id: string
+          cost_center_code: string | null
+          created_at: string
+          credit_amount: number
+          debit_amount: number
+          description: string | null
+          id: string
+          item_order: number
+          journal_entry_id: string
+          partner_id: string | null
+        }
+        Insert: {
+          account_code: string
+          company_id: string
+          cost_center_code?: string | null
+          created_at?: string
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          item_order?: number
+          journal_entry_id: string
+          partner_id?: string | null
+        }
+        Update: {
+          account_code?: string
+          company_id?: string
+          cost_center_code?: string | null
+          created_at?: string
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          item_order?: number
+          journal_entry_id?: string
+          partner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entry_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_items_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_items_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       modules: {
         Row: {
@@ -1110,6 +1315,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_next_journal_entry_number: {
+        Args: { _company_id: string; _year_id: string }
+        Returns: number
+      }
       get_user_access_level: {
         Args: {
           _company_id: string
@@ -1134,9 +1343,14 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      post_journal_entry: {
+        Args: { _entry_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       access_level: "none" | "read" | "write" | "admin"
+      account_type: "asset" | "liability" | "equity" | "revenue" | "expense"
       app_role: "super_admin" | "local_admin" | "user"
       attribute_data_type:
         | "text"
@@ -1146,6 +1360,7 @@ export type Database = {
         | "integer"
         | "decimal"
         | "date"
+      document_status: "draft" | "posted" | "cancelled"
       module_type:
         | "sifarnici"
         | "robno_materijalno"
@@ -1285,6 +1500,7 @@ export const Constants = {
   public: {
     Enums: {
       access_level: ["none", "read", "write", "admin"],
+      account_type: ["asset", "liability", "equity", "revenue", "expense"],
       app_role: ["super_admin", "local_admin", "user"],
       attribute_data_type: [
         "text",
@@ -1295,6 +1511,7 @@ export const Constants = {
         "decimal",
         "date",
       ],
+      document_status: ["draft", "posted", "cancelled"],
       module_type: [
         "sifarnici",
         "robno_materijalno",

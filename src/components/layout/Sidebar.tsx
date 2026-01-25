@@ -67,6 +67,15 @@ const navigation: NavItem[] = [
   },
   { label: "Magacin", icon: Warehouse, href: "/magacin" },
   { label: "Partneri", icon: Users, href: "/partneri" },
+  {
+    label: "Računovodstvo",
+    icon: FileText,
+    children: [
+      { label: "Kontni plan", href: "/racunovodstvo/kontni-plan" },
+      { label: "Nalozi za knjiženje", href: "/racunovodstvo/nalozi" },
+      { label: "Glavna knjiga", href: "/racunovodstvo/glavna-knjiga" },
+    ],
+  },
   { label: "Administracija", icon: Settings, href: "/admin" },
 ];
 
