@@ -363,10 +363,38 @@ export default function KontniPlan() {
                 <Input
                   id="code"
                   value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  placeholder="101"
+                  onChange={(e) => {
+                    const newCode = e.target.value;
+                    if (!editingAccount && newCode.length >= 2) {
+                      // Auto-detect parent code (all digits except last one)
+                      const parentCode = newCode.slice(0, -1);
+                      const parentAccount = accounts.find(a => a.code === parentCode);
+                      
+                      // Auto-set account type based on class (first digit)
+                      const accountType = ACCOUNT_CLASS_TYPES[newCode[0]] || formData.account_type;
+                      
+                      // Analytical accounts (4+ digits) allow posting by default
+                      const isPostingAllowed = newCode.length >= 4;
+                      
+                      setFormData({ 
+                        ...formData, 
+                        code: newCode,
+                        parent_code: parentAccount ? parentCode : formData.parent_code,
+                        account_type: accountType,
+                        is_posting_allowed: isPostingAllowed,
+                      });
+                    } else {
+                      setFormData({ ...formData, code: newCode });
+                    }
+                  }}
+                  placeholder="1010"
                   disabled={!!editingAccount}
                 />
+                {!editingAccount && formData.code.length >= 4 && (
+                  <p className="text-xs text-muted-foreground">
+                    Analitički konto - dozvoljeno knjiženje
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="parent_code">Nadređeni konto</Label>
@@ -374,8 +402,14 @@ export default function KontniPlan() {
                   id="parent_code"
                   value={formData.parent_code}
                   onChange={(e) => setFormData({ ...formData, parent_code: e.target.value })}
-                  placeholder="10"
+                  placeholder="101"
+                  disabled={!editingAccount && formData.code.length >= 2}
                 />
+                {formData.parent_code && (
+                  <p className="text-xs text-muted-foreground">
+                    {accounts.find(a => a.code === formData.parent_code)?.name || "Nepoznat konto"}
+                  </p>
+                )}
               </div>
             </div>
 
