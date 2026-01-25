@@ -21,6 +21,7 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import KontniPlan from "./pages/racunovodstvo/KontniPlan";
 import NaloziZaKnjizenje from "./pages/racunovodstvo/NaloziZaKnjizenje";
 import GlavnaKnjiga from "./pages/racunovodstvo/GlavnaKnjiga";
+import BrutoBilans from "./pages/racunovodstvo/BrutoBilans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -99,6 +100,11 @@ const App = () => (
               <Route path="/racunovodstvo/glavna-knjiga" element={
                 <ProtectedRoute>
                   <GlavnaKnjiga />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/bruto-bilans" element={
+                <ProtectedRoute>
+                  <BrutoBilans />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />

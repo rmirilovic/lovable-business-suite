@@ -74,6 +74,7 @@ const navigation: NavItem[] = [
       { label: "Kontni plan", href: "/racunovodstvo/kontni-plan" },
       { label: "Nalozi za knjiženje", href: "/racunovodstvo/nalozi" },
       { label: "Glavna knjiga", href: "/racunovodstvo/glavna-knjiga" },
+      { label: "Bruto bilans", href: "/racunovodstvo/bruto-bilans" },
     ],
   },
   { label: "Administracija", icon: Settings, href: "/admin" },
