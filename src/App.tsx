@@ -18,6 +18,9 @@ import AtributiArtikala from "./pages/sifarnici/AtributiArtikala";
 import Magacini from "./pages/sifarnici/Magacini";
 import OrganizacioneJedinice from "./pages/sifarnici/OrganizacioneJedinice";
 import AdminPanel from "./pages/admin/AdminPanel";
+import KontniPlan from "./pages/racunovodstvo/KontniPlan";
+import NaloziZaKnjizenje from "./pages/racunovodstvo/NaloziZaKnjizenje";
+import GlavnaKnjiga from "./pages/racunovodstvo/GlavnaKnjiga";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +84,21 @@ const App = () => (
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin>
                   <AdminPanel />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/kontni-plan" element={
+                <ProtectedRoute>
+                  <KontniPlan />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/nalozi" element={
+                <ProtectedRoute>
+                  <NaloziZaKnjizenje />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/glavna-knjiga" element={
+                <ProtectedRoute>
+                  <GlavnaKnjiga />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
