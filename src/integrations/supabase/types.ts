@@ -403,6 +403,53 @@ export type Database = {
         }
         Relationships: []
       }
+      modules: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          module_type: Database["public"]["Enums"]["module_type"]
+          name: string
+          parent_code: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          module_type: Database["public"]["Enums"]["module_type"]
+          name: string
+          parent_code?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          module_type?: Database["public"]["Enums"]["module_type"]
+          name?: string
+          parent_code?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modules_parent_code_fkey"
+            columns: ["parent_code"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       organizational_units: {
         Row: {
           code: string
@@ -714,6 +761,98 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          access_level: Database["public"]["Enums"]["access_level"]
+          can_post: boolean
+          can_unpost: boolean
+          created_at: string
+          id: string
+          module_code: string
+          role_id: string
+          updated_at: string
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["access_level"]
+          can_post?: boolean
+          can_unpost?: boolean
+          created_at?: string
+          id?: string
+          module_code: string
+          role_id: string
+          updated_at?: string
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["access_level"]
+          can_post?: boolean
+          can_unpost?: boolean
+          created_at?: string
+          id?: string
+          module_code?: string
+          role_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_module_code_fkey"
+            columns: ["module_code"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          code: string
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_companies: {
         Row: {
           company_id: string
@@ -742,6 +881,131 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_permission_overrides: {
+        Row: {
+          access_level: Database["public"]["Enums"]["access_level"]
+          can_post: boolean | null
+          can_unpost: boolean | null
+          company_id: string
+          created_at: string
+          id: string
+          module_code: string
+          org_unit_id: string | null
+          reason: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_level: Database["public"]["Enums"]["access_level"]
+          can_post?: boolean | null
+          can_unpost?: boolean | null
+          company_id: string
+          created_at?: string
+          id?: string
+          module_code: string
+          org_unit_id?: string | null
+          reason?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["access_level"]
+          can_post?: boolean | null
+          can_unpost?: boolean | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          module_code?: string
+          org_unit_id?: string | null
+          reason?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permission_overrides_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_permission_overrides_module_code_fkey"
+            columns: ["module_code"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "user_permission_overrides_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_role_assignments: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          org_unit_id: string | null
+          role_id: string
+          updated_at: string
+          user_id: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          org_unit_id?: string | null
+          role_id: string
+          updated_at?: string
+          user_id: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          org_unit_id?: string | null
+          role_id?: string
+          updated_at?: string
+          user_id?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_role_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_role_assignments_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_role_assignments_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
             referencedColumns: ["id"]
           },
         ]
@@ -819,6 +1083,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_user_post: {
+        Args: {
+          _company_id: string
+          _module_code: string
+          _org_unit_id?: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      can_user_read: {
+        Args: {
+          _company_id: string
+          _module_code: string
+          _org_unit_id?: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      can_user_write: {
+        Args: {
+          _company_id: string
+          _module_code: string
+          _org_unit_id?: string
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      get_user_access_level: {
+        Args: {
+          _company_id: string
+          _module_code: string
+          _org_unit_id?: string
+          _user_id: string
+        }
+        Returns: Database["public"]["Enums"]["access_level"]
+      }
       has_company_access: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
@@ -836,6 +1136,7 @@ export type Database = {
       }
     }
     Enums: {
+      access_level: "none" | "read" | "write" | "admin"
       app_role: "super_admin" | "local_admin" | "user"
       attribute_data_type:
         | "text"
@@ -845,6 +1146,15 @@ export type Database = {
         | "integer"
         | "decimal"
         | "date"
+      module_type:
+        | "sifarnici"
+        | "robno_materijalno"
+        | "proizvodnja"
+        | "nabavka"
+        | "prodaja"
+        | "finansije"
+        | "racunovodstvo"
+        | "administracija"
       svk_type: "0" | "1" | "2" | "6" | "8" | "9"
       warehouse_type: "1" | "2" | "6" | "9" | "12"
     }
@@ -974,6 +1284,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      access_level: ["none", "read", "write", "admin"],
       app_role: ["super_admin", "local_admin", "user"],
       attribute_data_type: [
         "text",
@@ -983,6 +1294,16 @@ export const Constants = {
         "integer",
         "decimal",
         "date",
+      ],
+      module_type: [
+        "sifarnici",
+        "robno_materijalno",
+        "proizvodnja",
+        "nabavka",
+        "prodaja",
+        "finansije",
+        "racunovodstvo",
+        "administracija",
       ],
       svk_type: ["0", "1", "2", "6", "8", "9"],
       warehouse_type: ["1", "2", "6", "9", "12"],
