@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -27,7 +28,11 @@ import {
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Pencil, Trash2, ChevronRight, ChevronDown, Upload } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, ChevronRight, ChevronDown, Upload, Loader2 } from "lucide-react";
+import { STANDARD_CHART_OF_ACCOUNTS } from "@/data/standardChartOfAccounts";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import {
   useChartOfAccounts,
   useChartOfAccountsMutations,
@@ -59,11 +64,14 @@ const initialFormData: AccountFormData = {
 };
 
 export default function KontniPlan() {
-  const { data: accounts = [], isLoading } = useChartOfAccounts();
+  const { data: accounts = [], isLoading, refetch } = useChartOfAccounts();
   const { createAccount, updateAccount, deleteAccount } = useChartOfAccountsMutations();
+  const { selectedCompany } = useAuth();
 
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [editingAccount, setEditingAccount] = useState<ChartOfAccountsRow | null>(null);
   const [formData, setFormData] = useState<AccountFormData>(initialFormData);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]));
@@ -150,6 +158,75 @@ export default function KontniPlan() {
     setDialogOpen(false);
   };
 
+  const handleImportStandard = async () => {
+    if (!selectedCompany?.id) return;
+
+    setIsImporting(true);
+    try {
+      // Check if there are existing accounts
+      if (accounts.length > 0) {
+        const confirmed = confirm(
+          `Već postoji ${accounts.length} konta u sistemu. Da li želite da nastavite? Postojeća konta neće biti obrisana, ali duplikati neće biti dodati.`
+        );
+        if (!confirmed) {
+          setIsImporting(false);
+          setImportDialogOpen(false);
+          return;
+        }
+      }
+
+      // Get existing codes to avoid duplicates
+      const existingCodes = new Set(accounts.map((a) => a.code));
+
+      // Filter out accounts that already exist
+      const newAccounts = STANDARD_CHART_OF_ACCOUNTS.filter(
+        (acc) => !existingCodes.has(acc.code)
+      );
+
+      if (newAccounts.length === 0) {
+        toast.info("Svi konta iz standardnog kontnog plana već postoje");
+        setImportDialogOpen(false);
+        setIsImporting(false);
+        return;
+      }
+
+      // Insert in batches
+      const batchSize = 50;
+      let inserted = 0;
+
+      for (let i = 0; i < newAccounts.length; i += batchSize) {
+        const batch = newAccounts.slice(i, i + batchSize).map((acc) => ({
+          company_id: selectedCompany.id,
+          code: acc.code,
+          name: acc.name,
+          account_type: acc.account_type,
+          parent_code: acc.parent_code,
+          level: acc.level,
+          is_posting_allowed: acc.is_posting_allowed,
+          is_active: true,
+        }));
+
+        const { error } = await supabase.from("chart_of_accounts").insert(batch);
+
+        if (error) {
+          console.error("Batch insert error:", error);
+          throw error;
+        }
+
+        inserted += batch.length;
+      }
+
+      toast.success(`Uspešno učitano ${inserted} konta iz standardnog kontnog plana`);
+      refetch();
+      setImportDialogOpen(false);
+    } catch (error: any) {
+      console.error("Import error:", error);
+      toast.error(`Greška pri uvozu: ${error.message}`);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const renderAccountRow = (account: ChartOfAccountsRow, depth: number = 0) => {
     const hasChildren = accountTree.byParent.has(account.code);
     const isExpanded = expandedNodes.has(account.code);
@@ -226,7 +303,7 @@ export default function KontniPlan() {
             />
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
               <Upload className="w-4 h-4 mr-2" />
               Učitaj standardni
             </Button>
@@ -373,6 +450,67 @@ export default function KontniPlan() {
               disabled={!formData.code || !formData.name || createAccount.isPending || updateAccount.isPending}
             >
               {editingAccount ? "Sačuvaj" : "Dodaj"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Standard Chart Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Učitaj standardni kontni plan</DialogTitle>
+            <DialogDescription>
+              Kontni plan za privredna društva, zadruge i preduzetnike - prema Pravilniku o Kontnom okviru Republike Srbije
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-muted p-4 rounded-lg">
+              <h4 className="font-medium mb-2">Sadržaj kontnog plana:</h4>
+              <ul className="text-sm space-y-1 text-muted-foreground">
+                <li>• <strong>Klasa 0:</strong> Neuplaćeni upisani kapital i stalna imovina</li>
+                <li>• <strong>Klasa 1:</strong> Zalihe</li>
+                <li>• <strong>Klasa 2:</strong> Kratkoročna potraživanja, plasmani i gotovina</li>
+                <li>• <strong>Klasa 3:</strong> Kapital</li>
+                <li>• <strong>Klasa 4:</strong> Dugoročna rezervisanja i obaveze</li>
+                <li>• <strong>Klasa 5:</strong> Rashodi</li>
+                <li>• <strong>Klasa 6:</strong> Prihodi</li>
+                <li>• <strong>Klasa 7:</strong> Otvaranje i zaključak računa</li>
+                <li>• <strong>Klasa 8:</strong> Vanbilansna aktiva</li>
+                <li>• <strong>Klasa 9:</strong> Vanbilansna pasiva</li>
+              </ul>
+            </div>
+
+            <div className="text-sm">
+              <p className="text-muted-foreground">
+                Ukupno će biti učitano <strong>{STANDARD_CHART_OF_ACCOUNTS.length}</strong> konta 
+                (klase, grupe i sintetički konta).
+              </p>
+              {accounts.length > 0 && (
+                <p className="text-amber-600 dark:text-amber-400 mt-2">
+                  ⚠️ Već postoji {accounts.length} konta. Duplikati neće biti dodati.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImportDialogOpen(false)} disabled={isImporting}>
+              Otkaži
+            </Button>
+            <Button onClick={handleImportStandard} disabled={isImporting}>
+              {isImporting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Učitavanje...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Učitaj kontni plan
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
