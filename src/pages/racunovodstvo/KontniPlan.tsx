@@ -135,7 +135,23 @@ export default function KontniPlan() {
     }
   };
 
+  // Validation: check if parent code exists
+  const parentCodeError = useMemo(() => {
+    if (!formData.parent_code) return null;
+    const parentExists = accounts.some(a => a.code === formData.parent_code);
+    if (!parentExists) {
+      return `Nadređeni konto "${formData.parent_code}" ne postoji u sistemu`;
+    }
+    return null;
+  }, [formData.parent_code, accounts]);
+
   const handleSubmit = async () => {
+    // Validate parent code exists
+    if (formData.parent_code && parentCodeError) {
+      toast.error(parentCodeError);
+      return;
+    }
+
     const level = formData.code.length;
     const accountType = ACCOUNT_CLASS_TYPES[formData.code[0]] || formData.account_type;
 
@@ -404,12 +420,15 @@ export default function KontniPlan() {
                   onChange={(e) => setFormData({ ...formData, parent_code: e.target.value })}
                   placeholder="101"
                   disabled={!editingAccount && formData.code.length >= 2}
+                  className={parentCodeError ? "border-destructive" : ""}
                 />
-                {formData.parent_code && (
+                {parentCodeError ? (
+                  <p className="text-xs text-destructive">{parentCodeError}</p>
+                ) : formData.parent_code ? (
                   <p className="text-xs text-muted-foreground">
-                    {accounts.find(a => a.code === formData.parent_code)?.name || "Nepoznat konto"}
+                    {accounts.find(a => a.code === formData.parent_code)?.name || ""}
                   </p>
-                )}
+                ) : null}
               </div>
             </div>
 
