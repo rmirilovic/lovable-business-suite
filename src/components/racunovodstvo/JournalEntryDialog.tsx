@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -30,8 +29,10 @@ import {
 } from "@/hooks/useJournalEntries";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { format } from "date-fns";
+import { sr } from "date-fns/locale";
 import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 
 interface JournalEntryDialogProps {
   entry: JournalEntry | null;
@@ -48,8 +49,8 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
   const [newItem, setNewItem] = useState({
     account_code: "",
     description: "",
-    debit_amount: "",
-    credit_amount: "",
+    debit_amount: "0,00",
+    credit_amount: "0,00",
   });
 
   const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
@@ -64,15 +65,24 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
     return account?.name || "";
   };
 
+  const parseLocaleNumber = (value: string): number => {
+    if (!value) return 0;
+    const normalized = value.replace(/\./g, "").replace(",", ".");
+    return parseFloat(normalized) || 0;
+  };
+
   const handleAddItem = async () => {
     if (!entry?.id || !newItem.account_code) return;
+
+    const debit = parseLocaleNumber(newItem.debit_amount);
+    const credit = parseLocaleNumber(newItem.credit_amount);
 
     await addItem.mutateAsync({
       journal_entry_id: entry.id,
       account_code: newItem.account_code,
       description: newItem.description || null,
-      debit_amount: parseFloat(newItem.debit_amount) || 0,
-      credit_amount: parseFloat(newItem.credit_amount) || 0,
+      debit_amount: debit,
+      credit_amount: credit,
       item_order: items.length,
       partner_id: null,
       cost_center_code: null,
@@ -81,8 +91,8 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
     setNewItem({
       account_code: "",
       description: "",
-      debit_amount: "",
-      credit_amount: "",
+      debit_amount: "0,00",
+      credit_amount: "0,00",
     });
   };
 
@@ -126,7 +136,7 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
           <div className="grid grid-cols-4 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Datum:</span>{" "}
-              <span className="font-medium">{format(new Date(entry.entry_date), "dd.MM.yyyy")}</span>
+              <span className="font-medium">{format(new Date(entry.entry_date), "dd.MM.yyyy.", { locale: sr })}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Dokument:</span>{" "}
@@ -202,6 +212,7 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
                         onChange={(e) => setNewItem({ ...newItem, account_code: e.target.value })}
                         placeholder="Konto"
                         className="h-8 font-mono"
+                        autoComplete="off"
                       />
                       <datalist id="accounts-list">
                         {postingAccounts.map((acc) => (
@@ -220,26 +231,21 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
                         onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
                         placeholder="Opis"
                         className="h-8"
+                        autoComplete="off"
                       />
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="number"
+                      <LocaleNumberInput
                         value={newItem.debit_amount}
-                        onChange={(e) => setNewItem({ ...newItem, debit_amount: e.target.value, credit_amount: "" })}
-                        placeholder="0.00"
+                        onChange={(val) => setNewItem({ ...newItem, debit_amount: val, credit_amount: "0,00" })}
                         className="h-8 text-right font-mono"
-                        step="0.01"
                       />
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="number"
+                      <LocaleNumberInput
                         value={newItem.credit_amount}
-                        onChange={(e) => setNewItem({ ...newItem, credit_amount: e.target.value, debit_amount: "" })}
-                        placeholder="0.00"
+                        onChange={(val) => setNewItem({ ...newItem, credit_amount: val, debit_amount: "0,00" })}
                         className="h-8 text-right font-mono"
-                        step="0.01"
                       />
                     </TableCell>
                     <TableCell>
@@ -247,7 +253,7 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
                         variant="ghost"
                         size="icon"
                         onClick={handleAddItem}
-                        disabled={!newItem.account_code || (!newItem.debit_amount && !newItem.credit_amount) || addItem.isPending}
+                        disabled={!newItem.account_code || (parseLocaleNumber(newItem.debit_amount) === 0 && parseLocaleNumber(newItem.credit_amount) === 0) || addItem.isPending}
                       >
                         <Plus className="w-4 h-4" />
                       </Button>
