@@ -268,23 +268,26 @@ export function useQuotes() {
       }
 
       // Find existing versions of this quote to determine suffix
-      const baseNumber = sourceQuote.quote_number.replace(/-\d+$/, "");
+      // Original quote format: PON-YYYY-NNNN (4-digit sequence)
+      // Copy format: PON-YYYY-NNNN-1, PON-YYYY-NNNN-2, etc.
+      // If copying a copy (PON-YYYY-NNNN-1), use original base (PON-YYYY-NNNN)
+      const versionMatch = sourceQuote.quote_number.match(/^(.+-\d{4})(?:-(\d{1,3}))?$/);
+      const baseNumber = versionMatch ? versionMatch[1] : sourceQuote.quote_number;
+
       const { data: existingQuotes } = await supabase
         .from("quotes")
         .select("quote_number")
         .eq("company_id", selectedCompany.id)
-        .like("quote_number", `${baseNumber}%`);
+        .like("quote_number", `${baseNumber}-%`);
 
-      // Find the highest version suffix
+      // Find the highest version suffix (only count copies, not the original)
       let maxVersion = 0;
       (existingQuotes || []).forEach((q) => {
-        const match = q.quote_number.match(/-(\d+)$/);
-        if (match) {
-          const version = parseInt(match[1], 10);
+        // Match only version suffixes after the base number (e.g., PON-2026-0001-1)
+        const copyMatch = q.quote_number.match(new RegExp(`^${baseNumber.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-(\\d+)$`));
+        if (copyMatch) {
+          const version = parseInt(copyMatch[1], 10);
           if (version > maxVersion) maxVersion = version;
-        } else if (q.quote_number === baseNumber) {
-          // Original quote without suffix counts as version 0
-          maxVersion = Math.max(maxVersion, 0);
         }
       });
 
