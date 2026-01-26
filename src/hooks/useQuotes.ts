@@ -114,7 +114,6 @@ export function useQuotes() {
       );
       
       return quotesWithApprover as Quote[];
-      return data as Quote[];
     },
     enabled: !!selectedCompany?.id && !!selectedYear?.id,
   });

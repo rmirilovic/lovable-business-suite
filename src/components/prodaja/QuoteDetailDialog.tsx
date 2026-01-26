@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +7,6 @@ import { Separator } from "@/components/ui/separator";
 import { FileText, Pencil, ArrowRightLeft, Printer, Check, Truck } from "lucide-react";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "./QuoteItemsEditor";
-import { formatDecimal } from "@/lib/formatting";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,16 +44,22 @@ export function QuoteDetailDialog({
   const [isPrinting, setIsPrinting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
 
+  // Use ref to store mutation function to prevent infinite loops
+  const updateTotalsRef = useRef(updateQuoteTotals);
+  useEffect(() => {
+    updateTotalsRef.current = updateQuoteTotals;
+  }, [updateQuoteTotals]);
+
   const handleTotalsChange = useCallback((subtotal: number, vatAmount: number, totalAmount: number) => {
     if (quote && (quote.subtotal !== subtotal || quote.vat_amount !== vatAmount || quote.total_amount !== totalAmount)) {
-      updateQuoteTotals.mutate({
+      updateTotalsRef.current.mutate({
         quoteId: quote.id,
         subtotal,
         vat_amount: vatAmount,
         total_amount: totalAmount,
       });
     }
-  }, [quote, updateQuoteTotals]);
+  }, [quote]);
 
   const handlePrint = async () => {
     if (!quote || !selectedCompany) return;
