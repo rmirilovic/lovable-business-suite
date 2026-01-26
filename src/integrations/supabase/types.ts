@@ -228,6 +228,7 @@ export type Database = {
           svk: Database["public"]["Enums"]["svk_type"] | null
           unit: string
           updated_at: string | null
+          vat_rate: number
         }
         Insert: {
           article_group?: string | null
@@ -246,6 +247,7 @@ export type Database = {
           svk?: Database["public"]["Enums"]["svk_type"] | null
           unit?: string
           updated_at?: string | null
+          vat_rate?: number
         }
         Update: {
           article_group?: string | null
@@ -264,6 +266,7 @@ export type Database = {
           svk?: Database["public"]["Enums"]["svk_type"] | null
           unit?: string
           updated_at?: string | null
+          vat_rate?: number
         }
         Relationships: [
           {
@@ -455,6 +458,380 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      delivery_note_items: {
+        Row: {
+          article_id: string
+          company_id: string
+          created_at: string
+          delivery_note_id: string
+          description: string | null
+          id: string
+          item_code: string
+          item_name: string
+          item_order: number
+          quantity: number
+          unit: string
+        }
+        Insert: {
+          article_id: string
+          company_id: string
+          created_at?: string
+          delivery_note_id: string
+          description?: string | null
+          id?: string
+          item_code: string
+          item_name: string
+          item_order?: number
+          quantity?: number
+          unit?: string
+        }
+        Update: {
+          article_id?: string
+          company_id?: string
+          created_at?: string
+          delivery_note_id?: string
+          description?: string | null
+          id?: string
+          item_code?: string
+          item_name?: string
+          item_order?: number
+          quantity?: number
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_note_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_note_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_note_items_delivery_note_id_fkey"
+            columns: ["delivery_note_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_notes: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          delivery_date: string
+          delivery_number: string
+          id: string
+          internal_note: string | null
+          invoice_id: string | null
+          note: string | null
+          org_unit_id: string | null
+          partner_id: string
+          posted_at: string | null
+          posted_by: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          updated_at: string
+          warehouse_id: string | null
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          delivery_date?: string
+          delivery_number: string
+          id?: string
+          internal_note?: string | null
+          invoice_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id: string
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          delivery_date?: string
+          delivery_number?: string
+          id?: string
+          internal_note?: string | null
+          invoice_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_notes_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_notes_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_notes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_notes_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_items: {
+        Row: {
+          article_id: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          discount_percent: number
+          id: string
+          invoice_id: string
+          item_code: string | null
+          item_name: string
+          item_order: number
+          line_subtotal: number
+          line_total: number
+          line_vat: number
+          quantity: number
+          unit: string
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          article_id?: string | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          invoice_id: string
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          article_id?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          invoice_id?: string
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          due_date: string | null
+          id: string
+          internal_note: string | null
+          invoice_date: string
+          invoice_number: string
+          journal_entry_id: string | null
+          note: string | null
+          org_unit_id: string | null
+          partner_id: string
+          posted_at: string | null
+          posted_by: string | null
+          source_delivery_note_id: string | null
+          source_quote_id: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          subtotal: number
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          due_date?: string | null
+          id?: string
+          internal_note?: string | null
+          invoice_date?: string
+          invoice_number: string
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id: string
+          posted_at?: string | null
+          posted_by?: string | null
+          source_delivery_note_id?: string | null
+          source_quote_id?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          id?: string
+          internal_note?: string | null
+          invoice_date?: string
+          invoice_number?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          source_delivery_note_id?: string | null
+          source_quote_id?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_source_delivery_note_id_fkey"
+            columns: ["source_delivery_note_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_source_quote_id_fkey"
+            columns: ["source_quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       journal_entries: {
         Row: {
@@ -966,6 +1343,190 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_items: {
+        Row: {
+          article_id: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          discount_percent: number
+          id: string
+          item_code: string | null
+          item_name: string
+          item_order: number
+          line_subtotal: number
+          line_total: number
+          line_vat: number
+          quantity: number
+          quote_id: string
+          unit: string
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          article_id?: string | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          quote_id: string
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          article_id?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          quote_id?: string
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          converted_at: string | null
+          converted_to_invoice_id: string | null
+          created_at: string
+          created_by: string
+          id: string
+          internal_note: string | null
+          note: string | null
+          org_unit_id: string | null
+          partner_id: string
+          quote_date: string
+          quote_number: string
+          status: Database["public"]["Enums"]["document_status"]
+          subtotal: number
+          total_amount: number
+          updated_at: string
+          valid_until: string | null
+          vat_amount: number
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          converted_at?: string | null
+          converted_to_invoice_id?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          internal_note?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id: string
+          quote_date?: string
+          quote_number: string
+          status?: Database["public"]["Enums"]["document_status"]
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+          vat_amount?: number
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          converted_at?: string | null
+          converted_to_invoice_id?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          internal_note?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id?: string
+          quote_date?: string
+          quote_number?: string
+          status?: Database["public"]["Enums"]["document_status"]
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_converted_to_invoice_id_fkey"
+            columns: ["converted_to_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           access_level: Database["public"]["Enums"]["access_level"]
@@ -1315,6 +1876,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_next_document_number: {
+        Args: { _company_id: string; _doc_type: string; _year_id: string }
+        Returns: string
+      }
       get_next_journal_entry_number: {
         Args: { _company_id: string; _year_id: string }
         Returns: number
@@ -1370,6 +1935,7 @@ export type Database = {
         | "finansije"
         | "racunovodstvo"
         | "administracija"
+      sales_document_type: "quote" | "invoice" | "delivery_note"
       svk_type: "0" | "1" | "2" | "6" | "8" | "9"
       warehouse_type: "1" | "2" | "6" | "9" | "12"
     }
@@ -1522,6 +2088,7 @@ export const Constants = {
         "racunovodstvo",
         "administracija",
       ],
+      sales_document_type: ["quote", "invoice", "delivery_note"],
       svk_type: ["0", "1", "2", "6", "8", "9"],
       warehouse_type: ["1", "2", "6", "9", "12"],
     },
