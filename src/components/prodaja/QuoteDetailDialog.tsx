@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Pencil, ArrowRightLeft, Printer, Check, Truck } from "lucide-react";
+import { FileText, Pencil, ArrowRightLeft, Printer, Check, Truck, Copy } from "lucide-react";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "./QuoteItemsEditor";
 import { format } from "date-fns";
@@ -39,10 +39,11 @@ export function QuoteDetailDialog({
   onConvertToDeliveryNote,
 }: QuoteDetailDialogProps) {
   const { selectedCompany, user } = useAuth();
-  const { updateQuoteTotals, approveQuote } = useQuotes();
+  const { updateQuoteTotals, approveQuote, copyQuote } = useQuotes();
   const { items } = useQuoteItems(quote?.id || null);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
   const approxEqualMoney = (a: number, b: number, eps = 0.005) => Math.abs(a - b) < eps;
@@ -268,16 +269,36 @@ export function QuoteDetailDialog({
                 </Button>
               </>
             )}
-            {quote.status === "approved" && !quote.converted_to_invoice_id && (
+            {quote.status === "approved" && (
               <>
-                <Button variant="outline" onClick={onConvertToDeliveryNote}>
-                  <Truck className="w-4 h-4 mr-2" />
-                  Pretvori u otpremnicu
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    setIsCopying(true);
+                    try {
+                      await copyQuote.mutateAsync(quote);
+                      onOpenChange(false);
+                    } finally {
+                      setIsCopying(false);
+                    }
+                  }}
+                  disabled={isCopying}
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  {isCopying ? "Kopiranje..." : "Kopiraj"}
                 </Button>
-                <Button onClick={onConvertToInvoice}>
-                  <ArrowRightLeft className="w-4 h-4 mr-2" />
-                  Pretvori u fakturu
-                </Button>
+                {!quote.converted_to_invoice_id && (
+                  <>
+                    <Button variant="outline" onClick={onConvertToDeliveryNote}>
+                      <Truck className="w-4 h-4 mr-2" />
+                      Pretvori u otpremnicu
+                    </Button>
+                    <Button onClick={onConvertToInvoice}>
+                      <ArrowRightLeft className="w-4 h-4 mr-2" />
+                      Pretvori u fakturu
+                    </Button>
+                  </>
+                )}
               </>
             )}
             {quote.converted_to_invoice_id && (
