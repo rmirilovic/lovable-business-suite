@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { Plus, Trash2, Package, Briefcase, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { useQuoteItems, QuoteItem, QuoteItemFormData } from "@/hooks/useQuotes";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDecimal, formatNumber } from "@/lib/formatting";
+import { formatDecimal, formatNumber, parseLocaleNumber } from "@/lib/formatting";
 
 interface QuoteItemsEditorProps {
   quoteId: string;
@@ -347,18 +348,14 @@ function EditingRow({
         )}
       </TableCell>
       <TableCell>
-        <Input
-          type="text"
-          inputMode="decimal"
-          value={editingItem.quantity ?? ""}
-          onChange={(e) => {
-            const val = e.target.value.replace(',', '.');
-            if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
-              setEditingItem({ ...editingItem, quantity: val === '' ? 0 : parseFloat(val) || 0 });
-            }
+        <LocaleNumberInput
+          value={formatDecimal(editingItem.quantity ?? 0, 2)}
+          onChange={(val) => {
+            const num = parseLocaleNumber(val);
+            setEditingItem({ ...editingItem, quantity: isNaN(num) ? 0 : num });
           }}
+          decimalPlaces={2}
           className="h-8 text-right w-28"
-          autoComplete="off"
         />
       </TableCell>
       <TableCell>
@@ -370,34 +367,25 @@ function EditingRow({
         />
       </TableCell>
       <TableCell>
-        <Input
-          type="text"
-          inputMode="decimal"
-          value={editingItem.unit_price ?? ""}
-          onChange={(e) => {
-            const val = e.target.value.replace(',', '.');
-            if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
-              setEditingItem({ ...editingItem, unit_price: val === '' ? 0 : parseFloat(val) || 0 });
-            }
+        <LocaleNumberInput
+          value={formatDecimal(editingItem.unit_price ?? 0, 2)}
+          onChange={(val) => {
+            const num = parseLocaleNumber(val);
+            setEditingItem({ ...editingItem, unit_price: isNaN(num) ? 0 : num });
           }}
+          decimalPlaces={2}
           className="h-8 text-right w-32"
-          autoComplete="off"
         />
       </TableCell>
       <TableCell>
-        <Input
-          type="text"
-          inputMode="decimal"
-          value={editingItem.discount_percent ?? ""}
-          onChange={(e) => {
-            const val = e.target.value.replace(',', '.');
-            if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
-              const num = parseFloat(val) || 0;
-              setEditingItem({ ...editingItem, discount_percent: Math.min(100, Math.max(0, num)) });
-            }
+        <LocaleNumberInput
+          value={formatDecimal(editingItem.discount_percent ?? 0, 2)}
+          onChange={(val) => {
+            const num = parseLocaleNumber(val);
+            setEditingItem({ ...editingItem, discount_percent: Math.min(100, Math.max(0, isNaN(num) ? 0 : num)) });
           }}
+          decimalPlaces={2}
           className="h-8 text-right w-16"
-          autoComplete="off"
         />
       </TableCell>
       <TableCell>
