@@ -5,11 +5,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { FileText, Pencil, ArrowRightLeft, Printer } from "lucide-react";
-import { Quote, useQuotes } from "@/hooks/useQuotes";
+import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "./QuoteItemsEditor";
 import { formatDecimal } from "@/lib/formatting";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { generateQuotePdf } from "@/lib/quotePdfGenerator";
+import { toast } from "sonner";
 
 interface QuoteDetailDialogProps {
   open: boolean;
@@ -32,7 +36,10 @@ export function QuoteDetailDialog({
   onEdit,
   onConvertToInvoice,
 }: QuoteDetailDialogProps) {
+  const { selectedCompany } = useAuth();
   const { updateQuoteTotals } = useQuotes();
+  const { items } = useQuoteItems(quote?.id || null);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   const handleTotalsChange = useCallback((subtotal: number, vatAmount: number, totalAmount: number) => {
     if (quote && (quote.subtotal !== subtotal || quote.vat_amount !== vatAmount || quote.total_amount !== totalAmount)) {
@@ -44,6 +51,63 @@ export function QuoteDetailDialog({
       });
     }
   }, [quote, updateQuoteTotals]);
+
+  const handlePrint = async () => {
+    if (!quote || !selectedCompany) return;
+
+    setIsPrinting(true);
+    try {
+      // Fetch full company data
+      const { data: companyData, error: companyError } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("id", selectedCompany.id)
+        .single();
+
+      if (companyError) throw companyError;
+
+      // Fetch full partner data
+      const { data: partnerData, error: partnerError } = await supabase
+        .from("partners")
+        .select("*")
+        .eq("id", quote.partner_id)
+        .single();
+
+      if (partnerError) throw partnerError;
+
+      generateQuotePdf(
+        quote,
+        items,
+        {
+          name: companyData.name,
+          address: companyData.address,
+          city: companyData.city,
+          postal_code: companyData.postal_code,
+          pib: companyData.pib,
+          mb: companyData.mb,
+          phone: companyData.phone,
+          email: companyData.email,
+          quote_note_1: companyData.quote_note_1,
+          quote_note_2: companyData.quote_note_2,
+        },
+        {
+          name: partnerData.name,
+          code: partnerData.code,
+          address: partnerData.address,
+          city: partnerData.city,
+          postal_code: partnerData.postal_code,
+          pib: partnerData.pib,
+          mb: partnerData.mb,
+        }
+      );
+      
+      toast.success("PDF ponuda je generisana");
+    } catch (error: any) {
+      toast.error(`Greška pri generisanju PDF-a: ${error.message}`);
+    } finally {
+      setIsPrinting(false);
+    }
+  };
 
   if (!quote) return null;
 
@@ -138,9 +202,9 @@ export function QuoteDetailDialog({
         {/* Actions */}
         <div className="flex justify-between">
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPrinting}>
               <Printer className="w-4 h-4 mr-2" />
-              Štampaj
+              {isPrinting ? "Generisanje..." : "Štampaj PDF"}
             </Button>
           </div>
           <div className="flex gap-2">
