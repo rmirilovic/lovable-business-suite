@@ -7,7 +7,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -17,10 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePartners } from "@/hooks/usePartners";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
+import { format } from "date-fns";
 
 interface DeliveryNoteDialogProps {
   open: boolean;
@@ -56,7 +57,7 @@ export function DeliveryNoteDialog({
     partner_id: "",
     warehouse_id: "",
     org_unit_id: null,
-    delivery_date: new Date().toISOString().split("T")[0],
+    delivery_date: format(new Date(), "yyyy-MM-dd"),
     note: "",
     internal_note: "",
   });
@@ -69,7 +70,7 @@ export function DeliveryNoteDialog({
         partner_id: "",
         warehouse_id: "",
         org_unit_id: null,
-        delivery_date: new Date().toISOString().split("T")[0],
+        delivery_date: format(new Date(), "yyyy-MM-dd"),
         note: "",
         internal_note: "",
       });
@@ -144,14 +145,12 @@ export function DeliveryNoteDialog({
 
             <div className="space-y-2">
               <Label htmlFor="delivery_date">Datum otpreme *</Label>
-              <Input
-                id="delivery_date"
-                type="date"
+              <LocaleDateInput
                 value={formData.delivery_date}
-                onChange={(e) =>
-                  setFormData({ ...formData, delivery_date: e.target.value })
+                onChange={(value) =>
+                  setFormData({ ...formData, delivery_date: value })
                 }
-                autoComplete="off"
+                required
               />
             </div>
 
