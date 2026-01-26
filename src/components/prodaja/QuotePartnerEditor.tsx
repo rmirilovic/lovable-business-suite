@@ -26,25 +26,21 @@ export function QuotePartnerEditor({ quote, isEditable }: QuotePartnerEditorProp
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [formData, setFormData] = useState<PartnerData>({
-    partner_name: quote.partner_name || "",
-    partner_address: quote.partner_address || "",
-    partner_city: quote.partner_city || "",
-    partner_postal_code: quote.partner_postal_code || "",
-    partner_pib: quote.partner_pib || "",
-    partner_mb: quote.partner_mb || "",
+  // Use snapshot data if available, otherwise fall back to original partner data
+  const getInitialData = (): PartnerData => ({
+    partner_name: quote.partner_name ?? quote.partner?.name ?? "",
+    partner_address: quote.partner_address ?? quote.partner?.address ?? "",
+    partner_city: quote.partner_city ?? quote.partner?.city ?? "",
+    partner_postal_code: quote.partner_postal_code ?? quote.partner?.postal_code ?? "",
+    partner_pib: quote.partner_pib ?? quote.partner?.pib ?? "",
+    partner_mb: quote.partner_mb ?? quote.partner?.mb ?? "",
   });
 
+  const [formData, setFormData] = useState<PartnerData>(getInitialData);
+
   useEffect(() => {
-    setFormData({
-      partner_name: quote.partner_name || "",
-      partner_address: quote.partner_address || "",
-      partner_city: quote.partner_city || "",
-      partner_postal_code: quote.partner_postal_code || "",
-      partner_pib: quote.partner_pib || "",
-      partner_mb: quote.partner_mb || "",
-    });
-  }, [quote]);
+    setFormData(getInitialData());
+  }, [quote.id, quote.partner_name, quote.partner_address, quote.partner_city, quote.partner_postal_code, quote.partner_pib, quote.partner_mb]);
 
   const handleSave = async () => {
     setIsSaving(true);
