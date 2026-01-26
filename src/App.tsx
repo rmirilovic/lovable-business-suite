@@ -23,6 +23,7 @@ import NaloziZaKnjizenje from "./pages/racunovodstvo/NaloziZaKnjizenje";
 import GlavnaKnjiga from "./pages/racunovodstvo/GlavnaKnjiga";
 import BrutoBilans from "./pages/racunovodstvo/BrutoBilans";
 import Ponude from "./pages/prodaja/Ponude";
+import Fakture from "./pages/prodaja/Fakture";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -111,6 +112,11 @@ const App = () => (
               <Route path="/prodaja/ponude" element={
                 <ProtectedRoute>
                   <Ponude />
+                </ProtectedRoute>
+              } />
+              <Route path="/prodaja/fakture" element={
+                <ProtectedRoute>
+                  <Fakture />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />

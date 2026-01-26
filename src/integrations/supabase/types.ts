@@ -1884,6 +1884,18 @@ export type Database = {
         Args: { _company_id: string; _year_id: string }
         Returns: number
       }
+      get_uninvoiced_delivery_notes: {
+        Args: { _company_id: string; _partner_id?: string }
+        Returns: {
+          delivery_date: string
+          delivery_number: string
+          id: string
+          item_count: number
+          partner_code: string
+          partner_id: string
+          partner_name: string
+        }[]
+      }
       get_user_access_level: {
         Args: {
           _company_id: string
@@ -1906,6 +1918,10 @@ export type Database = {
       }
       is_local_admin_for_company: {
         Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
+      post_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
       }
       post_journal_entry: {
