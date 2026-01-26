@@ -36,6 +36,11 @@ export interface Quote {
     id: string;
     name: string;
     code: string;
+    address: string | null;
+    city: string | null;
+    postal_code: string | null;
+    pib: string | null;
+    mb: string | null;
   };
   approver?: {
     first_name: string | null;
@@ -104,7 +109,7 @@ export function useQuotes() {
         .from("quotes")
         .select(`
           *,
-          partner:partners(id, name, code)
+          partner:partners(id, name, code, address, city, postal_code, pib, mb)
         `)
         .eq("company_id", selectedCompany.id)
         .eq("business_year_id", selectedYear.id)
