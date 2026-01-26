@@ -48,7 +48,7 @@ export function DeliveryNoteDialog({
 }: DeliveryNoteDialogProps) {
   const { selectedCompany } = useAuth();
   const companyId = selectedCompany?.id;
-  const { partners, isLoading: partnersLoading } = usePartners(companyId);
+  const { partners, isLoading: partnersLoading } = usePartners();
   const { warehouses, isLoading: warehousesLoading } = useWarehouses(companyId);
   const { units: orgUnits, isLoading: orgUnitsLoading } = useOrganizationalUnits(companyId);
 
