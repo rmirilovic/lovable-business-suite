@@ -116,6 +116,7 @@ export async function generateQuotePdf(
 
   // Right column - Customer details (use quote snapshot data, fallback to partner)
   const rightColX = 14 + colWidth + 10;
+  const rightColMaxWidth = colWidth - 5; // Max width for text wrapping
   let rightYPos = yPos - 9;
   
   doc.setFontSize(10);
@@ -126,9 +127,15 @@ export async function generateQuotePdf(
   doc.setFont("Roboto", "normal");
   doc.setFontSize(9);
   
-  const displayName = quote.partner_name || partner.name;
-  doc.text(`${partner.code} - ${displayName}`, rightColX, rightYPos);
+  // Partner code
+  doc.text(partner.code, rightColX, rightYPos);
   rightYPos += 4;
+  
+  // Partner name - allow multiple lines
+  const displayName = quote.partner_name || partner.name;
+  const nameLines = doc.splitTextToSize(displayName, rightColMaxWidth);
+  doc.text(nameLines, rightColX, rightYPos);
+  rightYPos += nameLines.length * 4;
   
   const displayAddress = quote.partner_address || partner.address;
   if (displayAddress) {
