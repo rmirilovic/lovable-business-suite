@@ -7,10 +7,12 @@ export interface LocaleNumberInputProps
   value: string;
   onChange: (value: string) => void;
   decimalPlaces?: number;
+  /** When true, allows empty input and does not force formatting to 0 on blur. */
+  allowEmpty?: boolean;
 }
 
 const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputProps>(
-  ({ className, value, onChange, decimalPlaces = 2, ...props }, ref) => {
+  ({ className, value, onChange, decimalPlaces = 2, allowEmpty = false, ...props }, ref) => {
     const [displayValue, setDisplayValue] = React.useState(value);
     
     // Get locale-specific separators
@@ -78,6 +80,13 @@ const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputPr
     };
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      if (allowEmpty && (displayValue === '' || displayValue === '-')) {
+        setDisplayValue('');
+        onChange('');
+        props.onBlur?.(e);
+        return;
+      }
+
       if (displayValue && displayValue !== '-') {
         // Normalize input first (handle dot-decimal, whitespace, etc.)
         const normalized = normalizeInput(displayValue);
