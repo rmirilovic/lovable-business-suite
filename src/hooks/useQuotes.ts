@@ -268,10 +268,10 @@ export function useQuotes() {
       }
 
       // Find existing versions of this quote to determine suffix
-      // Original quote format: PON-YYYY-NNNN (4-digit sequence)
-      // Copy format: PON-YYYY-NNNN-1, PON-YYYY-NNNN-2, etc.
-      // If copying a copy (PON-YYYY-NNNN-1), use original base (PON-YYYY-NNNN)
-      const versionMatch = sourceQuote.quote_number.match(/^(.+-\d{4})(?:-(\d{1,3}))?$/);
+      // Original quote format: PON-YY-NNNN (2-digit year, 4-digit sequence)
+      // Copy format: PON-YY-NNNN-1, PON-YY-NNNN-2, etc.
+      // If copying a copy (PON-YY-NNNN-1), use original base (PON-YY-NNNN)
+      const versionMatch = sourceQuote.quote_number.match(/^(.+-\d{2}-\d{4})(?:-(\d{1,3}))?$/);
       const baseNumber = versionMatch ? versionMatch[1] : sourceQuote.quote_number;
 
       const { data: existingQuotes } = await supabase
