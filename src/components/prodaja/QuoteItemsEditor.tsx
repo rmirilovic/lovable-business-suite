@@ -127,10 +127,10 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
   };
 
   const calculateLineTotal = () => {
-    const quantity = editingItem.quantity || 0;
-    const unitPrice = editingItem.unit_price || 0;
-    const discountPercent = editingItem.discount_percent || 0;
-    const vatRate = editingItem.vat_rate || 0;
+    const quantity = editingItem.quantity ?? 0;
+    const unitPrice = editingItem.unit_price ?? 0;
+    const discountPercent = editingItem.discount_percent ?? 0;
+    const vatRate = editingItem.vat_rate ?? 0;
 
     const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
     const vat = subtotal * (vatRate / 100);
@@ -416,7 +416,7 @@ function EditingRow({
       </TableCell>
       <TableCell>
         <Select
-          value={String(editingItem.vat_rate || 20)}
+          value={String(editingItem.vat_rate ?? 20)}
           onValueChange={(v) => setEditingItem({ ...editingItem, vat_rate: parseInt(v) })}
         >
           <SelectTrigger className="h-8 w-16">

@@ -44,6 +44,9 @@ export function QuoteDetailDialog({
   const [isPrinting, setIsPrinting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
 
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const approxEqualMoney = (a: number, b: number, eps = 0.005) => Math.abs(a - b) < eps;
+
   // Use ref to store mutation function to prevent infinite loops
   const updateTotalsRef = useRef(updateQuoteTotals);
   useEffect(() => {
@@ -51,12 +54,23 @@ export function QuoteDetailDialog({
   }, [updateQuoteTotals]);
 
   const handleTotalsChange = useCallback((subtotal: number, vatAmount: number, totalAmount: number) => {
-    if (quote && (quote.subtotal !== subtotal || quote.vat_amount !== vatAmount || quote.total_amount !== totalAmount)) {
+    if (!quote) return;
+
+    // Prevent update loops caused by floating point/numeric precision differences
+    const s = round2(subtotal);
+    const v = round2(vatAmount);
+    const t = round2(totalAmount);
+
+    if (
+      !approxEqualMoney(quote.subtotal, s) ||
+      !approxEqualMoney(quote.vat_amount, v) ||
+      !approxEqualMoney(quote.total_amount, t)
+    ) {
       updateTotalsRef.current.mutate({
         quoteId: quote.id,
-        subtotal,
-        vat_amount: vatAmount,
-        total_amount: totalAmount,
+        subtotal: s,
+        vat_amount: v,
+        total_amount: t,
       });
     }
   }, [quote]);
