@@ -102,6 +102,16 @@ export function QuoteDetailDialog({
       let approverName: string | null = null;
       if (quote.approver) {
         approverName = `${quote.approver.first_name || ""} ${quote.approver.last_name || ""}`.trim() || null;
+      } else if (quote.approved_by) {
+        // Fallback: if parent state is stale or approver isn't hydrated, fetch profile
+        const { data: approverProfile, error: approverError } = await supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", quote.approved_by)
+          .maybeSingle();
+        if (!approverError && approverProfile) {
+          approverName = `${approverProfile.first_name || ""} ${approverProfile.last_name || ""}`.trim() || null;
+        }
       }
 
       await generateQuotePdf(
