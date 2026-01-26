@@ -172,7 +172,7 @@ export default function Ponude() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{quote.partner?.name}</div>
+                          <div className="font-medium">{quote.partner_name ?? quote.partner?.name}</div>
                           <div className="text-xs text-muted-foreground">{quote.partner?.code}</div>
                         </div>
                       </TableCell>
