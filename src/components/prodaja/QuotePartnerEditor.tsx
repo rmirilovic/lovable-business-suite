@@ -176,21 +176,21 @@ export function QuotePartnerEditor({ quote, isEditable }: QuotePartnerEditorProp
         )}
       </div>
       <p className="font-medium">
-        {quote.partner?.code} - {quote.partner_name || quote.partner?.name}
+        {quote.partner?.code} - {quote.partner_name ?? quote.partner?.name}
       </p>
-      {(quote.partner_address || quote.partner_city) && (
+      {(quote.partner_address ?? quote.partner?.address ?? quote.partner_city ?? quote.partner?.city) && (
         <p className="text-sm text-muted-foreground">
-          {quote.partner_address}
-          {quote.partner_address && quote.partner_city && ", "}
-          {quote.partner_postal_code && `${quote.partner_postal_code} `}
-          {quote.partner_city}
+          {quote.partner_address ?? quote.partner?.address}
+          {(quote.partner_address ?? quote.partner?.address) && (quote.partner_city ?? quote.partner?.city) && ", "}
+          {(quote.partner_postal_code ?? quote.partner?.postal_code) && `${quote.partner_postal_code ?? quote.partner?.postal_code} `}
+          {quote.partner_city ?? quote.partner?.city}
         </p>
       )}
-      {(quote.partner_pib || quote.partner_mb) && (
+      {(quote.partner_pib ?? quote.partner?.pib ?? quote.partner_mb ?? quote.partner?.mb) && (
         <p className="text-sm text-muted-foreground">
-          {quote.partner_pib && `PIB: ${quote.partner_pib}`}
-          {quote.partner_pib && quote.partner_mb && " | "}
-          {quote.partner_mb && `MB: ${quote.partner_mb}`}
+          {(quote.partner_pib ?? quote.partner?.pib) && `PIB: ${quote.partner_pib ?? quote.partner?.pib}`}
+          {(quote.partner_pib ?? quote.partner?.pib) && (quote.partner_mb ?? quote.partner?.mb) && " | "}
+          {(quote.partner_mb ?? quote.partner?.mb) && `MB: ${quote.partner_mb ?? quote.partner?.mb}`}
         </p>
       )}
     </div>

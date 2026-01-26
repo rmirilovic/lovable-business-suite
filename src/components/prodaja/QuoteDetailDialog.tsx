@@ -106,15 +106,6 @@ export function QuoteDetailDialog({
 
       if (companyError) throw companyError;
 
-      // Fetch full partner data
-      const { data: partnerData, error: partnerError } = await supabase
-        .from("partners")
-        .select("*")
-        .eq("id", quote.partner_id)
-        .single();
-
-      if (partnerError) throw partnerError;
-
       // Build approver name if quote is approved
       let approverName: string | null = null;
       if (quote.approver) {
@@ -131,6 +122,17 @@ export function QuoteDetailDialog({
         }
       }
 
+      // Use quote snapshot data with fallback to partner data
+      const partnerForPdf = {
+        name: quote.partner_name || quote.partner?.name || "",
+        code: quote.partner?.code || "",
+        address: quote.partner_address || quote.partner?.address || null,
+        city: quote.partner_city || quote.partner?.city || null,
+        postal_code: quote.partner_postal_code || quote.partner?.postal_code || null,
+        pib: quote.partner_pib || quote.partner?.pib || null,
+        mb: quote.partner_mb || quote.partner?.mb || null,
+      };
+
       await generateQuotePdf(
         quote,
         items,
@@ -146,15 +148,7 @@ export function QuoteDetailDialog({
           quote_note_1: companyData.quote_note_1,
           quote_note_2: companyData.quote_note_2,
         },
-        {
-          name: partnerData.name,
-          code: partnerData.code,
-          address: partnerData.address,
-          city: partnerData.city,
-          postal_code: partnerData.postal_code,
-          pib: partnerData.pib,
-          mb: partnerData.mb,
-        },
+        partnerForPdf,
         approverName
       );
       
