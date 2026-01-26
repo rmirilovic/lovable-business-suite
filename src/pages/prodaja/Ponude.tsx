@@ -27,13 +27,20 @@ export default function Ponude() {
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
 
   // Keep the opened quote in sync with latest query data (e.g. after approve)
+  // Only depend on quotes array, compare by serialized value to avoid loops
   useEffect(() => {
     if (!selectedQuote) return;
     const updated = quotes.find((q) => q.id === selectedQuote.id);
-    if (updated && updated !== selectedQuote) {
+    if (!updated) return;
+    // Only update if status or approver changed (avoid infinite loop from reference changes)
+    if (
+      updated.status !== selectedQuote.status ||
+      updated.approved_by !== selectedQuote.approved_by ||
+      updated.approved_at !== selectedQuote.approved_at
+    ) {
       setSelectedQuote(updated);
     }
-  }, [quotes, selectedQuote]);
+  }, [quotes, selectedQuote?.id, selectedQuote?.status, selectedQuote?.approved_by, selectedQuote?.approved_at]);
 
   const filteredQuotes = quotes.filter((quote) => {
     const searchLower = searchTerm.toLowerCase();
