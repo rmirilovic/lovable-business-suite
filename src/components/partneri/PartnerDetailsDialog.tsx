@@ -305,7 +305,6 @@ export function PartnerDetailsDialog({
                     id="code"
                     value={formData.code}
                     onChange={(e) => updateField("code", e.target.value)}
-                    disabled={mode === "edit"}
                     autoComplete="off"
                   />
                 </div>
