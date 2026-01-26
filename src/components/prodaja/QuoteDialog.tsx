@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
+import { useAuth } from "@/contexts/AuthContext";
 import { Quote, QuoteFormData } from "@/hooks/useQuotes";
 import { format } from "date-fns";
 
@@ -25,8 +26,9 @@ export function QuoteDialog({
   onSave,
   isLoading,
 }: QuoteDialogProps) {
+  const { selectedCompany } = useAuth();
   const { partners } = usePartners();
-  const { units } = useOrganizationalUnits();
+  const { units } = useOrganizationalUnits(selectedCompany?.id);
 
   const [formData, setFormData] = useState<QuoteFormData>({
     quote_date: format(new Date(), "yyyy-MM-dd"),

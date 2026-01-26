@@ -9,9 +9,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useQuotes, Quote, QuoteFormData } from "@/hooks/useQuotes";
 import { QuoteDialog } from "@/components/prodaja/QuoteDialog";
 import { QuoteDetailDialog } from "@/components/prodaja/QuoteDetailDialog";
-import { formatNumber } from "@/lib/formatting";
+import { formatDecimal } from "@/lib/formatting";
 import { format } from "date-fns";
-import { sr } from "date-fns/locale";
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
@@ -77,7 +76,7 @@ export default function Ponude() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout title="Ponude">
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -159,7 +158,7 @@ export default function Ponude() {
                         {quote.valid_until ? format(new Date(quote.valid_until), "dd.MM.yyyy") : "-"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatNumber(quote.total_amount, 2)} RSD
+                        {formatDecimal(quote.total_amount)} RSD
                       </TableCell>
                       <TableCell>
                         <Badge variant={status.variant}>{status.label}</Badge>

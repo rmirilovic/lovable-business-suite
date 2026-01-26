@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Package, Briefcase } from "lucide-react";
+import { Plus, Trash2, Package, Briefcase, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuoteItems, QuoteItem, QuoteItemFormData } from "@/hooks/useQuotes";
 import { useArticles } from "@/hooks/useArticles";
-import { formatNumber } from "@/lib/formatting";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatDecimal, formatNumber } from "@/lib/formatting";
 
 interface QuoteItemsEditorProps {
   quoteId: string;
@@ -17,8 +18,9 @@ interface QuoteItemsEditorProps {
 const VAT_RATES = [0, 10, 20];
 
 export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteItemsEditorProps) {
+  const { selectedCompany } = useAuth();
   const { items, isLoading, addItem, updateItem, deleteItem } = useQuoteItems(quoteId);
-  const { articles } = useArticles();
+  const { articles } = useArticles(selectedCompany?.id);
 
   const [editingItem, setEditingItem] = useState<Partial<QuoteItemFormData> & { id?: string; isService?: boolean }>({});
   const [isAdding, setIsAdding] = useState(false);
@@ -65,7 +67,7 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
         item_name: article.name,
         unit: article.unit,
         unit_price: article.selling_price || 0,
-        vat_rate: article.vat_rate || 20,
+        vat_rate: 20, // Default PDV rate
       });
     }
   };
@@ -195,10 +197,10 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
                     </TableCell>
                     <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
                     <TableCell>{item.unit}</TableCell>
-                    <TableCell className="text-right">{formatNumber(item.unit_price, 2)}</TableCell>
+                    <TableCell className="text-right">{formatDecimal(item.unit_price)}</TableCell>
                     <TableCell className="text-right">{formatNumber(item.discount_percent)}%</TableCell>
                     <TableCell className="text-right">{formatNumber(item.vat_rate)}%</TableCell>
-                    <TableCell className="text-right font-medium">{formatNumber(item.line_total, 2)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatDecimal(item.line_total)}</TableCell>
                     {!isReadOnly && (
                       <TableCell>
                         <div className="flex gap-1">
@@ -207,7 +209,7 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
                             variant="ghost"
                             onClick={() => handleEditItem(item)}
                           >
-                            <Package className="w-4 h-4" />
+                            <Pencil className="w-4 h-4" />
                           </Button>
                           <Button
                             size="icon"
@@ -255,15 +257,15 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
         <div className="w-72 space-y-2">
           <div className="flex justify-between text-sm">
             <span>Osnovica:</span>
-            <span>{formatNumber(items.reduce((s, i) => s + i.line_subtotal, 0), 2)} RSD</span>
+            <span>{formatDecimal(items.reduce((s, i) => s + i.line_subtotal, 0))} RSD</span>
           </div>
           <div className="flex justify-between text-sm">
             <span>PDV:</span>
-            <span>{formatNumber(items.reduce((s, i) => s + i.line_vat, 0), 2)} RSD</span>
+            <span>{formatDecimal(items.reduce((s, i) => s + i.line_vat, 0))} RSD</span>
           </div>
           <div className="flex justify-between font-semibold text-lg border-t pt-2">
             <span>Ukupno:</span>
-            <span>{formatNumber(items.reduce((s, i) => s + i.line_total, 0), 2)} RSD</span>
+            <span>{formatDecimal(items.reduce((s, i) => s + i.line_total, 0))} RSD</span>
           </div>
         </div>
       </div>
@@ -302,7 +304,7 @@ function EditingRow({
         item_name: article.name,
         unit: article.unit,
         unit_price: article.selling_price || 0,
-        vat_rate: article.vat_rate || 20,
+        vat_rate: 20,
       });
     }
   };
@@ -401,7 +403,7 @@ function EditingRow({
         </Select>
       </TableCell>
       <TableCell className="text-right font-medium">
-        {formatNumber(calculateLineTotal(), 2)}
+        {formatDecimal(calculateLineTotal())}
       </TableCell>
       <TableCell>
         <div className="flex gap-1">
