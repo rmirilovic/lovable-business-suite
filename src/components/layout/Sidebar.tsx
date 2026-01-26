@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -84,7 +84,27 @@ export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin } = useAuth();
-  const [expandedItems, setExpandedItems] = useState<string[]>(["Šifarnici"]);
+
+  // Find which parent menu contains the active route
+  const getActiveParent = () => {
+    for (const item of navigation) {
+      if (item.children?.some((child) => location.pathname === child.href)) {
+        return item.label;
+      }
+    }
+    return null;
+  };
+
+  const activeParent = getActiveParent();
+  const [expandedItems, setExpandedItems] = useState<string[]>(activeParent ? [activeParent] : []);
+
+  // Update expanded items when route changes
+  useEffect(() => {
+    const parent = getActiveParent();
+    if (parent) {
+      setExpandedItems([parent]);
+    }
+  }, [location.pathname]);
 
   const filteredNavigation = navigation.filter((item) => {
     if (item.href === "/admin" && !isSuperAdmin && !isLocalAdmin) {
@@ -97,7 +117,7 @@ export function Sidebar() {
     setExpandedItems((prev) =>
       prev.includes(label)
         ? prev.filter((item) => item !== label)
-        : [...prev, label]
+        : [label] // Only keep this one open (accordion behavior)
     );
   };
 
