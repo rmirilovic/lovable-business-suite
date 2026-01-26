@@ -12,6 +12,13 @@ export interface Quote {
   quote_date: string;
   valid_until: string | null;
   partner_id: string;
+  // Snapshot of partner data (editable per quote)
+  partner_name: string | null;
+  partner_address: string | null;
+  partner_city: string | null;
+  partner_postal_code: string | null;
+  partner_pib: string | null;
+  partner_mb: string | null;
   status: 'draft' | 'approved' | 'posted' | 'cancelled';
   approved_by: string | null;
   approved_at: string | null;
@@ -63,6 +70,13 @@ export interface QuoteFormData {
   org_unit_id: string | null;
   note: string | null;
   internal_note: string | null;
+  // Partner snapshot data
+  partner_name?: string | null;
+  partner_address?: string | null;
+  partner_city?: string | null;
+  partner_postal_code?: string | null;
+  partner_pib?: string | null;
+  partner_mb?: string | null;
 }
 
 export interface QuoteItemFormData {
@@ -140,6 +154,13 @@ export function useQuotes() {
 
       const quoteNumber = await getNextQuoteNumber();
 
+      // Fetch partner data for snapshot
+      const { data: partnerData } = await supabase
+        .from("partners")
+        .select("name, address, city, postal_code, pib, mb")
+        .eq("id", formData.partner_id)
+        .single();
+
       const { data, error } = await supabase
         .from("quotes")
         .insert({
@@ -153,6 +174,13 @@ export function useQuotes() {
           note: formData.note,
           internal_note: formData.internal_note,
           created_by: user.id,
+          // Partner snapshot
+          partner_name: partnerData?.name || null,
+          partner_address: partnerData?.address || null,
+          partner_city: partnerData?.city || null,
+          partner_postal_code: partnerData?.postal_code || null,
+          partner_pib: partnerData?.pib || null,
+          partner_mb: partnerData?.mb || null,
         })
         .select()
         .single();
@@ -180,6 +208,13 @@ export function useQuotes() {
           org_unit_id: formData.org_unit_id,
           note: formData.note,
           internal_note: formData.internal_note,
+          // Partner snapshot (optional update)
+          ...(formData.partner_name !== undefined && { partner_name: formData.partner_name }),
+          ...(formData.partner_address !== undefined && { partner_address: formData.partner_address }),
+          ...(formData.partner_city !== undefined && { partner_city: formData.partner_city }),
+          ...(formData.partner_postal_code !== undefined && { partner_postal_code: formData.partner_postal_code }),
+          ...(formData.partner_pib !== undefined && { partner_pib: formData.partner_pib }),
+          ...(formData.partner_mb !== undefined && { partner_mb: formData.partner_mb }),
         })
         .eq("id", id)
         .select()

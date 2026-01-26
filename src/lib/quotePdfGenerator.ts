@@ -114,7 +114,7 @@ export async function generateQuotePdf(
     yPos += 4;
   }
 
-  // Right column - Customer details
+  // Right column - Customer details (use quote snapshot data, fallback to partner)
   const rightColX = 14 + colWidth + 10;
   let rightYPos = yPos - 9;
   
@@ -125,26 +125,33 @@ export async function generateQuotePdf(
   
   doc.setFont("Roboto", "normal");
   doc.setFontSize(9);
-  doc.text(`${partner.code} - ${partner.name}`, rightColX, rightYPos);
+  
+  const displayName = quote.partner_name || partner.name;
+  doc.text(`${partner.code} - ${displayName}`, rightColX, rightYPos);
   rightYPos += 4;
   
-  if (partner.address) {
-    doc.text(partner.address, rightColX, rightYPos);
+  const displayAddress = quote.partner_address || partner.address;
+  if (displayAddress) {
+    doc.text(displayAddress, rightColX, rightYPos);
     rightYPos += 4;
   }
   
-  if (partner.postal_code || partner.city) {
-    doc.text(`${partner.postal_code || ""} ${partner.city || ""}`.trim(), rightColX, rightYPos);
+  const displayPostalCode = quote.partner_postal_code || partner.postal_code;
+  const displayCity = quote.partner_city || partner.city;
+  if (displayPostalCode || displayCity) {
+    doc.text(`${displayPostalCode || ""} ${displayCity || ""}`.trim(), rightColX, rightYPos);
     rightYPos += 4;
   }
   
-  if (partner.pib) {
-    doc.text(`PIB: ${partner.pib}`, rightColX, rightYPos);
+  const displayPib = quote.partner_pib || partner.pib;
+  if (displayPib) {
+    doc.text(`PIB: ${displayPib}`, rightColX, rightYPos);
     rightYPos += 4;
   }
   
-  if (partner.mb) {
-    doc.text(`MB: ${partner.mb}`, rightColX, rightYPos);
+  const displayMb = quote.partner_mb || partner.mb;
+  if (displayMb) {
+    doc.text(`MB: ${displayMb}`, rightColX, rightYPos);
     rightYPos += 4;
   }
 
