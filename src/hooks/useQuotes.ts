@@ -333,7 +333,7 @@ export function useQuotes() {
 
       const newQuoteNumber = `${baseNumber}-${maxVersion + 1}`;
 
-      // Create new quote
+      // Create new quote with partner snapshot data
       const { data: newQuote, error: quoteError } = await supabase
         .from("quotes")
         .insert({
@@ -351,6 +351,13 @@ export function useQuotes() {
           subtotal: sourceQuote.subtotal,
           vat_amount: sourceQuote.vat_amount,
           total_amount: sourceQuote.total_amount,
+          // Copy partner snapshot data
+          partner_name: sourceQuote.partner_name ?? sourceQuote.partner?.name ?? null,
+          partner_address: sourceQuote.partner_address ?? sourceQuote.partner?.address ?? null,
+          partner_city: sourceQuote.partner_city ?? sourceQuote.partner?.city ?? null,
+          partner_postal_code: sourceQuote.partner_postal_code ?? sourceQuote.partner?.postal_code ?? null,
+          partner_pib: sourceQuote.partner_pib ?? sourceQuote.partner?.pib ?? null,
+          partner_mb: sourceQuote.partner_mb ?? sourceQuote.partner?.mb ?? null,
         })
         .select()
         .single();
