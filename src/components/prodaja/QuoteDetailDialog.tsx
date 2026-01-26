@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { FileText, Pencil, ArrowRightLeft, Printer, Check, Truck, Copy } from "lucide-react";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "./QuoteItemsEditor";
+import { QuotePartnerEditor } from "./QuotePartnerEditor";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
@@ -192,13 +193,8 @@ export function QuoteDetailDialog({
 
         {/* Header info */}
         <div className="grid grid-cols-2 gap-6">
+          <QuotePartnerEditor quote={quote} isEditable={isEditable} />
           <div className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground">Kupac</p>
-              <p className="font-medium">
-                {quote.partner?.code} - {quote.partner?.name}
-              </p>
-            </div>
             {quote.valid_until && (
               <div>
                 <p className="text-sm text-muted-foreground">Važi do</p>

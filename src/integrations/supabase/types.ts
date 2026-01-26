@@ -1439,7 +1439,13 @@ export type Database = {
           internal_note: string | null
           note: string | null
           org_unit_id: string | null
+          partner_address: string | null
+          partner_city: string | null
           partner_id: string
+          partner_mb: string | null
+          partner_name: string | null
+          partner_pib: string | null
+          partner_postal_code: string | null
           quote_date: string
           quote_number: string
           status: Database["public"]["Enums"]["document_status"]
@@ -1462,7 +1468,13 @@ export type Database = {
           internal_note?: string | null
           note?: string | null
           org_unit_id?: string | null
+          partner_address?: string | null
+          partner_city?: string | null
           partner_id: string
+          partner_mb?: string | null
+          partner_name?: string | null
+          partner_pib?: string | null
+          partner_postal_code?: string | null
           quote_date?: string
           quote_number: string
           status?: Database["public"]["Enums"]["document_status"]
@@ -1485,7 +1497,13 @@ export type Database = {
           internal_note?: string | null
           note?: string | null
           org_unit_id?: string | null
+          partner_address?: string | null
+          partner_city?: string | null
           partner_id?: string
+          partner_mb?: string | null
+          partner_name?: string | null
+          partner_pib?: string | null
+          partner_postal_code?: string | null
           quote_date?: string
           quote_number?: string
           status?: Database["public"]["Enums"]["document_status"]
