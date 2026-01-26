@@ -12,7 +12,9 @@ export interface Quote {
   quote_date: string;
   valid_until: string | null;
   partner_id: string;
-  status: 'draft' | 'posted' | 'cancelled';
+  status: 'draft' | 'approved' | 'posted' | 'cancelled';
+  approved_by: string | null;
+  approved_at: string | null;
   converted_to_invoice_id: string | null;
   converted_at: string | null;
   subtotal: number;
@@ -28,6 +30,10 @@ export interface Quote {
     name: string;
     code: string;
   };
+  approver?: {
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
 }
 
 export interface QuoteItem {
@@ -91,6 +97,23 @@ export function useQuotes() {
         .order("quote_number", { ascending: false });
 
       if (error) throw error;
+      
+      // Fetch approver names separately for quotes that have approved_by
+      const quotesWithApprover = await Promise.all(
+        (data || []).map(async (quote) => {
+          if (quote.approved_by) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("first_name, last_name")
+              .eq("id", quote.approved_by)
+              .single();
+            return { ...quote, approver: profile };
+          }
+          return { ...quote, approver: null };
+        })
+      );
+      
+      return quotesWithApprover as Quote[];
       return data as Quote[];
     },
     enabled: !!selectedCompany?.id && !!selectedYear?.id,
@@ -212,6 +235,33 @@ export function useQuotes() {
     },
   });
 
+  const approveQuote = useMutation({
+    mutationFn: async (quoteId: string) => {
+      if (!user?.id) throw new Error("Korisnik nije prijavljen");
+      
+      const { data, error } = await supabase
+        .from("quotes")
+        .update({
+          status: "approved",
+          approved_by: user.id,
+          approved_at: new Date().toISOString(),
+        })
+        .eq("id", quoteId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast.success("Ponuda je odobrena");
+    },
+    onError: (error) => {
+      toast.error(`Greška pri odobravanju ponude: ${error.message}`);
+    },
+  });
+
   return {
     quotes: quotesQuery.data || [],
     isLoading: quotesQuery.isLoading,
@@ -220,6 +270,7 @@ export function useQuotes() {
     updateQuote,
     deleteQuote,
     updateQuoteTotals,
+    approveQuote,
     getNextQuoteNumber,
   };
 }

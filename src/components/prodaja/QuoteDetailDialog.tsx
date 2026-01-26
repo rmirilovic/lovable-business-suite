@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Pencil, ArrowRightLeft, Printer } from "lucide-react";
+import { FileText, Pencil, ArrowRightLeft, Printer, Check, Truck } from "lucide-react";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "./QuoteItemsEditor";
 import { formatDecimal } from "@/lib/formatting";
@@ -21,10 +21,12 @@ interface QuoteDetailDialogProps {
   quote: Quote | null;
   onEdit: () => void;
   onConvertToInvoice: () => void;
+  onConvertToDeliveryNote: () => void;
 }
 
-const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
+  approved: { label: "Odobrena", variant: "outline" },
   posted: { label: "Potvrđena", variant: "default" },
   cancelled: { label: "Stornirana", variant: "destructive" },
 };
@@ -35,11 +37,13 @@ export function QuoteDetailDialog({
   quote,
   onEdit,
   onConvertToInvoice,
+  onConvertToDeliveryNote,
 }: QuoteDetailDialogProps) {
-  const { selectedCompany } = useAuth();
-  const { updateQuoteTotals } = useQuotes();
+  const { selectedCompany, user } = useAuth();
+  const { updateQuoteTotals, approveQuote } = useQuotes();
   const { items } = useQuoteItems(quote?.id || null);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
 
   const handleTotalsChange = useCallback((subtotal: number, vatAmount: number, totalAmount: number) => {
     if (quote && (quote.subtotal !== subtotal || quote.vat_amount !== vatAmount || quote.total_amount !== totalAmount)) {
@@ -75,6 +79,12 @@ export function QuoteDetailDialog({
 
       if (partnerError) throw partnerError;
 
+      // Build approver name if quote is approved
+      let approverName: string | null = null;
+      if (quote.approver) {
+        approverName = `${quote.approver.first_name || ""} ${quote.approver.last_name || ""}`.trim() || null;
+      }
+
       await generateQuotePdf(
         quote,
         items,
@@ -98,7 +108,8 @@ export function QuoteDetailDialog({
           postal_code: partnerData.postal_code,
           pib: partnerData.pib,
           mb: partnerData.mb,
-        }
+        },
+        approverName
       );
       
       toast.success("PDF ponuda je generisana");
@@ -151,14 +162,14 @@ export function QuoteDetailDialog({
                 </p>
               </div>
             )}
-          </div>
-          <div className="space-y-3 text-right">
-            <div>
-              <p className="text-sm text-muted-foreground">Ukupno</p>
-              <p className="text-2xl font-bold text-primary">
-                {formatDecimal(quote.total_amount)} RSD
-              </p>
-            </div>
+            {quote.approver && (
+              <div>
+                <p className="text-sm text-muted-foreground">Odobrio/la</p>
+                <p className="font-medium">
+                  {quote.approver.first_name} {quote.approver.last_name}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -209,16 +220,36 @@ export function QuoteDetailDialog({
           </div>
           <div className="flex gap-2">
             {isEditable && (
-              <Button variant="outline" onClick={onEdit}>
-                <Pencil className="w-4 h-4 mr-2" />
-                Uredi
-              </Button>
+              <>
+                <Button variant="outline" onClick={onEdit}>
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Uredi
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    setIsApproving(true);
+                    await approveQuote.mutateAsync(quote.id);
+                    setIsApproving(false);
+                  }}
+                  disabled={isApproving || items.length === 0}
+                  variant="default"
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  {isApproving ? "Odobravanje..." : "Odobri"}
+                </Button>
+              </>
             )}
-            {isEditable && !quote.converted_to_invoice_id && (
-              <Button onClick={onConvertToInvoice}>
-                <ArrowRightLeft className="w-4 h-4 mr-2" />
-                Pretvori u fakturu
-              </Button>
+            {quote.status === "approved" && !quote.converted_to_invoice_id && (
+              <>
+                <Button variant="outline" onClick={onConvertToDeliveryNote}>
+                  <Truck className="w-4 h-4 mr-2" />
+                  Pretvori u otpremnicu
+                </Button>
+                <Button onClick={onConvertToInvoice}>
+                  <ArrowRightLeft className="w-4 h-4 mr-2" />
+                  Pretvori u fakturu
+                </Button>
+              </>
             )}
             {quote.converted_to_invoice_id && (
               <Badge variant="outline">Konvertovana u fakturu</Badge>
