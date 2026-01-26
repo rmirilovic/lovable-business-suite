@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye, ArrowRightLeft } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,15 @@ export default function Ponude() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+
+  // Keep the opened quote in sync with latest query data (e.g. after approve)
+  useEffect(() => {
+    if (!selectedQuote) return;
+    const updated = quotes.find((q) => q.id === selectedQuote.id);
+    if (updated && updated !== selectedQuote) {
+      setSelectedQuote(updated);
+    }
+  }, [quotes, selectedQuote]);
 
   const filteredQuotes = quotes.filter((quote) => {
     const searchLower = searchTerm.toLowerCase();
