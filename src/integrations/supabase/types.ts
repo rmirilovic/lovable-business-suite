@@ -1427,6 +1427,8 @@ export type Database = {
       }
       quotes: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           business_year_id: string
           company_id: string
           converted_at: string | null
@@ -1448,6 +1450,8 @@ export type Database = {
           vat_amount: number
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           business_year_id: string
           company_id: string
           converted_at?: string | null
@@ -1469,6 +1473,8 @@ export type Database = {
           vat_amount?: number
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           business_year_id?: string
           company_id?: string
           converted_at?: string | null
@@ -1941,7 +1947,7 @@ export type Database = {
         | "integer"
         | "decimal"
         | "date"
-      document_status: "draft" | "posted" | "cancelled"
+      document_status: "draft" | "approved" | "posted" | "cancelled"
       module_type:
         | "sifarnici"
         | "robno_materijalno"
@@ -2093,7 +2099,7 @@ export const Constants = {
         "decimal",
         "date",
       ],
-      document_status: ["draft", "posted", "cancelled"],
+      document_status: ["draft", "approved", "posted", "cancelled"],
       module_type: [
         "sifarnici",
         "robno_materijalno",

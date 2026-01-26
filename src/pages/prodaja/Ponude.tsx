@@ -12,8 +12,9 @@ import { QuoteDetailDialog } from "@/components/prodaja/QuoteDetailDialog";
 import { formatDecimal } from "@/lib/formatting";
 import { format } from "date-fns";
 
-const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
+  approved: { label: "Odobrena", variant: "outline" },
   posted: { label: "Potvrđena", variant: "default" },
   cancelled: { label: "Stornirana", variant: "destructive" },
 };
@@ -73,6 +74,11 @@ export default function Ponude() {
   const handleConvertToInvoice = () => {
     // TODO: Implement conversion to invoice
     console.log("Convert to invoice:", selectedQuote?.id);
+  };
+
+  const handleConvertToDeliveryNote = () => {
+    // TODO: Implement conversion to delivery note
+    console.log("Convert to delivery note:", selectedQuote?.id);
   };
 
   return (
@@ -181,13 +187,6 @@ export default function Ponude() {
                                   <Pencil className="w-4 h-4 mr-2" />
                                   Uredi
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => {
-                                  setSelectedQuote(quote);
-                                  handleConvertToInvoice();
-                                }}>
-                                  <ArrowRightLeft className="w-4 h-4 mr-2" />
-                                  Pretvori u fakturu
-                                </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleDelete(quote)}
                                   className="text-destructive"
@@ -226,6 +225,7 @@ export default function Ponude() {
             handleEdit(selectedQuote!);
           }}
           onConvertToInvoice={handleConvertToInvoice}
+          onConvertToDeliveryNote={handleConvertToDeliveryNote}
         />
       </div>
     </MainLayout>

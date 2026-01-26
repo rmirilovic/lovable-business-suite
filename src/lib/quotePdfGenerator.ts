@@ -33,7 +33,8 @@ export async function generateQuotePdf(
   quote: Quote,
   items: QuoteItem[],
   company: CompanyData,
-  partner: PartnerData
+  partner: PartnerData,
+  approverName?: string | null
 ) {
   // Initialize fonts with UTF-8 support for Serbian characters
   await initializePdfFonts();
@@ -244,6 +245,26 @@ export async function generateQuotePdf(
     totalsY += 3;
     const splitNote2 = doc.splitTextToSize(company.quote_note_2, pageWidth - 28);
     doc.text(splitNote2, 14, totalsY);
+    totalsY += splitNote2.length * 3;
+  }
+
+  // Signature section
+  if (approverName) {
+    totalsY += 20;
+    doc.setFontSize(10);
+    doc.setFont("Roboto", "normal");
+    
+    const signatureX = pageWidth - 60;
+    doc.text("Potpis:", signatureX, totalsY);
+    totalsY += 6;
+    
+    doc.setFont("Roboto", "bold");
+    doc.text(approverName, signatureX, totalsY);
+    
+    // Draw signature line
+    totalsY += 5;
+    doc.setDrawColor(0, 0, 0);
+    doc.line(signatureX - 10, totalsY, signatureX + 50, totalsY);
   }
 
   // Save
