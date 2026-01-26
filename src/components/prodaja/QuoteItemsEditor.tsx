@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus, Trash2, Package, Briefcase, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,13 +27,19 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
   const [isAdding, setIsAdding] = useState(false);
   const [itemType, setItemType] = useState<'article' | 'service'>('article');
 
+  // Avoid infinite re-render loops if parent passes a new onTotalsChange reference each render
+  const onTotalsChangeRef = useRef(onTotalsChange);
+  useEffect(() => {
+    onTotalsChangeRef.current = onTotalsChange;
+  }, [onTotalsChange]);
+
   // Calculate totals
   useEffect(() => {
     const subtotal = items.reduce((sum, item) => sum + item.line_subtotal, 0);
     const vatAmount = items.reduce((sum, item) => sum + item.line_vat, 0);
     const totalAmount = items.reduce((sum, item) => sum + item.line_total, 0);
-    onTotalsChange(subtotal, vatAmount, totalAmount);
-  }, [items, onTotalsChange]);
+    onTotalsChangeRef.current(subtotal, vatAmount, totalAmount);
+  }, [items]);
 
   const resetEditingItem = () => {
     setEditingItem({});
