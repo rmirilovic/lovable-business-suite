@@ -100,7 +100,13 @@ export function DeliveryNoteItemsEditor({ items, onChange, disabled }: DeliveryN
                   <TableCell>{item.unit}</TableCell>
                   <TableCell className="text-right">{formatDecimal(item.available_stock)}</TableCell>
                   <TableCell className="text-right">
-                    {disabled ? formatDecimal(item.quantity) : <LocaleNumberInput value={item.quantity} onChange={(val) => updateItem(index, { quantity: val })} className="w-full text-right" />}
+                    {disabled ? formatDecimal(item.quantity) : (
+                      <LocaleNumberInput 
+                        value={String(item.quantity)} 
+                        onChange={(val) => updateItem(index, { quantity: parseFloat(val.replace(',', '.')) || 0 })} 
+                        className="w-full text-right" 
+                      />
+                    )}
                   </TableCell>
                   {!disabled && (
                     <TableCell>
