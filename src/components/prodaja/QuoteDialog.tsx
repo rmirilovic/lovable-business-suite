@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useAuth } from "@/contexts/AuthContext";
@@ -99,22 +100,12 @@ export function QuoteDialog({
 
           <div className="space-y-2">
             <Label htmlFor="partner_id">Kupac *</Label>
-            <Select
+            <SearchablePartnerSelect
+              partners={customerPartners}
               value={formData.partner_id}
               onValueChange={(value) => setFormData({ ...formData, partner_id: value })}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Izaberite kupca" />
-              </SelectTrigger>
-              <SelectContent>
-                {customerPartners.map((partner) => (
-                  <SelectItem key={partner.id} value={partner.id}>
-                    {partner.code} - {partner.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Pretraži i izaberi kupca..."
+            />
           </div>
 
           <div className="space-y-2">

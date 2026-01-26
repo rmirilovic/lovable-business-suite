@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Plus, Trash2, Package, Briefcase, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { useQuoteItems, QuoteItem, QuoteItemFormData } from "@/hooks/useQuotes";
-import { useArticles } from "@/hooks/useArticles";
+import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDecimal, formatNumber } from "@/lib/formatting";
 
@@ -276,7 +277,7 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
 interface EditingRowProps {
   editingItem: Partial<QuoteItemFormData> & { id?: string; isService?: boolean };
   setEditingItem: (item: Partial<QuoteItemFormData> & { id?: string; isService?: boolean }) => void;
-  articles: any[];
+  articles: Article[];
   onSave: () => void;
   onCancel: () => void;
   isService: boolean;
@@ -294,19 +295,16 @@ function EditingRow({
   index,
   calculateLineTotal,
 }: EditingRowProps) {
-  const handleArticleChange = (articleId: string) => {
-    const article = articles.find(a => a.id === articleId);
-    if (article) {
-      setEditingItem({
-        ...editingItem,
-        article_id: article.id,
-        item_code: article.code,
-        item_name: article.name,
-        unit: article.unit,
-        unit_price: article.selling_price || 0,
-        vat_rate: 20,
-      });
-    }
+  const handleArticleChange = (articleId: string, article: Article) => {
+    setEditingItem({
+      ...editingItem,
+      article_id: article.id,
+      item_code: article.code,
+      item_name: article.name,
+      unit: article.unit,
+      unit_price: article.selling_price || 0,
+      vat_rate: 20,
+    });
   };
 
   return (
@@ -324,30 +322,22 @@ function EditingRow({
           <span className="text-muted-foreground">{editingItem.item_code || "-"}</span>
         )}
       </TableCell>
-      <TableCell>
+      <TableCell className="min-w-[200px]">
         {isService ? (
           <Input
             value={editingItem.item_name || ""}
             onChange={(e) => setEditingItem({ ...editingItem, item_name: e.target.value })}
             placeholder="Naziv usluge"
             className="h-8"
+            autoComplete="off"
           />
         ) : (
-          <Select
+          <SearchableArticleSelect
+            articles={articles}
             value={editingItem.article_id || ""}
             onValueChange={handleArticleChange}
-          >
-            <SelectTrigger className="h-8">
-              <SelectValue placeholder="Izaberite artikal" />
-            </SelectTrigger>
-            <SelectContent>
-              {articles.filter(a => a.is_active).map((article) => (
-                <SelectItem key={article.id} value={article.id}>
-                  {article.code} - {article.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            placeholder="Pretraži artikal..."
+          />
         )}
       </TableCell>
       <TableCell>
