@@ -75,7 +75,7 @@ export function QuoteDetailDialog({
 
       if (partnerError) throw partnerError;
 
-      generateQuotePdf(
+      await generateQuotePdf(
         quote,
         items,
         {
