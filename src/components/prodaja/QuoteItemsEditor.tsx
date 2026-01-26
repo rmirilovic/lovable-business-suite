@@ -344,7 +344,7 @@ function EditingRow({
         <Input
           type="text"
           inputMode="decimal"
-          value={editingItem.quantity || ""}
+          value={editingItem.quantity ?? ""}
           onChange={(e) => {
             const val = e.target.value.replace(',', '.');
             if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
@@ -367,7 +367,7 @@ function EditingRow({
         <Input
           type="text"
           inputMode="decimal"
-          value={editingItem.unit_price || ""}
+          value={editingItem.unit_price ?? ""}
           onChange={(e) => {
             const val = e.target.value.replace(',', '.');
             if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
@@ -382,7 +382,7 @@ function EditingRow({
         <Input
           type="text"
           inputMode="decimal"
-          value={editingItem.discount_percent || ""}
+          value={editingItem.discount_percent ?? ""}
           onChange={(e) => {
             const val = e.target.value.replace(',', '.');
             if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
