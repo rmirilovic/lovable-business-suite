@@ -42,8 +42,8 @@ const navigation: NavItem[] = [
     label: "Prodaja",
     icon: ShoppingCart,
     children: [
-      { label: "Fakture", href: "/prodaja/fakture" },
       { label: "Ponude", href: "/prodaja/ponude" },
+      { label: "Fakture", href: "/prodaja/fakture" },
       { label: "Otpremnice", href: "/prodaja/otpremnice" },
     ],
   },

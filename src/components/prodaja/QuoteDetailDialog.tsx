@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { FileText, Pencil, ArrowRightLeft, Printer } from "lucide-react";
 import { Quote, useQuotes } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "./QuoteItemsEditor";
-import { formatNumber } from "@/lib/formatting";
+import { formatDecimal } from "@/lib/formatting";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 
@@ -92,7 +92,7 @@ export function QuoteDetailDialog({
             <div>
               <p className="text-sm text-muted-foreground">Ukupno</p>
               <p className="text-2xl font-bold text-primary">
-                {formatNumber(quote.total_amount, 2)} RSD
+                {formatDecimal(quote.total_amount)} RSD
               </p>
             </div>
           </div>
