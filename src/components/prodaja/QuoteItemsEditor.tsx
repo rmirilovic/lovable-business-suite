@@ -302,6 +302,21 @@ function EditingRow({
   index,
   calculateLineTotal,
 }: EditingRowProps) {
+  const toLocaleStr = (n: number | null | undefined, places = 2) =>
+    n === null || n === undefined ? "" : formatDecimal(n, places);
+
+  // Keep raw string inputs locally so the user can type/clear without it snapping to 0,00
+  const [qtyStr, setQtyStr] = useState(() => toLocaleStr(editingItem.quantity, 2));
+  const [unitPriceStr, setUnitPriceStr] = useState(() => toLocaleStr(editingItem.unit_price, 2));
+  const [discountStr, setDiscountStr] = useState(() => toLocaleStr(editingItem.discount_percent, 2));
+
+  useEffect(() => {
+    setQtyStr(toLocaleStr(editingItem.quantity, 2));
+    setUnitPriceStr(toLocaleStr(editingItem.unit_price, 2));
+    setDiscountStr(toLocaleStr(editingItem.discount_percent, 2));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingItem.id]);
+
   const handleArticleChange = (articleId: string, article: Article) => {
     setEditingItem({
       ...editingItem,
@@ -312,6 +327,8 @@ function EditingRow({
       unit_price: article.selling_price || 0,
       vat_rate: 20,
     });
+
+    setUnitPriceStr(toLocaleStr(article.selling_price || 0, 2));
   };
 
   return (
@@ -349,13 +366,15 @@ function EditingRow({
       </TableCell>
       <TableCell>
         <LocaleNumberInput
-          value={formatDecimal(editingItem.quantity ?? 0, 2)}
-          onChange={(val) => {
-            const num = parseLocaleNumber(val);
+          value={qtyStr}
+          onChange={setQtyStr}
+          decimalPlaces={2}
+          allowEmpty
+          className="h-8 text-right w-28"
+          onBlur={() => {
+            const num = parseLocaleNumber(qtyStr);
             setEditingItem({ ...editingItem, quantity: isNaN(num) ? 0 : num });
           }}
-          decimalPlaces={2}
-          className="h-8 text-right w-28"
         />
       </TableCell>
       <TableCell>
@@ -368,24 +387,31 @@ function EditingRow({
       </TableCell>
       <TableCell>
         <LocaleNumberInput
-          value={formatDecimal(editingItem.unit_price ?? 0, 2)}
-          onChange={(val) => {
-            const num = parseLocaleNumber(val);
+          value={unitPriceStr}
+          onChange={setUnitPriceStr}
+          decimalPlaces={2}
+          allowEmpty
+          className="h-8 text-right w-32"
+          onBlur={() => {
+            const num = parseLocaleNumber(unitPriceStr);
             setEditingItem({ ...editingItem, unit_price: isNaN(num) ? 0 : num });
           }}
-          decimalPlaces={2}
-          className="h-8 text-right w-32"
         />
       </TableCell>
       <TableCell>
         <LocaleNumberInput
-          value={formatDecimal(editingItem.discount_percent ?? 0, 2)}
-          onChange={(val) => {
-            const num = parseLocaleNumber(val);
-            setEditingItem({ ...editingItem, discount_percent: Math.min(100, Math.max(0, isNaN(num) ? 0 : num)) });
-          }}
+          value={discountStr}
+          onChange={setDiscountStr}
           decimalPlaces={2}
+          allowEmpty
           className="h-8 text-right w-16"
+          onBlur={() => {
+            const num = parseLocaleNumber(discountStr);
+            setEditingItem({
+              ...editingItem,
+              discount_percent: Math.min(100, Math.max(0, isNaN(num) ? 0 : num)),
+            });
+          }}
         />
       </TableCell>
       <TableCell>
