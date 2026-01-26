@@ -157,14 +157,14 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">#</TableHead>
-              <TableHead>Šifra</TableHead>
-              <TableHead>Naziv</TableHead>
-              <TableHead className="text-right w-24">Količina</TableHead>
+              <TableHead className="w-24">Šifra</TableHead>
+              <TableHead className="min-w-[200px]">Naziv</TableHead>
+              <TableHead className="text-right w-32">Količina</TableHead>
               <TableHead className="w-16">JM</TableHead>
-              <TableHead className="text-right w-28">Cena</TableHead>
+              <TableHead className="text-right w-36">Cena</TableHead>
               <TableHead className="text-right w-20">Rabat %</TableHead>
               <TableHead className="text-right w-20">PDV %</TableHead>
-              <TableHead className="text-right w-32">Ukupno</TableHead>
+              <TableHead className="text-right w-36">Ukupno</TableHead>
               {!isReadOnly && <TableHead className="w-20"></TableHead>}
             </TableRow>
           </TableHeader>
@@ -342,11 +342,17 @@ function EditingRow({
       </TableCell>
       <TableCell>
         <Input
-          type="number"
+          type="text"
+          inputMode="decimal"
           value={editingItem.quantity || ""}
-          onChange={(e) => setEditingItem({ ...editingItem, quantity: parseFloat(e.target.value) || 0 })}
-          className="h-8 text-right"
-          step="0.01"
+          onChange={(e) => {
+            const val = e.target.value.replace(',', '.');
+            if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+              setEditingItem({ ...editingItem, quantity: val === '' ? 0 : parseFloat(val) || 0 });
+            }
+          }}
+          className="h-8 text-right w-28"
+          autoComplete="off"
         />
       </TableCell>
       <TableCell>
@@ -354,25 +360,38 @@ function EditingRow({
           value={editingItem.unit || ""}
           onChange={(e) => setEditingItem({ ...editingItem, unit: e.target.value })}
           className="h-8 w-16"
+          autoComplete="off"
         />
       </TableCell>
       <TableCell>
         <Input
-          type="number"
+          type="text"
+          inputMode="decimal"
           value={editingItem.unit_price || ""}
-          onChange={(e) => setEditingItem({ ...editingItem, unit_price: parseFloat(e.target.value) || 0 })}
-          className="h-8 text-right"
-          step="0.01"
+          onChange={(e) => {
+            const val = e.target.value.replace(',', '.');
+            if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+              setEditingItem({ ...editingItem, unit_price: val === '' ? 0 : parseFloat(val) || 0 });
+            }
+          }}
+          className="h-8 text-right w-32"
+          autoComplete="off"
         />
       </TableCell>
       <TableCell>
         <Input
-          type="number"
+          type="text"
+          inputMode="decimal"
           value={editingItem.discount_percent || ""}
-          onChange={(e) => setEditingItem({ ...editingItem, discount_percent: parseFloat(e.target.value) || 0 })}
+          onChange={(e) => {
+            const val = e.target.value.replace(',', '.');
+            if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+              const num = parseFloat(val) || 0;
+              setEditingItem({ ...editingItem, discount_percent: Math.min(100, Math.max(0, num)) });
+            }
+          }}
           className="h-8 text-right w-16"
-          min="0"
-          max="100"
+          autoComplete="off"
         />
       </TableCell>
       <TableCell>
@@ -392,11 +411,11 @@ function EditingRow({
           </SelectContent>
         </Select>
       </TableCell>
-      <TableCell className="text-right font-medium">
+      <TableCell className="text-right font-medium w-36">
         {formatDecimal(calculateLineTotal())}
       </TableCell>
-      <TableCell>
-        <div className="flex gap-1">
+      <TableCell className="w-24">
+        <div className="flex gap-1 flex-nowrap">
           <Button size="sm" onClick={onSave} disabled={!editingItem.item_name}>
             OK
           </Button>
