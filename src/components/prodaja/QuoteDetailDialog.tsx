@@ -54,19 +54,34 @@ export function QuoteDetailDialog({
     updateTotalsRef.current = updateQuoteTotals;
   }, [updateQuoteTotals]);
 
+  // Guard against repeated updates while parent quote props are still stale.
+  // Without this, opening the dialog can trigger totals recalculation -> mutation -> rerender -> mutation...
+  const lastSubmittedTotalsRef = useRef<{ s: number; v: number; t: number } | null>(null);
+
   const handleTotalsChange = useCallback((subtotal: number, vatAmount: number, totalAmount: number) => {
     if (!quote) return;
+
+    // If a totals update is already in-flight, don't enqueue another one.
+    // React Query mutation state changes can retrigger renders before `quote` is refreshed from query.
+    if (updateTotalsRef.current.isPending) return;
 
     // Prevent update loops caused by floating point/numeric precision differences
     const s = round2(subtotal);
     const v = round2(vatAmount);
     const t = round2(totalAmount);
 
+    // If we already sent these totals, avoid resending until quote refreshes.
+    const last = lastSubmittedTotalsRef.current;
+    if (last && approxEqualMoney(last.s, s) && approxEqualMoney(last.v, v) && approxEqualMoney(last.t, t)) {
+      return;
+    }
+
     if (
       !approxEqualMoney(quote.subtotal, s) ||
       !approxEqualMoney(quote.vat_amount, v) ||
       !approxEqualMoney(quote.total_amount, t)
     ) {
+      lastSubmittedTotalsRef.current = { s, v, t };
       updateTotalsRef.current.mutate({
         quoteId: quote.id,
         subtotal: s,
