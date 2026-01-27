@@ -164,6 +164,14 @@ export async function generateQuotePdf(
 
   yPos = Math.max(yPos, rightYPos) + 10;
 
+  // Header note (short note before items table)
+  if (quote.header_note) {
+    doc.setFontSize(9);
+    doc.setFont("Roboto", "normal");
+    doc.text(quote.header_note, 14, yPos);
+    yPos += 6;
+  }
+
   // Items table
   const tableData = items.map((item, index) => [
     (index + 1).toString(),

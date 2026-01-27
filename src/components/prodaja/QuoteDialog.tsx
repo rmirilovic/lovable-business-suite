@@ -38,6 +38,7 @@ export function QuoteDialog({
     org_unit_id: null,
     note: null,
     internal_note: null,
+    header_note: null,
   });
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export function QuoteDialog({
         org_unit_id: quote.org_unit_id,
         note: quote.note,
         internal_note: quote.internal_note,
+        header_note: quote.header_note,
       });
     } else {
       setFormData({
@@ -58,6 +60,7 @@ export function QuoteDialog({
         org_unit_id: null,
         note: null,
         internal_note: null,
+        header_note: null,
       });
     }
   }, [quote, open]);
@@ -126,6 +129,18 @@ export function QuoteDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="header_note">Napomena u zaglavlju</Label>
+            <Textarea
+              id="header_note"
+              value={formData.header_note || ""}
+              onChange={(e) => setFormData({ ...formData, header_note: e.target.value || null })}
+              rows={1}
+              placeholder="Kratka napomena koja se prikazuje iznad stavki..."
+              autoComplete="off"
+            />
           </div>
 
           <div className="space-y-2">
