@@ -6,7 +6,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -40,6 +39,7 @@ export function SearchablePartnerSelect({
 }: SearchablePartnerSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
+  const selectedItemRef = React.useRef<HTMLDivElement>(null);
 
   const selectedPartner = partners.find((p) => p.id === value);
 
@@ -55,6 +55,17 @@ export function SearchablePartnerSelect({
       return matchCode || matchName || matchCity;
     }).slice(0, 50); // Limit to 50 results for performance
   }, [partners, search]);
+
+  // Scroll to selected item when popover opens
+  React.useEffect(() => {
+    if (open && value && !search) {
+      // Small delay to ensure the list is rendered
+      const timer = setTimeout(() => {
+        selectedItemRef.current?.scrollIntoView({ block: "center" });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [open, value, search]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -102,6 +113,7 @@ export function SearchablePartnerSelect({
                     setSearch("");
                   }}
                   className="cursor-pointer"
+                  ref={partner.id === value ? selectedItemRef : undefined}
                 >
                   <Check
                     className={cn(
