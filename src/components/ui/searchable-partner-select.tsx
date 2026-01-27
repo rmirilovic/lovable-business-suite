@@ -45,7 +45,19 @@ export function SearchablePartnerSelect({
 
   // Filter partners by code, name, or city
   const filteredPartners = React.useMemo(() => {
-    if (!search.trim()) return partners.slice(0, 50); // Show first 50 if no search
+    // When opening without a search term, show a window around the currently selected partner
+    // so the selected item is actually rendered (and can be scrolled into view).
+    if (!search.trim()) {
+      if (value) {
+        const selectedIndex = partners.findIndex((p) => p.id === value);
+        if (selectedIndex >= 0) {
+          const start = Math.max(0, selectedIndex - 25);
+          return partners.slice(start, start + 50);
+        }
+      }
+
+      return partners.slice(0, 50); // Fallback: first 50 if nothing selected
+    }
     
     const searchLower = search.toLowerCase();
     return partners.filter((partner) => {
@@ -54,7 +66,7 @@ export function SearchablePartnerSelect({
       const matchCity = partner.city?.toLowerCase().includes(searchLower);
       return matchCode || matchName || matchCity;
     }).slice(0, 50); // Limit to 50 results for performance
-  }, [partners, search]);
+  }, [partners, search, value]);
 
   // Scroll to selected item when popover opens
   React.useEffect(() => {
