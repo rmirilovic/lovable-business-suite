@@ -1435,6 +1435,7 @@ export type Database = {
           converted_to_invoice_id: string | null
           created_at: string
           created_by: string
+          header_note: string | null
           id: string
           internal_note: string | null
           note: string | null
@@ -1464,6 +1465,7 @@ export type Database = {
           converted_to_invoice_id?: string | null
           created_at?: string
           created_by: string
+          header_note?: string | null
           id?: string
           internal_note?: string | null
           note?: string | null
@@ -1493,6 +1495,7 @@ export type Database = {
           converted_to_invoice_id?: string | null
           created_at?: string
           created_by?: string
+          header_note?: string | null
           id?: string
           internal_note?: string | null
           note?: string | null

@@ -29,6 +29,7 @@ export interface Quote {
   total_amount: number;
   note: string | null;
   internal_note: string | null;
+  header_note: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -75,6 +76,7 @@ export interface QuoteFormData {
   org_unit_id: string | null;
   note: string | null;
   internal_note: string | null;
+  header_note: string | null;
   // Partner snapshot data
   partner_name?: string | null;
   partner_address?: string | null;
@@ -178,6 +180,7 @@ export function useQuotes() {
           org_unit_id: formData.org_unit_id,
           note: formData.note,
           internal_note: formData.internal_note,
+          header_note: formData.header_note,
           created_by: user.id,
           // Partner snapshot
           partner_name: partnerData?.name || null,
@@ -213,6 +216,7 @@ export function useQuotes() {
           org_unit_id: formData.org_unit_id,
           note: formData.note,
           internal_note: formData.internal_note,
+          header_note: formData.header_note,
           // Partner snapshot (optional update)
           ...(formData.partner_name !== undefined && { partner_name: formData.partner_name }),
           ...(formData.partner_address !== undefined && { partner_address: formData.partner_address }),
@@ -346,6 +350,7 @@ export function useQuotes() {
           org_unit_id: sourceQuote.org_unit_id,
           note: sourceQuote.note,
           internal_note: sourceQuote.internal_note,
+          header_note: sourceQuote.header_note,
           created_by: user.id,
           status: "draft",
           subtotal: sourceQuote.subtotal,
