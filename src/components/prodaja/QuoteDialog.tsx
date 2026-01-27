@@ -39,6 +39,13 @@ export function QuoteDialog({
     note: null,
     internal_note: null,
     header_note: null,
+    // Partner snapshot data (stored on the quote)
+    partner_name: null,
+    partner_address: null,
+    partner_city: null,
+    partner_postal_code: null,
+    partner_pib: null,
+    partner_mb: null,
   });
 
   useEffect(() => {
@@ -51,6 +58,12 @@ export function QuoteDialog({
         note: quote.note,
         internal_note: quote.internal_note,
         header_note: quote.header_note,
+        partner_name: quote.partner_name,
+        partner_address: quote.partner_address,
+        partner_city: quote.partner_city,
+        partner_postal_code: quote.partner_postal_code,
+        partner_pib: quote.partner_pib,
+        partner_mb: quote.partner_mb,
       });
     } else {
       setFormData({
@@ -61,6 +74,12 @@ export function QuoteDialog({
         note: null,
         internal_note: null,
         header_note: null,
+        partner_name: null,
+        partner_address: null,
+        partner_city: null,
+        partner_postal_code: null,
+        partner_pib: null,
+        partner_mb: null,
       });
     }
   }, [quote, open]);
@@ -68,6 +87,23 @@ export function QuoteDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
+  };
+
+  const applyPartnerSnapshot = (partnerId: string) => {
+    const p = partners.find((x) => x.id === partnerId);
+
+    // When user changes partner, we want quote's snapshot fields to reflect the new partner
+    // (and not keep the previous snapshot).
+    setFormData((prev) => ({
+      ...prev,
+      partner_id: partnerId,
+      partner_name: p?.name ?? null,
+      partner_address: p?.address ?? null,
+      partner_city: p?.city ?? null,
+      partner_postal_code: p?.postal_code ?? null,
+      partner_pib: p?.pib ?? null,
+      partner_mb: p?.mb ?? null,
+    }));
   };
 
   const customerPartners = partners.filter(p => p.is_customer && p.is_active);
@@ -106,7 +142,7 @@ export function QuoteDialog({
             <SearchablePartnerSelect
               partners={customerPartners}
               value={formData.partner_id}
-              onValueChange={(value) => setFormData({ ...formData, partner_id: value })}
+              onValueChange={(value) => applyPartnerSnapshot(value)}
               placeholder="Pretraži i izaberi kupca..."
             />
           </div>
