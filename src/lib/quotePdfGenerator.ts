@@ -233,17 +233,17 @@ export async function generateQuotePdf(
   doc.setFont("Roboto", "normal");
   
   doc.text("Osnovica:", totalsX - 50, totalsY);
-  doc.text(`${formatPdfNumber(quote.subtotal)} RSD`, totalsX, totalsY, { align: "right" });
+  doc.text(`${formatPdfNumber(quote.subtotal)}`, totalsX, totalsY, { align: "right" });
   totalsY += 5;
   
   doc.text("PDV:", totalsX - 50, totalsY);
-  doc.text(`${formatPdfNumber(quote.vat_amount)} RSD`, totalsX, totalsY, { align: "right" });
+  doc.text(`${formatPdfNumber(quote.vat_amount)}`, totalsX, totalsY, { align: "right" });
   totalsY += 6;
   
   doc.setFont("Roboto", "bold");
   doc.setFontSize(11);
   doc.text("UKUPNO:", totalsX - 50, totalsY);
-  doc.text(`${formatPdfNumber(quote.total_amount)} RSD`, totalsX, totalsY, { align: "right" });
+  doc.text(`${formatPdfNumber(quote.total_amount)}`, totalsX, totalsY, { align: "right" });
 
   // Notes
   if (quote.note) {

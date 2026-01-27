@@ -122,19 +122,36 @@ export function QuoteDetailDialog({
         }
       }
 
-      // Use quote snapshot data with fallback to partner data
-      const partnerForPdf = {
-        name: quote.partner_name || quote.partner?.name || "",
-        code: quote.partner?.code || "",
-        address: quote.partner_address || quote.partner?.address || null,
-        city: quote.partner_city || quote.partner?.city || null,
-        postal_code: quote.partner_postal_code || quote.partner?.postal_code || null,
-        pib: quote.partner_pib || quote.partner?.pib || null,
-        mb: quote.partner_mb || quote.partner?.mb || null,
-      };
+       // IMPORTANT: `quote` in state can be stale (e.g. totals updated by items editor),
+       // so fetch fresh totals + notes before generating PDF.
+       const { data: freshQuote, error: freshQuoteError } = await supabase
+         .from("quotes")
+         .select(
+           "subtotal, vat_amount, total_amount, note, internal_note, header_note, partner_name, partner_address, partner_city, partner_postal_code, partner_pib, partner_mb"
+         )
+         .eq("id", quote.id)
+         .single();
+
+       if (freshQuoteError) throw freshQuoteError;
+
+       const quoteForPdf: Quote = {
+         ...quote,
+         ...freshQuote,
+       };
+
+       // Use quote snapshot data with fallback to partner data
+       const partnerForPdf = {
+         name: quoteForPdf.partner_name || quoteForPdf.partner?.name || "",
+         code: quoteForPdf.partner?.code || "",
+         address: quoteForPdf.partner_address || quoteForPdf.partner?.address || null,
+         city: quoteForPdf.partner_city || quoteForPdf.partner?.city || null,
+         postal_code: quoteForPdf.partner_postal_code || quoteForPdf.partner?.postal_code || null,
+         pib: quoteForPdf.partner_pib || quoteForPdf.partner?.pib || null,
+         mb: quoteForPdf.partner_mb || quoteForPdf.partner?.mb || null,
+       };
 
       await generateQuotePdf(
-        quote,
+         quoteForPdf,
         items,
         {
           name: companyData.name,
