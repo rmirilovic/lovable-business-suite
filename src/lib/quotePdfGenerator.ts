@@ -223,6 +223,16 @@ export async function generateQuotePdf(
   const totalsX = pageWidth - 14;
   let totalsY = finalY;
 
+  // Compute totals from items to avoid relying on potentially stale/pending persisted totals.
+  // This guarantees the PDF totals match the item table.
+  const computedSubtotal = items.reduce((sum, it) => sum + (Number(it.line_subtotal) || 0), 0);
+  const computedVat = items.reduce((sum, it) => sum + (Number(it.line_vat) || 0), 0);
+  const computedTotal = items.reduce((sum, it) => sum + (Number(it.line_total) || 0), 0);
+
+  const subtotalForPdf = items.length ? computedSubtotal : quote.subtotal;
+  const vatForPdf = items.length ? computedVat : quote.vat_amount;
+  const totalForPdf = items.length ? computedTotal : quote.total_amount;
+
   // Helper to format numbers with 2 decimals for PDF (using dot as decimal, comma as thousands)
   const formatPdfNumber = (value: number | null | undefined): string => {
     if (value === null || value === undefined || isNaN(value)) return "0,00";
@@ -233,17 +243,17 @@ export async function generateQuotePdf(
   doc.setFont("Roboto", "normal");
   
   doc.text("Osnovica:", totalsX - 50, totalsY);
-  doc.text(`${formatPdfNumber(quote.subtotal)}`, totalsX, totalsY, { align: "right" });
+  doc.text(`${formatPdfNumber(subtotalForPdf)}`, totalsX, totalsY, { align: "right" });
   totalsY += 5;
   
   doc.text("PDV:", totalsX - 50, totalsY);
-  doc.text(`${formatPdfNumber(quote.vat_amount)}`, totalsX, totalsY, { align: "right" });
+  doc.text(`${formatPdfNumber(vatForPdf)}`, totalsX, totalsY, { align: "right" });
   totalsY += 6;
   
   doc.setFont("Roboto", "bold");
   doc.setFontSize(11);
   doc.text("UKUPNO:", totalsX - 50, totalsY);
-  doc.text(`${formatPdfNumber(quote.total_amount)}`, totalsX, totalsY, { align: "right" });
+  doc.text(`${formatPdfNumber(totalForPdf)}`, totalsX, totalsY, { align: "right" });
 
   // Notes
   if (quote.note) {
