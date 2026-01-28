@@ -51,7 +51,7 @@ const navigation: NavItem[] = [
     label: "Nabavka",
     icon: FileText,
     children: [
-      { label: "Ulazne fakture", href: "/nabavka/fakture" },
+      { label: "Ulazne fakture", href: "/nabavka/ulazne-fakture" },
       { label: "Prijemnice", href: "/nabavka/prijemnice" },
       { label: "Narudžbenice", href: "/nabavka/narudzbenice" },
     ],
