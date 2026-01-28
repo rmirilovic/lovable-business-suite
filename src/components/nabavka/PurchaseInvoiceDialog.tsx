@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -107,17 +107,37 @@ export function PurchaseInvoiceDialog({
     }
   };
 
-  const handleTotalsChange = (subtotal: number, vatAmount: number, total: number) => {
+  // Use ref to track last totals and prevent unnecessary updates
+  const lastTotalsRef = useRef<{ subtotal: number; vatAmount: number; total: number } | null>(null);
+  const updateTotalsRef = useRef(updatePurchaseInvoiceTotals);
+  updateTotalsRef.current = updatePurchaseInvoiceTotals;
+
+  const handleTotalsChange = useCallback((subtotal: number, vatAmount: number, total: number) => {
     const invoiceId = invoice?.id || createdInvoiceId;
-    if (invoiceId) {
-      updatePurchaseInvoiceTotals.mutate({
-        invoiceId,
-        subtotal,
-        vat_amount: vatAmount,
-        total_amount: total,
-      });
+    if (!invoiceId) return;
+
+    // Check if values actually changed (with small tolerance for floating point)
+    const last = lastTotalsRef.current;
+    const approxEqual = (a: number, b: number) => Math.abs(a - b) < 0.005;
+    
+    if (last && 
+        approxEqual(last.subtotal, subtotal) && 
+        approxEqual(last.vatAmount, vatAmount) && 
+        approxEqual(last.total, total)) {
+      return; // Skip update if values haven't changed
     }
-  };
+
+    // Don't update while mutation is pending
+    if (updateTotalsRef.current.isPending) return;
+
+    lastTotalsRef.current = { subtotal, vatAmount, total };
+    updateTotalsRef.current.mutate({
+      invoiceId,
+      subtotal,
+      vat_amount: vatAmount,
+      total_amount: total,
+    });
+  }, [invoice?.id, createdInvoiceId]);
 
   const supplierPartners = partners.filter((p) => p.is_supplier && p.is_active);
   const activeOrgUnits = organizationalUnits.filter((ou) => ou.is_active);
