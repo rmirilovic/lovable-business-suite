@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -93,13 +93,17 @@ export function PurchaseInvoiceItemsEditor({
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<ItemFormState | null>(null);
 
-  // Calculate totals
+  // Store callback ref to prevent infinite loops
+  const onTotalsChangeRef = useRef(onTotalsChange);
+  onTotalsChangeRef.current = onTotalsChange;
+
+  // Calculate totals - only depend on items, use ref for callback
   useEffect(() => {
     const subtotal = items.reduce((sum, item) => sum + item.line_subtotal, 0);
     const vatAmount = items.reduce((sum, item) => sum + item.line_vat, 0);
     const total = items.reduce((sum, item) => sum + item.line_total, 0);
-    onTotalsChange(subtotal, vatAmount, total);
-  }, [items, onTotalsChange]);
+    onTotalsChangeRef.current(subtotal, vatAmount, total);
+  }, [items]);
 
   const calculateLineAmounts = (form: ItemFormState) => {
     const qty = parseLocaleNumber(form.quantity);
