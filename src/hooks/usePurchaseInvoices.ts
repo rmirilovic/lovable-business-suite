@@ -357,6 +357,7 @@ export function usePurchaseInvoiceItems(invoiceId: string | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["purchase-invoice-items", invoiceId] });
+      toast.success("Stavka je uspešno ažurirana");
     },
     onError: (error) => {
       toast.error(`Greška pri ažuriranju stavke: ${error.message}`);

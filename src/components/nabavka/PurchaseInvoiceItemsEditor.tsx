@@ -283,16 +283,17 @@ export function PurchaseInvoiceItemsEditor({
                   <div className="flex gap-1">
                     {editingItemId === item.id ? (
                       <>
-                        <Button size="icon" variant="ghost" onClick={handleSaveEdit}>
+                        <Button type="button" size="icon" variant="ghost" onClick={handleSaveEdit}>
                           <Save className="h-4 w-4" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={handleCancelEdit}>
+                        <Button type="button" size="icon" variant="ghost" onClick={handleCancelEdit}>
                           <X className="h-4 w-4" />
                         </Button>
                       </>
                     ) : (
                       <>
                         <Button
+                          type="button"
                           size="icon"
                           variant="ghost"
                           onClick={() => handleStartEdit(item)}
@@ -300,6 +301,7 @@ export function PurchaseInvoiceItemsEditor({
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
+                          type="button"
                           size="icon"
                           variant="ghost"
                           onClick={() => onDeleteItem(item.id)}
@@ -370,6 +372,7 @@ export function PurchaseInvoiceItemsEditor({
               </TableCell>
               <TableCell>
                 <Button
+                  type="button"
                   size="icon"
                   variant="ghost"
                   onClick={handleAddItem}
