@@ -1343,6 +1343,209 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_invoice_items: {
+        Row: {
+          article_id: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          discount_percent: number
+          id: string
+          item_code: string | null
+          item_name: string
+          item_order: number
+          line_subtotal: number
+          line_total: number
+          line_vat: number
+          purchase_invoice_id: string
+          quantity: number
+          unit: string
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          article_id?: string | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          purchase_invoice_id: string
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          article_id?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          purchase_invoice_id?: string
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_invoice_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoice_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoice_items_purchase_invoice_id_fkey"
+            columns: ["purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_invoices: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          due_date: string | null
+          id: string
+          internal_note: string | null
+          internal_number: string
+          invoice_date: string
+          journal_entry_id: string | null
+          note: string | null
+          org_unit_id: string | null
+          partner_id: string
+          posted_at: string | null
+          posted_by: string | null
+          receipt_date: string
+          status: Database["public"]["Enums"]["document_status"]
+          subtotal: number
+          supplier_invoice_number: string
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+          warehouse_id: string | null
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          due_date?: string | null
+          id?: string
+          internal_note?: string | null
+          internal_number: string
+          invoice_date?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id: string
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: Database["public"]["Enums"]["document_status"]
+          subtotal?: number
+          supplier_invoice_number: string
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          warehouse_id?: string | null
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          id?: string
+          internal_note?: string | null
+          internal_number?: string
+          invoice_date?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: Database["public"]["Enums"]["document_status"]
+          subtotal?: number
+          supplier_invoice_number?: string
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_invoices_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           article_id: string | null
