@@ -47,8 +47,12 @@ export function PurchaseInvoiceDialog({
   const { warehouses } = useWarehouses(selectedCompany?.id);
   const { createPurchaseInvoice, updatePurchaseInvoice, updatePurchaseInvoiceTotals } =
     usePurchaseInvoices();
+  const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
+
+  // Use current invoice ID (existing or newly created) for items hook
+  const currentInvoiceId = invoice?.id || createdInvoiceId;
   const { items, addItem, updateItem, deleteItem } = usePurchaseInvoiceItems(
-    invoice?.id || null
+    currentInvoiceId || null
   );
 
   const [formData, setFormData] = useState<PurchaseInvoiceFormData>({
@@ -62,8 +66,6 @@ export function PurchaseInvoiceDialog({
     note: null,
     internal_note: null,
   });
-
-  const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
 
   useEffect(() => {
     if (invoice) {
@@ -142,8 +144,6 @@ export function PurchaseInvoiceDialog({
   const supplierPartners = partners.filter((p) => p.is_supplier && p.is_active);
   const activeOrgUnits = organizationalUnits.filter((ou) => ou.is_active);
   const activeWarehouses = warehouses.filter((w) => w.is_active);
-
-  const currentInvoiceId = invoice?.id || createdInvoiceId;
   const isEditingItems = !!currentInvoiceId;
 
   return (
