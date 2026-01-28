@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -22,38 +22,31 @@ import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   usePurchaseInvoices,
-  usePurchaseInvoiceItems,
   PurchaseInvoice,
   PurchaseInvoiceFormData,
 } from "@/hooks/usePurchaseInvoices";
-import { PurchaseInvoiceItemsEditor } from "./PurchaseInvoiceItemsEditor";
 
-interface PurchaseInvoiceDialogProps {
+interface PurchaseInvoiceHeaderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   invoice: PurchaseInvoice | null;
+  onSaved?: (invoice: PurchaseInvoice) => void;
 }
 
-export function PurchaseInvoiceDialog({
+export function PurchaseInvoiceHeaderDialog({
   open,
   onOpenChange,
   invoice,
-}: PurchaseInvoiceDialogProps) {
+  onSaved,
+}: PurchaseInvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
   const { partners } = usePartners();
   const { units: organizationalUnits } = useOrganizationalUnits(selectedCompany?.id);
   const { warehouses } = useWarehouses(selectedCompany?.id);
-  const { createPurchaseInvoice, updatePurchaseInvoice, updatePurchaseInvoiceTotals } =
-    usePurchaseInvoices();
-  const [createdInvoiceId, setCreatedInvoiceId] = useState<string | null>(null);
-
-  // Use current invoice ID (existing or newly created) for items hook
-  const currentInvoiceId = invoice?.id || createdInvoiceId;
-  const { items, addItem, updateItem, deleteItem } = usePurchaseInvoiceItems(
-    currentInvoiceId || null
-  );
+  const { createPurchaseInvoice, updatePurchaseInvoice } = usePurchaseInvoices();
 
   const [formData, setFormData] = useState<PurchaseInvoiceFormData>({
     supplier_invoice_number: "",
@@ -80,7 +73,6 @@ export function PurchaseInvoiceDialog({
         note: invoice.note,
         internal_note: invoice.internal_note,
       });
-      setCreatedInvoiceId(null);
     } else {
       setFormData({
         supplier_invoice_number: "",
@@ -93,7 +85,6 @@ export function PurchaseInvoiceDialog({
         note: null,
         internal_note: null,
       });
-      setCreatedInvoiceId(null);
     }
   }, [invoice, open]);
 
@@ -105,63 +96,38 @@ export function PurchaseInvoiceDialog({
       onOpenChange(false);
     } else {
       const created = await createPurchaseInvoice.mutateAsync(formData);
-      setCreatedInvoiceId(created.id);
+      onOpenChange(false);
+      if (onSaved && created) {
+        // Fetch the full invoice with partner to pass to onSaved
+        const { data: fullInvoice } = await supabase
+          .from("purchase_invoices")
+          .select(`*, partner:partners(id, name, code)`)
+          .eq("id", created.id)
+          .single();
+        if (fullInvoice) {
+          onSaved(fullInvoice as PurchaseInvoice);
+        }
+      }
     }
   };
-
-  // Use ref to track last totals and prevent unnecessary updates
-  const lastTotalsRef = useRef<{ subtotal: number; vatAmount: number; total: number } | null>(null);
-  const updateTotalsRef = useRef(updatePurchaseInvoiceTotals);
-  updateTotalsRef.current = updatePurchaseInvoiceTotals;
-
-  const handleTotalsChange = useCallback((subtotal: number, vatAmount: number, total: number) => {
-    const invoiceId = invoice?.id || createdInvoiceId;
-    if (!invoiceId) return;
-
-    // Check if values actually changed (with small tolerance for floating point)
-    const last = lastTotalsRef.current;
-    const approxEqual = (a: number, b: number) => Math.abs(a - b) < 0.005;
-    
-    if (last && 
-        approxEqual(last.subtotal, subtotal) && 
-        approxEqual(last.vatAmount, vatAmount) && 
-        approxEqual(last.total, total)) {
-      return; // Skip update if values haven't changed
-    }
-
-    // Don't update while mutation is pending
-    if (updateTotalsRef.current.isPending) return;
-
-    lastTotalsRef.current = { subtotal, vatAmount, total };
-    updateTotalsRef.current.mutate({
-      invoiceId,
-      subtotal,
-      vat_amount: vatAmount,
-      total_amount: total,
-    });
-  }, [invoice?.id, createdInvoiceId]);
 
   const supplierPartners = partners.filter((p) => p.is_supplier && p.is_active);
   const activeOrgUnits = organizationalUnits.filter((ou) => ou.is_active);
   const activeWarehouses = warehouses.filter((w) => w.is_active);
-  const isEditingItems = !!currentInvoiceId;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
           <DialogTitle>
             {invoice
-              ? `Izmena ulazne fakture: ${invoice.internal_number}`
-              : createdInvoiceId
-              ? "Nova ulazna faktura - Dodavanje stavki"
+              ? `Uredi zaglavlje: ${invoice.internal_number}`
               : "Nova ulazna faktura"}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
-          {/* Header Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="supplier_invoice_number">Broj fakture dobavljača *</Label>
               <Input
@@ -172,7 +138,6 @@ export function PurchaseInvoiceDialog({
                 }
                 required
                 autoComplete="off"
-                disabled={isEditingItems && !invoice}
               />
             </div>
 
@@ -181,7 +146,6 @@ export function PurchaseInvoiceDialog({
               <LocaleDateInput
                 value={formData.invoice_date}
                 onChange={(value) => setFormData({ ...formData, invoice_date: value })}
-                disabled={isEditingItems && !invoice}
               />
             </div>
 
@@ -190,7 +154,6 @@ export function PurchaseInvoiceDialog({
               <LocaleDateInput
                 value={formData.receipt_date}
                 onChange={(value) => setFormData({ ...formData, receipt_date: value })}
-                disabled={isEditingItems && !invoice}
               />
             </div>
 
@@ -201,21 +164,21 @@ export function PurchaseInvoiceDialog({
                 onChange={(value) =>
                   setFormData({ ...formData, due_date: value || null })
                 }
-                disabled={isEditingItems && !invoice}
               />
             </div>
+          </div>
 
-            <div className="space-y-2 lg:col-span-2">
-              <Label>Dobavljač *</Label>
-              <SearchablePartnerSelect
-                partners={supplierPartners}
-                value={formData.partner_id}
-                onValueChange={(value) => setFormData({ ...formData, partner_id: value })}
-                placeholder="Pretraži i izaberi dobavljača..."
-                disabled={isEditingItems && !invoice}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label>Dobavljač *</Label>
+            <SearchablePartnerSelect
+              partners={supplierPartners}
+              value={formData.partner_id}
+              onValueChange={(value) => setFormData({ ...formData, partner_id: value })}
+              placeholder="Pretraži i izaberi dobavljača..."
+            />
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Organizaciona jedinica</Label>
               <Select
@@ -226,7 +189,6 @@ export function PurchaseInvoiceDialog({
                     org_unit_id: value === "none" ? null : value,
                   })
                 }
-                disabled={isEditingItems && !invoice}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Izaberite OJ" />
@@ -252,7 +214,6 @@ export function PurchaseInvoiceDialog({
                     warehouse_id: value === "none" ? null : value,
                   })
                 }
-                disabled={isEditingItems && !invoice}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Izaberite magacin" />
@@ -269,8 +230,7 @@ export function PurchaseInvoiceDialog({
             </div>
           </div>
 
-          {/* Notes Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="note">Napomena</Label>
               <Textarea
@@ -280,7 +240,6 @@ export function PurchaseInvoiceDialog({
                   setFormData({ ...formData, note: e.target.value || null })
                 }
                 rows={2}
-                disabled={isEditingItems && !invoice}
               />
             </div>
             <div className="space-y-2">
@@ -292,49 +251,29 @@ export function PurchaseInvoiceDialog({
                   setFormData({ ...formData, internal_note: e.target.value || null })
                 }
                 rows={2}
-                disabled={isEditingItems && !invoice}
               />
             </div>
           </div>
 
-          {/* Items Section - only show after invoice is created */}
-          {isEditingItems && (
-            <PurchaseInvoiceItemsEditor
-              invoiceId={currentInvoiceId!}
-              items={items}
-              onAddItem={addItem.mutateAsync}
-              onUpdateItem={updateItem.mutateAsync}
-              onDeleteItem={deleteItem.mutateAsync}
-              onTotalsChange={handleTotalsChange}
-            />
-          )}
-
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4 border-t sticky bottom-0 bg-background">
+          <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {isEditingItems ? "Zatvori" : "Otkaži"}
+              Otkaži
             </Button>
-            {!isEditingItems && (
-              <Button
-                type="submit"
-                disabled={
-                  !formData.partner_id ||
-                  !formData.supplier_invoice_number ||
-                  createPurchaseInvoice.isPending ||
-                  updatePurchaseInvoice.isPending
-                }
-              >
-                {invoice ? "Sačuvaj" : "Kreiraj i dodaj stavke"}
-              </Button>
-            )}
-            {isEditingItems && invoice && (
-              <Button
-                type="submit"
-                disabled={updatePurchaseInvoice.isPending}
-              >
-                Sačuvaj izmene
-              </Button>
-            )}
+            <Button
+              type="submit"
+              disabled={
+                !formData.partner_id ||
+                !formData.supplier_invoice_number ||
+                createPurchaseInvoice.isPending ||
+                updatePurchaseInvoice.isPending
+              }
+            >
+              {createPurchaseInvoice.isPending || updatePurchaseInvoice.isPending
+                ? "Čuvanje..."
+                : invoice
+                ? "Sačuvaj"
+                : "Kreiraj"}
+            </Button>
           </div>
         </form>
       </DialogContent>
