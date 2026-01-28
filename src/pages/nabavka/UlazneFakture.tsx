@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,9 +27,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, FileText } from "lucide-react";
 import { usePurchaseInvoices, PurchaseInvoice } from "@/hooks/usePurchaseInvoices";
-import { PurchaseInvoiceDialog } from "@/components/nabavka/PurchaseInvoiceDialog";
+import { PurchaseInvoiceHeaderDialog } from "@/components/nabavka/PurchaseInvoiceHeaderDialog";
 import { PurchaseInvoiceDetailDialog } from "@/components/nabavka/PurchaseInvoiceDetailDialog";
 import { formatNumber, formatDate } from "@/lib/formatting";
 
@@ -48,11 +48,26 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive" | "
 export default function UlazneFakture() {
   const { purchaseInvoices, isLoading, deletePurchaseInvoice } = usePurchaseInvoices();
   const [searchTerm, setSearchTerm] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<PurchaseInvoice | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<PurchaseInvoice | null>(null);
+
+  // Keep selected invoice in sync with latest query data
+  useEffect(() => {
+    if (!selectedInvoice) return;
+    const updated = purchaseInvoices.find((inv) => inv.id === selectedInvoice.id);
+    if (!updated) return;
+    // Update if status or totals changed
+    if (
+      updated.status !== selectedInvoice.status ||
+      updated.total_amount !== selectedInvoice.total_amount ||
+      updated.subtotal !== selectedInvoice.subtotal
+    ) {
+      setSelectedInvoice(updated);
+    }
+  }, [purchaseInvoices, selectedInvoice?.id, selectedInvoice?.status, selectedInvoice?.total_amount, selectedInvoice?.subtotal]);
 
   const filteredInvoices = purchaseInvoices.filter(
     (invoice) =>
@@ -64,12 +79,12 @@ export default function UlazneFakture() {
 
   const handleCreate = () => {
     setSelectedInvoice(null);
-    setDialogOpen(true);
+    setHeaderDialogOpen(true);
   };
 
   const handleEdit = (invoice: PurchaseInvoice) => {
     setSelectedInvoice(invoice);
-    setDialogOpen(true);
+    setHeaderDialogOpen(true);
   };
 
   const handleView = (invoice: PurchaseInvoice) => {
@@ -90,19 +105,20 @@ export default function UlazneFakture() {
     }
   };
 
+  const handleNewInvoiceSaved = (invoice: PurchaseInvoice) => {
+    // Open detail dialog for the new invoice to add items
+    setSelectedInvoice(invoice);
+    setDetailDialogOpen(true);
+  };
+
   return (
     <MainLayout title="Ulazne fakture">
-      <div className="space-y-4">
-        <div className="flex justify-between items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Pretraži po broju, dobavljaču..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              autoComplete="off"
-            />
+      <div className="space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Ulazne fakture</h1>
+            <p className="text-muted-foreground">Upravljanje ulaznim fakturama od dobavljača</p>
           </div>
           <Button onClick={handleCreate}>
             <Plus className="h-4 w-4 mr-2" />
@@ -110,6 +126,21 @@ export default function UlazneFakture() {
           </Button>
         </div>
 
+        {/* Search */}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Pretraži po broju ili dobavljaču..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+              autoComplete="off"
+            />
+          </div>
+        </div>
+
+        {/* Table */}
         <div className="border rounded-lg">
           <Table>
             <TableHeader>
@@ -121,46 +152,55 @@ export default function UlazneFakture() {
                 <TableHead>Dobavljač</TableHead>
                 <TableHead className="text-right">Ukupno</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : filteredInvoices.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    {searchTerm ? "Nema rezultata pretrage" : "Nema ulaznih faktura"}
+                    {searchTerm ? "Nema rezultata pretrage" : "Nema ulaznih faktura. Kreirajte novu ulaznu fakturu."}
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredInvoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.internal_number}</TableCell>
+                  <TableRow
+                    key={invoice.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleView(invoice)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{invoice.internal_number}</span>
+                      </div>
+                    </TableCell>
                     <TableCell>{invoice.supplier_invoice_number}</TableCell>
                     <TableCell>{formatDate(invoice.invoice_date)}</TableCell>
                     <TableCell>{formatDate(invoice.receipt_date)}</TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium">{invoice.partner?.name}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">
                           {invoice.partner?.code}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {formatNumber(invoice.total_amount)}
+                      {formatNumber(invoice.total_amount)} RSD
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusVariants[invoice.status]}>
                         {statusLabels[invoice.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -176,7 +216,7 @@ export default function UlazneFakture() {
                             <>
                               <DropdownMenuItem onClick={() => handleEdit(invoice)}>
                                 <Pencil className="h-4 w-4 mr-2" />
-                                Izmeni
+                                Uredi zaglavlje
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleDeleteClick(invoice)}
@@ -198,16 +238,21 @@ export default function UlazneFakture() {
         </div>
       </div>
 
-      <PurchaseInvoiceDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+      <PurchaseInvoiceHeaderDialog
+        open={headerDialogOpen}
+        onOpenChange={setHeaderDialogOpen}
         invoice={selectedInvoice}
+        onSaved={handleNewInvoiceSaved}
       />
 
       <PurchaseInvoiceDetailDialog
         open={detailDialogOpen}
         onOpenChange={setDetailDialogOpen}
         invoice={selectedInvoice}
+        onEdit={() => {
+          setDetailDialogOpen(false);
+          handleEdit(selectedInvoice!);
+        }}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
