@@ -208,32 +208,31 @@ export function PurchaseInvoiceHeaderDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Tekući račun dobavljača</Label>
-              <Select
-                value={formData.supplier_bank_account || "none"}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    supplier_bank_account: value === "none" ? null : value,
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Izaberite tekući račun" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">-- Bez računa --</SelectItem>
+              <Label htmlFor="supplier_bank_account">Tekući račun dobavljača</Label>
+              <div className="relative">
+                <Input
+                  id="supplier_bank_account"
+                  list="bank-accounts-list"
+                  value={formData.supplier_bank_account || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      supplier_bank_account: e.target.value || null,
+                    })
+                  }
+                  placeholder="Unesite ili izaberite tekući račun"
+                  autoComplete="off"
+                />
+                <datalist id="bank-accounts-list">
                   {bankAccounts.map((acc) => (
-                    <SelectItem key={acc.id} value={acc.account_number}>
-                      {acc.account_number}
-                    </SelectItem>
+                    <option key={acc.id} value={acc.account_number} />
                   ))}
-                </SelectContent>
-              </Select>
+                </datalist>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="payment_reference">Poziv na broj</Label>
+              <Label htmlFor="payment_reference">Poziv na broj prilikom uplate</Label>
               <Input
                 id="payment_reference"
                 value={formData.payment_reference || ""}
