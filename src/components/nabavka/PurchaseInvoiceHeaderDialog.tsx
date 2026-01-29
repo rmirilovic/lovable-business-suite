@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
-import { usePartners } from "@/hooks/usePartners";
+import { usePartners, usePartnerBankAccounts } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,7 +58,12 @@ export function PurchaseInvoiceHeaderDialog({
     warehouse_id: null,
     note: null,
     internal_note: null,
+    supplier_bank_account: null,
+    payment_reference: null,
   });
+
+  // Fetch bank accounts for selected partner
+  const { bankAccounts } = usePartnerBankAccounts(formData.partner_id || null);
 
   useEffect(() => {
     if (invoice) {
@@ -72,6 +77,8 @@ export function PurchaseInvoiceHeaderDialog({
         warehouse_id: invoice.warehouse_id,
         note: invoice.note,
         internal_note: invoice.internal_note,
+        supplier_bank_account: invoice.supplier_bank_account,
+        payment_reference: invoice.payment_reference,
       });
     } else {
       setFormData({
@@ -84,9 +91,30 @@ export function PurchaseInvoiceHeaderDialog({
         warehouse_id: null,
         note: null,
         internal_note: null,
+        supplier_bank_account: null,
+        payment_reference: null,
       });
     }
   }, [invoice, open]);
+
+  // When partner changes, set default bank account
+  const handlePartnerChange = async (newPartnerId: string) => {
+    // Fetch bank accounts for new partner
+    const { data: accounts } = await supabase
+      .from("partner_bank_accounts")
+      .select("account_number")
+      .eq("partner_id", newPartnerId)
+      .order("sort_order")
+      .limit(1);
+
+    const defaultAccount = accounts?.[0]?.account_number || null;
+
+    setFormData((prev) => ({
+      ...prev,
+      partner_id: newPartnerId,
+      supplier_bank_account: defaultAccount,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,9 +201,49 @@ export function PurchaseInvoiceHeaderDialog({
             <SearchablePartnerSelect
               partners={supplierPartners}
               value={formData.partner_id}
-              onValueChange={(value) => setFormData({ ...formData, partner_id: value })}
+              onValueChange={handlePartnerChange}
               placeholder="Pretraži i izaberi dobavljača..."
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tekući račun dobavljača</Label>
+              <Select
+                value={formData.supplier_bank_account || "none"}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    supplier_bank_account: value === "none" ? null : value,
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Izaberite tekući račun" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">-- Bez računa --</SelectItem>
+                  {bankAccounts.map((acc) => (
+                    <SelectItem key={acc.id} value={acc.account_number}>
+                      {acc.account_number}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="payment_reference">Poziv na broj</Label>
+              <Input
+                id="payment_reference"
+                value={formData.payment_reference || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, payment_reference: e.target.value || null })
+                }
+                placeholder="Poziv na broj sa fakture dobavljača"
+                autoComplete="off"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
