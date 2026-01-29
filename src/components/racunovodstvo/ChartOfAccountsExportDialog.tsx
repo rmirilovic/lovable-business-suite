@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Loader2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
-import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
+import { useChartOfAccounts, ACCOUNT_TYPE_LABELS } from "@/hooks/useChartOfAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ExportColumn {
@@ -26,11 +26,11 @@ interface ChartOfAccountsExportDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const defaultColumns: ExportColumn[] = [
+const getDefaultColumns = (): ExportColumn[] => [
   { key: "code", label: "Šifra", checked: true },
   { key: "name", label: "Naziv", checked: true },
   { key: "parent_code", label: "Nadšifra", checked: true },
-  { key: "account_type", label: "Tip konta", checked: true },
+  { key: "account_type", label: "Tip konta", checked: true, format: (v) => ACCOUNT_TYPE_LABELS[v as keyof typeof ACCOUNT_TYPE_LABELS] || v },
   { key: "level", label: "Nivo", checked: true },
   { key: "is_posting_allowed", label: "Dozvoljeno knjiženje", checked: true, format: (v) => v ? "Da" : "Ne" },
   { key: "is_active", label: "Status", checked: true, format: (v) => v ? "Aktivan" : "Neaktivan" },
@@ -42,8 +42,8 @@ export function ChartOfAccountsExportDialog({
   onOpenChange,
 }: ChartOfAccountsExportDialogProps) {
   const { selectedCompany } = useAuth();
-  const { data: accounts = [] } = useChartOfAccounts();
-  const [columns, setColumns] = useState<ExportColumn[]>(defaultColumns);
+  const { data: accounts = [], isLoading } = useChartOfAccounts();
+  const [columns, setColumns] = useState<ExportColumn[]>(getDefaultColumns());
   const [exporting, setExporting] = useState(false);
 
   const selectedCount = columns.filter((c) => c.checked).length;
@@ -155,7 +155,11 @@ export function ChartOfAccountsExportDialog({
 
           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground">
-              Biće izvezeno <span className="font-medium text-foreground">{accounts.length}</span> konta
+              {isLoading ? (
+                "Učitavanje..."
+              ) : (
+                <>Biće izvezeno <span className="font-medium text-foreground">{accounts.length}</span> konta</>
+              )}
             </p>
           </div>
         </div>
@@ -164,11 +168,16 @@ export function ChartOfAccountsExportDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Otkaži
           </Button>
-          <Button onClick={handleExport} disabled={exporting || selectedCount === 0}>
+          <Button onClick={handleExport} disabled={exporting || isLoading || selectedCount === 0 || accounts.length === 0}>
             {exporting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Izvoz...
+              </>
+            ) : isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Učitavanje...
               </>
             ) : (
               <>
