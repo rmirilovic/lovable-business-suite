@@ -36,6 +36,8 @@ const navigation: NavItem[] = [
       { label: "Magacini", href: "/sifarnici/magacini" },
       { label: "Partneri", href: "/sifarnici/partneri" },
       { label: "Organizacione jedinice", href: "/sifarnici/org-jedinice" },
+      { label: "Kontni plan", href: "/sifarnici/kontni-plan" },
+      { label: "Ulazni troškovi", href: "/sifarnici/ulazni-troskovi" },
     ],
   },
   {
@@ -71,7 +73,6 @@ const navigation: NavItem[] = [
     label: "Računovodstvo",
     icon: FileText,
     children: [
-      { label: "Kontni plan", href: "/racunovodstvo/kontni-plan" },
       { label: "Nalozi za knjiženje", href: "/racunovodstvo/nalozi" },
       { label: "Glavna knjiga", href: "/racunovodstvo/glavna-knjiga" },
       { label: "Bruto bilans", href: "/racunovodstvo/bruto-bilans" },
