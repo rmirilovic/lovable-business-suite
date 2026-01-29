@@ -5,7 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, FileSpreadsheet } from "lucide-react";
-import { useChartOfAccounts, useChartOfAccountsMutations } from "@/hooks/useChartOfAccounts";
+import { useChartOfAccounts, AccountType } from "@/hooks/useChartOfAccounts";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
@@ -31,17 +34,32 @@ const FIELD_LABELS: Record<string, string> = {
 const SYNONYMS: Record<string, string[]> = {
   code: ["šifra", "sifra", "konto", "code", "account_code"],
   name: ["naziv", "name", "opis konta", "naziv konta"],
-  account_type: ["tip", "type", "vrsta"],
-  parent_code: ["nadšifra", "nadsifra", "parent", "nadređeni"],
+  account_type: ["tip", "type", "vrsta", "tipkonta"],
+  parent_code: ["nadšifra", "nadsifra", "parent", "nadređeni", "nadkonto"],
   level: ["nivo", "level"],
-  is_active: ["aktivan", "active"],
-  is_posting_allowed: ["knjiženje", "posting", "analitički"],
+  is_active: ["aktivan", "active", "status"],
+  is_posting_allowed: ["knjiženje", "posting", "analitički", "dozvoljenoknjizenje"],
   description: ["opis", "description", "napomena"],
 };
 
+// Map Serbian account type labels to English enum values
+const ACCOUNT_TYPE_MAP: Record<string, AccountType> = {
+  "aktiva": "asset",
+  "pasiva": "liability",
+  "kapital": "equity",
+  "prihodi": "revenue",
+  "rashodi": "expense",
+  "asset": "asset",
+  "liability": "liability",
+  "equity": "equity",
+  "revenue": "revenue",
+  "expense": "expense",
+};
+
 export function ChartOfAccountsImportDialog({ open, onOpenChange }: ChartOfAccountsImportDialogProps) {
-  const { createAccount, updateAccount } = useChartOfAccountsMutations();
   const { data: existingAccounts = [] } = useChartOfAccounts();
+  const { selectedCompany } = useAuth();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -93,9 +111,28 @@ export function ChartOfAccountsImportDialog({ open, onOpenChange }: ChartOfAccou
     reader.readAsArrayBuffer(selectedFile);
   };
 
+  const parseAccountType = (value: unknown): AccountType => {
+    if (!value) return "asset";
+    const normalized = String(value).toLowerCase().trim();
+    return ACCOUNT_TYPE_MAP[normalized] || "asset";
+  };
+
+  const parseBoolean = (value: unknown, defaultValue: boolean): boolean => {
+    if (value === undefined || value === null || value === "") return defaultValue;
+    const str = String(value).toLowerCase().trim();
+    if (str === "da" || str === "aktivan" || str === "true" || str === "1" || str === "yes") return true;
+    if (str === "ne" || str === "neaktivan" || str === "false" || str === "0" || str === "no") return false;
+    return defaultValue;
+  };
+
   const handleImport = async () => {
     if (!mapping.code || !mapping.name) {
       toast.error("Morate mapirati obavezna polja: Šifra i Naziv");
+      return;
+    }
+
+    if (!selectedCompany?.id) {
+      toast.error("Nije izabrana firma");
       return;
     }
 
@@ -120,57 +157,93 @@ export function ChartOfAccountsImportDialog({ open, onOpenChange }: ChartOfAccou
         // Build lookup map for existing accounts
         const existingMap = new Map(existingAccounts.map(acc => [acc.code, acc]));
 
-        let createdCount = 0;
-        let updatedCount = 0;
-        let errorCount = 0;
+        const toCreate: any[] = [];
+        const toUpdate: { id: string; data: any }[] = [];
+        let skippedCount = 0;
 
         for (const row of sorted) {
           const code = String(row[mapping.code] || "").trim();
           const name = String(row[mapping.name] || "").trim();
 
-          if (!code || !name) continue;
+          if (!code || !name) {
+            skippedCount++;
+            continue;
+          }
 
           const accountData = {
             code,
             name,
-            account_type: mapping.account_type ? String(row[mapping.account_type] || "asset") as any : "asset",
+            company_id: selectedCompany.id,
+            account_type: parseAccountType(mapping.account_type ? row[mapping.account_type] : null),
             parent_code: mapping.parent_code ? String(row[mapping.parent_code] || "") || null : null,
             level: mapping.level ? Number(row[mapping.level]) || code.length : code.length,
-            is_active: mapping.is_active ? String(row[mapping.is_active]).toLowerCase() !== "ne" : true,
-            is_posting_allowed: mapping.is_posting_allowed ? String(row[mapping.is_posting_allowed]).toLowerCase() !== "ne" : code.length >= 4,
+            is_active: parseBoolean(mapping.is_active ? row[mapping.is_active] : null, true),
+            is_posting_allowed: parseBoolean(mapping.is_posting_allowed ? row[mapping.is_posting_allowed] : null, code.length >= 3),
             description: mapping.description ? String(row[mapping.description] || "") || null : null,
           };
 
           const existing = existingMap.get(code);
 
-          try {
-            if (existing && updateExisting) {
-              await updateAccount.mutateAsync({ id: existing.id, ...accountData });
-              updatedCount++;
-            } else if (!existing) {
-              await createAccount.mutateAsync(accountData);
-              createdCount++;
-            }
-          } catch (error) {
-            errorCount++;
-            console.warn(`Greška za konto ${code}:`, error);
+          if (existing && updateExisting) {
+            toUpdate.push({ id: existing.id, data: accountData });
+          } else if (!existing) {
+            toCreate.push(accountData);
           }
         }
+
+        let createdCount = 0;
+        let updatedCount = 0;
+        let errorCount = 0;
+
+        // Batch insert new records
+        if (toCreate.length > 0) {
+          const batchSize = 50;
+          for (let i = 0; i < toCreate.length; i += batchSize) {
+            const batch = toCreate.slice(i, i + batchSize);
+            const { error } = await supabase.from("chart_of_accounts").insert(batch);
+            if (error) {
+              console.error("Insert error:", error);
+              errorCount += batch.length;
+            } else {
+              createdCount += batch.length;
+            }
+          }
+        }
+
+        // Batch update existing records
+        if (toUpdate.length > 0) {
+          for (const { id, data } of toUpdate) {
+            const { error } = await supabase
+              .from("chart_of_accounts")
+              .update(data)
+              .eq("id", id);
+            if (error) {
+              console.error("Update error:", error);
+              errorCount++;
+            } else {
+              updatedCount++;
+            }
+          }
+        }
+
+        // Invalidate query cache once at the end
+        queryClient.invalidateQueries({ queryKey: ["chart-of-accounts"] });
 
         const messages: string[] = [];
         if (createdCount > 0) messages.push(`kreirano ${createdCount}`);
         if (updatedCount > 0) messages.push(`ažurirano ${updatedCount}`);
+        if (skippedCount > 0) messages.push(`preskočeno ${skippedCount}`);
         if (errorCount > 0) messages.push(`${errorCount} grešaka`);
         
         toast.success(`Uvoz završen: ${messages.join(", ")}`);
         onOpenChange(false);
         resetState();
+        setImporting(false);
       };
 
       reader.readAsArrayBuffer(file!);
     } catch (error) {
       toast.error("Greška pri uvozu");
-    } finally {
       setImporting(false);
     }
   };
