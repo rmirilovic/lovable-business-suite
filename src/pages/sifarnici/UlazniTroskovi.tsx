@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -54,12 +55,14 @@ export default function UlazniTroskovi() {
   // Filter posting-allowed accounts for selection
   const postingAccounts = accounts.filter((a) => a.is_posting_allowed && a.is_active);
 
-  const filteredCosts = costs.filter(
-    (c) =>
-      c.code.toLowerCase().includes(search.toLowerCase()) ||
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.account_code.includes(search)
-  );
+  const filteredCosts = costs
+    .filter(
+      (c) =>
+        c.code.toLowerCase().includes(search.toLowerCase()) ||
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
+        c.account_code.includes(search)
+    )
+    .sort((a, b) => a.code.localeCompare(b.code, 'sr', { numeric: true }));
 
   const getAccountName = (code: string) => {
     const account = accounts.find((a) => a.code === code);
@@ -102,6 +105,15 @@ export default function UlazniTroskovi() {
 
   const handleSubmit = async () => {
     if (!formData.code || !formData.account_code || !formData.name) {
+      return;
+    }
+
+    // Check for duplicate code
+    const existingWithCode = costs.find(
+      (c) => c.code.toLowerCase() === formData.code.toLowerCase() && c.id !== editingCost?.id
+    );
+    if (existingWithCode) {
+      toast.error(`Trošak sa šifrom "${formData.code}" već postoji!`);
       return;
     }
 
