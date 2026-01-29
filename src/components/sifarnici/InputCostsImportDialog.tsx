@@ -3,8 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, FileSpreadsheet } from "lucide-react";
-import { useInputCostsMutations } from "@/hooks/useInputCosts";
+import { useInputCosts, useInputCostsMutations } from "@/hooks/useInputCosts";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
@@ -37,7 +38,8 @@ const SYNONYMS: Record<string, string[]> = {
 };
 
 export function InputCostsImportDialog({ open, onOpenChange }: InputCostsImportDialogProps) {
-  const { bulkCreateInputCosts } = useInputCostsMutations();
+  const { bulkCreateInputCosts, updateInputCost } = useInputCostsMutations();
+  const { data: existingCosts = [] } = useInputCosts();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -45,6 +47,7 @@ export function InputCostsImportDialog({ open, onOpenChange }: InputCostsImportD
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [previewData, setPreviewData] = useState<Record<string, unknown>[]>([]);
   const [importing, setImporting] = useState(false);
+  const [updateExisting, setUpdateExisting] = useState(true);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -104,36 +107,56 @@ export function InputCostsImportDialog({ open, onOpenChange }: InputCostsImportD
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
 
-        const items = jsonData
-          .map((row) => {
-            const code = String(row[mapping.code] || "").trim();
-            const account_code = String(row[mapping.account_code] || "").trim();
-            const name = String(row[mapping.name] || "").trim();
+        // Build lookup map for existing costs
+        const existingMap = new Map(existingCosts.map(cost => [cost.code, cost]));
 
-            if (!code || !account_code || !name) return null;
+        let createdCount = 0;
+        let updatedCount = 0;
+        let errorCount = 0;
 
-            return {
-              code,
-              account_code,
-              name,
-              vat_rate: mapping.vat_rate ? Number(row[mapping.vat_rate]) || 20 : 20,
-              is_vat_deductible: mapping.is_vat_deductible
-                ? String(row[mapping.is_vat_deductible]).toLowerCase() !== "ne"
-                : true,
-              is_active: mapping.is_active
-                ? String(row[mapping.is_active]).toLowerCase() !== "ne"
-                : true,
-              description: mapping.description ? String(row[mapping.description] || "") || null : null,
-            };
-          })
-          .filter(Boolean) as any[];
+        for (const row of jsonData) {
+          const code = String(row[mapping.code] || "").trim();
+          const account_code = String(row[mapping.account_code] || "").trim();
+          const name = String(row[mapping.name] || "").trim();
 
-        if (items.length === 0) {
-          toast.error("Nema validnih stavki za uvoz");
-          return;
+          if (!code || !account_code || !name) continue;
+
+          const costData = {
+            code,
+            account_code,
+            name,
+            vat_rate: mapping.vat_rate ? Number(row[mapping.vat_rate]) || 20 : 20,
+            is_vat_deductible: mapping.is_vat_deductible
+              ? String(row[mapping.is_vat_deductible]).toLowerCase() !== "ne"
+              : true,
+            is_active: mapping.is_active
+              ? String(row[mapping.is_active]).toLowerCase() !== "ne"
+              : true,
+            description: mapping.description ? String(row[mapping.description] || "") || null : null,
+          };
+
+          const existing = existingMap.get(code);
+
+          try {
+            if (existing && updateExisting) {
+              await updateInputCost.mutateAsync({ id: existing.id, ...costData });
+              updatedCount++;
+            } else if (!existing) {
+              await bulkCreateInputCosts.mutateAsync([costData]);
+              createdCount++;
+            }
+          } catch (error) {
+            errorCount++;
+            console.warn(`Greška za trošak ${code}:`, error);
+          }
         }
 
-        await bulkCreateInputCosts.mutateAsync(items);
+        const messages: string[] = [];
+        if (createdCount > 0) messages.push(`kreirano ${createdCount}`);
+        if (updatedCount > 0) messages.push(`ažurirano ${updatedCount}`);
+        if (errorCount > 0) messages.push(`${errorCount} grešaka`);
+        
+        toast.success(`Uvoz završen: ${messages.join(", ")}`);
         onOpenChange(false);
         resetState();
       };
@@ -229,6 +252,18 @@ export function InputCostsImportDialog({ open, onOpenChange }: InputCostsImportD
                     </tbody>
                   </table>
                 </div>
+              </div>
+              
+              {/* Update existing option */}
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox
+                  id="updateExisting"
+                  checked={updateExisting}
+                  onCheckedChange={(checked) => setUpdateExisting(checked === true)}
+                />
+                <Label htmlFor="updateExisting" className="text-sm cursor-pointer">
+                  Ažuriraj postojeće troškove prema šifri
+                </Label>
               </div>
             </div>
           )}

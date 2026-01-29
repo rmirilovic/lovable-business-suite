@@ -3,8 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, FileSpreadsheet } from "lucide-react";
-import { useChartOfAccountsMutations } from "@/hooks/useChartOfAccounts";
+import { useChartOfAccounts, useChartOfAccountsMutations } from "@/hooks/useChartOfAccounts";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
@@ -39,7 +40,8 @@ const SYNONYMS: Record<string, string[]> = {
 };
 
 export function ChartOfAccountsImportDialog({ open, onOpenChange }: ChartOfAccountsImportDialogProps) {
-  const { createAccount } = useChartOfAccountsMutations();
+  const { createAccount, updateAccount } = useChartOfAccountsMutations();
+  const { data: existingAccounts = [] } = useChartOfAccounts();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -47,6 +49,7 @@ export function ChartOfAccountsImportDialog({ open, onOpenChange }: ChartOfAccou
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [previewData, setPreviewData] = useState<Record<string, unknown>[]>([]);
   const [importing, setImporting] = useState(false);
+  const [updateExisting, setUpdateExisting] = useState(true);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -114,7 +117,11 @@ export function ChartOfAccountsImportDialog({ open, onOpenChange }: ChartOfAccou
           return codeA.localeCompare(codeB);
         });
 
-        let successCount = 0;
+        // Build lookup map for existing accounts
+        const existingMap = new Map(existingAccounts.map(acc => [acc.code, acc]));
+
+        let createdCount = 0;
+        let updatedCount = 0;
         let errorCount = 0;
 
         for (const row of sorted) {
@@ -123,25 +130,39 @@ export function ChartOfAccountsImportDialog({ open, onOpenChange }: ChartOfAccou
 
           if (!code || !name) continue;
 
+          const accountData = {
+            code,
+            name,
+            account_type: mapping.account_type ? String(row[mapping.account_type] || "asset") as any : "asset",
+            parent_code: mapping.parent_code ? String(row[mapping.parent_code] || "") || null : null,
+            level: mapping.level ? Number(row[mapping.level]) || code.length : code.length,
+            is_active: mapping.is_active ? String(row[mapping.is_active]).toLowerCase() !== "ne" : true,
+            is_posting_allowed: mapping.is_posting_allowed ? String(row[mapping.is_posting_allowed]).toLowerCase() !== "ne" : code.length >= 4,
+            description: mapping.description ? String(row[mapping.description] || "") || null : null,
+          };
+
+          const existing = existingMap.get(code);
+
           try {
-            await createAccount.mutateAsync({
-              code,
-              name,
-              account_type: mapping.account_type ? String(row[mapping.account_type] || "asset") as any : "asset",
-              parent_code: mapping.parent_code ? String(row[mapping.parent_code] || "") || null : null,
-              level: mapping.level ? Number(row[mapping.level]) || code.length : code.length,
-              is_active: mapping.is_active ? String(row[mapping.is_active]).toLowerCase() !== "ne" : true,
-              is_posting_allowed: mapping.is_posting_allowed ? String(row[mapping.is_posting_allowed]).toLowerCase() !== "ne" : code.length >= 4,
-              description: mapping.description ? String(row[mapping.description] || "") || null : null,
-            });
-            successCount++;
+            if (existing && updateExisting) {
+              await updateAccount.mutateAsync({ id: existing.id, ...accountData });
+              updatedCount++;
+            } else if (!existing) {
+              await createAccount.mutateAsync(accountData);
+              createdCount++;
+            }
           } catch (error) {
             errorCount++;
             console.warn(`Greška za konto ${code}:`, error);
           }
         }
 
-        toast.success(`Uvezeno ${successCount} konta${errorCount > 0 ? `, ${errorCount} preskočeno` : ""}`);
+        const messages: string[] = [];
+        if (createdCount > 0) messages.push(`kreirano ${createdCount}`);
+        if (updatedCount > 0) messages.push(`ažurirano ${updatedCount}`);
+        if (errorCount > 0) messages.push(`${errorCount} grešaka`);
+        
+        toast.success(`Uvoz završen: ${messages.join(", ")}`);
         onOpenChange(false);
         resetState();
       };
@@ -240,6 +261,18 @@ export function ChartOfAccountsImportDialog({ open, onOpenChange }: ChartOfAccou
                     </tbody>
                   </table>
                 </div>
+              </div>
+              
+              {/* Update existing option */}
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox
+                  id="updateExisting"
+                  checked={updateExisting}
+                  onCheckedChange={(checked) => setUpdateExisting(checked === true)}
+                />
+                <Label htmlFor="updateExisting" className="text-sm cursor-pointer">
+                  Ažuriraj postojeće konte prema šifri
+                </Label>
               </div>
             </div>
           )}
