@@ -15,8 +15,10 @@ import { OrgUnitImportDialog } from "@/components/sifarnici/OrgUnitImportDialog"
 import { OrgUnitExportDialog } from "@/components/sifarnici/OrgUnitExportDialog";
 import { ChartOfAccountsApiDialog } from "@/components/racunovodstvo/ChartOfAccountsApiDialog";
 import { ChartOfAccountsImportDialog } from "@/components/racunovodstvo/ChartOfAccountsImportDialog";
+import { ChartOfAccountsExportDialog } from "@/components/racunovodstvo/ChartOfAccountsExportDialog";
 import { InputCostsApiDialog } from "@/components/sifarnici/InputCostsApiDialog";
 import { InputCostsImportDialog } from "@/components/sifarnici/InputCostsImportDialog";
+import { InputCostsExportDialog } from "@/components/sifarnici/InputCostsExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 
@@ -42,10 +44,12 @@ export function DataImportTab() {
   // Dialog states for chart of accounts
   const [chartApiOpen, setChartApiOpen] = useState(false);
   const [chartImportOpen, setChartImportOpen] = useState(false);
+  const [chartExportOpen, setChartExportOpen] = useState(false);
   
   // Dialog states for input costs
   const [inputCostsApiOpen, setInputCostsApiOpen] = useState(false);
   const [inputCostsImportOpen, setInputCostsImportOpen] = useState(false);
+  const [inputCostsExportOpen, setInputCostsExportOpen] = useState(false);
   
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
@@ -262,6 +266,18 @@ export function DataImportTab() {
                 <div className="text-xs text-muted-foreground">Excel fajl</div>
               </div>
             </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setChartExportOpen(true)}
+            >
+              <Download className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Izvoz u Excel</div>
+                <div className="text-xs text-muted-foreground">Excel fajl</div>
+              </div>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -301,6 +317,18 @@ export function DataImportTab() {
               <Upload className="w-6 h-6" />
               <div className="text-center">
                 <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Excel fajl</div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setInputCostsExportOpen(true)}
+            >
+              <Download className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Izvoz u Excel</div>
                 <div className="text-xs text-muted-foreground">Excel fajl</div>
               </div>
             </Button>
@@ -365,6 +393,10 @@ export function DataImportTab() {
         open={chartImportOpen} 
         onOpenChange={setChartImportOpen} 
       />
+      <ChartOfAccountsExportDialog 
+        open={chartExportOpen} 
+        onOpenChange={setChartExportOpen} 
+      />
 
       {/* Input Costs Dialogs */}
       <InputCostsApiDialog 
@@ -374,6 +406,10 @@ export function DataImportTab() {
       <InputCostsImportDialog 
         open={inputCostsImportOpen} 
         onOpenChange={setInputCostsImportOpen} 
+      />
+      <InputCostsExportDialog 
+        open={inputCostsExportOpen} 
+        onOpenChange={setInputCostsExportOpen} 
       />
     </div>
   );
