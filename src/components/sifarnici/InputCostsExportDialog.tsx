@@ -41,7 +41,7 @@ export function InputCostsExportDialog({
   onOpenChange,
 }: InputCostsExportDialogProps) {
   const { selectedCompany } = useAuth();
-  const { data: inputCosts = [] } = useInputCosts();
+  const { data: inputCosts = [], isLoading } = useInputCosts();
   const [columns, setColumns] = useState<ExportColumn[]>(defaultColumns);
   const [exporting, setExporting] = useState(false);
 
@@ -154,7 +154,11 @@ export function InputCostsExportDialog({
 
           <div className="mt-4 p-3 bg-muted/50 rounded-lg">
             <p className="text-sm text-muted-foreground">
-              Biće izvezeno <span className="font-medium text-foreground">{inputCosts.length}</span> troškova
+              {isLoading ? (
+                "Učitavanje..."
+              ) : (
+                <>Biće izvezeno <span className="font-medium text-foreground">{inputCosts.length}</span> troškova</>
+              )}
             </p>
           </div>
         </div>
@@ -163,11 +167,16 @@ export function InputCostsExportDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Otkaži
           </Button>
-          <Button onClick={handleExport} disabled={exporting || selectedCount === 0}>
+          <Button onClick={handleExport} disabled={exporting || isLoading || selectedCount === 0 || inputCosts.length === 0}>
             {exporting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Izvoz...
+              </>
+            ) : isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Učitavanje...
               </>
             ) : (
               <>
