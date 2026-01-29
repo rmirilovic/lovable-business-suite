@@ -148,7 +148,7 @@ export function PurchaseInvoiceDetailDialog({
           )}
           {invoice.payment_reference && (
             <div>
-              <p className="text-sm text-muted-foreground">Poziv na broj</p>
+              <p className="text-sm text-muted-foreground">Poziv na broj prilikom uplate</p>
               <p className="font-medium">{invoice.payment_reference}</p>
             </div>
           )}
