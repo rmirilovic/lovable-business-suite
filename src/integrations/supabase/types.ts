@@ -626,6 +626,56 @@ export type Database = {
           },
         ]
       }
+      input_costs: {
+        Row: {
+          account_code: string
+          code: string
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_vat_deductible: boolean
+          name: string
+          updated_at: string
+          vat_rate: number
+        }
+        Insert: {
+          account_code: string
+          code: string
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_vat_deductible?: boolean
+          name: string
+          updated_at?: string
+          vat_rate?: number
+        }
+        Update: {
+          account_code?: string
+          code?: string
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_vat_deductible?: boolean
+          name?: string
+          updated_at?: string
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "input_costs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           article_id: string | null

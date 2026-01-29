@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileJson, Upload, Package, Users, Download, Building } from "lucide-react";
+import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -13,8 +13,13 @@ import { ExportColumnsDialog } from "@/components/sifarnici/ExportColumnsDialog"
 import { OrgUnitApiDialog } from "@/components/sifarnici/OrgUnitApiDialog";
 import { OrgUnitImportDialog } from "@/components/sifarnici/OrgUnitImportDialog";
 import { OrgUnitExportDialog } from "@/components/sifarnici/OrgUnitExportDialog";
+import { ChartOfAccountsApiDialog } from "@/components/racunovodstvo/ChartOfAccountsApiDialog";
+import { ChartOfAccountsImportDialog } from "@/components/racunovodstvo/ChartOfAccountsImportDialog";
+import { InputCostsApiDialog } from "@/components/sifarnici/InputCostsApiDialog";
+import { InputCostsImportDialog } from "@/components/sifarnici/InputCostsImportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
+
 export function DataImportTab() {
   const { selectedCompany } = useAuth();
   
@@ -33,6 +38,14 @@ export function DataImportTab() {
   const [orgUnitApiOpen, setOrgUnitApiOpen] = useState(false);
   const [orgUnitImportOpen, setOrgUnitImportOpen] = useState(false);
   const [orgUnitExportOpen, setOrgUnitExportOpen] = useState(false);
+  
+  // Dialog states for chart of accounts
+  const [chartApiOpen, setChartApiOpen] = useState(false);
+  const [chartImportOpen, setChartImportOpen] = useState(false);
+  
+  // Dialog states for input costs
+  const [inputCostsApiOpen, setInputCostsApiOpen] = useState(false);
+  const [inputCostsImportOpen, setInputCostsImportOpen] = useState(false);
   
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
@@ -211,6 +224,90 @@ export function DataImportTab() {
         </CardContent>
       </Card>
 
+      <Separator />
+
+      {/* Chart of Accounts Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="w-5 h-5" />
+            Kontni plan
+          </CardTitle>
+          <CardDescription>
+            Uvoz i izvoz kontnog plana
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setChartApiOpen(true)}
+            >
+              <FileJson className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">API Kontni plan</div>
+                <div className="text-xs text-muted-foreground">JSON uvoz/izvoz</div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setChartImportOpen(true)}
+            >
+              <Upload className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Excel fajl</div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Input Costs Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Receipt className="w-5 h-5" />
+            Ulazni troškovi
+          </CardTitle>
+          <CardDescription>
+            Uvoz i izvoz šifarnika ulaznih troškova
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setInputCostsApiOpen(true)}
+            >
+              <FileJson className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">API Troškovi</div>
+                <div className="text-xs text-muted-foreground">JSON uvoz/izvoz</div>
+              </div>
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setInputCostsImportOpen(true)}
+            >
+              <Upload className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Excel fajl</div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Partner Dialogs */}
       <PartnerImportDialog 
         open={partnerImportOpen} 
@@ -257,6 +354,26 @@ export function DataImportTab() {
       <OrgUnitExportDialog 
         open={orgUnitExportOpen} 
         onOpenChange={setOrgUnitExportOpen} 
+      />
+
+      {/* Chart of Accounts Dialogs */}
+      <ChartOfAccountsApiDialog 
+        open={chartApiOpen} 
+        onOpenChange={setChartApiOpen} 
+      />
+      <ChartOfAccountsImportDialog 
+        open={chartImportOpen} 
+        onOpenChange={setChartImportOpen} 
+      />
+
+      {/* Input Costs Dialogs */}
+      <InputCostsApiDialog 
+        open={inputCostsApiOpen} 
+        onOpenChange={setInputCostsApiOpen} 
+      />
+      <InputCostsImportDialog 
+        open={inputCostsImportOpen} 
+        onOpenChange={setInputCostsImportOpen} 
       />
     </div>
   );
