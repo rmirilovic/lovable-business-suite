@@ -1440,11 +1440,13 @@ export type Database = {
           note: string | null
           org_unit_id: string | null
           partner_id: string
+          payment_reference: string | null
           posted_at: string | null
           posted_by: string | null
           receipt_date: string
           status: Database["public"]["Enums"]["document_status"]
           subtotal: number
+          supplier_bank_account: string | null
           supplier_invoice_number: string
           total_amount: number
           updated_at: string
@@ -1465,11 +1467,13 @@ export type Database = {
           note?: string | null
           org_unit_id?: string | null
           partner_id: string
+          payment_reference?: string | null
           posted_at?: string | null
           posted_by?: string | null
           receipt_date?: string
           status?: Database["public"]["Enums"]["document_status"]
           subtotal?: number
+          supplier_bank_account?: string | null
           supplier_invoice_number: string
           total_amount?: number
           updated_at?: string
@@ -1490,11 +1494,13 @@ export type Database = {
           note?: string | null
           org_unit_id?: string | null
           partner_id?: string
+          payment_reference?: string | null
           posted_at?: string | null
           posted_by?: string | null
           receipt_date?: string
           status?: Database["public"]["Enums"]["document_status"]
           subtotal?: number
+          supplier_bank_account?: string | null
           supplier_invoice_number?: string
           total_amount?: number
           updated_at?: string

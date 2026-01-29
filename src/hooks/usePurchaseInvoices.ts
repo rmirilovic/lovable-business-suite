@@ -21,6 +21,8 @@ export interface PurchaseInvoice {
   total_amount: number;
   note: string | null;
   internal_note: string | null;
+  supplier_bank_account: string | null;
+  payment_reference: string | null;
   journal_entry_id: string | null;
   posted_at: string | null;
   posted_by: string | null;
@@ -64,6 +66,8 @@ export interface PurchaseInvoiceFormData {
   warehouse_id: string | null;
   note: string | null;
   internal_note: string | null;
+  supplier_bank_account: string | null;
+  payment_reference: string | null;
 }
 
 export interface PurchaseInvoiceItemFormData {
@@ -158,6 +162,8 @@ export function usePurchaseInvoices() {
           warehouse_id: formData.warehouse_id,
           note: formData.note,
           internal_note: formData.internal_note,
+          supplier_bank_account: formData.supplier_bank_account,
+          payment_reference: formData.payment_reference,
           created_by: user.id,
         })
         .select()
@@ -189,6 +195,8 @@ export function usePurchaseInvoices() {
           warehouse_id: formData.warehouse_id,
           note: formData.note,
           internal_note: formData.internal_note,
+          supplier_bank_account: formData.supplier_bank_account,
+          payment_reference: formData.payment_reference,
         })
         .eq("id", id)
         .select()

@@ -140,6 +140,18 @@ export function PurchaseInvoiceDetailDialog({
               <p className="font-medium">{formatDate(invoice.due_date)}</p>
             </div>
           )}
+          {invoice.supplier_bank_account && (
+            <div>
+              <p className="text-sm text-muted-foreground">Tekući račun</p>
+              <p className="font-medium font-mono">{invoice.supplier_bank_account}</p>
+            </div>
+          )}
+          {invoice.payment_reference && (
+            <div>
+              <p className="text-sm text-muted-foreground">Poziv na broj</p>
+              <p className="font-medium">{invoice.payment_reference}</p>
+            </div>
+          )}
         </div>
 
         <Separator />
