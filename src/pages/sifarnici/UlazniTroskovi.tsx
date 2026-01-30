@@ -137,7 +137,7 @@ export default function UlazniTroskovi() {
 
   return (
     <MainLayout title="Ulazni troškovi">
-      <div className="space-y-4">
+      <div className="flex flex-col flex-1 min-h-0 space-y-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
@@ -156,7 +156,7 @@ export default function UlazniTroskovi() {
         </div>
 
         {/* Table */}
-        <div className="border rounded-lg">
+        <div className="border rounded-lg flex-1 min-h-0 flex flex-col">
           <TableScrollContainer>
             <Table>
               <TableHeader>

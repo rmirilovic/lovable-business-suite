@@ -277,8 +277,9 @@ export default function Partneri() {
 
   return (
     <MainLayout title="Šifarnik partnera">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-background pb-4">
+      <div className="flex flex-col flex-1 min-h-0">
+        {/* Sticky Header */}
+        <div className="bg-background pb-4">
         <div className="erp-card p-4">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             {/* Search and Filters */}
@@ -438,8 +439,8 @@ export default function Partneri() {
       </div>
 
       {/* Partners Table */}
-      <div className="erp-card">
-        <TableScrollContainer className="max-h-[calc(100vh-260px)]">
+      <div className="erp-card flex-1 min-h-0 flex flex-col">
+        <TableScrollContainer>
           <Table>
             <TableHeader>
               <TableRow>
@@ -723,6 +724,7 @@ export default function Partneri() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </MainLayout>
   );
 }

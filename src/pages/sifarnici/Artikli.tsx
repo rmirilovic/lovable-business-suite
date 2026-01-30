@@ -667,8 +667,9 @@ export default function Artikli() {
 
   return (
     <MainLayout title="Šifarnik artikala">
-      {/* Toolbar */}
-      <div className="erp-card p-4 mb-6">
+      <div className="flex flex-col flex-1 min-h-0 space-y-6">
+        {/* Toolbar */}
+        <div className="erp-card p-4">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
             <div className="flex flex-1 gap-3 w-full md:w-auto">
@@ -895,14 +896,14 @@ export default function Artikli() {
       </div>
 
       {/* Table */}
-      <div className="erp-card overflow-hidden">
+      <div className="erp-card flex-1 min-h-0 flex flex-col overflow-hidden">
         {loading ? (
           <div className="p-8 flex items-center justify-center">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : (
           <>
-            <div ref={tableContainerRef} className="overflow-x-auto max-h-[calc(100vh-350px)] overflow-y-auto">
+            <div ref={tableContainerRef} className="flex-1 min-h-0 overflow-auto">
               <table className="w-full">
                 <thead>
                   <tr className="erp-table-header">
@@ -1646,6 +1647,7 @@ export default function Artikli() {
         />
       )}
 
+      </div>
     </MainLayout>
   );
 }
