@@ -15,7 +15,7 @@ export function TableScrollContainer({ children, className }: TableScrollContain
   return (
     <div
       className={cn(
-        "min-h-0 overflow-auto h-[calc(100vh-320px)] overscroll-contain",
+        "min-h-0 overflow-auto h-[calc(100vh-420px)] overscroll-contain",
         className,
       )}
     >
