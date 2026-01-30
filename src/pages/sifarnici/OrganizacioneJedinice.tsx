@@ -55,6 +55,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useOrganizationalUnits, buildOrgTree, flattenOrgTree, OrganizationalUnit, OrganizationalUnitNode } from "@/hooks/useOrganizationalUnits";
 import { cn } from "@/lib/utils";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
 interface OrgUnitForm {
   code: string;
@@ -520,8 +521,16 @@ export default function OrganizacioneJedinice() {
             {searchTerm ? "Nema rezultata pretrage" : "Nema organizacionih jedinica"}
           </div>
         ) : (
-          <div className="divide-y divide-border">
-            {filteredList.map((node) => {
+          <TableScrollContainer className="max-h-[calc(100vh-260px)]">
+            <div className="divide-y divide-border">
+              {/* Sticky header */}
+              <div className="sticky top-0 z-20 flex items-center gap-4 px-4 py-3 bg-table-header text-sm font-medium text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))]">
+                <div className="w-24">Šifra</div>
+                <div className="flex-1">Naziv</div>
+                <div className="w-24 text-right">Akcije</div>
+              </div>
+
+              {filteredList.map((node) => {
               if (!isVisible(node)) return null;
               
               const hasChildNodes = hasChildren(node.code);
@@ -533,7 +542,7 @@ export default function OrganizacioneJedinice() {
                   key={node.id}
                   className={cn(
                     "flex items-center gap-2 px-4 py-3 hover:bg-muted/50 transition-colors",
-                    !node.is_active && "opacity-60"
+                    !node.is_active && "opacity-60",
                   )}
                   style={{ paddingLeft: `${node.level * 24 + 16}px` }}
                 >
@@ -625,8 +634,9 @@ export default function OrganizacioneJedinice() {
                   )}
                 </div>
               );
-            })}
-          </div>
+              })}
+            </div>
+          </TableScrollContainer>
         )}
       </div>
 
