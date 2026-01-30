@@ -306,7 +306,7 @@ export default function AtributiArtikala() {
 
   return (
     <MainLayout title="Atributi artikala">
-      <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col flex-1 min-h-0 space-y-6 animate-fade-in">
         {/* Header - Sticky */}
         <div className="sticky top-0 z-10 bg-background pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-border/50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
@@ -360,7 +360,7 @@ export default function AtributiArtikala() {
         </div>
 
         {/* Table */}
-        <div className="erp-card">
+        <div className="erp-card flex-1 min-h-0 flex flex-col">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -372,7 +372,7 @@ export default function AtributiArtikala() {
                 : "Nema definisanih atributa"}
             </div>
           ) : (
-            <TableScrollContainer className="max-h-[calc(100vh-260px)]">
+            <TableScrollContainer>
               <Table>
                 <TableHeader>
                   <TableRow>

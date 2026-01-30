@@ -453,8 +453,9 @@ export default function OrganizacioneJedinice() {
 
   return (
     <MainLayout title="Organizacione jedinice">
-      {/* Toolbar */}
-      <div className="erp-card p-4 mb-6">
+      <div className="flex flex-col flex-1 min-h-0 space-y-6">
+        {/* Toolbar */}
+        <div className="erp-card p-4">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex flex-1 gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:w-80">
@@ -511,7 +512,7 @@ export default function OrganizacioneJedinice() {
       </div>
 
       {/* Tree View */}
-      <div className="erp-card">
+      <div className="erp-card flex-1 min-h-0 flex flex-col">
         {loading ? (
           <div className="p-8 flex items-center justify-center">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -521,7 +522,7 @@ export default function OrganizacioneJedinice() {
             {searchTerm ? "Nema rezultata pretrage" : "Nema organizacionih jedinica"}
           </div>
         ) : (
-          <TableScrollContainer className="max-h-[calc(100vh-260px)]">
+          <TableScrollContainer>
             <div className="divide-y divide-border">
               {/* Sticky header */}
               <div className="sticky top-0 z-20 flex items-center gap-4 px-4 py-3 bg-table-header text-sm font-medium text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))]">
@@ -847,6 +848,7 @@ export default function OrganizacioneJedinice() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </MainLayout>
   );
 }

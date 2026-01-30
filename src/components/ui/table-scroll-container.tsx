@@ -1,25 +1,31 @@
-import { ReactNode } from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
 type TableScrollContainerProps = {
-  children: ReactNode;
-  /** Default height so the table scrolls (enables sticky headers). */
+  children: React.ReactNode;
+  /** Additional classes - use to override default flex-grow behavior if needed */
   className?: string;
 };
 
-export function TableScrollContainer({ children, className }: TableScrollContainerProps) {
+export const TableScrollContainer = React.forwardRef<
+  HTMLDivElement,
+  TableScrollContainerProps
+>(({ children, className }, ref) => {
   // Sticky table headers need a stable vertical scroll container.
-  // Using a fixed height (instead of only max-height) prevents the page itself
-  // from scrolling in many layouts, which would make headers scroll away.
+  // Using flex-1 allows the container to fill remaining space in flex parent,
+  // while min-h-0 ensures it can shrink and overflow-auto enables scrolling.
   return (
     <div
+      ref={ref}
       className={cn(
-        "min-h-0 overflow-auto h-[calc(100vh-420px)] overscroll-contain",
+        "flex-1 min-h-0 overflow-auto overscroll-contain",
         className,
       )}
     >
       {children}
     </div>
   );
-}
+});
+
+TableScrollContainer.displayName = "TableScrollContainer";

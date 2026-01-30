@@ -158,7 +158,7 @@ export default function Magacini() {
 
   return (
     <MainLayout title="Magacini">
-      <div className="space-y-6">
+      <div className="flex flex-col flex-1 min-h-0 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
@@ -240,7 +240,7 @@ export default function Magacini() {
           )}
         </div>
 
-        <div className="border rounded-lg">
+        <div className="border rounded-lg flex-1 min-h-0 flex flex-col">
           <TableScrollContainer>
             <Table>
               <TableHeader>

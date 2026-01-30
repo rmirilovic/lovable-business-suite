@@ -461,8 +461,9 @@ export default function KlasifikacijaArtikala() {
 
   return (
     <MainLayout title="Klasifikacija artikala">
-      {/* Toolbar */}
-      <div className="erp-card p-4 mb-6">
+      <div className="flex flex-col flex-1 min-h-0 space-y-6">
+        {/* Toolbar */}
+        <div className="erp-card p-4">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
           <div className="flex flex-1 gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:w-80">
@@ -523,7 +524,7 @@ export default function KlasifikacijaArtikala() {
       </div>
 
       {/* Tree View */}
-      <div className="erp-card">
+      <div className="erp-card flex-1 min-h-0 flex flex-col">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -538,7 +539,7 @@ export default function KlasifikacijaArtikala() {
             </p>
           </div>
         ) : (
-          <TableScrollContainer className="max-h-[calc(100vh-260px)]">
+          <TableScrollContainer>
             <div className="divide-y divide-border">
               {/* Sticky header */}
               <div className="sticky top-0 z-20 grid grid-cols-12 gap-4 px-4 py-3 bg-table-header text-sm font-medium text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))]">
@@ -881,6 +882,7 @@ export default function KlasifikacijaArtikala() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </MainLayout>
   );
 }

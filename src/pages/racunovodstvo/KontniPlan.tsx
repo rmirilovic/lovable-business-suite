@@ -307,7 +307,7 @@ export default function KontniPlan() {
 
   return (
     <MainLayout title="Kontni plan">
-      <div className="space-y-4">
+      <div className="flex flex-col flex-1 min-h-0 space-y-4">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">
@@ -332,7 +332,7 @@ export default function KontniPlan() {
         </div>
 
         {/* Table */}
-        <div className="rounded-md border">
+        <div className="rounded-md border flex-1 min-h-0 flex flex-col">
           <TableScrollContainer>
             <Table>
               <TableHeader>
@@ -364,7 +364,6 @@ export default function KontniPlan() {
             </Table>
           </TableScrollContainer>
         </div>
-      </div>
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -571,6 +570,7 @@ export default function KontniPlan() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </MainLayout>
   );
 }
