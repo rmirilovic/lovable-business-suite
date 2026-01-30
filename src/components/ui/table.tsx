@@ -4,7 +4,12 @@ import { cn } from "@/lib/utils";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto">
+    // IMPORTANT:
+    // Sticky headers rely on the nearest *vertical* scroll container.
+    // Many pages wrap tables with <TableScrollContainer /> (overflow-auto + max-height).
+    // If we also set overflow-auto here, it can become the sticky container and break
+    // header sticking across browsers. Therefore we only keep horizontal scrolling here.
+    <div className="relative w-full overflow-x-auto overflow-y-visible">
       <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   ),
