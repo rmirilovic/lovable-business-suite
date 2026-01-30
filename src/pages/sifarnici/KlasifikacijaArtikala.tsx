@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useClassifications, buildTree, flattenTree, Classification, ClassificationNode } from "@/hooks/useClassifications";
 import { cn } from "@/lib/utils";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
 interface ClassificationForm {
   code: string;
@@ -537,17 +538,18 @@ export default function KlasifikacijaArtikala() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-border">
-            {/* Header */}
-            <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-muted/50 text-sm font-medium text-muted-foreground">
-              <div className="col-span-6">Naziv klasifikacije</div>
-              <div className="col-span-2">Šifra</div>
-              <div className="col-span-2">Nadklasa</div>
-              <div className="col-span-2 text-right">Akcije</div>
-            </div>
-            
-            {/* Tree Items */}
-            {filteredList.map((node) => {
+          <TableScrollContainer className="max-h-[calc(100vh-260px)]">
+            <div className="divide-y divide-border">
+              {/* Sticky header */}
+              <div className="sticky top-0 z-20 grid grid-cols-12 gap-4 px-4 py-3 bg-table-header text-sm font-medium text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))]">
+                <div className="col-span-6">Naziv klasifikacije</div>
+                <div className="col-span-2">Šifra</div>
+                <div className="col-span-2">Nadklasa</div>
+                <div className="col-span-2 text-right">Akcije</div>
+              </div>
+
+              {/* Tree Items */}
+              {filteredList.map((node) => {
               if (!isVisible(node)) return null;
               
               const hasChildNodes = hasChildren(node.code);
@@ -663,8 +665,9 @@ export default function KlasifikacijaArtikala() {
                   </div>
                 </div>
               );
-            })}
-          </div>
+              })}
+            </div>
+          </TableScrollContainer>
         )}
       </div>
 
