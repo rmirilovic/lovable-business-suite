@@ -31,6 +31,7 @@ import { Plus, Edit, Trash2, Search } from "lucide-react";
 import { useInputCosts, useInputCostsMutations, InputCost, InputCostFormData } from "@/hooks/useInputCosts";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { Textarea } from "@/components/ui/textarea";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
 const VAT_RATES = [0, 10, 20];
 
@@ -156,74 +157,68 @@ export default function UlazniTroskovi() {
 
         {/* Table */}
         <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-24">Šifra</TableHead>
-                <TableHead className="w-28">Konto</TableHead>
-                <TableHead>Naziv</TableHead>
-                <TableHead className="w-24 text-right">PDV %</TableHead>
-                <TableHead className="w-28 text-center">PDV odbitni</TableHead>
-                <TableHead className="w-20 text-center">Aktivan</TableHead>
-                <TableHead className="w-24"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+          <TableScrollContainer>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    Učitavanje...
-                  </TableCell>
+                  <TableHead className="w-24">Šifra</TableHead>
+                  <TableHead className="w-28">Konto</TableHead>
+                  <TableHead>Naziv</TableHead>
+                  <TableHead className="w-24 text-right">PDV %</TableHead>
+                  <TableHead className="w-28 text-center">PDV odbitni</TableHead>
+                  <TableHead className="w-20 text-center">Aktivan</TableHead>
+                  <TableHead className="w-24"></TableHead>
                 </TableRow>
-              ) : filteredCosts.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    {search ? "Nema rezultata pretrage" : "Nema definisanih troškova"}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredCosts.map((cost) => (
-                  <TableRow key={cost.id}>
-                    <TableCell className="font-mono">{cost.code}</TableCell>
-                    <TableCell className="font-mono">{cost.account_code}</TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{cost.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {getAccountName(cost.account_code)}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">{cost.vat_rate}%</TableCell>
-                    <TableCell className="text-center">
-                      {cost.is_vat_deductible ? "Da" : "Ne"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {cost.is_active ? "✓" : "–"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(cost)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(cost.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      Učitavanje...
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : filteredCosts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      {search ? "Nema rezultata pretrage" : "Nema definisanih troškova"}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredCosts.map((cost) => (
+                    <TableRow key={cost.id}>
+                      <TableCell className="font-mono">{cost.code}</TableCell>
+                      <TableCell className="font-mono">{cost.account_code}</TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{cost.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {getAccountName(cost.account_code)}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">{cost.vat_rate}%</TableCell>
+                      <TableCell className="text-center">
+                        {cost.is_vat_deductible ? "Da" : "Ne"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {cost.is_active ? "✓" : "–"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(cost)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(cost.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableScrollContainer>
         </div>
       </div>
 

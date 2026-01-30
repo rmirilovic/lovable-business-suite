@@ -45,6 +45,7 @@ import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
 interface WarehouseFormData {
   code: string;
@@ -240,20 +241,21 @@ export default function Magacini() {
         </div>
 
         <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">Šifra</TableHead>
-                <TableHead>Naziv</TableHead>
-                <TableHead>Adresa / Lokacija</TableHead>
-                <TableHead>Tip magacina</TableHead>
-                <TableHead>Računopolagač</TableHead>
-                <TableHead>Konto zaliha</TableHead>
-                <TableHead className="w-[80px] text-center">Status</TableHead>
-                <TableHead className="w-[80px] text-right">Akcije</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <TableScrollContainer>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Šifra</TableHead>
+                  <TableHead>Naziv</TableHead>
+                  <TableHead>Adresa / Lokacija</TableHead>
+                  <TableHead>Tip magacina</TableHead>
+                  <TableHead>Računopolagač</TableHead>
+                  <TableHead>Konto zaliha</TableHead>
+                  <TableHead className="w-[80px] text-center">Status</TableHead>
+                  <TableHead className="w-[80px] text-right">Akcije</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
@@ -353,8 +355,9 @@ export default function Magacini() {
                   </TableRow>
                 ))
               )}
-            </TableBody>
-          </Table>
+              </TableBody>
+            </Table>
+          </TableScrollContainer>
         </div>
       </div>
 

@@ -63,6 +63,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import {
   useArticleAttributes,
   usePredefinedValues,
@@ -371,32 +372,34 @@ export default function AtributiArtikala() {
                 : "Nema definisanih atributa"}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10"></TableHead>
-                  <TableHead className="w-32">Šifra</TableHead>
-                  <TableHead>Naziv</TableHead>
-                  <TableHead className="w-40">Tip podatka</TableHead>
-                  <TableHead className="w-28 text-center">Ponavljanje</TableHead>
-                  {canEdit && <TableHead className="w-32 text-right">Akcije</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAttributes.map((attr) => (
-                  <AttributeRow
-                    key={attr.id}
-                    attribute={attr}
-                    isExpanded={expandedAttributes.has(attr.id)}
-                    onToggleExpand={() => toggleExpand(attr.id)}
-                    onEdit={() => handleEdit(attr)}
-                    onDelete={() => handleDeleteClick(attr)}
-                    canEdit={canEdit}
-                    companyId={selectedCompany?.id}
-                  />
-                ))}
-              </TableBody>
-            </Table>
+            <TableScrollContainer className="max-h-[calc(100vh-260px)]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10"></TableHead>
+                    <TableHead className="w-32">Šifra</TableHead>
+                    <TableHead>Naziv</TableHead>
+                    <TableHead className="w-40">Tip podatka</TableHead>
+                    <TableHead className="w-28 text-center">Ponavljanje</TableHead>
+                    {canEdit && <TableHead className="w-32 text-right">Akcije</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAttributes.map((attr) => (
+                    <AttributeRow
+                      key={attr.id}
+                      attribute={attr}
+                      isExpanded={expandedAttributes.has(attr.id)}
+                      onToggleExpand={() => toggleExpand(attr.id)}
+                      onEdit={() => handleEdit(attr)}
+                      onDelete={() => handleDeleteClick(attr)}
+                      canEdit={canEdit}
+                      companyId={selectedCompany?.id}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </TableScrollContainer>
           )}
         </div>
 
