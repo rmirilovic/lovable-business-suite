@@ -29,3 +29,5 @@ export const TableScrollContainer = React.forwardRef<
 });
 
 TableScrollContainer.displayName = "TableScrollContainer";
+
+export default TableScrollContainer;
