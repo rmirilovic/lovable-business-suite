@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
-import { useWarehouses, WAREHOUSE_TYPE_LABELS, WarehouseInsert, WarehouseUpdate } from "@/hooks/useWarehouses";
+import { useWarehouses, WAREHOUSE_TYPE_LABELS, WarehouseInsert, WarehouseUpdate, Warehouse as WarehouseType } from "@/hooks/useWarehouses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,6 +46,8 @@ import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 
 interface WarehouseFormData {
   code: string;
@@ -93,24 +95,45 @@ export default function Magacini() {
     new Set(warehouses.map((w) => w.address).filter(Boolean))
   ).sort() as string[];
 
-  const filteredWarehouses = warehouses.filter((w) => {
-    const matchesSearch =
-      w.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (w.address && w.address.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesType = typeFilter === "all" || w.warehouse_type === typeFilter;
-    
-    const matchesAddress =
-      addressFilter === "all" || w.address === addressFilter;
-    
-    const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "active" && w.is_active) ||
-      (statusFilter === "inactive" && !w.is_active);
+  // Sorting
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
 
-    return matchesSearch && matchesType && matchesAddress && matchesStatus;
-  });
+  const filteredWarehouses = useMemo(() => {
+    return warehouses.filter((w) => {
+      const matchesSearch =
+        w.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (w.address && w.address.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const matchesType = typeFilter === "all" || w.warehouse_type === typeFilter;
+      
+      const matchesAddress =
+        addressFilter === "all" || w.address === addressFilter;
+      
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && w.is_active) ||
+        (statusFilter === "inactive" && !w.is_active);
+
+      return matchesSearch && matchesType && matchesAddress && matchesStatus;
+    });
+  }, [warehouses, searchTerm, typeFilter, addressFilter, statusFilter]);
+
+  // Sort warehouses
+  const sortedWarehouses = useMemo(() => {
+    return sortItems(filteredWarehouses, (item, column) => {
+      switch (column) {
+        case 'code': return item.code;
+        case 'name': return item.name;
+        case 'address': return item.address || '';
+        case 'warehouse_type': return item.warehouse_type;
+        case 'accountant': return item.accountant || '';
+        case 'inventory_account': return item.inventory_account || '';
+        case 'is_active': return item.is_active;
+        default: return null;
+      }
+    });
+  }, [filteredWarehouses, sortItems]);
 
   const handleAdd = () => {
     setForm(emptyForm);
@@ -245,13 +268,27 @@ export default function Magacini() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]">Šifra</TableHead>
-                  <TableHead>Naziv</TableHead>
-                  <TableHead>Adresa / Lokacija</TableHead>
-                  <TableHead>Tip magacina</TableHead>
-                  <TableHead>Računopolagač</TableHead>
-                  <TableHead>Konto zaliha</TableHead>
-                  <TableHead className="w-[80px] text-center">Status</TableHead>
+                  <TableHead className="w-[100px]">
+                    <SortableHeader column="code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="address" label="Adresa / Lokacija" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="warehouse_type" label="Tip magacina" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="accountant" label="Računopolagač" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="inventory_account" label="Konto zaliha" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead className="w-[80px] text-center">
+                    <SortableHeader column="is_active" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
                   <TableHead className="w-[80px] text-right">Akcije</TableHead>
                 </TableRow>
               </TableHeader>
@@ -276,7 +313,7 @@ export default function Magacini() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredWarehouses.map((warehouse) => (
+                sortedWarehouses.map((warehouse) => (
                   <TableRow key={warehouse.id}>
                     <TableCell className="font-medium">
                       {warehouse.code}

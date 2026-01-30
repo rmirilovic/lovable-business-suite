@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,8 @@ import { useInputCosts, useInputCostsMutations, InputCost, InputCostFormData } f
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { Textarea } from "@/components/ui/textarea";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 
 const VAT_RATES = [0, 10, 20];
 
@@ -56,14 +58,37 @@ export default function UlazniTroskovi() {
   // Filter posting-allowed accounts for selection
   const postingAccounts = accounts.filter((a) => a.is_posting_allowed && a.is_active);
 
-  const filteredCosts = costs
-    .filter(
+  // Sorting
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+
+  const filteredCosts = useMemo(() => {
+    return costs.filter(
       (c) =>
         c.code.toLowerCase().includes(search.toLowerCase()) ||
         c.name.toLowerCase().includes(search.toLowerCase()) ||
         c.account_code.includes(search)
-    )
-    .sort((a, b) => a.code.localeCompare(b.code, 'sr', { numeric: true }));
+    );
+  }, [costs, search]);
+
+  // Sorted costs
+  const sortedCosts = useMemo(() => {
+    const sorted = sortItems(filteredCosts, (item, column) => {
+      switch (column) {
+        case 'code': return item.code;
+        case 'account_code': return item.account_code;
+        case 'name': return item.name;
+        case 'vat_rate': return item.vat_rate;
+        case 'is_vat_deductible': return item.is_vat_deductible;
+        case 'is_active': return item.is_active;
+        default: return null;
+      }
+    });
+    // If no sort applied, default to numeric code sort
+    if (!sortColumn) {
+      return [...sorted].sort((a, b) => a.code.localeCompare(b.code, 'sr', { numeric: true }));
+    }
+    return sorted;
+  }, [filteredCosts, sortItems, sortColumn]);
 
   const getAccountName = (code: string) => {
     const account = accounts.find((a) => a.code === code);
@@ -161,12 +186,24 @@ export default function UlazniTroskovi() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-24">Šifra</TableHead>
-                  <TableHead className="w-28">Konto</TableHead>
-                  <TableHead>Naziv</TableHead>
-                  <TableHead className="w-24 text-right">PDV %</TableHead>
-                  <TableHead className="w-28 text-center">PDV odbitni</TableHead>
-                  <TableHead className="w-20 text-center">Aktivan</TableHead>
+                  <TableHead className="w-24">
+                    <SortableHeader column="code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead className="w-28">
+                    <SortableHeader column="account_code" label="Konto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead className="w-24 text-right">
+                    <SortableHeader column="vat_rate" label="PDV %" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                  </TableHead>
+                  <TableHead className="w-28 text-center">
+                    <SortableHeader column="is_vat_deductible" label="PDV odbitni" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
+                  <TableHead className="w-20 text-center">
+                    <SortableHeader column="is_active" label="Aktivan" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
                   <TableHead className="w-24"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -184,7 +221,7 @@ export default function UlazniTroskovi() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredCosts.map((cost) => (
+                  sortedCosts.map((cost) => (
                     <TableRow key={cost.id}>
                       <TableCell className="font-mono">{cost.code}</TableCell>
                       <TableCell className="font-mono">{cost.account_code}</TableCell>
