@@ -907,7 +907,7 @@ export default function Artikli() {
                 <thead>
                   <tr className="erp-table-header">
                     <th 
-                      className="p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('code')}
                     >
                       <div className="flex items-center">
@@ -916,7 +916,7 @@ export default function Artikli() {
                       </div>
                     </th>
                     <th 
-                      className="p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('name')}
                     >
                       <div className="flex items-center">
@@ -925,7 +925,7 @@ export default function Artikli() {
                       </div>
                     </th>
                     <th 
-                      className="p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('article_group')}
                     >
                       <div className="flex items-center">
@@ -934,7 +934,7 @@ export default function Artikli() {
                       </div>
                     </th>
                     <th 
-                      className="p-3 text-center font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-center font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('svk')}
                     >
                       <div className="flex items-center justify-center">
@@ -943,7 +943,7 @@ export default function Artikli() {
                       </div>
                     </th>
                     <th 
-                      className="p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('unit')}
                     >
                       <div className="flex items-center">
@@ -952,7 +952,7 @@ export default function Artikli() {
                       </div>
                     </th>
                     <th 
-                      className="p-3 text-right font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-right font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('purchase_price')}
                     >
                       <div className="flex items-center justify-end">
@@ -961,7 +961,7 @@ export default function Artikli() {
                       </div>
                     </th>
                     <th 
-                      className="p-3 text-right font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-right font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('selling_price')}
                     >
                       <div className="flex items-center justify-end">
@@ -970,7 +970,7 @@ export default function Artikli() {
                       </div>
                     </th>
                     <th 
-                      className="p-3 text-center font-medium cursor-pointer hover:bg-muted/50 select-none"
+                      className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-center font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('is_active')}
                     >
                       <div className="flex items-center justify-center">
@@ -978,7 +978,7 @@ export default function Artikli() {
                         <SortIndicator column="is_active" />
                       </div>
                     </th>
-                    <th className="w-12 p-3"></th>
+                    <th className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] w-12 p-3"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
