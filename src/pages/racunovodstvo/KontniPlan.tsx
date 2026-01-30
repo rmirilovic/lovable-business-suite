@@ -42,6 +42,7 @@ import {
   ACCOUNT_CLASS_TYPES,
 } from "@/hooks/useChartOfAccounts";
 import { cn } from "@/lib/utils";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
 interface AccountFormData {
   code: string;
@@ -332,34 +333,36 @@ export default function KontniPlan() {
 
         {/* Table */}
         <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[200px]">Šifra</TableHead>
-                <TableHead>Naziv</TableHead>
-                <TableHead className="w-[120px]">Tip</TableHead>
-                <TableHead className="w-[100px] text-center">Knjiženje</TableHead>
-                <TableHead className="w-[100px]">Akcije</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+          <TableScrollContainer>
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    Učitavanje...
-                  </TableCell>
+                  <TableHead className="w-[200px]">Šifra</TableHead>
+                  <TableHead>Naziv</TableHead>
+                  <TableHead className="w-[120px]">Tip</TableHead>
+                  <TableHead className="w-[100px] text-center">Knjiženje</TableHead>
+                  <TableHead className="w-[100px]">Akcije</TableHead>
                 </TableRow>
-              ) : rootAccounts.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Nema konta. Dodajte prvi konto ili učitajte standardni kontni plan.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rootAccounts.map((account) => renderAccountRow(account))
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8">
+                      Učitavanje...
+                    </TableCell>
+                  </TableRow>
+                ) : rootAccounts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      Nema konta. Dodajte prvi konto ili učitajte standardni kontni plan.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  rootAccounts.map((account) => renderAccountRow(account))
+                )}
+              </TableBody>
+            </Table>
+          </TableScrollContainer>
         </div>
       </div>
 

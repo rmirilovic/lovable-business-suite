@@ -48,6 +48,7 @@ import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
 type TypeFilter = "all" | "customer" | "supplier";
 type StatusFilter = "all" | "active" | "inactive";
@@ -438,7 +439,7 @@ export default function Partneri() {
 
       {/* Partners Table */}
       <div className="erp-card">
-        <div className="overflow-x-auto">
+        <TableScrollContainer className="max-h-[calc(100vh-260px)]">
           <Table>
             <TableHeader>
               <TableRow>
@@ -596,7 +597,7 @@ export default function Partneri() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
 
         {/* Pagination Footer */}
         {!isLoading && totalItems > 0 && (
