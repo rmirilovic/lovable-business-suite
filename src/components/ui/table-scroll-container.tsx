@@ -9,5 +9,17 @@ type TableScrollContainerProps = {
 };
 
 export function TableScrollContainer({ children, className }: TableScrollContainerProps) {
-  return <div className={cn("overflow-auto max-h-[calc(100vh-320px)]", className)}>{children}</div>;
+  // Sticky table headers need a stable vertical scroll container.
+  // Using a fixed height (instead of only max-height) prevents the page itself
+  // from scrolling in many layouts, which would make headers scroll away.
+  return (
+    <div
+      className={cn(
+        "min-h-0 overflow-auto h-[calc(100vh-320px)] overscroll-contain",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
 }
