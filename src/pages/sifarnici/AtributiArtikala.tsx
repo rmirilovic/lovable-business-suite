@@ -16,6 +16,8 @@ import {
   ArrowDown,
   AlertTriangle,
 } from "lucide-react";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -153,6 +155,9 @@ export default function AtributiArtikala() {
   );
   const canSave = !hasPredefinedWarning || !isNewAttribute;
 
+  // Sorting
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+
   // Filter attributes
   const filteredAttributes = useMemo(() => {
     if (!searchTerm) return attributes;
@@ -163,6 +168,19 @@ export default function AtributiArtikala() {
         a.name.toLowerCase().includes(lower)
     );
   }, [attributes, searchTerm]);
+
+  // Sort attributes
+  const sortedAttributes = useMemo(() => {
+    return sortItems(filteredAttributes, (item, column) => {
+      switch (column) {
+        case 'code': return item.code;
+        case 'name': return item.name;
+        case 'data_type': return item.data_type;
+        case 'is_repeatable': return item.is_repeatable;
+        default: return null;
+      }
+    });
+  }, [filteredAttributes, sortItems]);
 
   // Handlers
   const handleAdd = () => {
@@ -377,15 +395,23 @@ export default function AtributiArtikala() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10"></TableHead>
-                    <TableHead className="w-32">Šifra</TableHead>
-                    <TableHead>Naziv</TableHead>
-                    <TableHead className="w-40">Tip podatka</TableHead>
-                    <TableHead className="w-28 text-center">Ponavljanje</TableHead>
+                    <TableHead className="w-32">
+                      <SortableHeader column="code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                    </TableHead>
+                    <TableHead>
+                      <SortableHeader column="name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                    </TableHead>
+                    <TableHead className="w-40">
+                      <SortableHeader column="data_type" label="Tip podatka" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                    </TableHead>
+                    <TableHead className="w-28 text-center">
+                      <SortableHeader column="is_repeatable" label="Ponavljanje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                    </TableHead>
                     {canEdit && <TableHead className="w-32 text-right">Akcije</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAttributes.map((attr) => (
+                  {sortedAttributes.map((attr) => (
                     <AttributeRow
                       key={attr.id}
                       attribute={attr}

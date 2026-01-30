@@ -49,6 +49,8 @@ import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 
 type TypeFilter = "all" | "customer" | "supplier";
 type StatusFilter = "all" | "active" | "inactive";
@@ -126,6 +128,9 @@ export default function Partneri() {
     return Array.from(countries).sort();
   }, [partners]);
 
+  // Sorting
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+
   const filteredPartners = useMemo(() => {
     return partners.filter((partner) => {
       const searchLower = searchTerm.toLowerCase();
@@ -192,17 +197,34 @@ export default function Partneri() {
     });
   }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
 
+  // Sorted partners
+  const sortedPartners = useMemo(() => {
+    return sortItems(filteredPartners, (item, column) => {
+      switch (column) {
+        case 'code': return item.code;
+        case 'name': return item.name;
+        case 'legal_status': return item.legal_status;
+        case 'city': return item.city || '';
+        case 'pib': return item.pib || '';
+        case 'phone': return item.phone || '';
+        case 'is_in_pdv': return item.is_in_pdv;
+        case 'is_active': return item.is_active;
+        default: return null;
+      }
+    });
+  }, [filteredPartners, sortItems]);
+
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
 
   // Pagination calculations
-  const totalItems = filteredPartners.length;
+  const totalItems = sortedPartners.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const paginatedPartners = filteredPartners.slice(startIndex, endIndex);
+  const paginatedPartners = sortedPartners.slice(startIndex, endIndex);
 
   // Ensure current page is valid
   useEffect(() => {
@@ -444,16 +466,32 @@ export default function Partneri() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Šifra</TableHead>
-                <TableHead>Naziv</TableHead>
-                <TableHead className="w-[140px]">Pravni status</TableHead>
-                <TableHead>Mesto</TableHead>
-                <TableHead>PIB</TableHead>
-                <TableHead>Telefon</TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader column="code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[140px]">
+                  <SortableHeader column="legal_status" label="Pravni status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="city" label="Mesto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="pib" label="PIB" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="phone" label="Telefon" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 <TableHead className="w-[100px]">Tip</TableHead>
-                <TableHead className="w-[70px]">PDV</TableHead>
+                <TableHead className="w-[70px]">
+                  <SortableHeader column="is_in_pdv" label="PDV" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 <TableHead className="w-[140px]">Grupa</TableHead>
-                <TableHead className="w-[80px]">Status</TableHead>
+                <TableHead className="w-[80px]">
+                  <SortableHeader column="is_active" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 <TableHead className="w-[100px]"></TableHead>
               </TableRow>
             </TableHeader>
