@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Pencil, BookCheck } from "lucide-react";
+import { Pencil, BookCheck, FileDown, Printer, Undo2 } from "lucide-react";
 import {
   GoodsPurchaseInvoice,
   useGoodsPurchaseInvoiceItems,
@@ -16,6 +16,8 @@ import {
 } from "@/hooks/useGoodsPurchaseInvoices";
 import { GoodsPurchaseInvoiceItemsEditor } from "./GoodsPurchaseInvoiceItemsEditor";
 import { formatNumber, formatDate } from "@/lib/formatting";
+import { generateGoodsPurchaseInvoicePdf } from "@/lib/goodsPurchaseInvoicePdfGenerator";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface GoodsPurchaseInvoiceDetailDialogProps {
   open: boolean;
@@ -23,6 +25,8 @@ interface GoodsPurchaseInvoiceDetailDialogProps {
   invoice: GoodsPurchaseInvoice | null;
   onEdit: () => void;
   onPost: () => void;
+  onUnpost?: () => void;
+  canUnpost?: boolean;
 }
 
 const statusLabels: Record<string, string> = {
@@ -43,9 +47,60 @@ export function GoodsPurchaseInvoiceDetailDialog({
   invoice,
   onEdit,
   onPost,
+  onUnpost,
+  canUnpost = false,
 }: GoodsPurchaseInvoiceDetailDialogProps) {
+  const { selectedCompany } = useAuth();
   const { items, isLoading: itemsLoading, addItem, updateItem, deleteItem } = useGoodsPurchaseInvoiceItems(invoice?.id || null);
   const { updateTotals } = useGoodsPurchaseInvoices();
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const [companyData, setCompanyData] = useState<{
+    name: string;
+    address?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    pib?: string | null;
+    mb?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  } | null>(null);
+
+  // Fetch full company data for PDF when dialog opens
+  useEffect(() => {
+    if (!open || !selectedCompany?.id) return;
+    
+    const fetchCompanyData = async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase
+        .from("companies")
+        .select("name, address, city, postal_code, pib, mb, phone, email")
+        .eq("id", selectedCompany.id)
+        .single();
+      if (data) setCompanyData(data);
+    };
+    
+    fetchCompanyData();
+  }, [open, selectedCompany?.id]);
+
+  const handleDownloadPdf = async () => {
+    if (!invoice || !companyData) return;
+    setIsPdfLoading(true);
+    try {
+      await generateGoodsPurchaseInvoicePdf(invoice, items, companyData);
+    } finally {
+      setIsPdfLoading(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (!invoice || !companyData) return;
+    setIsPdfLoading(true);
+    try {
+      await generateGoodsPurchaseInvoicePdf(invoice, items, companyData, { print: true });
+    } finally {
+      setIsPdfLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!invoice || invoice.status !== "draft") return;
@@ -71,6 +126,7 @@ export function GoodsPurchaseInvoiceDetailDialog({
   if (!invoice) return null;
 
   const isDraft = invoice.status === "draft";
+  const isPosted = invoice.status === "posted";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -182,9 +238,27 @@ export function GoodsPurchaseInvoiceDetailDialog({
 
         {/* Actions */}
         <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Zatvori
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Zatvori
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDownloadPdf}
+              disabled={isPdfLoading || !companyData}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              PDF
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handlePrint}
+              disabled={isPdfLoading || !companyData}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Štampaj
+            </Button>
+          </div>
           {isDraft && (
             <div className="flex gap-2">
               <Button variant="outline" onClick={onEdit}>
@@ -196,6 +270,12 @@ export function GoodsPurchaseInvoiceDetailDialog({
                 Proknjiži
               </Button>
             </div>
+          )}
+          {isPosted && canUnpost && onUnpost && (
+            <Button variant="destructive" onClick={onUnpost}>
+              <Undo2 className="h-4 w-4 mr-2" />
+              Poništi knjiženje
+            </Button>
           )}
         </div>
       </DialogContent>

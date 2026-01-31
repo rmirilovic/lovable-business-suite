@@ -2687,6 +2687,10 @@ export type Database = {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
       }
+      unpost_goods_purchase_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
+        Returns: boolean
+      }
       unpost_service_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
