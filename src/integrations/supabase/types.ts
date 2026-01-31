@@ -626,6 +626,238 @@ export type Database = {
           },
         ]
       }
+      goods_purchase_invoice_items: {
+        Row: {
+          article_id: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          discount_percent: number
+          goods_purchase_invoice_id: string
+          id: string
+          is_vat_deductible: boolean
+          item_code: string | null
+          item_name: string
+          item_order: number
+          line_subtotal: number
+          line_total: number
+          line_vat: number
+          quantity: number
+          unit: string
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          article_id?: string | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          goods_purchase_invoice_id: string
+          id?: string
+          is_vat_deductible?: boolean
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          article_id?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          goods_purchase_invoice_id?: string
+          id?: string
+          is_vat_deductible?: boolean
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goods_purchase_invoice_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_purchase_invoice_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_purchase_invoice_items_goods_purchase_invoice_id_fkey"
+            columns: ["goods_purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "goods_purchase_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goods_purchase_invoices: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          due_date: string | null
+          goods_receipt_id: string | null
+          has_internal_vat_calculation: boolean
+          id: string
+          internal_note: string | null
+          internal_number: string
+          invoice_date: string
+          journal_entry_id: string | null
+          note: string | null
+          partner_id: string
+          payment_reference: string | null
+          posted_at: string | null
+          posted_by: string | null
+          receipt_date: string
+          status: string
+          subtotal: number
+          supplier_address: string | null
+          supplier_bank_account: string | null
+          supplier_city: string | null
+          supplier_invoice_number: string
+          supplier_is_in_pdv: boolean
+          supplier_mb: string | null
+          supplier_name: string | null
+          supplier_pib: string | null
+          supplier_postal_code: string | null
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+          vat_calculation_type: string
+          warehouse_id: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          due_date?: string | null
+          goods_receipt_id?: string | null
+          has_internal_vat_calculation?: boolean
+          id?: string
+          internal_note?: string | null
+          internal_number: string
+          invoice_date?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          partner_id: string
+          payment_reference?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: string
+          subtotal?: number
+          supplier_address?: string | null
+          supplier_bank_account?: string | null
+          supplier_city?: string | null
+          supplier_invoice_number: string
+          supplier_is_in_pdv?: boolean
+          supplier_mb?: string | null
+          supplier_name?: string | null
+          supplier_pib?: string | null
+          supplier_postal_code?: string | null
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_calculation_type?: string
+          warehouse_id: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          goods_receipt_id?: string | null
+          has_internal_vat_calculation?: boolean
+          id?: string
+          internal_note?: string | null
+          internal_number?: string
+          invoice_date?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          partner_id?: string
+          payment_reference?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: string
+          subtotal?: number
+          supplier_address?: string | null
+          supplier_bank_account?: string | null
+          supplier_city?: string | null
+          supplier_invoice_number?: string
+          supplier_is_in_pdv?: boolean
+          supplier_mb?: string | null
+          supplier_name?: string | null
+          supplier_pib?: string | null
+          supplier_postal_code?: string | null
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_calculation_type?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goods_purchase_invoices_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_purchase_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_purchase_invoices_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_purchase_invoices_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_purchase_invoices_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       input_costs: {
         Row: {
           account_code: string
@@ -1905,6 +2137,235 @@ export type Database = {
           },
         ]
       }
+      service_purchase_invoice_items: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string | null
+          discount_percent: number
+          id: string
+          input_cost_id: string | null
+          is_vat_deductible: boolean
+          item_code: string | null
+          item_name: string
+          item_order: number
+          line_subtotal: number
+          line_total: number
+          line_vat: number
+          org_unit_id: string | null
+          quantity: number
+          service_purchase_invoice_id: string
+          unit: string
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          input_cost_id?: string | null
+          is_vat_deductible?: boolean
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          org_unit_id?: string | null
+          quantity?: number
+          service_purchase_invoice_id: string
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          input_cost_id?: string | null
+          is_vat_deductible?: boolean
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          org_unit_id?: string | null
+          quantity?: number
+          service_purchase_invoice_id?: string
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_purchase_invoice_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_purchase_invoice_items_input_cost_id_fkey"
+            columns: ["input_cost_id"]
+            isOneToOne: false
+            referencedRelation: "input_costs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_purchase_invoice_items_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_purchase_invoice_items_service_purchase_invoice_id_fkey"
+            columns: ["service_purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "service_purchase_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_purchase_invoices: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          due_date: string | null
+          has_internal_vat_calculation: boolean
+          id: string
+          internal_note: string | null
+          internal_number: string
+          invoice_date: string
+          journal_entry_id: string | null
+          note: string | null
+          partner_id: string
+          payment_reference: string | null
+          posted_at: string | null
+          posted_by: string | null
+          receipt_date: string
+          status: string
+          subtotal: number
+          supplier_address: string | null
+          supplier_bank_account: string | null
+          supplier_city: string | null
+          supplier_invoice_number: string
+          supplier_is_in_pdv: boolean
+          supplier_mb: string | null
+          supplier_name: string | null
+          supplier_pib: string | null
+          supplier_postal_code: string | null
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+          vat_calculation_type: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          due_date?: string | null
+          has_internal_vat_calculation?: boolean
+          id?: string
+          internal_note?: string | null
+          internal_number: string
+          invoice_date?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          partner_id: string
+          payment_reference?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: string
+          subtotal?: number
+          supplier_address?: string | null
+          supplier_bank_account?: string | null
+          supplier_city?: string | null
+          supplier_invoice_number: string
+          supplier_is_in_pdv?: boolean
+          supplier_mb?: string | null
+          supplier_name?: string | null
+          supplier_pib?: string | null
+          supplier_postal_code?: string | null
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_calculation_type?: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          due_date?: string | null
+          has_internal_vat_calculation?: boolean
+          id?: string
+          internal_note?: string | null
+          internal_number?: string
+          invoice_date?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          partner_id?: string
+          payment_reference?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: string
+          subtotal?: number
+          supplier_address?: string | null
+          supplier_bank_account?: string | null
+          supplier_city?: string | null
+          supplier_invoice_number?: string
+          supplier_is_in_pdv?: boolean
+          supplier_mb?: string | null
+          supplier_name?: string | null
+          supplier_pib?: string | null
+          supplier_postal_code?: string | null
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+          vat_calculation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_purchase_invoices_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_purchase_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_purchase_invoices_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_purchase_invoices_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_companies: {
         Row: {
           company_id: string
@@ -2170,6 +2631,10 @@ export type Database = {
         Args: { _company_id: string; _year_id: string }
         Returns: number
       }
+      get_next_purchase_invoice_number: {
+        Args: { _company_id: string; _invoice_type: string; _year_id: string }
+        Returns: string
+      }
       get_uninvoiced_delivery_notes: {
         Args: { _company_id: string; _partner_id?: string }
         Returns: {
@@ -2206,12 +2671,20 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      post_goods_purchase_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
+        Returns: boolean
+      }
       post_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
       }
       post_journal_entry: {
         Args: { _entry_id: string; _user_id: string }
+        Returns: boolean
+      }
+      post_service_purchase_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
       }
     }

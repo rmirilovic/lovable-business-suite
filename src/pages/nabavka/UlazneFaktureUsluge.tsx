@@ -1,0 +1,315 @@
+import { useState, useEffect } from "react";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, FileText, BookCheck } from "lucide-react";
+import { useServicePurchaseInvoices, ServicePurchaseInvoice } from "@/hooks/useServicePurchaseInvoices";
+import { ServicePurchaseInvoiceHeaderDialog } from "@/components/nabavka/ServicePurchaseInvoiceHeaderDialog";
+import { ServicePurchaseInvoiceDetailDialog } from "@/components/nabavka/ServicePurchaseInvoiceDetailDialog";
+import { formatNumber, formatDate } from "@/lib/formatting";
+
+const statusLabels: Record<string, string> = {
+  draft: "Nacrt",
+  posted: "Proknjiženo",
+  cancelled: "Stornirano",
+};
+
+const statusVariants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+  draft: "secondary",
+  posted: "default",
+  cancelled: "destructive",
+};
+
+export default function UlazneFaktureUsluge() {
+  const { invoices, isLoading, deleteInvoice, postInvoice } = useServicePurchaseInvoices();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<ServicePurchaseInvoice | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<ServicePurchaseInvoice | null>(null);
+  const [postDialogOpen, setPostDialogOpen] = useState(false);
+  const [invoiceToPost, setInvoiceToPost] = useState<ServicePurchaseInvoice | null>(null);
+
+  useEffect(() => {
+    if (!selectedInvoice) return;
+    const updated = invoices.find((inv) => inv.id === selectedInvoice.id);
+    if (updated && (
+      updated.status !== selectedInvoice.status ||
+      updated.total_amount !== selectedInvoice.total_amount
+    )) {
+      setSelectedInvoice(updated);
+    }
+  }, [invoices, selectedInvoice]);
+
+  const filteredInvoices = invoices.filter(
+    (invoice) =>
+      invoice.internal_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.supplier_invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.partner?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleCreate = () => {
+    setSelectedInvoice(null);
+    setHeaderDialogOpen(true);
+  };
+
+  const handleEdit = (invoice: ServicePurchaseInvoice) => {
+    setSelectedInvoice(invoice);
+    setHeaderDialogOpen(true);
+  };
+
+  const handleView = (invoice: ServicePurchaseInvoice) => {
+    setSelectedInvoice(invoice);
+    setDetailDialogOpen(true);
+  };
+
+  const handleDeleteClick = (invoice: ServicePurchaseInvoice) => {
+    setInvoiceToDelete(invoice);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (invoiceToDelete) {
+      await deleteInvoice.mutateAsync(invoiceToDelete.id);
+      setDeleteDialogOpen(false);
+      setInvoiceToDelete(null);
+    }
+  };
+
+  const handlePostClick = (invoice: ServicePurchaseInvoice) => {
+    setInvoiceToPost(invoice);
+    setPostDialogOpen(true);
+  };
+
+  const handlePostConfirm = async () => {
+    if (invoiceToPost) {
+      await postInvoice.mutateAsync(invoiceToPost.id);
+      setPostDialogOpen(false);
+      setInvoiceToPost(null);
+    }
+  };
+
+  const handleNewInvoiceSaved = (invoice: ServicePurchaseInvoice) => {
+    setSelectedInvoice(invoice);
+    setDetailDialogOpen(true);
+  };
+
+  return (
+    <MainLayout title="Ulazne fakture za usluge">
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Ulazne fakture za usluge</h1>
+            <p className="text-muted-foreground">Fakture za usluge i troškove od dobavljača</p>
+          </div>
+          <Button onClick={handleCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova UF za usluge
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Pretraži po broju ili dobavljaču..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+              autoComplete="off"
+            />
+          </div>
+        </div>
+
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Interni broj</TableHead>
+                <TableHead>Broj fakture dobavljača</TableHead>
+                <TableHead>Datum fakture</TableHead>
+                <TableHead>Dobavljač</TableHead>
+                <TableHead>PIB</TableHead>
+                <TableHead>PDV</TableHead>
+                <TableHead className="text-right">Ukupno</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-16"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    Učitavanje...
+                  </TableCell>
+                </TableRow>
+              ) : filteredInvoices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    {searchTerm ? "Nema rezultata pretrage" : "Nema ulaznih faktura za usluge."}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredInvoices.map((invoice) => (
+                  <TableRow
+                    key={invoice.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleView(invoice)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{invoice.internal_number}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{invoice.supplier_invoice_number}</TableCell>
+                    <TableCell>{formatDate(invoice.invoice_date)}</TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{invoice.supplier_name || invoice.partner?.name}</div>
+                        <div className="text-xs text-muted-foreground">{invoice.partner?.code}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs">{invoice.supplier_pib}</TableCell>
+                    <TableCell>
+                      <Badge variant={invoice.supplier_is_in_pdv ? "default" : "outline"}>
+                        {invoice.supplier_is_in_pdv ? "Da" : "Ne"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatNumber(invoice.total_amount)} RSD
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={statusVariants[invoice.status]}>
+                        {statusLabels[invoice.status]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleView(invoice)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Prikaži
+                          </DropdownMenuItem>
+                          {invoice.status === "draft" && (
+                            <>
+                              <DropdownMenuItem onClick={() => handleEdit(invoice)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Uredi zaglavlje
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handlePostClick(invoice)}>
+                                <BookCheck className="h-4 w-4 mr-2" />
+                                Proknjiži
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteClick(invoice)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Obriši
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <ServicePurchaseInvoiceHeaderDialog
+        open={headerDialogOpen}
+        onOpenChange={setHeaderDialogOpen}
+        invoice={selectedInvoice}
+        onSaved={handleNewInvoiceSaved}
+      />
+
+      <ServicePurchaseInvoiceDetailDialog
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        invoice={selectedInvoice}
+        onEdit={() => {
+          setDetailDialogOpen(false);
+          handleEdit(selectedInvoice!);
+        }}
+        onPost={() => handlePostClick(selectedInvoice!)}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Brisanje ulazne fakture</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da obrišete ulaznu fakturu{" "}
+              <strong>{invoiceToDelete?.internal_number}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Obriši
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Proknjiženje ulazne fakture</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da proknjižite ulaznu fakturu{" "}
+              <strong>{invoiceToPost?.internal_number}</strong>? 
+              Proknjižena faktura se više ne može menjati.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePostConfirm}>
+              Proknjiži
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </MainLayout>
+  );
+}
