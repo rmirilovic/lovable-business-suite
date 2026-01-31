@@ -83,10 +83,15 @@ export function GoodsPurchaseInvoiceItemsEditor({
     }
   };
 
+  const calculateNetPrice = (unitPrice: number, discountPercent: number) => {
+    return unitPrice * (1 - discountPercent / 100);
+  };
+
   const calculateLineTotal = (item: GoodsPurchaseInvoiceItemFormData) => {
-    const subtotal = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
+    const netPrice = calculateNetPrice(item.unit_price, item.discount_percent);
+    const subtotal = item.quantity * netPrice;
     const vat = subtotal * (item.vat_rate / 100);
-    return { subtotal, vat, total: subtotal + vat };
+    return { netPrice, subtotal, vat, total: subtotal + vat };
   };
 
   const handleAddSubmit = async () => {
@@ -139,29 +144,31 @@ export function GoodsPurchaseInvoiceItemsEditor({
       </div>
 
       <div className="border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Šifra</TableHead>
-              <TableHead>Naziv artikla</TableHead>
-              <TableHead className="w-[60px]">JM</TableHead>
-              <TableHead className="w-[100px] text-right">Količina</TableHead>
-              <TableHead className="w-[120px] text-right">Cena</TableHead>
-              <TableHead className="w-[80px] text-right">Rabat%</TableHead>
-              <TableHead className="w-[70px] text-right">PDV%</TableHead>
-              <TableHead className="w-[50px] text-center">Odb.</TableHead>
-              <TableHead className="w-[110px] text-right">Ukupno</TableHead>
-              {isEditable && <TableHead className="w-[80px]"></TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
+        <div className="max-h-[400px] overflow-y-auto">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                <TableCell colSpan={isEditable ? 10 : 9} className="text-center py-4">
-                  Učitavanje...
-                </TableCell>
+                <TableHead className="w-[100px]">Šifra</TableHead>
+                <TableHead>Naziv artikla</TableHead>
+                <TableHead className="w-[60px]">JM</TableHead>
+                <TableHead className="w-[200px] text-right">Količina</TableHead>
+                <TableHead className="w-[140px] text-right">Cena</TableHead>
+                <TableHead className="w-[80px] text-right">Rabat%</TableHead>
+                <TableHead className="w-[140px] text-right">Cena neto</TableHead>
+                <TableHead className="w-[90px] text-right">PDV%</TableHead>
+                <TableHead className="w-[50px] text-center">Odb.</TableHead>
+                <TableHead className="w-[140px] text-right">Ukupno</TableHead>
+                {isEditable && <TableHead className="w-[80px]"></TableHead>}
               </TableRow>
-            ) : (
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={isEditable ? 11 : 10} className="text-center py-4">
+                    Učitavanje...
+                  </TableCell>
+                </TableRow>
+              ) : (
               <>
                 {items.map((item) =>
                   editingId === item.id ? (
@@ -188,7 +195,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                           inputMode="decimal"
                           value={editItem.quantity}
                           onChange={(e) => setEditItem({ ...editItem, quantity: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right"
+                          className="h-8 text-xs text-right w-[180px]"
                           autoComplete="off"
                         />
                       </TableCell>
@@ -198,7 +205,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                           inputMode="decimal"
                           value={editItem.unit_price}
                           onChange={(e) => setEditItem({ ...editItem, unit_price: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right"
+                          className="h-8 text-xs text-right w-[120px]"
                           autoComplete="off"
                         />
                       </TableCell>
@@ -208,9 +215,12 @@ export function GoodsPurchaseInvoiceItemsEditor({
                           inputMode="decimal"
                           value={editItem.discount_percent}
                           onChange={(e) => setEditItem({ ...editItem, discount_percent: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right"
+                          className="h-8 text-xs text-right w-[60px]"
                           autoComplete="off"
                         />
+                      </TableCell>
+                      <TableCell className="text-xs text-right">
+                        {formatNumber(calculateLineTotal(editItem).netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell>
                         <Input
@@ -218,7 +228,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                           inputMode="decimal"
                           value={editItem.vat_rate}
                           onChange={(e) => setEditItem({ ...editItem, vat_rate: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right"
+                          className="h-8 text-xs text-right w-[70px]"
                           autoComplete="off"
                         />
                       </TableCell>
@@ -231,7 +241,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         />
                       </TableCell>
                       <TableCell className="text-right text-xs font-medium">
-                        {formatNumber(calculateLineTotal(editItem).total)}
+                        {formatNumber(calculateLineTotal(editItem).total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-nowrap">
@@ -266,14 +276,15 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs font-medium">{item.item_name}</TableCell>
                       <TableCell className="text-xs">{item.unit}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(item.quantity)}</TableCell>
-                      <TableCell className="text-xs text-right">{formatNumber(item.unit_price)}</TableCell>
+                      <TableCell className="text-xs text-right">{formatNumber(item.unit_price, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-xs text-right">{item.discount_percent > 0 ? `${formatNumber(item.discount_percent)}%` : "-"}</TableCell>
+                      <TableCell className="text-xs text-right">{formatNumber(calculateNetPrice(item.unit_price, item.discount_percent), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-xs text-right">{item.vat_rate}%</TableCell>
                       <TableCell className="text-center">
                         <Checkbox checked={item.is_vat_deductible} disabled />
                       </TableCell>
                       <TableCell className="text-xs text-right font-medium">
-                        {formatNumber(item.line_total)}
+                        {formatNumber(item.line_total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       {isEditable && (
                         <TableCell onClick={(e) => e.stopPropagation()}>
@@ -316,7 +327,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         inputMode="decimal"
                         value={newItem.quantity}
                         onChange={(e) => setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right"
+                        className="h-8 text-xs text-right w-[180px]"
                         autoComplete="off"
                       />
                     </TableCell>
@@ -326,7 +337,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         inputMode="decimal"
                         value={newItem.unit_price}
                         onChange={(e) => setNewItem({ ...newItem, unit_price: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right"
+                        className="h-8 text-xs text-right w-[120px]"
                         autoComplete="off"
                       />
                     </TableCell>
@@ -336,9 +347,12 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         inputMode="decimal"
                         value={newItem.discount_percent}
                         onChange={(e) => setNewItem({ ...newItem, discount_percent: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right"
+                        className="h-8 text-xs text-right w-[60px]"
                         autoComplete="off"
                       />
+                    </TableCell>
+                    <TableCell className="text-xs text-right">
+                      {formatNumber(calculateLineTotal(newItem).netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
                       <Input
@@ -346,7 +360,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         inputMode="decimal"
                         value={newItem.vat_rate}
                         onChange={(e) => setNewItem({ ...newItem, vat_rate: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right"
+                        className="h-8 text-xs text-right w-[70px]"
                         autoComplete="off"
                       />
                     </TableCell>
@@ -359,7 +373,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       />
                     </TableCell>
                     <TableCell className="text-right text-xs font-medium">
-                      {formatNumber(calculateLineTotal(newItem).total)}
+                      {formatNumber(calculateLineTotal(newItem).total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-nowrap">
@@ -391,15 +405,16 @@ export function GoodsPurchaseInvoiceItemsEditor({
 
                 {items.length === 0 && !isAdding && (
                   <TableRow>
-                    <TableCell colSpan={isEditable ? 10 : 9} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={isEditable ? 11 : 10} className="text-center py-4 text-muted-foreground">
                       Nema stavki. {isEditable && "Kliknite 'Dodaj stavku' za dodavanje."}
                     </TableCell>
                   </TableRow>
                 )}
               </>
             )}
-          </TableBody>
-        </Table>
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
