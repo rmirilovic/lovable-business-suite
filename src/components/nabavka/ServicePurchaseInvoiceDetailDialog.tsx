@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,14 +8,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Pencil, BookCheck } from "lucide-react";
+import { Pencil, BookCheck, FileDown, Printer } from "lucide-react";
 import {
   ServicePurchaseInvoice,
   useServicePurchaseInvoiceItems,
   useServicePurchaseInvoices,
 } from "@/hooks/useServicePurchaseInvoices";
 import { ServicePurchaseInvoiceItemsEditor } from "./ServicePurchaseInvoiceItemsEditor";
-import { formatNumber, formatDate } from "@/lib/formatting";
+import { formatNumber, formatDate, formatPrice } from "@/lib/formatting";
+import { generateServicePurchaseInvoicePdf } from "@/lib/servicePurchaseInvoicePdfGenerator";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ServicePurchaseInvoiceDetailDialogProps {
   open: boolean;
@@ -44,8 +46,54 @@ export function ServicePurchaseInvoiceDetailDialog({
   onEdit,
   onPost,
 }: ServicePurchaseInvoiceDetailDialogProps) {
+  const { selectedCompany } = useAuth();
   const { items, isLoading: itemsLoading, addItem, updateItem, deleteItem } = useServicePurchaseInvoiceItems(invoice?.id || null);
   const { updateTotals } = useServicePurchaseInvoices();
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const [companyData, setCompanyData] = useState<{
+    name: string;
+    address?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    pib?: string | null;
+    mb?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  } | null>(null);
+
+  // Fetch full company data for PDF
+  useEffect(() => {
+    if (!selectedCompany?.id) return;
+    
+    const fetchCompanyData = async () => {
+      const { data } = await import("@/integrations/supabase/client").then(m => 
+        m.supabase.from("companies").select("name, address, city, postal_code, pib, mb, phone, email").eq("id", selectedCompany.id).single()
+      );
+      if (data) setCompanyData(data);
+    };
+    
+    fetchCompanyData();
+  }, [selectedCompany?.id]);
+
+  const handleDownloadPdf = async () => {
+    if (!invoice || !companyData) return;
+    setIsPdfLoading(true);
+    try {
+      await generateServicePurchaseInvoicePdf(invoice, items, companyData);
+    } finally {
+      setIsPdfLoading(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (!invoice || !companyData) return;
+    setIsPdfLoading(true);
+    try {
+      await generateServicePurchaseInvoicePdf(invoice, items, companyData, { print: true });
+    } finally {
+      setIsPdfLoading(false);
+    }
+  };
 
   // Recalculate totals when items change
   useEffect(() => {
@@ -173,25 +221,43 @@ export function ServicePurchaseInvoiceDetailDialog({
           <div className="w-64 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Osnovica:</span>
-              <span className="font-medium">{formatNumber(invoice.subtotal)} RSD</span>
+              <span className="font-medium">{formatPrice(invoice.subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">PDV:</span>
-              <span className="font-medium">{formatNumber(invoice.vat_amount)} RSD</span>
+              <span className="font-medium">{formatPrice(invoice.vat_amount)}</span>
             </div>
             <Separator />
             <div className="flex justify-between text-base">
               <span className="font-medium">Ukupno:</span>
-              <span className="font-bold">{formatNumber(invoice.total_amount)} RSD</span>
+              <span className="font-bold">{formatPrice(invoice.total_amount)}</span>
             </div>
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Zatvori
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Zatvori
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleDownloadPdf}
+              disabled={isPdfLoading || !companyData}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              PDF
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handlePrint}
+              disabled={isPdfLoading || !companyData}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Štampaj
+            </Button>
+          </div>
           {isDraft && (
             <div className="flex gap-2">
               <Button variant="outline" onClick={onEdit}>
