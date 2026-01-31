@@ -13,6 +13,7 @@ import {
 import { Plus, Check, X, Trash2 } from "lucide-react";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { useArticles } from "@/hooks/useArticles";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   GoodsPurchaseInvoiceItem,
   GoodsPurchaseInvoiceItemFormData,
@@ -52,7 +53,8 @@ export function GoodsPurchaseInvoiceItemsEditor({
   updateItem,
   deleteItem,
 }: GoodsPurchaseInvoiceItemsEditorProps) {
-  const { articles } = useArticles("all");
+  const { selectedCompany } = useAuth();
+  const { articles } = useArticles(selectedCompany?.id);
 
   const [isAdding, setIsAdding] = useState(false);
   const [newItem, setNewItem] = useState<GoodsPurchaseInvoiceItemFormData>(emptyItem);
