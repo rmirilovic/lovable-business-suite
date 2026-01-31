@@ -143,7 +143,7 @@ export function GoodsPurchaseInvoiceDetailDialog({
         </DialogHeader>
 
         {/* Header info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
           <div>
             <div className="text-muted-foreground">Broj fakture dobavljača</div>
             <div className="font-medium">{invoice.supplier_invoice_number}</div>
@@ -155,6 +155,10 @@ export function GoodsPurchaseInvoiceDetailDialog({
           <div>
             <div className="text-muted-foreground">Datum prijema</div>
             <div className="font-medium">{formatDate(invoice.receipt_date)}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Datum valute</div>
+            <div className="font-medium">{invoice.due_date ? formatDate(invoice.due_date) : "-"}</div>
           </div>
           <div>
             <div className="text-muted-foreground">Magacin</div>
