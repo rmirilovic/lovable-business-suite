@@ -154,6 +154,7 @@ export function ServicePurchaseInvoiceItemsEditor({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[115px]">Trošak</TableHead>
+              <TableHead className="w-[80px]">Konto</TableHead>
               <TableHead className="min-w-[320px]">Naziv</TableHead>
               <TableHead className="w-[120px]">Mesto troška</TableHead>
               <TableHead className="w-[100px] text-right">Kol.</TableHead>
@@ -193,6 +194,9 @@ export function ServicePurchaseInvoiceItemsEditor({
                             ))}
                           </SelectContent>
                         </Select>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {inputCosts.find((ic) => ic.id === editItem.input_cost_id)?.account_code || "-"}
                       </TableCell>
                       <TableCell>
                         <Input
@@ -290,6 +294,9 @@ export function ServicePurchaseInvoiceItemsEditor({
                       onClick={() => isEditable && handleEditStart(item)}
                     >
                       <TableCell className="text-xs">{item.item_code || "-"}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {inputCosts.find((ic) => ic.id === item.input_cost_id)?.account_code || "-"}
+                      </TableCell>
                       <TableCell className="text-xs font-medium">{item.item_name}</TableCell>
                       <TableCell className="text-xs">{item.org_unit?.code || "-"}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(item.quantity)}</TableCell>
@@ -337,6 +344,9 @@ export function ServicePurchaseInvoiceItemsEditor({
                           ))}
                         </SelectContent>
                       </Select>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {inputCosts.find((ic) => ic.id === newItem.input_cost_id)?.account_code || "-"}
                     </TableCell>
                     <TableCell>
                       <Input
