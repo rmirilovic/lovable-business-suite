@@ -32,6 +32,7 @@ interface LedgerEntry {
   id: string;
   entry_date: string;
   document_date: string | null;
+  item_document_date: string | null;
   entry_number: number;
   description: string;
   account_code: string;
@@ -63,6 +64,7 @@ export default function GlavnaKnjiga() {
           description,
           debit_amount,
           credit_amount,
+          document_date,
           journal_entries!inner (
             id,
             entry_number,
@@ -90,6 +92,7 @@ export default function GlavnaKnjiga() {
         id: item.id,
         entry_date: item.journal_entries.entry_date,
         document_date: item.journal_entries.document_date,
+        item_document_date: item.document_date,
         entry_number: item.journal_entries.entry_number,
         description: item.journal_entries.description,
         account_code: item.account_code,
@@ -255,7 +258,7 @@ export default function GlavnaKnjiga() {
                 filteredData.map((entry) => (
                   <TableRow key={entry.id}>
                     <TableCell>{format(new Date(entry.entry_date), "dd.MM.yyyy")}</TableCell>
-                    <TableCell>{entry.document_date ? format(new Date(entry.document_date), "dd.MM.yyyy") : "-"}</TableCell>
+                    <TableCell>{entry.item_document_date ? format(new Date(entry.item_document_date), "dd.MM.yyyy") : (entry.document_date ? format(new Date(entry.document_date), "dd.MM.yyyy") : "-")}</TableCell>
                     <TableCell className="font-medium">{entry.entry_number}</TableCell>
                     <TableCell className="font-mono">{entry.account_code}</TableCell>
                     <TableCell>
