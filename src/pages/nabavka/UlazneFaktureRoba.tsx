@@ -210,7 +210,7 @@ export default function UlazneFaktureRoba() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {formatNumber(invoice.total_amount)} RSD
+                      {formatNumber(invoice.total_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusVariants[invoice.status]}>

@@ -166,16 +166,16 @@ export function GoodsPurchaseInvoiceDetailDialog({
           <div className="w-64 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Osnovica:</span>
-              <span className="font-medium">{formatNumber(invoice.subtotal)} RSD</span>
+              <span className="font-medium">{formatNumber(invoice.subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">PDV:</span>
-              <span className="font-medium">{formatNumber(invoice.vat_amount)} RSD</span>
+              <span className="font-medium">{formatNumber(invoice.vat_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             <Separator />
             <div className="flex justify-between text-base">
               <span className="font-medium">Ukupno:</span>
-              <span className="font-bold">{formatNumber(invoice.total_amount)} RSD</span>
+              <span className="font-bold">{formatNumber(invoice.total_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
           </div>
         </div>
