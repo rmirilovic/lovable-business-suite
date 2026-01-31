@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, Package, BookCheck } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, Package, BookCheck, Undo2 } from "lucide-react";
 import { useGoodsPurchaseInvoices, GoodsPurchaseInvoice } from "@/hooks/useGoodsPurchaseInvoices";
 import { GoodsPurchaseInvoiceHeaderDialog } from "@/components/nabavka/GoodsPurchaseInvoiceHeaderDialog";
 import { GoodsPurchaseInvoiceDetailDialog } from "@/components/nabavka/GoodsPurchaseInvoiceDetailDialog";
@@ -46,7 +46,7 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 export default function UlazneFaktureRoba() {
-  const { invoices, isLoading, deleteInvoice, postInvoice } = useGoodsPurchaseInvoices();
+  const { invoices, isLoading, deleteInvoice, postInvoice, unpostInvoice } = useGoodsPurchaseInvoices();
   const [searchTerm, setSearchTerm] = useState("");
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -55,6 +55,8 @@ export default function UlazneFaktureRoba() {
   const [invoiceToDelete, setInvoiceToDelete] = useState<GoodsPurchaseInvoice | null>(null);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [invoiceToPost, setInvoiceToPost] = useState<GoodsPurchaseInvoice | null>(null);
+  const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [invoiceToUnpost, setInvoiceToUnpost] = useState<GoodsPurchaseInvoice | null>(null);
 
   useEffect(() => {
     if (!selectedInvoice) return;
@@ -114,6 +116,19 @@ export default function UlazneFaktureRoba() {
       await postInvoice.mutateAsync(invoiceToPost.id);
       setPostDialogOpen(false);
       setInvoiceToPost(null);
+    }
+  };
+
+  const handleUnpostClick = (invoice: GoodsPurchaseInvoice) => {
+    setInvoiceToUnpost(invoice);
+    setUnpostDialogOpen(true);
+  };
+
+  const handleUnpostConfirm = async () => {
+    if (invoiceToUnpost) {
+      await unpostInvoice.mutateAsync(invoiceToUnpost.id);
+      setUnpostDialogOpen(false);
+      setInvoiceToUnpost(null);
     }
   };
 
@@ -248,6 +263,15 @@ export default function UlazneFaktureRoba() {
                               </DropdownMenuItem>
                             </>
                           )}
+                          {invoice.status === "posted" && (
+                            <DropdownMenuItem
+                              onClick={() => handleUnpostClick(invoice)}
+                              className="text-destructive"
+                            >
+                              <Undo2 className="h-4 w-4 mr-2" />
+                              Poništi knjiženje
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -275,6 +299,8 @@ export default function UlazneFaktureRoba() {
           handleEdit(selectedInvoice!);
         }}
         onPost={() => handlePostClick(selectedInvoice!)}
+        onUnpost={() => selectedInvoice && handleUnpostClick(selectedInvoice)}
+        canUnpost={true}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -312,6 +338,28 @@ export default function UlazneFaktureRoba() {
             <AlertDialogCancel>Otkaži</AlertDialogCancel>
             <AlertDialogAction onClick={handlePostConfirm}>
               Proknjiži
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={unpostDialogOpen} onOpenChange={setUnpostDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Poništavanje knjiženja</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da poništite knjiženje fakture{" "}
+              <strong>{invoiceToUnpost?.internal_number}</strong>?
+              Ova akcija će obrisati sva povezana knjiženja iz glavne knjige.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleUnpostConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Poništi knjiženje
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -254,6 +254,29 @@ export function useGoodsPurchaseInvoices() {
     },
   });
 
+  const unpostInvoice = useMutation({
+    mutationFn: async (invoiceId: string) => {
+      if (!user?.id) throw new Error("Niste prijavljeni");
+
+      const { data, error } = await supabase
+        .rpc("unpost_goods_purchase_invoice", {
+          _invoice_id: invoiceId,
+          _user_id: user.id
+        });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goods-purchase-invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      toast.success("Knjiženje je poništeno - dokument je vraćen u nacrt");
+    },
+    onError: (error) => {
+      toast.error(`Greška pri poništavanju: ${error.message}`);
+    },
+  });
+
   const updateTotals = useMutation({
     mutationFn: async ({ invoiceId, subtotal, vat_amount, total_amount }: {
       invoiceId: string;
@@ -281,6 +304,7 @@ export function useGoodsPurchaseInvoices() {
     updateInvoice,
     deleteInvoice,
     postInvoice,
+    unpostInvoice,
     updateTotals,
   };
 }
