@@ -153,8 +153,8 @@ export function ServicePurchaseInvoiceItemsEditor({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">Trošak</TableHead>
-              <TableHead className="min-w-[200px]">Naziv</TableHead>
+              <TableHead className="w-[115px]">Trošak</TableHead>
+              <TableHead>Naziv</TableHead>
               <TableHead className="w-[120px]">Mesto troška</TableHead>
               <TableHead className="w-[100px] text-right">Kol.</TableHead>
               <TableHead className="w-[120px] text-right">Cena</TableHead>
