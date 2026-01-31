@@ -1212,6 +1212,7 @@ export type Database = {
           credit_amount: number
           debit_amount: number
           description: string | null
+          document_date: string | null
           id: string
           item_order: number
           journal_entry_id: string
@@ -1225,6 +1226,7 @@ export type Database = {
           credit_amount?: number
           debit_amount?: number
           description?: string | null
+          document_date?: string | null
           id?: string
           item_order?: number
           journal_entry_id: string
@@ -1238,6 +1240,7 @@ export type Database = {
           credit_amount?: number
           debit_amount?: number
           description?: string | null
+          document_date?: string | null
           id?: string
           item_order?: number
           journal_entry_id?: string
@@ -2673,7 +2676,7 @@ export type Database = {
       }
       post_goods_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
-        Returns: Json
+        Returns: string
       }
       post_invoice: {
         Args: { _invoice_id: string; _user_id: string }
@@ -2685,7 +2688,7 @@ export type Database = {
       }
       post_service_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
-        Returns: boolean
+        Returns: string
       }
       unpost_goods_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
