@@ -148,12 +148,15 @@ export default function GlavnaKnjiga() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>Konto</Label>
-                <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+                <Select 
+                  value={selectedAccount || "__all__"} 
+                  onValueChange={(val) => setSelectedAccount(val === "__all__" ? "" : val)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Svi konta" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Svi konta</SelectItem>
+                    <SelectItem value="__all__">Svi konta</SelectItem>
                     {postingAccounts.map((account) => (
                       <SelectItem key={account.id} value={account.code}>
                         {account.code} - {account.name}
