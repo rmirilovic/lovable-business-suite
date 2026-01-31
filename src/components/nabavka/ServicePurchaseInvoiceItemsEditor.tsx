@@ -155,10 +155,10 @@ export function ServicePurchaseInvoiceItemsEditor({
             <TableRow>
               <TableHead className="w-[115px]">Trošak</TableHead>
               <TableHead className="w-[80px]">Konto</TableHead>
-              <TableHead className="min-w-[320px]">Naziv</TableHead>
+              <TableHead className="min-w-[260px]">Naziv</TableHead>
               <TableHead className="w-[120px]">Mesto troška</TableHead>
-              <TableHead className="w-[100px] text-right">Kol.</TableHead>
-              <TableHead className="w-[120px] text-right">Cena</TableHead>
+              <TableHead className="w-[120px] text-right">Kol.</TableHead>
+              <TableHead className="w-[140px] text-right">Cena</TableHead>
               <TableHead className="w-[80px] text-right">PDV%</TableHead>
               <TableHead className="w-[50px] text-center">Odb.</TableHead>
               <TableHead className="w-[100px] text-right">Ukupno</TableHead>
