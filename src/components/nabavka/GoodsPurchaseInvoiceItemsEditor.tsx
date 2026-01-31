@@ -218,13 +218,20 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         {formatNumber(calculateLineTotal(editItem).total)}
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleEditSubmit}>
-                            <Check className="h-4 w-4 text-primary" />
+                        <div className="flex gap-1 flex-nowrap">
+                          <Button
+                            size="sm"
+                            type="button"
+                            onClick={handleEditSubmit}
+                            disabled={!editItem.item_name || updateItem.isPending}
+                            className="h-7 px-2 text-xs"
+                          >
+                            Zapamti
                           </Button>
                           <Button
                             size="icon"
                             variant="ghost"
+                            type="button"
                             className="h-7 w-7"
                             onClick={() => setEditingId(null)}
                           >
@@ -325,19 +332,20 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       {formatNumber(calculateLineTotal(newItem).total)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-nowrap">
                         <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7"
+                          size="sm"
+                          type="button"
                           onClick={handleAddSubmit}
-                          disabled={!newItem.item_name}
+                          disabled={!newItem.item_name || addItem.isPending}
+                          className="h-7 px-2 text-xs"
                         >
-                          <Check className="h-4 w-4 text-primary" />
+                          Zapamti
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
+                          type="button"
                           className="h-7 w-7"
                           onClick={() => {
                             setIsAdding(false);
