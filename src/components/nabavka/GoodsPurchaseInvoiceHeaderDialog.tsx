@@ -286,7 +286,7 @@ export function GoodsPurchaseInvoiceHeaderDialog({
           </div>
 
           {/* PDV opcije */}
-          <div className="grid grid-cols-2 gap-4 p-3 border rounded-lg">
+          <div className="p-3 border rounded-lg">
             <div className="space-y-2">
               <Label>Obračun PDV-a</Label>
               <Select
@@ -303,20 +303,6 @@ export function GoodsPurchaseInvoiceHeaderDialog({
                   <SelectItem value="no_vat_8v2">Bez obračuna PDV po tački 8v.2</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2 flex items-end">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="has_internal_vat_calculation"
-                  checked={formData.has_internal_vat_calculation}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, has_internal_vat_calculation: checked as boolean })
-                  }
-                />
-                <Label htmlFor="has_internal_vat_calculation" className="text-sm">
-                  Interni obračun PDV-a
-                </Label>
-              </div>
             </div>
           </div>
 

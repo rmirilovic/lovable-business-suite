@@ -127,7 +127,7 @@ export function GoodsPurchaseInvoiceDetailDialog({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
           <div>
             <div className="text-muted-foreground">U sistemu PDV-a</div>
             <Badge variant={invoice.supplier_is_in_pdv ? "default" : "outline"}>
@@ -139,12 +139,6 @@ export function GoodsPurchaseInvoiceDetailDialog({
             <div className="font-medium">
               {invoice.vat_calculation_type === "standard" ? "Standardni" : "Bez obračuna (8v.2)"}
             </div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Interni obračun PDV</div>
-            <Badge variant={invoice.has_internal_vat_calculation ? "default" : "outline"}>
-              {invoice.has_internal_vat_calculation ? "Da" : "Ne"}
-            </Badge>
           </div>
           <div>
             <div className="text-muted-foreground">Tekući račun</div>
