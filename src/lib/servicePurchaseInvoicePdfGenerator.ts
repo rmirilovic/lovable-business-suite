@@ -331,8 +331,32 @@ export async function generateServicePurchaseInvoicePdf(
 
   // Save or print
   if (options?.print) {
-    doc.autoPrint();
-    window.open(doc.output("bloburl"), "_blank");
+    // Use iframe approach to avoid popup blockers
+    const pdfBlob = doc.output("blob");
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "none";
+    printFrame.src = blobUrl;
+    
+    printFrame.onload = () => {
+      setTimeout(() => {
+        printFrame.contentWindow?.print();
+      }, 100);
+    };
+    
+    document.body.appendChild(printFrame);
+    
+    // Cleanup after printing
+    setTimeout(() => {
+      document.body.removeChild(printFrame);
+      URL.revokeObjectURL(blobUrl);
+    }, 60000);
   } else {
     doc.save(
       `Ulazna_faktura_usluge_${invoice.internal_number.replace(/\//g, "-")}.pdf`
