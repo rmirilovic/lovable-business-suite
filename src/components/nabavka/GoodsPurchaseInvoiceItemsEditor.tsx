@@ -147,6 +147,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
               <TableHead className="w-[60px]">JM</TableHead>
               <TableHead className="w-[100px] text-right">Količina</TableHead>
               <TableHead className="w-[120px] text-right">Cena</TableHead>
+              <TableHead className="w-[80px] text-right">Rabat%</TableHead>
               <TableHead className="w-[70px] text-right">PDV%</TableHead>
               <TableHead className="w-[50px] text-center">Odb.</TableHead>
               <TableHead className="w-[110px] text-right">Ukupno</TableHead>
@@ -156,7 +157,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={isEditable ? 9 : 8} className="text-center py-4">
+                <TableCell colSpan={isEditable ? 10 : 9} className="text-center py-4">
                   Učitavanje...
                 </TableCell>
               </TableRow>
@@ -197,6 +198,16 @@ export function GoodsPurchaseInvoiceItemsEditor({
                           inputMode="decimal"
                           value={editItem.unit_price}
                           onChange={(e) => setEditItem({ ...editItem, unit_price: parseFloat(e.target.value) || 0 })}
+                          className="h-8 text-xs text-right"
+                          autoComplete="off"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="text"
+                          inputMode="decimal"
+                          value={editItem.discount_percent}
+                          onChange={(e) => setEditItem({ ...editItem, discount_percent: parseFloat(e.target.value) || 0 })}
                           className="h-8 text-xs text-right"
                           autoComplete="off"
                         />
@@ -256,6 +267,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs">{item.unit}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(item.quantity)}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(item.unit_price)}</TableCell>
+                      <TableCell className="text-xs text-right">{item.discount_percent > 0 ? `${formatNumber(item.discount_percent)}%` : "-"}</TableCell>
                       <TableCell className="text-xs text-right">{item.vat_rate}%</TableCell>
                       <TableCell className="text-center">
                         <Checkbox checked={item.is_vat_deductible} disabled />
@@ -322,6 +334,16 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <Input
                         type="text"
                         inputMode="decimal"
+                        value={newItem.discount_percent}
+                        onChange={(e) => setNewItem({ ...newItem, discount_percent: parseFloat(e.target.value) || 0 })}
+                        className="h-8 text-xs text-right"
+                        autoComplete="off"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
                         value={newItem.vat_rate}
                         onChange={(e) => setNewItem({ ...newItem, vat_rate: parseFloat(e.target.value) || 0 })}
                         className="h-8 text-xs text-right"
@@ -369,7 +391,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
 
                 {items.length === 0 && !isAdding && (
                   <TableRow>
-                    <TableCell colSpan={isEditable ? 9 : 8} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={isEditable ? 10 : 9} className="text-center py-4 text-muted-foreground">
                       Nema stavki. {isEditable && "Kliknite 'Dodaj stavku' za dodavanje."}
                     </TableCell>
                   </TableRow>
