@@ -153,15 +153,15 @@ export function ServicePurchaseInvoiceItemsEditor({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[180px]">Trošak</TableHead>
-              <TableHead>Naziv</TableHead>
-              <TableHead className="w-[140px]">Mesto troška</TableHead>
+              <TableHead className="w-[100px]">Trošak</TableHead>
+              <TableHead className="min-w-[200px]">Naziv</TableHead>
+              <TableHead className="w-[120px]">Mesto troška</TableHead>
               <TableHead className="w-[100px] text-right">Kol.</TableHead>
               <TableHead className="w-[120px] text-right">Cena</TableHead>
-              <TableHead className="w-[70px] text-right">PDV%</TableHead>
-              <TableHead className="w-[60px] text-center">Odb.</TableHead>
+              <TableHead className="w-[80px] text-right">PDV%</TableHead>
+              <TableHead className="w-[50px] text-center">Odb.</TableHead>
               <TableHead className="w-[100px] text-right">Ukupno</TableHead>
-              {isEditable && <TableHead className="w-[80px]"></TableHead>}
+              {isEditable && <TableHead className="w-[130px]"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -185,10 +185,10 @@ export function ServicePurchaseInvoiceItemsEditor({
                             <SelectValue placeholder="Izaberi" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">-- Ručni unos --</SelectItem>
+                            <SelectItem value="none">--</SelectItem>
                             {activeInputCosts.map((ic) => (
                               <SelectItem key={ic.id} value={ic.id}>
-                                {ic.code} - {ic.name}
+                                {ic.code}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -329,10 +329,10 @@ export function ServicePurchaseInvoiceItemsEditor({
                           <SelectValue placeholder="Izaberi trošak" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">-- Ručni unos --</SelectItem>
+                          <SelectItem value="none">--</SelectItem>
                           {activeInputCosts.map((ic) => (
                             <SelectItem key={ic.id} value={ic.id}>
-                              {ic.code} - {ic.name}
+                              {ic.code}
                             </SelectItem>
                           ))}
                         </SelectContent>
