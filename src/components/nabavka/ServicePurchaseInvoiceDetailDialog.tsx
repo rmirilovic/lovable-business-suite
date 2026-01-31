@@ -61,19 +61,22 @@ export function ServicePurchaseInvoiceDetailDialog({
     email?: string | null;
   } | null>(null);
 
-  // Fetch full company data for PDF
+  // Fetch full company data for PDF when dialog opens
   useEffect(() => {
-    if (!selectedCompany?.id) return;
+    if (!open || !selectedCompany?.id) return;
     
     const fetchCompanyData = async () => {
-      const { data } = await import("@/integrations/supabase/client").then(m => 
-        m.supabase.from("companies").select("name, address, city, postal_code, pib, mb, phone, email").eq("id", selectedCompany.id).single()
-      );
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase
+        .from("companies")
+        .select("name, address, city, postal_code, pib, mb, phone, email")
+        .eq("id", selectedCompany.id)
+        .single();
       if (data) setCompanyData(data);
     };
     
     fetchCompanyData();
-  }, [selectedCompany?.id]);
+  }, [open, selectedCompany?.id]);
 
   const handleDownloadPdf = async () => {
     if (!invoice || !companyData) return;
