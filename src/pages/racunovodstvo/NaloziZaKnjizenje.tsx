@@ -160,10 +160,10 @@ export default function NaloziZaKnjizenje() {
                       {entry.document_number || "-"}
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {formatNumber(entry.total_debit)}
+                      {formatNumber(entry.total_debit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {formatNumber(entry.total_credit)}
+                      {formatNumber(entry.total_credit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
                       <Badge className={cn("text-xs", STATUS_COLORS[entry.status])}>
