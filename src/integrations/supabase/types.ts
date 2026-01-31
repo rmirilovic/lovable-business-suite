@@ -2397,6 +2397,7 @@ export type Database = {
           invoice_date: string
           journal_entry_id: string | null
           note: string | null
+          org_unit_id: string | null
           partner_id: string
           payment_reference: string | null
           posted_at: string | null
@@ -2431,6 +2432,7 @@ export type Database = {
           invoice_date?: string
           journal_entry_id?: string | null
           note?: string | null
+          org_unit_id?: string | null
           partner_id: string
           payment_reference?: string | null
           posted_at?: string | null
@@ -2465,6 +2467,7 @@ export type Database = {
           invoice_date?: string
           journal_entry_id?: string | null
           note?: string | null
+          org_unit_id?: string | null
           partner_id?: string
           payment_reference?: string | null
           posted_at?: string | null
@@ -2506,6 +2509,13 @@ export type Database = {
             columns: ["journal_entry_id"]
             isOneToOne: false
             referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_purchase_invoices_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
             referencedColumns: ["id"]
           },
           {
