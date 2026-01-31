@@ -310,9 +310,11 @@ export function useServicePurchaseInvoiceItems(invoiceId: string | null) {
     mutationFn: async (item: ServicePurchaseInvoiceItemFormData & { service_purchase_invoice_id: string }) => {
       if (!selectedCompany?.id) throw new Error("Potrebno je izabrati firmu");
 
-      const lineSubtotal = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
-      const lineVat = lineSubtotal * (item.vat_rate / 100);
-      const lineTotal = lineSubtotal + lineVat;
+      // unit_price je cena SA PDV-om (bruto). Osnovica i PDV se računaju unazad.
+      const grossAmount = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
+      const lineSubtotal = grossAmount / (1 + item.vat_rate / 100);
+      const lineVat = grossAmount - lineSubtotal;
+      const lineTotal = grossAmount;
 
       const { data: existingItems } = await supabase
         .from("service_purchase_invoice_items")
@@ -364,9 +366,11 @@ export function useServicePurchaseInvoiceItems(invoiceId: string | null) {
 
   const updateItem = useMutation({
     mutationFn: async ({ id, ...item }: ServicePurchaseInvoiceItemFormData & { id: string }) => {
-      const lineSubtotal = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
-      const lineVat = lineSubtotal * (item.vat_rate / 100);
-      const lineTotal = lineSubtotal + lineVat;
+      // unit_price je cena SA PDV-om (bruto). Osnovica i PDV se računaju unazad.
+      const grossAmount = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
+      const lineSubtotal = grossAmount / (1 + item.vat_rate / 100);
+      const lineVat = grossAmount - lineSubtotal;
+      const lineTotal = grossAmount;
 
       const { data, error } = await supabase
         .from("service_purchase_invoice_items")
