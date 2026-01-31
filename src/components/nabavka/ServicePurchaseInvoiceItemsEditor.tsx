@@ -156,9 +156,9 @@ export function ServicePurchaseInvoiceItemsEditor({
               <TableHead className="w-[180px]">Trošak</TableHead>
               <TableHead>Naziv</TableHead>
               <TableHead className="w-[140px]">Mesto troška</TableHead>
-              <TableHead className="w-[70px] text-right">Kol.</TableHead>
-              <TableHead className="w-[90px] text-right">Cena</TableHead>
-              <TableHead className="w-[60px] text-right">PDV%</TableHead>
+              <TableHead className="w-[100px] text-right">Kol.</TableHead>
+              <TableHead className="w-[120px] text-right">Cena</TableHead>
+              <TableHead className="w-[70px] text-right">PDV%</TableHead>
               <TableHead className="w-[60px] text-center">Odb.</TableHead>
               <TableHead className="w-[100px] text-right">Ukupno</TableHead>
               {isEditable && <TableHead className="w-[80px]"></TableHead>}
@@ -224,29 +224,32 @@ export function ServicePurchaseInvoiceItemsEditor({
                       </TableCell>
                       <TableCell>
                         <Input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={editItem.quantity}
                           onChange={(e) => setEditItem({ ...editItem, quantity: parseFloat(e.target.value) || 0 })}
                           className="h-8 text-xs text-right"
-                          step="0.01"
+                          autoComplete="off"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={editItem.unit_price}
                           onChange={(e) => setEditItem({ ...editItem, unit_price: parseFloat(e.target.value) || 0 })}
                           className="h-8 text-xs text-right"
-                          step="0.01"
+                          autoComplete="off"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={editItem.vat_rate}
                           onChange={(e) => setEditItem({ ...editItem, vat_rate: parseFloat(e.target.value) || 0 })}
                           className="h-8 text-xs text-right"
-                          step="1"
+                          autoComplete="off"
                         />
                       </TableCell>
                       <TableCell className="text-center">
@@ -366,29 +369,32 @@ export function ServicePurchaseInvoiceItemsEditor({
                     </TableCell>
                     <TableCell>
                       <Input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         value={newItem.quantity}
                         onChange={(e) => setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })}
                         className="h-8 text-xs text-right"
-                        step="0.01"
+                        autoComplete="off"
                       />
                     </TableCell>
                     <TableCell>
                       <Input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         value={newItem.unit_price}
                         onChange={(e) => setNewItem({ ...newItem, unit_price: parseFloat(e.target.value) || 0 })}
                         className="h-8 text-xs text-right"
-                        step="0.01"
+                        autoComplete="off"
                       />
                     </TableCell>
                     <TableCell>
                       <Input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         value={newItem.vat_rate}
                         onChange={(e) => setNewItem({ ...newItem, vat_rate: parseFloat(e.target.value) || 0 })}
                         className="h-8 text-xs text-right"
-                        step="1"
+                        autoComplete="off"
                       />
                     </TableCell>
                     <TableCell className="text-center">
