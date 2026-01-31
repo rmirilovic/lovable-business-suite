@@ -53,7 +53,8 @@ const navigation: NavItem[] = [
     label: "Nabavka",
     icon: FileText,
     children: [
-      { label: "Ulazne fakture", href: "/nabavka/ulazne-fakture" },
+      { label: "UF za usluge", href: "/nabavka/ulazne-fakture-usluge" },
+      { label: "UF za robu", href: "/nabavka/ulazne-fakture-roba" },
       { label: "Prijemnice", href: "/nabavka/prijemnice" },
       { label: "Narudžbenice", href: "/nabavka/narudzbenice" },
     ],
