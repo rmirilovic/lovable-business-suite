@@ -858,6 +858,154 @@ export type Database = {
           },
         ]
       }
+      goods_receipt_items: {
+        Row: {
+          article_id: string | null
+          company_id: string
+          created_at: string
+          goods_receipt_id: string
+          id: string
+          item_code: string | null
+          item_name: string
+          item_order: number
+          quantity: number
+          unit: string
+          unit_price: number
+        }
+        Insert: {
+          article_id?: string | null
+          company_id: string
+          created_at?: string
+          goods_receipt_id: string
+          id?: string
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+        }
+        Update: {
+          article_id?: string | null
+          company_id?: string
+          created_at?: string
+          goods_receipt_id?: string
+          id?: string
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goods_receipt_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipt_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipt_items_goods_receipt_id_fkey"
+            columns: ["goods_receipt_id"]
+            isOneToOne: false
+            referencedRelation: "goods_receipts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goods_receipts: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          id: string
+          note: string | null
+          partner_id: string | null
+          receipt_date: string
+          receipt_number: string
+          source_invoice_id: string | null
+          status: string
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          note?: string | null
+          partner_id?: string | null
+          receipt_date?: string
+          receipt_number: string
+          source_invoice_id?: string | null
+          status?: string
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string | null
+          partner_id?: string | null
+          receipt_date?: string
+          receipt_number?: string
+          source_invoice_id?: string | null
+          status?: string
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goods_receipts_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipts_source_invoice_id_fkey"
+            columns: ["source_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "goods_purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipts_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       input_costs: {
         Row: {
           account_code: string
