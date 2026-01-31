@@ -153,15 +153,15 @@ export function ServicePurchaseInvoiceItemsEditor({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[115px]">Trošak</TableHead>
-              <TableHead className="w-[80px]">Konto</TableHead>
-              <TableHead className="min-w-[260px]">Naziv</TableHead>
-              <TableHead className="w-[120px]">Mesto troška</TableHead>
-              <TableHead className="w-[120px] text-right">Kol.</TableHead>
-              <TableHead className="w-[140px] text-right">Cena</TableHead>
-              <TableHead className="w-[80px] text-right">PDV%</TableHead>
-              <TableHead className="w-[50px] text-center">Odb.</TableHead>
-              <TableHead className="w-[100px] text-right">Ukupno</TableHead>
+              <TableHead className="w-[115px] text-xs">Trošak</TableHead>
+              <TableHead className="w-[80px] text-xs">Konto</TableHead>
+              <TableHead className="min-w-[220px] text-xs">Naziv</TableHead>
+              <TableHead className="w-[120px] text-xs">Mesto troška</TableHead>
+              <TableHead className="w-[140px] text-right text-xs">Kol.</TableHead>
+              <TableHead className="w-[160px] text-right text-xs">Cena</TableHead>
+              <TableHead className="w-[80px] text-right text-xs">PDV%</TableHead>
+              <TableHead className="w-[50px] text-center text-xs">Odb.</TableHead>
+              <TableHead className="w-[100px] text-right text-xs">Ukupno</TableHead>
               {isEditable && <TableHead className="w-[130px]"></TableHead>}
             </TableRow>
           </TableHeader>
