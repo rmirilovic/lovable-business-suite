@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -156,7 +155,6 @@ export function GoodsPurchaseInvoiceItemsEditor({
                 <TableHead className="w-[80px] text-right">Rabat%</TableHead>
                 <TableHead className="w-[140px] text-right">Cena neto</TableHead>
                 <TableHead className="w-[90px] text-right">PDV%</TableHead>
-                <TableHead className="w-[50px] text-center">Odb.</TableHead>
                 <TableHead className="w-[140px] text-right">Ukupno</TableHead>
                 {isEditable && <TableHead className="w-[80px]"></TableHead>}
               </TableRow>
@@ -164,7 +162,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={isEditable ? 11 : 10} className="text-center py-4">
+                  <TableCell colSpan={isEditable ? 10 : 9} className="text-center py-4">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
@@ -232,14 +230,6 @@ export function GoodsPurchaseInvoiceItemsEditor({
                           autoComplete="off"
                         />
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Checkbox
-                          checked={editItem.is_vat_deductible}
-                          onCheckedChange={(c) =>
-                            setEditItem({ ...editItem, is_vat_deductible: c as boolean })
-                          }
-                        />
-                      </TableCell>
                       <TableCell className="text-right text-xs font-medium">
                         {formatNumber(calculateLineTotal(editItem).total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
@@ -280,9 +270,6 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs text-right">{item.discount_percent > 0 ? `${formatNumber(item.discount_percent)}%` : "-"}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(calculateNetPrice(item.unit_price, item.discount_percent), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-xs text-right">{item.vat_rate}%</TableCell>
-                      <TableCell className="text-center">
-                        <Checkbox checked={item.is_vat_deductible} disabled />
-                      </TableCell>
                       <TableCell className="text-xs text-right font-medium">
                         {formatNumber(item.line_total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
@@ -364,14 +351,6 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         autoComplete="off"
                       />
                     </TableCell>
-                    <TableCell className="text-center">
-                      <Checkbox
-                        checked={newItem.is_vat_deductible}
-                        onCheckedChange={(c) =>
-                          setNewItem({ ...newItem, is_vat_deductible: c as boolean })
-                        }
-                      />
-                    </TableCell>
                     <TableCell className="text-right text-xs font-medium">
                       {formatNumber(calculateLineTotal(newItem).total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
@@ -405,7 +384,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
 
                 {items.length === 0 && !isAdding && (
                   <TableRow>
-                    <TableCell colSpan={isEditable ? 11 : 10} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={isEditable ? 10 : 9} className="text-center py-4 text-muted-foreground">
                       Nema stavki. {isEditable && "Kliknite 'Dodaj stavku' za dodavanje."}
                     </TableCell>
                   </TableRow>
