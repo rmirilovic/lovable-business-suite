@@ -31,6 +31,7 @@ import { formatNumber } from "@/lib/formatting";
 interface LedgerEntry {
   id: string;
   entry_date: string;
+  document_date: string | null;
   entry_number: number;
   description: string;
   account_code: string;
@@ -66,6 +67,7 @@ export default function GlavnaKnjiga() {
             id,
             entry_number,
             entry_date,
+            document_date,
             description,
             status,
             business_year_id
@@ -87,6 +89,7 @@ export default function GlavnaKnjiga() {
       return (data || []).map((item: any) => ({
         id: item.id,
         entry_date: item.journal_entries.entry_date,
+        document_date: item.journal_entries.document_date,
         entry_number: item.journal_entries.entry_number,
         description: item.journal_entries.description,
         account_code: item.account_code,
@@ -197,7 +200,7 @@ export default function GlavnaKnjiga() {
             <CardContent className="pt-4">
               <div className="text-sm text-muted-foreground">Ukupno duguje</div>
               <div className="text-2xl font-bold font-mono text-green-600">
-                {formatNumber(totals.debit)}
+                {formatNumber(totals.debit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </CardContent>
           </Card>
@@ -205,7 +208,7 @@ export default function GlavnaKnjiga() {
             <CardContent className="pt-4">
               <div className="text-sm text-muted-foreground">Ukupno potražuje</div>
               <div className="text-2xl font-bold font-mono text-red-600">
-                {formatNumber(totals.credit)}
+                {formatNumber(totals.credit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </CardContent>
           </Card>
@@ -213,7 +216,7 @@ export default function GlavnaKnjiga() {
             <CardContent className="pt-4">
               <div className="text-sm text-muted-foreground">Saldo</div>
               <div className={`text-2xl font-bold font-mono ${totals.debit - totals.credit >= 0 ? "text-green-600" : "text-red-600"}`}>
-                {formatNumber(totals.debit - totals.credit)}
+                {formatNumber(totals.debit - totals.credit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
             </CardContent>
           </Card>
@@ -225,6 +228,7 @@ export default function GlavnaKnjiga() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">Datum</TableHead>
+                <TableHead className="w-[100px]">Valuta</TableHead>
                 <TableHead className="w-[80px]">Nalog</TableHead>
                 <TableHead className="w-[100px]">Konto</TableHead>
                 <TableHead>Opis</TableHead>
@@ -236,13 +240,13 @@ export default function GlavnaKnjiga() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : filteredData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     Nema proknjiženih stavki za prikaz.
                   </TableCell>
@@ -251,6 +255,7 @@ export default function GlavnaKnjiga() {
                 filteredData.map((entry) => (
                   <TableRow key={entry.id}>
                     <TableCell>{format(new Date(entry.entry_date), "dd.MM.yyyy")}</TableCell>
+                    <TableCell>{entry.document_date ? format(new Date(entry.document_date), "dd.MM.yyyy") : "-"}</TableCell>
                     <TableCell className="font-medium">{entry.entry_number}</TableCell>
                     <TableCell className="font-mono">{entry.account_code}</TableCell>
                     <TableCell>
@@ -262,13 +267,13 @@ export default function GlavnaKnjiga() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {entry.debit_amount > 0 ? formatNumber(entry.debit_amount) : ""}
+                      {entry.debit_amount > 0 ? formatNumber(entry.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {entry.credit_amount > 0 ? formatNumber(entry.credit_amount) : ""}
+                      {entry.credit_amount > 0 ? formatNumber(entry.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
                     </TableCell>
                     <TableCell className={`text-right font-mono font-medium ${entry.balance >= 0 ? "text-green-600" : "text-red-600"}`}>
-                      {formatNumber(entry.balance)}
+                      {formatNumber(entry.balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                   </TableRow>
                 ))
@@ -277,17 +282,17 @@ export default function GlavnaKnjiga() {
             {filteredData.length > 0 && (
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-right font-medium">
+                  <TableCell colSpan={5} className="text-right font-medium">
                     Ukupno:
                   </TableCell>
                   <TableCell className="text-right font-mono font-bold">
-                    {formatNumber(totals.debit)}
+                    {formatNumber(totals.debit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className="text-right font-mono font-bold">
-                    {formatNumber(totals.credit)}
+                    {formatNumber(totals.credit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className={`text-right font-mono font-bold ${totals.debit - totals.credit >= 0 ? "text-green-600" : "text-red-600"}`}>
-                    {formatNumber(totals.debit - totals.credit)}
+                    {formatNumber(totals.debit - totals.credit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
                 </TableRow>
               </TableFooter>

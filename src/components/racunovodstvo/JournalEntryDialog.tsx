@@ -181,10 +181,10 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
                       <TableCell>{getAccountName(item.account_code)}</TableCell>
                       <TableCell className="text-muted-foreground">{item.description || "-"}</TableCell>
                       <TableCell className="text-right font-mono">
-                        {Number(item.debit_amount) > 0 ? formatNumber(item.debit_amount) : ""}
+                        {Number(item.debit_amount) > 0 ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
                       </TableCell>
                       <TableCell className="text-right font-mono">
-                        {Number(item.credit_amount) > 0 ? formatNumber(item.credit_amount) : ""}
+                        {Number(item.credit_amount) > 0 ? formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
                       </TableCell>
                       {isDraft && (
                         <TableCell>
@@ -267,17 +267,17 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
                     Ukupno:
                   </TableCell>
                   <TableCell className={cn("text-right font-mono font-bold", !isBalanced && "text-destructive")}>
-                    {formatNumber(totalDebit)}
+                    {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
                   <TableCell className={cn("text-right font-mono font-bold", !isBalanced && "text-destructive")}>
-                    {formatNumber(totalCredit)}
+                    {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
                   {isDraft && <TableCell />}
                 </TableRow>
                 {!isBalanced && items.length > 0 && (
                   <TableRow>
                     <TableCell colSpan={isDraft ? 6 : 5} className="text-center text-destructive text-sm">
-                      ⚠️ Nalog nije uravnotežen! Razlika: {formatNumber(Math.abs(totalDebit - totalCredit))}
+                      ⚠️ Nalog nije uravnotežen! Razlika: {formatNumber(Math.abs(totalDebit - totalCredit), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                   </TableRow>
                 )}
