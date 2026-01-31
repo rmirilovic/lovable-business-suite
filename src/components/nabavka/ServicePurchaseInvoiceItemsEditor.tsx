@@ -157,8 +157,8 @@ export function ServicePurchaseInvoiceItemsEditor({
               <TableHead className="w-[80px] text-xs">Konto</TableHead>
               <TableHead className="min-w-[220px] text-xs">Naziv</TableHead>
               <TableHead className="w-[120px] text-xs">Mesto troška</TableHead>
-              <TableHead className="w-[140px] text-right text-xs">Kol.</TableHead>
-              <TableHead className="w-[160px] text-right text-xs">Cena</TableHead>
+              <TableHead className="w-[160px] text-right text-xs">Kol.</TableHead>
+              <TableHead className="w-[180px] text-right text-xs">Cena</TableHead>
               <TableHead className="w-[80px] text-right text-xs">PDV%</TableHead>
               <TableHead className="w-[50px] text-center text-xs">Odb.</TableHead>
               <TableHead className="w-[100px] text-right text-xs">Ukupno</TableHead>
