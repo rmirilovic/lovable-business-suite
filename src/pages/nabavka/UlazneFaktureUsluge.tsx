@@ -69,8 +69,8 @@ export default function UlazneFaktureUsluge() {
     const checkAccess = async () => {
       const { data } = await supabase.rpc("get_user_access_level", {
         _user_id: user.id,
-        _module_code: "nabavka.ulazne_fakture_usluge",
         _company_id: selectedCompany.id,
+        _module_code: "nabavka.ulazne_fakture_usluge",
         _org_unit_id: null,
       });
       setUserAccessLevel(data);
