@@ -26,7 +26,7 @@ import {
   ServicePurchaseInvoiceItem,
   ServicePurchaseInvoiceItemFormData,
 } from "@/hooks/useServicePurchaseInvoices";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, formatPrice } from "@/lib/formatting";
 import { UseMutationResult } from "@tanstack/react-query";
 
 interface ServicePurchaseInvoiceItemsEditorProps {
@@ -94,9 +94,11 @@ export function ServicePurchaseInvoiceItemsEditor({
   };
 
   const calculateLineTotal = (item: ServicePurchaseInvoiceItemFormData) => {
-    const subtotal = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
-    const vat = subtotal * (item.vat_rate / 100);
-    return { subtotal, vat, total: subtotal + vat };
+    // Cena je sa PDV-om (bruto), računamo unazad
+    const grossAmount = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
+    const subtotal = grossAmount / (1 + item.vat_rate / 100);
+    const vat = grossAmount - subtotal;
+    return { subtotal, vat, total: grossAmount };
   };
 
   const handleAddSubmit = async () => {
@@ -300,13 +302,13 @@ export function ServicePurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs font-medium">{item.item_name}</TableCell>
                       <TableCell className="text-xs">{item.org_unit?.code || "-"}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(item.quantity)}</TableCell>
-                      <TableCell className="text-xs text-right">{formatNumber(item.unit_price)}</TableCell>
+                      <TableCell className="text-xs text-right">{formatPrice(item.unit_price)}</TableCell>
                       <TableCell className="text-xs text-right">{item.vat_rate}%</TableCell>
                       <TableCell className="text-center">
                         <Checkbox checked={item.is_vat_deductible} disabled />
                       </TableCell>
                       <TableCell className="text-xs text-right font-medium">
-                        {formatNumber(item.line_total)}
+                        {formatPrice(item.line_total)}
                       </TableCell>
                       {isEditable && (
                         <TableCell onClick={(e) => e.stopPropagation()}>
@@ -416,7 +418,7 @@ export function ServicePurchaseInvoiceItemsEditor({
                       />
                     </TableCell>
                     <TableCell className="text-right text-xs font-medium">
-                      {formatNumber(calculateLineTotal(newItem).total)}
+                      {formatPrice(calculateLineTotal(newItem).total)}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-nowrap">
