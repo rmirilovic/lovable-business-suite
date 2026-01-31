@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Pencil, BookCheck, FileDown, Printer } from "lucide-react";
+import { Pencil, BookCheck, FileDown, Printer, Undo2 } from "lucide-react";
 import {
   ServicePurchaseInvoice,
   useServicePurchaseInvoiceItems,
@@ -25,6 +25,8 @@ interface ServicePurchaseInvoiceDetailDialogProps {
   invoice: ServicePurchaseInvoice | null;
   onEdit: () => void;
   onPost: () => void;
+  onUnpost?: () => void;
+  canUnpost?: boolean;
 }
 
 const statusLabels: Record<string, string> = {
@@ -45,6 +47,8 @@ export function ServicePurchaseInvoiceDetailDialog({
   invoice,
   onEdit,
   onPost,
+  onUnpost,
+  canUnpost = false,
 }: ServicePurchaseInvoiceDetailDialogProps) {
   const { selectedCompany } = useAuth();
   const { items, isLoading: itemsLoading, addItem, updateItem, deleteItem } = useServicePurchaseInvoiceItems(invoice?.id || null);
@@ -123,6 +127,7 @@ export function ServicePurchaseInvoiceDetailDialog({
   if (!invoice) return null;
 
   const isDraft = invoice.status === "draft";
+  const isPosted = invoice.status === "posted";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -272,6 +277,12 @@ export function ServicePurchaseInvoiceDetailDialog({
                 Proknjiži
               </Button>
             </div>
+          )}
+          {isPosted && canUnpost && onUnpost && (
+            <Button variant="destructive" onClick={onUnpost}>
+              <Undo2 className="h-4 w-4 mr-2" />
+              Poništi knjiženje
+            </Button>
           )}
         </div>
       </DialogContent>

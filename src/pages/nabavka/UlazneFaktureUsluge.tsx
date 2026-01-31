@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -46,7 +48,8 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 export default function UlazneFaktureUsluge() {
-  const { invoices, isLoading, deleteInvoice, postInvoice } = useServicePurchaseInvoices();
+  const { invoices, isLoading, deleteInvoice, postInvoice, unpostInvoice } = useServicePurchaseInvoices();
+  const { user, selectedCompany } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -55,6 +58,28 @@ export default function UlazneFaktureUsluge() {
   const [invoiceToDelete, setInvoiceToDelete] = useState<ServicePurchaseInvoice | null>(null);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [invoiceToPost, setInvoiceToPost] = useState<ServicePurchaseInvoice | null>(null);
+  const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [invoiceToUnpost, setInvoiceToUnpost] = useState<ServicePurchaseInvoice | null>(null);
+  const [userAccessLevel, setUserAccessLevel] = useState<string | null>(null);
+
+  // Check user access level for unpost permission
+  useEffect(() => {
+    if (!user?.id || !selectedCompany?.id) return;
+    
+    const checkAccess = async () => {
+      const { data } = await supabase.rpc("get_user_access_level", {
+        _user_id: user.id,
+        _module_code: "nabavka.ulazne_fakture_usluge",
+        _company_id: selectedCompany.id,
+        _org_unit_id: null,
+      });
+      setUserAccessLevel(data);
+    };
+    
+    checkAccess();
+  }, [user?.id, selectedCompany?.id]);
+
+  const canUnpost = userAccessLevel === "admin";
 
   useEffect(() => {
     if (!selectedInvoice) return;
@@ -119,6 +144,19 @@ export default function UlazneFaktureUsluge() {
   const handleNewInvoiceSaved = (invoice: ServicePurchaseInvoice) => {
     setSelectedInvoice(invoice);
     setDetailDialogOpen(true);
+  };
+
+  const handleUnpostClick = (invoice: ServicePurchaseInvoice) => {
+    setInvoiceToUnpost(invoice);
+    setUnpostDialogOpen(true);
+  };
+
+  const handleUnpostConfirm = async () => {
+    if (invoiceToUnpost) {
+      await unpostInvoice.mutateAsync(invoiceToUnpost.id);
+      setUnpostDialogOpen(false);
+      setInvoiceToUnpost(null);
+    }
   };
 
   return (
@@ -269,6 +307,8 @@ export default function UlazneFaktureUsluge() {
           handleEdit(selectedInvoice!);
         }}
         onPost={() => handlePostClick(selectedInvoice!)}
+        onUnpost={() => handleUnpostClick(selectedInvoice!)}
+        canUnpost={canUnpost}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -304,8 +344,31 @@ export default function UlazneFaktureUsluge() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Otkaži</AlertDialogCancel>
-            <AlertDialogAction onClick={handlePostConfirm}>
+          <AlertDialogAction onClick={handlePostConfirm}>
               Proknjiži
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={unpostDialogOpen} onOpenChange={setUnpostDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Poništavanje knjiženja</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da poništite knjiženje ulazne fakture{" "}
+              <strong>{invoiceToUnpost?.internal_number}</strong>?
+              <br /><br />
+              Ovo će obrisati povezani nalog za knjiženje iz Glavne knjige i vratiti dokument u status "Nacrt" za izmene.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleUnpostConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Poništi knjiženje
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
