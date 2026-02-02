@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users, Shield, Calendar, Database, KeyRound, UserCheck } from "lucide-react";
+import { Building2, Users, Shield, Calendar, Database, KeyRound, UserCheck, Lock } from "lucide-react";
 import { CompaniesTab } from "@/components/admin/CompaniesTab";
 import { UsersTab } from "@/components/admin/UsersTab";
 import { AccessTab } from "@/components/admin/AccessTab";
@@ -9,13 +9,15 @@ import { BusinessYearsTab } from "@/components/admin/BusinessYearsTab";
 import { DataImportTab } from "@/components/admin/DataImportTab";
 import { RolesTab } from "@/components/admin/RolesTab";
 import { UserRolesTab } from "@/components/admin/UserRolesTab";
+import { ChangePasswordTab } from "@/components/admin/ChangePasswordTab";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function AdminPanel() {
   const { isSuperAdmin, isLocalAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState(isSuperAdmin || isLocalAdmin ? "companies" : "years");
+  const [activeTab, setActiveTab] = useState(isSuperAdmin || isLocalAdmin ? "companies" : "password");
 
-  // Super admins and local admins see all tabs including data import
+  // All users see the password change tab
+  // Super admins and local admins see additional admin tabs
   const tabs = isSuperAdmin || isLocalAdmin
     ? [
         { value: "companies", label: "Firme", icon: Building2 },
@@ -25,8 +27,10 @@ export default function AdminPanel() {
         { value: "roles", label: "Uloge", icon: KeyRound },
         { value: "user-roles", label: "Dodela uloga", icon: UserCheck },
         { value: "data", label: "Podaci", icon: Database },
+        { value: "password", label: "Lozinka", icon: Lock },
       ]
     : [
+        { value: "password", label: "Lozinka", icon: Lock },
         { value: "years", label: "Godine", icon: Calendar },
         { value: "access", label: "Pristupi", icon: Shield },
       ];
@@ -79,6 +83,10 @@ export default function AdminPanel() {
               </TabsContent>
             </>
           )}
+
+          <TabsContent value="password" className="mt-6">
+            <ChangePasswordTab />
+          </TabsContent>
         </Tabs>
       </div>
     </MainLayout>
