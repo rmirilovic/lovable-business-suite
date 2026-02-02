@@ -9,13 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Lock, User, Mail, Phone, Save, Camera, Loader2 } from "lucide-react";
+import { Lock, User, Mail, Phone, Save, Camera, Loader2, Shield } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 
 const passwordSchema = z.string().min(6, "Lozinka mora imati najmanje 6 karaktera");
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, isSuperAdmin, isLocalAdmin, companies, localAdminCompanyIds } = useAuth();
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingPassword, setIsLoadingPassword] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -264,6 +265,68 @@ export default function Profile() {
                 onChange={handleAvatarChange}
                 className="hidden"
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* User Roles */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Uloge i dozvole
+            </CardTitle>
+            <CardDescription>
+              Vaše sistemske uloge i nivoi pristupa
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm text-muted-foreground">Sistemska uloga</Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {isSuperAdmin ? (
+                    <Badge variant="destructive">
+                      Super Admin
+                    </Badge>
+                  ) : isLocalAdmin ? (
+                    <Badge variant="default">
+                      Administrator
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      Korisnik
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {isLocalAdmin && localAdminCompanyIds.length > 0 && (
+                <div>
+                  <Label className="text-sm text-muted-foreground">Administrator za kompanije</Label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {companies
+                      .filter(c => localAdminCompanyIds.includes(c.id))
+                      .map(company => (
+                        <Badge key={company.id} variant="outline">
+                          {company.name}
+                        </Badge>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2 text-sm text-muted-foreground">
+                {isSuperAdmin && (
+                  <p>Kao Super Admin imate potpun pristup svim funkcionalnostima sistema.</p>
+                )}
+                {isLocalAdmin && !isSuperAdmin && (
+                  <p>Kao Administrator imate proširena prava upravljanja za dodeljene kompanije.</p>
+                )}
+                {!isSuperAdmin && !isLocalAdmin && (
+                  <p>Imate standardni korisnički pristup. Kontaktirajte administratora za dodatne dozvole.</p>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
