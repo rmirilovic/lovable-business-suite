@@ -378,7 +378,7 @@ export default function Auth() {
                     <Separator />
                   </div>
                   
-                  <div className="text-center space-y-1">
+                  <div className="text-center">
                     <button
                       type="button"
                       className="text-sm text-primary hover:underline"
@@ -389,9 +389,6 @@ export default function Auth() {
                     >
                       Zaboravili ste lozinku?
                     </button>
-                    <p className="text-xs text-muted-foreground">
-                      Za promenu lozinke, prijavite se pa idite na /change-password
-                    </p>
                   </div>
                 </form>
               </TabsContent>
