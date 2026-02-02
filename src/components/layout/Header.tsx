@@ -20,7 +20,7 @@ interface HeaderProps {
 
 export function Header({ title, userName }: HeaderProps) {
   const navigate = useNavigate();
-  const { signOut, user } = useAuth();
+  const { signOut, user, isSuperAdmin, isLocalAdmin } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,6 +57,12 @@ export function Header({ title, userName }: HeaderProps) {
     return "KO";
   };
 
+  const getRoleLabel = () => {
+    if (isSuperAdmin) return "Super Admin";
+    if (isLocalAdmin) return "Administrator";
+    return "Korisnik";
+  };
+
   return (
     <header className="h-16 bg-card border-b border-border px-6 flex items-center justify-between">
       <div>
@@ -89,7 +95,7 @@ export function Header({ title, userName }: HeaderProps) {
             <button className="flex items-center gap-3 pl-3 border-l border-border hover:bg-secondary/50 rounded-md p-2 transition-colors">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-foreground">{userName}</p>
-                <p className="text-xs text-muted-foreground">Administrator</p>
+                <p className="text-xs text-muted-foreground">{getRoleLabel()}</p>
               </div>
               <Avatar className="h-9 w-9">
                 <AvatarImage src={avatarUrl || undefined} alt="Profilna slika" />
