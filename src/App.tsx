@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import ChangePassword from "./pages/ChangePassword";
 import Profile from "./pages/Profile";
 import SelectCompany from "./pages/SelectCompany";
 import Artikli from "./pages/sifarnici/Artikli";
@@ -43,6 +44,11 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/change-password" element={
+                <ProtectedRoute requireCompany={false}>
+                  <ChangePassword />
+                </ProtectedRoute>
+              } />
               <Route path="/select-company" element={
                 <ProtectedRoute requireCompany={false}>
                   <SelectCompany />

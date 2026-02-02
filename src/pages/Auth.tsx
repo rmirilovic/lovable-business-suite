@@ -379,16 +379,12 @@ export default function Auth() {
                   </div>
                   
                   <div className="text-center">
-                    <button
-                      type="button"
+                    <a
+                      href="/change-password"
                       className="text-sm text-primary hover:underline"
-                      onClick={() => {
-                        setShowForgotPassword(true);
-                        setErrors({});
-                      }}
                     >
                       Promenite lozinku
-                    </button>
+                    </a>
                   </div>
                 </form>
               </TabsContent>

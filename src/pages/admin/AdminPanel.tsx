@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users, Shield, Calendar, Database, KeyRound, UserCheck, Lock } from "lucide-react";
+import { Building2, Users, Shield, Calendar, Database, KeyRound, UserCheck } from "lucide-react";
 import { CompaniesTab } from "@/components/admin/CompaniesTab";
 import { UsersTab } from "@/components/admin/UsersTab";
 import { AccessTab } from "@/components/admin/AccessTab";
@@ -9,31 +9,19 @@ import { BusinessYearsTab } from "@/components/admin/BusinessYearsTab";
 import { DataImportTab } from "@/components/admin/DataImportTab";
 import { RolesTab } from "@/components/admin/RolesTab";
 import { UserRolesTab } from "@/components/admin/UserRolesTab";
-import { ChangePasswordTab } from "@/components/admin/ChangePasswordTab";
-import { useAuth } from "@/contexts/AuthContext";
 
 export default function AdminPanel() {
-  const { isSuperAdmin, isLocalAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState(isSuperAdmin || isLocalAdmin ? "companies" : "password");
+  const [activeTab, setActiveTab] = useState("companies");
 
-  // All users see the password change tab
-  // Super admins and local admins see additional admin tabs
-  const tabs = isSuperAdmin || isLocalAdmin
-    ? [
-        { value: "companies", label: "Firme", icon: Building2 },
-        { value: "years", label: "Godine", icon: Calendar },
-        { value: "users", label: "Korisnici", icon: Users },
-        { value: "access", label: "Pristupi", icon: Shield },
-        { value: "roles", label: "Uloge", icon: KeyRound },
-        { value: "user-roles", label: "Dodela uloga", icon: UserCheck },
-        { value: "data", label: "Podaci", icon: Database },
-        { value: "password", label: "Lozinka", icon: Lock },
-      ]
-    : [
-        { value: "password", label: "Lozinka", icon: Lock },
-        { value: "years", label: "Godine", icon: Calendar },
-        { value: "access", label: "Pristupi", icon: Shield },
-      ];
+  const tabs = [
+    { value: "companies", label: "Firme", icon: Building2 },
+    { value: "years", label: "Godine", icon: Calendar },
+    { value: "users", label: "Korisnici", icon: Users },
+    { value: "access", label: "Pristupi", icon: Shield },
+    { value: "roles", label: "Uloge", icon: KeyRound },
+    { value: "user-roles", label: "Dodela uloga", icon: UserCheck },
+    { value: "data", label: "Podaci", icon: Database },
+  ];
 
   return (
     <MainLayout title="Administracija">
@@ -48,44 +36,32 @@ export default function AdminPanel() {
             ))}
           </TabsList>
 
-          {(isSuperAdmin || isLocalAdmin) && (
-            <TabsContent value="companies" className="mt-6">
-              <CompaniesTab />
-            </TabsContent>
-          )}
+          <TabsContent value="companies" className="mt-6">
+            <CompaniesTab />
+          </TabsContent>
 
           <TabsContent value="years" className="mt-6">
             <BusinessYearsTab />
           </TabsContent>
 
-          {(isSuperAdmin || isLocalAdmin) && (
-            <TabsContent value="users" className="mt-6">
-              <UsersTab />
-            </TabsContent>
-          )}
+          <TabsContent value="users" className="mt-6">
+            <UsersTab />
+          </TabsContent>
 
           <TabsContent value="access" className="mt-6">
             <AccessTab />
           </TabsContent>
 
-          {(isSuperAdmin || isLocalAdmin) && (
-            <>
-              <TabsContent value="roles" className="mt-6">
-                <RolesTab />
-              </TabsContent>
+          <TabsContent value="roles" className="mt-6">
+            <RolesTab />
+          </TabsContent>
 
-              <TabsContent value="user-roles" className="mt-6">
-                <UserRolesTab />
-              </TabsContent>
+          <TabsContent value="user-roles" className="mt-6">
+            <UserRolesTab />
+          </TabsContent>
 
-              <TabsContent value="data" className="mt-6">
-                <DataImportTab />
-              </TabsContent>
-            </>
-          )}
-
-          <TabsContent value="password" className="mt-6">
-            <ChangePasswordTab />
+          <TabsContent value="data" className="mt-6">
+            <DataImportTab />
           </TabsContent>
         </Tabs>
       </div>
