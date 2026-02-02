@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -191,6 +191,55 @@ export function RolesTab() {
     }));
   };
 
+  const setAllChildrenAccessLevel = (parentCode: string, level: string) => {
+    const parent = moduleTree?.find((m) => m.code === parentCode);
+    if (!parent) return;
+
+    setPermissionsMap((prev) => {
+      const updated = { ...prev };
+      parent.children.forEach((child) => {
+        updated[child.code] = {
+          access_level: level,
+          can_post: level === "none" ? false : prev[child.code]?.can_post || false,
+          can_unpost: level === "none" ? false : prev[child.code]?.can_unpost || false,
+        };
+      });
+      return updated;
+    });
+  };
+
+  const setAllChildrenCanPost = (parentCode: string, value: boolean) => {
+    const parent = moduleTree?.find((m) => m.code === parentCode);
+    if (!parent) return;
+
+    setPermissionsMap((prev) => {
+      const updated = { ...prev };
+      parent.children.forEach((child) => {
+        const current = prev[child.code] || { access_level: "none", can_post: false, can_unpost: false };
+        if (current.access_level !== "none") {
+          updated[child.code] = { ...current, can_post: value };
+        }
+      });
+      return updated;
+    });
+  };
+
+  const setAllChildrenCanUnpost = (parentCode: string, value: boolean) => {
+    const parent = moduleTree?.find((m) => m.code === parentCode);
+    if (!parent) return;
+
+    setPermissionsMap((prev) => {
+      const updated = { ...prev };
+      parent.children.forEach((child) => {
+        const current = prev[child.code] || { access_level: "none", can_post: false, can_unpost: false };
+        if (current.access_level !== "none") {
+          updated[child.code] = { ...current, can_unpost: value };
+        }
+      });
+      return updated;
+    });
+  };
+
   const getAccessLevelBadge = (level: string) => {
     const config = ACCESS_LEVELS.find((a) => a.value === level);
     return config ? (
@@ -367,10 +416,74 @@ export function RolesTab() {
                 </TableHeader>
                 <TableBody>
                   {moduleTree?.map((parent) => (
-                    <>
-                      <TableRow key={parent.code} className="bg-muted/50">
-                        <TableCell className="font-semibold" colSpan={4}>
-                          {parent.name}
+                    <React.Fragment key={parent.code}>
+                      <TableRow className="bg-muted/50">
+                        <TableCell className="font-semibold">{parent.name}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAllChildrenAccessLevel(parent.code, "admin")}
+                              disabled={!canManageRoles}
+                              className="text-xs h-7"
+                            >
+                              Puna prava
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAllChildrenAccessLevel(parent.code, "none")}
+                              disabled={!canManageRoles}
+                              className="text-xs h-7"
+                            >
+                              Bez pristupa
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex gap-1 justify-center">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAllChildrenCanPost(parent.code, true)}
+                              disabled={!canManageRoles}
+                              className="text-xs h-7 px-2"
+                            >
+                              Sve
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAllChildrenCanPost(parent.code, false)}
+                              disabled={!canManageRoles}
+                              className="text-xs h-7 px-2"
+                            >
+                              Ništa
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex gap-1 justify-center">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAllChildrenCanUnpost(parent.code, true)}
+                              disabled={!canManageRoles}
+                              className="text-xs h-7 px-2"
+                            >
+                              Sve
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAllChildrenCanUnpost(parent.code, false)}
+                              disabled={!canManageRoles}
+                              className="text-xs h-7 px-2"
+                            >
+                              Ništa
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                       {parent.children.map((mod) => {
@@ -417,7 +530,7 @@ export function RolesTab() {
                           </TableRow>
                         );
                       })}
-                    </>
+                    </React.Fragment>
                   ))}
                 </TableBody>
               </Table>
