@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,8 +64,23 @@ export function RolesTab() {
   >({});
 
   const { data: roles, isLoading } = useRoles(selectedCompany?.id);
-  const { data: permissions } = useRolePermissions(editingRole?.id);
+  const { data: permissions, isLoading: permissionsLoading } = useRolePermissions(editingRole?.id);
   const { tree: moduleTree, isLoading: modulesLoading } = useModuleTree();
+
+  // Update permissionsMap when permissions data is loaded
+  useEffect(() => {
+    if (permissions && isPermissionsDialogOpen) {
+      const map: typeof permissionsMap = {};
+      permissions.forEach((p) => {
+        map[p.module_code] = {
+          access_level: p.access_level,
+          can_post: p.can_post,
+          can_unpost: p.can_unpost,
+        };
+      });
+      setPermissionsMap(map);
+    }
+  }, [permissions, isPermissionsDialogOpen]);
 
   const createRole = useCreateRole();
   const updateRole = useUpdateRole();
@@ -91,17 +106,9 @@ export function RolesTab() {
   };
 
   const handleOpenPermissions = (role: Role) => {
+    // Reset permissions map - will be populated by useEffect when data loads
+    setPermissionsMap({});
     setEditingRole(role);
-    // Initialize permissions map from existing permissions
-    const map: typeof permissionsMap = {};
-    (permissions || []).forEach((p) => {
-      map[p.module_code] = {
-        access_level: p.access_level,
-        can_post: p.can_post,
-        can_unpost: p.can_unpost,
-      };
-    });
-    setPermissionsMap(map);
     setIsPermissionsDialogOpen(true);
   };
 
@@ -346,8 +353,8 @@ export function RolesTab() {
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-auto">
-            {modulesLoading ? (
-              <div className="p-4 text-center text-muted-foreground">Učitavanje modula...</div>
+            {modulesLoading || permissionsLoading ? (
+              <div className="p-4 text-center text-muted-foreground">Učitavanje...</div>
             ) : (
               <Table>
                 <TableHeader>
