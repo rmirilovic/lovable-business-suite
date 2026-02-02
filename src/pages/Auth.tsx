@@ -378,13 +378,20 @@ export default function Auth() {
                     <Separator />
                   </div>
                   
-                  <div className="text-center">
-                    <a
-                      href="/change-password"
+                  <div className="text-center space-y-1">
+                    <button
+                      type="button"
                       className="text-sm text-primary hover:underline"
+                      onClick={() => {
+                        setShowForgotPassword(true);
+                        setErrors({});
+                      }}
                     >
-                      Promenite lozinku
-                    </a>
+                      Zaboravili ste lozinku?
+                    </button>
+                    <p className="text-xs text-muted-foreground">
+                      Za promenu lozinke, prijavite se pa idite na /change-password
+                    </p>
                   </div>
                 </form>
               </TabsContent>
