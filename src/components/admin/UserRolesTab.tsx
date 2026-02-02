@@ -245,12 +245,15 @@ export function UserRolesTab() {
 
             <div className="space-y-2">
               <Label>Organizaciona jedinica (opciono)</Label>
-              <Select value={selectedOrgUnitId} onValueChange={setSelectedOrgUnitId}>
+              <Select 
+                value={selectedOrgUnitId || "__all__"} 
+                onValueChange={(val) => setSelectedOrgUnitId(val === "__all__" ? "" : val)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Sve jedinice" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sve jedinice</SelectItem>
+                  <SelectItem value="__all__">Sve jedinice</SelectItem>
                   {orgUnits?.map((unit) => (
                     <SelectItem key={unit.id} value={unit.id}>
                       {unit.code} - {unit.name}
