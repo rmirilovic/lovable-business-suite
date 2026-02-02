@@ -16,12 +16,20 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
+
+interface NavChild {
+  label: string;
+  href: string;
+  moduleCode?: string;
+}
 
 interface NavItem {
   label: string;
   icon: React.ElementType;
   href?: string;
-  children?: { label: string; href: string }[];
+  moduleCode?: string;
+  children?: NavChild[];
 }
 
 const navigation: NavItem[] = [
@@ -29,63 +37,69 @@ const navigation: NavItem[] = [
   {
     label: "Šifarnici",
     icon: Package,
+    moduleCode: "sifarnici",
     children: [
-      { label: "Artikli", href: "/sifarnici/artikli" },
-      { label: "Klasifikacija artikala", href: "/sifarnici/grupe" },
-      { label: "Atributi artikala", href: "/sifarnici/atributi" },
-      { label: "Magacini", href: "/sifarnici/magacini" },
-      { label: "Partneri", href: "/sifarnici/partneri" },
-      { label: "Organizacione jedinice", href: "/sifarnici/org-jedinice" },
-      { label: "Kontni plan", href: "/sifarnici/kontni-plan" },
-      { label: "Ulazni troškovi", href: "/sifarnici/ulazni-troskovi" },
+      { label: "Artikli", href: "/sifarnici/artikli", moduleCode: "sifarnici.artikli" },
+      { label: "Klasifikacija artikala", href: "/sifarnici/grupe", moduleCode: "sifarnici.klasifikacije" },
+      { label: "Atributi artikala", href: "/sifarnici/atributi", moduleCode: "sifarnici.atributi" },
+      { label: "Magacini", href: "/sifarnici/magacini", moduleCode: "sifarnici.magacini" },
+      { label: "Partneri", href: "/sifarnici/partneri", moduleCode: "sifarnici.partneri" },
+      { label: "Organizacione jedinice", href: "/sifarnici/org-jedinice", moduleCode: "sifarnici.org_jedinice" },
+      { label: "Kontni plan", href: "/sifarnici/kontni-plan", moduleCode: "racunovodstvo.kontni_plan" },
+      { label: "Ulazni troškovi", href: "/sifarnici/ulazni-troskovi", moduleCode: "sifarnici.ulazni_troskovi" },
     ],
   },
   {
     label: "Prodaja",
     icon: ShoppingCart,
+    moduleCode: "prodaja",
     children: [
-      { label: "Ponude", href: "/prodaja/ponude" },
-      { label: "Fakture", href: "/prodaja/fakture" },
-      { label: "Otpremnice", href: "/prodaja/otpremnice" },
+      { label: "Ponude", href: "/prodaja/ponude", moduleCode: "prodaja.ponude" },
+      { label: "Fakture", href: "/prodaja/fakture", moduleCode: "prodaja.fakture" },
+      { label: "Otpremnice", href: "/prodaja/otpremnice", moduleCode: "prodaja.otpremnice" },
     ],
   },
   {
     label: "Nabavka",
     icon: FileText,
+    moduleCode: "nabavka",
     children: [
-      { label: "UF za usluge", href: "/nabavka/ulazne-fakture-usluge" },
-      { label: "UF za robu", href: "/nabavka/ulazne-fakture-roba" },
-      { label: "Prijemnice", href: "/nabavka/prijemnice" },
-      { label: "Narudžbenice", href: "/nabavka/narudzbenice" },
+      { label: "UF za usluge", href: "/nabavka/ulazne-fakture-usluge", moduleCode: "nabavka.ulazne_fakture" },
+      { label: "UF za robu", href: "/nabavka/ulazne-fakture-roba", moduleCode: "nabavka.ulazne_fakture" },
+      { label: "Prijemnice", href: "/nabavka/prijemnice", moduleCode: "robno.prijemnice" },
+      { label: "Narudžbenice", href: "/nabavka/narudzbenice", moduleCode: "nabavka.porudzbine" },
     ],
   },
   {
     label: "Proizvodnja",
     icon: Factory,
+    moduleCode: "proizvodnja",
     children: [
-      { label: "Radni nalozi", href: "/proizvodnja/nalozi" },
-      { label: "Sastavnice", href: "/proizvodnja/sastavnice" },
-      { label: "Recepture", href: "/proizvodnja/recepture" },
+      { label: "Radni nalozi", href: "/proizvodnja/nalozi", moduleCode: "proizvodnja.radni_nalozi" },
+      { label: "Sastavnice", href: "/proizvodnja/sastavnice", moduleCode: "proizvodnja.sastavnice" },
+      { label: "Recepture", href: "/proizvodnja/recepture", moduleCode: "proizvodnja.sastavnice" },
     ],
   },
-  { label: "Magacin", icon: Warehouse, href: "/magacin" },
-  { label: "Partneri", icon: Users, href: "/partneri" },
+  { label: "Magacin", icon: Warehouse, href: "/magacin", moduleCode: "robno" },
+  { label: "Partneri", icon: Users, href: "/partneri", moduleCode: "sifarnici.partneri" },
   {
     label: "Računovodstvo",
     icon: FileText,
+    moduleCode: "racunovodstvo",
     children: [
-      { label: "Nalozi za knjiženje", href: "/racunovodstvo/nalozi" },
-      { label: "Glavna knjiga", href: "/racunovodstvo/glavna-knjiga" },
-      { label: "Bruto bilans", href: "/racunovodstvo/bruto-bilans" },
+      { label: "Nalozi za knjiženje", href: "/racunovodstvo/nalozi", moduleCode: "racunovodstvo.nalozi" },
+      { label: "Glavna knjiga", href: "/racunovodstvo/glavna-knjiga", moduleCode: "racunovodstvo.glavna_knjiga" },
+      { label: "Bruto bilans", href: "/racunovodstvo/bruto-bilans", moduleCode: "racunovodstvo.bruto_bilans" },
     ],
   },
-  { label: "Administracija", icon: Settings, href: "/admin" },
+  { label: "Administracija", icon: Settings, href: "/admin", moduleCode: "administracija" },
 ];
 
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { hasAccess, isLoading: permissionsLoading } = usePermissions();
 
   // Find which parent menu contains the active route
   const getActiveParent = () => {
@@ -108,12 +122,49 @@ export function Sidebar() {
     }
   }, [location.pathname]);
 
-  const filteredNavigation = navigation.filter((item) => {
-    if (item.href === "/admin" && !isSuperAdmin && !isLocalAdmin) {
-      return false;
+  // Filter navigation based on permissions
+  const getFilteredNavigation = () => {
+    // While loading permissions, show basic navigation
+    if (permissionsLoading) {
+      return navigation.filter(item => !item.moduleCode || item.href === "/");
     }
-    return true;
-  });
+
+    return navigation.filter((item) => {
+      // Dashboard is always visible
+      if (item.href === "/") return true;
+
+      // Admin panel - only for super admin or local admin
+      if (item.href === "/admin") {
+        return isSuperAdmin || isLocalAdmin;
+      }
+
+      // Check if user has access to any child module
+      if (item.children) {
+        const accessibleChildren = item.children.filter(child => {
+          if (!child.moduleCode) return true;
+          return hasAccess(child.moduleCode);
+        });
+        return accessibleChildren.length > 0;
+      }
+
+      // Single item - check module access
+      if (item.moduleCode) {
+        return hasAccess(item.moduleCode);
+      }
+
+      return true;
+    });
+  };
+
+  // Filter children based on permissions
+  const getFilteredChildren = (children: NavChild[]) => {
+    return children.filter(child => {
+      if (!child.moduleCode) return true;
+      return hasAccess(child.moduleCode);
+    });
+  };
+
+  const filteredNavigation = getFilteredNavigation();
 
   const toggleExpand = (label: string) => {
     setExpandedItems((prev) =>
@@ -124,7 +175,7 @@ export function Sidebar() {
   };
 
   const isActive = (href: string) => location.pathname === href;
-  const isParentActive = (children?: { href: string }[]) =>
+  const isParentActive = (children?: NavChild[]) =>
     children?.some((child) => location.pathname === child.href);
 
   const handleSignOut = async () => {
@@ -216,7 +267,7 @@ export function Sidebar() {
                 </button>
                 {expandedItems.includes(item.label) && item.children && (
                   <div className="ml-8 mt-1 space-y-1">
-                    {item.children.map((child) => (
+                    {getFilteredChildren(item.children).map((child) => (
                       <Link
                         key={child.href}
                         to={child.href}

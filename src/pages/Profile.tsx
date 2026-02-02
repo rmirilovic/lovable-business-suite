@@ -9,14 +9,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Lock, User, Mail, Phone, Save, Camera, Loader2, Shield } from "lucide-react";
+import { Lock, User, Mail, Phone, Save, Camera, Loader2, Shield, Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
+import { usePermissions } from "@/hooks/usePermissions";
 
 const passwordSchema = z.string().min(6, "Lozinka mora imati najmanje 6 karaktera");
 
 export default function Profile() {
-  const { user, isSuperAdmin, isLocalAdmin, companies, localAdminCompanyIds } = useAuth();
+  const { user, isSuperAdmin, isLocalAdmin, companies, localAdminCompanyIds, selectedCompany } = useAuth();
+  const { userRoles, isLoading: rolesLoading } = usePermissions();
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingPassword, setIsLoadingPassword] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -301,6 +303,40 @@ export default function Profile() {
                 </div>
               </div>
 
+              {/* Custom assigned roles */}
+              {!isSuperAdmin && !isLocalAdmin && (
+                <div>
+                  <Label className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Dodeljene uloge {selectedCompany && `(${selectedCompany.name})`}
+                  </Label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {rolesLoading ? (
+                      <span className="text-sm text-muted-foreground">Učitavanje...</span>
+                    ) : userRoles.length > 0 ? (
+                      userRoles.map(role => (
+                        <Badge key={role.id} variant="outline" className="flex items-center gap-1">
+                          {role.name}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-muted-foreground italic">
+                        Nema dodeljenih uloga za ovu firmu
+                      </span>
+                    )}
+                  </div>
+                  {userRoles.length > 0 && userRoles.some(r => r.description) && (
+                    <div className="mt-3 space-y-1">
+                      {userRoles.filter(r => r.description).map(role => (
+                        <p key={role.id} className="text-xs text-muted-foreground">
+                          <span className="font-medium">{role.name}:</span> {role.description}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {isLocalAdmin && localAdminCompanyIds.length > 0 && (
                 <div>
                   <Label className="text-sm text-muted-foreground">Administrator za kompanije</Label>
@@ -323,8 +359,11 @@ export default function Profile() {
                 {isLocalAdmin && !isSuperAdmin && (
                   <p>Kao Administrator imate proširena prava upravljanja za dodeljene kompanije.</p>
                 )}
-                {!isSuperAdmin && !isLocalAdmin && (
-                  <p>Imate standardni korisnički pristup. Kontaktirajte administratora za dodatne dozvole.</p>
+                {!isSuperAdmin && !isLocalAdmin && userRoles.length > 0 && (
+                  <p>Vaša prava pristupa su definisana dodeljenim ulogama. Kontaktirajte administratora za izmene.</p>
+                )}
+                {!isSuperAdmin && !isLocalAdmin && userRoles.length === 0 && (
+                  <p>Nemate dodeljene uloge. Kontaktirajte administratora za dozvole pristupa.</p>
                 )}
               </div>
             </div>
