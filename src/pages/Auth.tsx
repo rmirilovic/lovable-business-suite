@@ -376,21 +376,20 @@ export default function Auth() {
                   
                   <div className="relative my-4">
                     <Separator />
-                    <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-                      ili
-                    </span>
                   </div>
                   
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleGoogleSignIn}
-                    disabled={isLoading}
-                  >
-                    <GoogleIcon />
-                    Prijava sa Google nalogom
-                  </Button>
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      className="text-sm text-primary hover:underline"
+                      onClick={() => {
+                        setShowForgotPassword(true);
+                        setErrors({});
+                      }}
+                    >
+                      Promenite lozinku
+                    </button>
+                  </div>
                 </form>
               </TabsContent>
 
