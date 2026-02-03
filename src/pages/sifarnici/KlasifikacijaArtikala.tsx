@@ -54,6 +54,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useClassifications, buildTree, flattenTree, Classification, ClassificationNode } from "@/hooks/useClassifications";
+import { usePermissions } from "@/hooks/usePermissions";
 import { cn } from "@/lib/utils";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
@@ -76,7 +77,11 @@ const emptyForm: ClassificationForm = {
 };
 
 export default function KlasifikacijaArtikala() {
-  const { selectedCompany, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { selectedCompany } = useAuth();
+  const { hasAccess } = usePermissions();
+  
+  // Check if user has write access to classifications module
+  const canEdit = hasAccess("sifarnici.klasifikacije", "write");
   
   const {
     classifications,
@@ -99,8 +104,6 @@ export default function KlasifikacijaArtikala() {
   const [importing, setImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportRow[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const canEdit = isSuperAdmin || isLocalAdmin;
 
   // Build tree structure
   const tree = useMemo(() => buildTree(classifications), [classifications]);

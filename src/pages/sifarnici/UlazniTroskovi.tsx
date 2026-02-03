@@ -30,6 +30,7 @@ import {
 import { Plus, Edit, Trash2, Search } from "lucide-react";
 import { useInputCosts, useInputCostsMutations, InputCost, InputCostFormData } from "@/hooks/useInputCosts";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Textarea } from "@/components/ui/textarea";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -41,6 +42,10 @@ export default function UlazniTroskovi() {
   const { data: costs = [], isLoading } = useInputCosts();
   const { data: accounts = [] } = useChartOfAccounts();
   const { createInputCost, updateInputCost, deleteInputCost } = useInputCostsMutations();
+  const { hasAccess } = usePermissions();
+  
+  // Check if user has write access to input costs module
+  const canEdit = hasAccess("sifarnici.ulazni_troskovi", "write");
 
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -174,10 +179,12 @@ export default function UlazniTroskovi() {
               className="pl-10"
             />
           </div>
-          <Button onClick={handleNew}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novi trošak
-          </Button>
+          {canEdit && (
+            <Button onClick={handleNew}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novi trošak
+            </Button>
+          )}
         </div>
 
         {/* Table */}
@@ -241,14 +248,16 @@ export default function UlazniTroskovi() {
                         {cost.is_active ? "✓" : "–"}
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(cost)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDelete(cost.id)}>
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                        {canEdit ? (
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(cost)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(cost.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   ))

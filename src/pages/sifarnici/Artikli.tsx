@@ -77,6 +77,7 @@ import { useClassifications } from "@/hooks/useClassifications";
 import { useArticleAttributeCounts } from "@/hooks/useArticleAttributeCounts";
 import { useArticleAttributes } from "@/hooks/useArticleAttributes";
 import { ArticleAttributesDialog } from "@/components/sifarnici/ArticleAttributesDialog";
+import { usePermissions } from "@/hooks/usePermissions";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -148,7 +149,8 @@ const emptyForm: ArticleForm = {
 };
 
 export default function Artikli() {
-  const { selectedCompany, selectedYear, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { selectedCompany, selectedYear } = useAuth();
+  const { hasAccess } = usePermissions();
   
   // Use cached articles hook - now company-wide
   const {
@@ -215,7 +217,8 @@ export default function Artikli() {
   const editableFields = ['name', 'article_group', 'unit', 'purchase_price', 'selling_price'] as const;
   type EditableField = typeof editableFields[number];
 
-  const canEdit = isSuperAdmin || isLocalAdmin;
+  // Check if user has write access to articles module
+  const canEdit = hasAccess("sifarnici.artikli", "write");
 
   // Get unique groups for filter dropdown
   const uniqueGroups = useMemo(() => {

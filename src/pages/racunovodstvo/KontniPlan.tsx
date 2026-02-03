@@ -32,6 +32,7 @@ import { Plus, Search, Pencil, Trash2, ChevronRight, ChevronDown, Upload, Loader
 import { STANDARD_CHART_OF_ACCOUNTS } from "@/data/standardChartOfAccounts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { toast } from "sonner";
 import {
   useChartOfAccounts,
@@ -68,6 +69,10 @@ export default function KontniPlan() {
   const { data: accounts = [], isLoading, refetch } = useChartOfAccounts();
   const { createAccount, updateAccount, deleteAccount } = useChartOfAccountsMutations();
   const { selectedCompany } = useAuth();
+  const { hasAccess } = usePermissions();
+  
+  // Check if user has write access to chart of accounts module
+  const canEdit = hasAccess("racunovodstvo.kontni_plan", "write");
 
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -283,19 +288,21 @@ export default function KontniPlan() {
             )}
           </TableCell>
           <TableCell>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => handleEdit(account)}>
-                <Pencil className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(account)}
-                disabled={deleteAccount.isPending}
-              >
-                <Trash2 className="w-4 h-4 text-destructive" />
-              </Button>
-            </div>
+            {canEdit && (
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => handleEdit(account)}>
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDelete(account)}
+                  disabled={deleteAccount.isPending}
+                >
+                  <Trash2 className="w-4 h-4 text-destructive" />
+                </Button>
+              </div>
+            )}
           </TableCell>
         </TableRow>
         {isExpanded && children.map((child) => renderAccountRow(child, depth + 1))}
@@ -320,14 +327,18 @@ export default function KontniPlan() {
             />
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
-              <Upload className="w-4 h-4 mr-2" />
-              Učitaj standardni
-            </Button>
-            <Button onClick={handleAdd}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novi konto
-            </Button>
+            {canEdit && (
+              <>
+                <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Učitaj standardni
+                </Button>
+                <Button onClick={handleAdd}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novi konto
+                </Button>
+              </>
+            )}
           </div>
         </div>
 

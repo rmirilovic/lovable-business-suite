@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { useOrganizationalUnits, buildOrgTree, flattenOrgTree, OrganizationalUnit, OrganizationalUnitNode } from "@/hooks/useOrganizationalUnits";
+import { usePermissions } from "@/hooks/usePermissions";
 import { cn } from "@/lib/utils";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
@@ -79,7 +80,11 @@ const emptyForm: OrgUnitForm = {
 };
 
 export default function OrganizacioneJedinice() {
-  const { selectedCompany, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { selectedCompany } = useAuth();
+  const { hasAccess } = usePermissions();
+  
+  // Check if user has write access to organizational units module
+  const canEdit = hasAccess("sifarnici.org_jedinice", "write");
   
   const {
     units,
@@ -102,8 +107,6 @@ export default function OrganizacioneJedinice() {
   const [importing, setImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportRow[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const canEdit = isSuperAdmin || isLocalAdmin;
 
   // Build tree structure
   const tree = useMemo(() => buildOrgTree(units), [units]);
