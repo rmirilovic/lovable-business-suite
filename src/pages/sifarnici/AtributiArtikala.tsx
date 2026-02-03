@@ -75,6 +75,7 @@ import {
   DATA_TYPE_LABELS,
   DATA_TYPE_SHORT_LABELS,
 } from "@/hooks/useArticleAttributes";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface AttributeForm {
   code: string;
@@ -96,8 +97,11 @@ const emptyForm: AttributeForm = {
 };
 
 export default function AtributiArtikala() {
-  const { selectedCompany, isSuperAdmin, isLocalAdmin } = useAuth();
-  const canEdit = isSuperAdmin || isLocalAdmin;
+  const { selectedCompany } = useAuth();
+  const { hasAccess } = usePermissions();
+  
+  // Check if user has write access to article attributes module
+  const canEdit = hasAccess("sifarnici.atributi", "write");
 
   const {
     attributes,

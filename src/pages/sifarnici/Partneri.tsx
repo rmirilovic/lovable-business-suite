@@ -49,6 +49,7 @@ import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 
@@ -61,6 +62,10 @@ export default function Partneri() {
   const { partners, isLoading, updatePartner, deletePartner } = usePartners();
   const { groups } = usePartnerGroups();
   const { selectedCompany } = useAuth();
+  const { hasAccess } = usePermissions();
+
+  // Check if user has write access to partners module
+  const canEdit = hasAccess("sifarnici.partneri", "write");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
@@ -447,14 +452,18 @@ export default function Partneri() {
 
             {/* Actions */}
             <div className="flex gap-2 flex-wrap">
-              <Button variant="outline" onClick={() => setGroupsDialogOpen(true)}>
-                <Users className="w-4 h-4 mr-2" />
-                Grupe
-              </Button>
-              <Button onClick={handleCreate}>
-                <Plus className="w-4 h-4 mr-2" />
-                Novi partner
-              </Button>
+              {canEdit && (
+                <Button variant="outline" onClick={() => setGroupsDialogOpen(true)}>
+                  <Users className="w-4 h-4 mr-2" />
+                  Grupe
+                </Button>
+              )}
+              {canEdit && (
+                <Button onClick={handleCreate}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novi partner
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -525,6 +534,7 @@ export default function Partneri() {
                         onSave={async (val) => {
                           await updatePartner({ id: partner.id, updates: { name: val } });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -537,6 +547,7 @@ export default function Partneri() {
                             updates: { legal_status: Number(val) },
                           });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -545,6 +556,7 @@ export default function Partneri() {
                         onSave={async (val) => {
                           await updatePartner({ id: partner.id, updates: { city: val } });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -553,6 +565,7 @@ export default function Partneri() {
                         onSave={async (val) => {
                           await updatePartner({ id: partner.id, updates: { pib: val } });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -561,6 +574,7 @@ export default function Partneri() {
                         onSave={async (val) => {
                           await updatePartner({ id: partner.id, updates: { phone: val } });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -598,6 +612,7 @@ export default function Partneri() {
                             updates: { group_id: val === "none" ? null : val },
                           });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -609,26 +624,31 @@ export default function Partneri() {
                             updates: { is_active: checked },
                           });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => handleEdit(partner)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteConfirmId(partner.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {canEdit && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleEdit(partner)}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => setDeleteConfirmId(partner.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

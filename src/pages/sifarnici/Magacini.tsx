@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useWarehouses, WAREHOUSE_TYPE_LABELS, WarehouseInsert, WarehouseUpdate, Warehouse as WarehouseType } from "@/hooks/useWarehouses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,11 @@ const emptyForm: WarehouseFormData = {
 
 export default function Magacini() {
   const { selectedCompany } = useAuth();
+  const { hasAccess } = usePermissions();
   const companyId = selectedCompany?.id;
+  
+  // Check if user has write access to warehouses module
+  const canEdit = hasAccess("sifarnici.magacini", "write");
   const {
     warehouses,
     isLoading,
@@ -192,10 +197,12 @@ export default function Magacini() {
               Upravljanje magacinima kompanije
             </p>
           </div>
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novi magacin
-          </Button>
+          {canEdit && (
+            <Button onClick={handleAdd}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novi magacin
+            </Button>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
@@ -324,6 +331,7 @@ export default function Magacini() {
                         onSave={async (val) => {
                           await updateWarehouse({ id: warehouse.id, updates: { name: val } });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -333,6 +341,7 @@ export default function Magacini() {
                         onSave={async (val) => {
                           await updateWarehouse({ id: warehouse.id, updates: { address: val || null } });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -352,6 +361,7 @@ export default function Magacini() {
                             updates: { warehouse_type: val as "1" | "2" | "6" | "9" | "12" } 
                           });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -361,6 +371,7 @@ export default function Magacini() {
                         onSave={async (val) => {
                           await updateWarehouse({ id: warehouse.id, updates: { accountant: val || null } });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell>
@@ -370,6 +381,7 @@ export default function Magacini() {
                         onSave={async (val) => {
                           await updateWarehouse({ id: warehouse.id, updates: { inventory_account: val || null } });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell className="text-center">
@@ -378,16 +390,19 @@ export default function Magacini() {
                         onCheckedChange={async (checked) => {
                           await updateWarehouse({ id: warehouse.id, updates: { is_active: checked } });
                         }}
+                        disabled={!canEdit}
                       />
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteClick(warehouse.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canEdit && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(warehouse.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
