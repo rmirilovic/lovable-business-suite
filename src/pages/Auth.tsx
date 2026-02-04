@@ -341,19 +341,7 @@ export default function Auth() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="login-password">Lozinka</Label>
-                      <button
-                        type="button"
-                        className="text-sm text-primary hover:underline"
-                        onClick={() => {
-                          setShowForgotPassword(true);
-                          setErrors({});
-                        }}
-                      >
-                        Zaboravili ste lozinku?
-                      </button>
-                    </div>
+                    <Label htmlFor="login-password">Lozinka</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -373,6 +361,18 @@ export default function Auth() {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Prijava..." : "Prijavite se"}
                   </Button>
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      className="text-sm text-primary hover:underline"
+                      onClick={() => {
+                        setShowForgotPassword(true);
+                        setErrors({});
+                      }}
+                    >
+                      Zaboravili ste lozinku?
+                    </button>
+                  </div>
                 </form>
               </TabsContent>
 
