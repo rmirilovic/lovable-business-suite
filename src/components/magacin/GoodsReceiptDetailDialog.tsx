@@ -91,7 +91,7 @@ export function GoodsReceiptDetailDialog({
                   Proknjiži
                 </Button>
               )}
-              {onUnpost && (
+              {onUnpost && receipt.status === "posted" && (
                 <Button
                   variant="outline"
                   size="sm"
