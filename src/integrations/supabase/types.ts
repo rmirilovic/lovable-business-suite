@@ -931,6 +931,8 @@ export type Database = {
           id: string
           note: string | null
           partner_id: string | null
+          posted_at: string | null
+          posted_by: string | null
           receipt_date: string
           receipt_number: string
           source_invoice_id: string | null
@@ -946,6 +948,8 @@ export type Database = {
           id?: string
           note?: string | null
           partner_id?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
           receipt_date?: string
           receipt_number: string
           source_invoice_id?: string | null
@@ -961,6 +965,8 @@ export type Database = {
           id?: string
           note?: string | null
           partner_id?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
           receipt_date?: string
           receipt_number?: string
           source_invoice_id?: string | null
@@ -2788,6 +2794,10 @@ export type Database = {
         Args: { _company_id: string; _doc_type: string; _year_id: string }
         Returns: string
       }
+      get_next_goods_receipt_number: {
+        Args: { _company_id: string; _year_id: string }
+        Returns: string
+      }
       get_next_journal_entry_number: {
         Args: { _company_id: string; _year_id: string }
         Returns: number
@@ -2836,6 +2846,10 @@ export type Database = {
         Args: { _invoice_id: string; _user_id: string }
         Returns: string
       }
+      post_goods_receipt: {
+        Args: { _receipt_id: string; _user_id: string }
+        Returns: string
+      }
       post_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
@@ -2851,6 +2865,10 @@ export type Database = {
       unpost_goods_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
+      }
+      unpost_goods_receipt: {
+        Args: { _receipt_id: string; _user_id: string }
+        Returns: string
       }
       unpost_service_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
