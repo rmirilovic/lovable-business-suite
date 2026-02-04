@@ -66,8 +66,15 @@ const navigation: NavItem[] = [
     children: [
       { label: "UF za usluge", href: "/nabavka/ulazne-fakture-usluge", moduleCode: "nabavka.ulazne_fakture" },
       { label: "UF za robu", href: "/nabavka/ulazne-fakture-roba", moduleCode: "nabavka.ulazne_fakture" },
-      { label: "Prijemnice", href: "/nabavka/prijemnice", moduleCode: "robno.prijemnice" },
       { label: "Narudžbenice", href: "/nabavka/narudzbenice", moduleCode: "nabavka.porudzbine" },
+    ],
+  },
+  {
+    label: "Magacin",
+    icon: Warehouse,
+    moduleCode: "robno",
+    children: [
+      { label: "Prijemnice", href: "/magacin/prijemnice", moduleCode: "robno.prijemnice" },
     ],
   },
   {
@@ -80,7 +87,6 @@ const navigation: NavItem[] = [
       { label: "Recepture", href: "/proizvodnja/recepture", moduleCode: "proizvodnja.sastavnice" },
     ],
   },
-  { label: "Magacin", icon: Warehouse, href: "/magacin", moduleCode: "robno" },
   { label: "Partneri", icon: Users, href: "/partneri", moduleCode: "sifarnici.partneri" },
   {
     label: "Računovodstvo",

@@ -28,6 +28,7 @@ import Fakture from "./pages/prodaja/Fakture";
 import Otpremnice from "./pages/prodaja/Otpremnice";
 import UlazneFaktureUsluge from "./pages/nabavka/UlazneFaktureUsluge";
 import UlazneFaktureRoba from "./pages/nabavka/UlazneFaktureRoba";
+import Prijemnice from "./pages/magacin/Prijemnice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -141,6 +142,11 @@ const App = () => (
               <Route path="/nabavka/ulazne-fakture-roba" element={
                 <ProtectedRoute>
                   <UlazneFaktureRoba />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/prijemnice" element={
+                <ProtectedRoute>
+                  <Prijemnice />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
