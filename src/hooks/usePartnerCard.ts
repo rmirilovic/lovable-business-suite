@@ -44,11 +44,11 @@ export function usePartnerCard(
           .select(`
             debit_amount,
             credit_amount,
-            journal_entries!inner(entry_date, status, year_id)
+            journal_entries!inner(entry_date, status, business_year_id)
           `)
           .eq("partner_id", partnerId)
           .eq("journal_entries.status", "posted")
-          .eq("journal_entries.year_id", selectedYear.id)
+          .eq("journal_entries.business_year_id", selectedYear.id)
           .lt("journal_entries.entry_date", dateFrom);
 
         if (openingError) throw openingError;
@@ -74,12 +74,12 @@ export function usePartnerCard(
             entry_number,
             document_number,
             status,
-            year_id
+            business_year_id
           )
         `)
         .eq("partner_id", partnerId)
         .eq("journal_entries.status", "posted")
-        .eq("journal_entries.year_id", selectedYear.id)
+        .eq("journal_entries.business_year_id", selectedYear.id)
         .order("journal_entries(entry_date)", { ascending: true });
 
       if (dateFrom) {
