@@ -1,11 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,10 +23,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Download } from "lucide-react";
-import { format } from "date-fns";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Loader2, Download, CalendarIcon } from "lucide-react";
+import { format, startOfYear } from "date-fns";
+import { sr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatting";
 import { useAccountCard } from "@/hooks/useAccountCard";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AccountCardDialogProps {
   open: boolean;
@@ -42,9 +50,32 @@ export function AccountCardDialog({
   accountCode,
   accountName,
 }: AccountCardDialogProps) {
-  const [dateFrom, setDateFrom] = useState<string>("");
-  const [dateTo, setDateTo] = useState<string>("");
+  const { selectedYear } = useAuth();
+  
+  // Initialize dates based on business year
+  const getInitialDateFrom = () => {
+    if (selectedYear?.year) {
+      return `${selectedYear.year}-01-01`;
+    }
+    return new Date().getFullYear() + "-01-01";
+  };
+  
+  const getInitialDateTo = () => {
+    return new Date().toISOString().split("T")[0];
+  };
+
+  const [dateFrom, setDateFrom] = useState<string>(getInitialDateFrom());
+  const [dateTo, setDateTo] = useState<string>(getInitialDateTo());
   const [analyticsFilter, setAnalyticsFilter] = useState<string>("__all__");
+
+  // Reset dates when dialog opens or year changes
+  useEffect(() => {
+    if (open) {
+      setDateFrom(getInitialDateFrom());
+      setDateTo(getInitialDateTo());
+      setAnalyticsFilter("__all__");
+    }
+  }, [open, selectedYear?.year]);
 
   // Map UI filter value to actual filter value for hook
   const actualAnalyticsFilter = analyticsFilter === "__all__" ? null : analyticsFilter;
@@ -82,19 +113,63 @@ export function AccountCardDialog({
         <div className="grid grid-cols-4 gap-4 py-2">
           <div className="space-y-1">
             <Label className="text-sm">Datum od</Label>
-            <Input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dateFrom && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateFrom
+                    ? format(new Date(dateFrom), "dd.MM.yyyy", { locale: sr })
+                    : "Izaberite datum"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateFrom ? new Date(dateFrom) : undefined}
+                  onSelect={(date) =>
+                    setDateFrom(date?.toISOString().split("T")[0] || "")
+                  }
+                  locale={sr}
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-1">
             <Label className="text-sm">Datum do</Label>
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !dateTo && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateTo
+                    ? format(new Date(dateTo), "dd.MM.yyyy", { locale: sr })
+                    : "Izaberite datum"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateTo ? new Date(dateTo) : undefined}
+                  onSelect={(date) =>
+                    setDateTo(date?.toISOString().split("T")[0] || "")
+                  }
+                  locale={sr}
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-1">
             <Label className="text-sm">Analitika</Label>
