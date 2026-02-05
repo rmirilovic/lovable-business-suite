@@ -2842,10 +2842,9 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
-      post_goods_purchase_invoice: {
-        Args: { _invoice_id: string; _user_id: string }
-        Returns: string
-      }
+      post_goods_purchase_invoice:
+        | { Args: { _invoice_id: string }; Returns: undefined }
+        | { Args: { _invoice_id: string; _user_id: string }; Returns: string }
       post_goods_receipt: {
         Args: { _receipt_id: string; _user_id: string }
         Returns: string
