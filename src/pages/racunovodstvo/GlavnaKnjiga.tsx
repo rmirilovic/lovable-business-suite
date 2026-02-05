@@ -20,13 +20,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, Filter } from "lucide-react";
+import { FileText, Download, Filter, CreditCard } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { format } from "date-fns";
 import { formatNumber } from "@/lib/formatting";
+import { AccountCardDialog } from "@/components/racunovodstvo/AccountCardDialog";
 
 interface LedgerEntry {
   id: string;
@@ -48,6 +49,7 @@ export default function GlavnaKnjiga() {
   const [selectedAccount, setSelectedAccount] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+  const [cardDialogOpen, setCardDialogOpen] = useState(false);
 
   const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
 
@@ -187,8 +189,18 @@ export default function GlavnaKnjiga() {
                   onChange={(e) => setDateTo(e.target.value)}
                 />
               </div>
-              <div className="flex items-end">
-                <Button variant="outline" className="w-full">
+              <div className="flex items-end gap-2">
+                {selectedAccount && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => setCardDialogOpen(true)}
+                    title="Kartica konta"
+                  >
+                    <CreditCard className="w-4 h-4 mr-2" />
+                    Kartica
+                  </Button>
+                )}
+                <Button variant="outline">
                   <Download className="w-4 h-4 mr-2" />
                   Izvezi
                 </Button>
@@ -303,6 +315,16 @@ export default function GlavnaKnjiga() {
           </Table>
         </div>
       </div>
+
+      {/* Account Card Dialog */}
+      {selectedAccount && (
+        <AccountCardDialog
+          open={cardDialogOpen}
+          onOpenChange={setCardDialogOpen}
+          accountCode={selectedAccount}
+          accountName={getAccountName(selectedAccount)}
+        />
+      )}
     </MainLayout>
   );
 }
