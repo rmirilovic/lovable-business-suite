@@ -70,7 +70,7 @@ export function useAccountCard(
       }
 
       // Get period items with partner info
-      const { data, error } = await supabase
+      let query = supabase
         .from("journal_entry_items")
         .select(`
           id,
@@ -93,10 +93,19 @@ export function useAccountCard(
         .eq("account_code", accountCode)
         .eq("company_id", selectedCompany.id)
         .eq("journal_entries.status", "posted")
-        .eq("journal_entries.business_year_id", selectedYear.id)
-        .gte("journal_entries.entry_date", dateFrom || "1900-01-01")
-        .lte("journal_entries.entry_date", dateTo || "2100-12-31")
-        .order("journal_entries(entry_date)", { ascending: true });
+        .eq("journal_entries.business_year_id", selectedYear.id);
+
+      // Only apply date filters if provided
+      if (dateFrom) {
+        query = query.gte("journal_entries.entry_date", dateFrom);
+      }
+      if (dateTo) {
+        query = query.lte("journal_entries.entry_date", dateTo);
+      }
+
+      const { data, error } = await query;
+
+      console.log("Account card query result:", { accountCode, data, error });
 
       if (error) throw error;
 
@@ -113,6 +122,13 @@ export function useAccountCard(
       const filteredData = analyticsFilter
         ? (data || []).filter((item: any) => item.analytics === analyticsFilter)
         : data || [];
+
+      // Sort by entry date
+      filteredData.sort((a: any, b: any) => {
+        const dateA = new Date(a.journal_entries.entry_date).getTime();
+        const dateB = new Date(b.journal_entries.entry_date).getTime();
+        return dateA - dateB;
+      });
 
       const items: AccountCardItem[] = filteredData.map((item: any) => ({
         id: item.id,
