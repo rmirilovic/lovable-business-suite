@@ -39,6 +39,15 @@ export function useAccountCard(
         return { items: [], openingBalance: 0, totalDebit: 0, totalCredit: 0, closingBalance: 0, allAnalytics: [] };
       }
 
+      // Helper to get analytics value - use partner code if available, otherwise cost_center_code
+      const getAnalytics = (item: any) => {
+        // For partner-related accounts, use partner code as analytics
+        if (item.partners?.code) {
+          return item.partners.code;
+        }
+        return item.cost_center_code || null;
+      };
+
       // Get opening balance (all posted entries before dateFrom)
       let openingBalance = 0;
       if (dateFrom) {
@@ -48,6 +57,7 @@ export function useAccountCard(
             debit_amount,
             credit_amount,
             cost_center_code,
+            partners(code),
             journal_entries!inner(entry_date, status, business_year_id)
           `)
           .eq("account_code", accountCode)
@@ -60,7 +70,7 @@ export function useAccountCard(
 
         // Filter by analytics in JavaScript if needed
         const filteredOpening = analyticsFilter
-          ? (openingData || []).filter((item: any) => item.cost_center_code === analyticsFilter)
+          ? (openingData || []).filter((item: any) => getAnalytics(item) === analyticsFilter)
           : openingData || [];
 
         openingBalance = filteredOpening.reduce(
@@ -81,7 +91,7 @@ export function useAccountCard(
           credit_amount,
           document_date,
           partner_id,
-          partners(name),
+          partners(code, name),
           journal_entries!inner(
             entry_date,
             entry_number,
@@ -110,15 +120,16 @@ export function useAccountCard(
       // Collect all unique analytics values before filtering
       const allAnalyticsSet = new Set<string>();
       (data || []).forEach((item: any) => {
-        if (item.cost_center_code) {
-          allAnalyticsSet.add(item.cost_center_code);
+        const analytics = getAnalytics(item);
+        if (analytics) {
+          allAnalyticsSet.add(analytics);
         }
       });
       const allAnalytics = Array.from(allAnalyticsSet).sort();
 
       // Filter by analytics in JavaScript if needed
       const filteredData = analyticsFilter
-        ? (data || []).filter((item: any) => item.cost_center_code === analyticsFilter)
+        ? (data || []).filter((item: any) => getAnalytics(item) === analyticsFilter)
         : data || [];
 
       // Sort by entry date
@@ -134,7 +145,7 @@ export function useAccountCard(
         document_date: item.document_date,
         entry_number: item.journal_entries.entry_number,
         document_number: item.journal_entries.document_number,
-        analytics: item.cost_center_code || null,
+        analytics: getAnalytics(item),
         partner_name: item.partners?.name || null,
         description: item.description,
         debit_amount: Number(item.debit_amount),
