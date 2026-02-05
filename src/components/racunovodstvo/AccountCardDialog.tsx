@@ -17,6 +17,13 @@ import {
   TableRow,
   TableFooter,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2, Download } from "lucide-react";
 import { format } from "date-fns";
 import { formatNumber } from "@/lib/formatting";
@@ -37,12 +44,17 @@ export function AccountCardDialog({
 }: AccountCardDialogProps) {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+  const [analyticsFilter, setAnalyticsFilter] = useState<string>("");
 
   const { data, isLoading } = useAccountCard(
     open ? accountCode : null,
     dateFrom || null,
-    dateTo || null
+    dateTo || null,
+    analyticsFilter || null
   );
+
+  // Get unique analytics values from hook data (before filtering)
+  const analyticsOptions = data?.allAnalytics || [];
 
   // Calculate running balance
   const itemsWithBalance = useMemo(() => {
@@ -63,8 +75,8 @@ export function AccountCardDialog({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Date filters */}
-        <div className="grid grid-cols-3 gap-4 py-2">
+        {/* Date and Analytics filters */}
+        <div className="grid grid-cols-4 gap-4 py-2">
           <div className="space-y-1">
             <Label className="text-sm">Datum od</Label>
             <Input
@@ -80,6 +92,25 @@ export function AccountCardDialog({
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
             />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-sm">Analitika</Label>
+            <Select
+              value={analyticsFilter}
+              onValueChange={setAnalyticsFilter}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sve analitike" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Sve analitike</SelectItem>
+                {analyticsOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex items-end">
             <Button variant="outline" size="sm">
@@ -128,7 +159,8 @@ export function AccountCardDialog({
                 <TableHead className="w-[90px]">Valuta</TableHead>
                 <TableHead className="w-[70px]">Nalog</TableHead>
                 <TableHead className="w-[100px]">Dokument</TableHead>
-                <TableHead>Analitika / Opis</TableHead>
+                <TableHead className="w-[80px]">Analitika</TableHead>
+                <TableHead>Partner / Opis</TableHead>
                 <TableHead className="w-[100px] text-right">Duguje</TableHead>
                 <TableHead className="w-[100px] text-right">Potražuje</TableHead>
                 <TableHead className="w-[100px] text-right">Saldo</TableHead>
@@ -137,13 +169,13 @@ export function AccountCardDialog({
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : itemsWithBalance.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Nema stavki za prikaz
                   </TableCell>
                 </TableRow>
@@ -156,6 +188,9 @@ export function AccountCardDialog({
                     </TableCell>
                     <TableCell className="font-medium">{item.entry_number}</TableCell>
                     <TableCell>{item.document_number || "-"}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {item.analytics || "-"}
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         {item.partner_name && (
