@@ -44,13 +44,16 @@ export function AccountCardDialog({
 }: AccountCardDialogProps) {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
-  const [analyticsFilter, setAnalyticsFilter] = useState<string>("");
+  const [analyticsFilter, setAnalyticsFilter] = useState<string>("__all__");
+
+  // Map UI filter value to actual filter value for hook
+  const actualAnalyticsFilter = analyticsFilter === "__all__" ? null : analyticsFilter;
 
   const { data, isLoading } = useAccountCard(
     open ? accountCode : null,
     dateFrom || null,
     dateTo || null,
-    analyticsFilter || null
+    actualAnalyticsFilter
   );
 
   // Get unique analytics values from hook data (before filtering)
@@ -103,7 +106,7 @@ export function AccountCardDialog({
                 <SelectValue placeholder="Sve analitike" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sve analitike</SelectItem>
+                <SelectItem value="__all__">Sve analitike</SelectItem>
                 {analyticsOptions.map((opt) => (
                   <SelectItem key={opt} value={opt}>
                     {opt}
