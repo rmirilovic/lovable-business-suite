@@ -21,15 +21,20 @@ import UlazniTroskovi from "./pages/sifarnici/UlazniTroskovi";
 import AdminPanel from "./pages/admin/AdminPanel";
 import KontniPlan from "./pages/racunovodstvo/KontniPlan";
 import NaloziZaKnjizenje from "./pages/racunovodstvo/NaloziZaKnjizenje";
+import JournalEntryEdit from "./pages/racunovodstvo/JournalEntryEdit";
 import GlavnaKnjiga from "./pages/racunovodstvo/GlavnaKnjiga";
 import BrutoBilans from "./pages/racunovodstvo/BrutoBilans";
 import KarticaKonta from "./pages/racunovodstvo/KarticaKonta";
 import KarticePartnera from "./pages/racunovodstvo/KarticePartnera";
 import Ponude from "./pages/prodaja/Ponude";
+import QuoteEdit from "./pages/prodaja/QuoteEdit";
 import Fakture from "./pages/prodaja/Fakture";
+import InvoiceEdit from "./pages/prodaja/InvoiceEdit";
 import Otpremnice from "./pages/prodaja/Otpremnice";
 import UlazneFaktureUsluge from "./pages/nabavka/UlazneFaktureUsluge";
+import ServicePurchaseInvoiceEdit from "./pages/nabavka/ServicePurchaseInvoiceEdit";
 import UlazneFaktureRoba from "./pages/nabavka/UlazneFaktureRoba";
+import GoodsPurchaseInvoiceEdit from "./pages/nabavka/GoodsPurchaseInvoiceEdit";
 import Prijemnice from "./pages/magacin/Prijemnice";
 import NotFound from "./pages/NotFound";
 
@@ -111,6 +116,11 @@ const App = () => (
                   <NaloziZaKnjizenje />
                 </ProtectedRoute>
               } />
+              <Route path="/racunovodstvo/nalozi/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <JournalEntryEdit />
+                </ProtectedRoute>
+              } />
               <Route path="/racunovodstvo/glavna-knjiga" element={
                 <ProtectedRoute>
                   <GlavnaKnjiga />
@@ -136,9 +146,19 @@ const App = () => (
                   <Ponude />
                 </ProtectedRoute>
               } />
+              <Route path="/prodaja/ponude/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <QuoteEdit />
+                </ProtectedRoute>
+              } />
               <Route path="/prodaja/fakture" element={
                 <ProtectedRoute>
                   <Fakture />
+                </ProtectedRoute>
+              } />
+              <Route path="/prodaja/fakture/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <InvoiceEdit />
                 </ProtectedRoute>
               } />
               <Route path="/prodaja/otpremnice" element={
@@ -151,9 +171,19 @@ const App = () => (
                   <UlazneFaktureUsluge />
                 </ProtectedRoute>
               } />
+              <Route path="/nabavka/ulazne-fakture-usluge/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <ServicePurchaseInvoiceEdit />
+                </ProtectedRoute>
+              } />
               <Route path="/nabavka/ulazne-fakture-roba" element={
                 <ProtectedRoute>
                   <UlazneFaktureRoba />
+                </ProtectedRoute>
+              } />
+              <Route path="/nabavka/ulazne-fakture-roba/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <GoodsPurchaseInvoiceEdit />
                 </ProtectedRoute>
               } />
               <Route path="/magacin/prijemnice" element={

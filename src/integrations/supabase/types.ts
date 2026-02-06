@@ -2790,6 +2790,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_document_updated_at: {
+        Args: { _document_id: string; _table_name: string }
+        Returns: string
+      }
       get_next_document_number: {
         Args: { _company_id: string; _doc_type: string; _year_id: string }
         Returns: string
