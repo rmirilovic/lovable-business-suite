@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
@@ -41,6 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const sessionRef = useRef<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [businessYears, setBusinessYears] = useState<BusinessYear[]>([]);
@@ -84,66 +85,141 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     let initialSessionChecked = false;
+    let handoffTimeout: number | null = null;
+    let awaitingHandoff = false;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!isMounted) return;
+    const origin = window.location.origin;
 
-        // Keep session/user in sync
-        setSession(session);
-        setUser(session?.user ?? null);
+    // --- Session handoff between iframe and new tab ---
+    // Some browsers partition storage between preview iframe and a new tab.
+    // We pass the session via postMessage so the report tab doesn't require re-login.
+    const messageHandler = (event: MessageEvent) => {
+      if (event.origin !== origin) return;
+      const msg = event.data as any;
 
-        // IMPORTANT: do not end "loading" state until we've checked existing session at least once.
-        if (initialSessionChecked) {
-          setLoading(false);
+      // Opener tab responds with current session
+      if (msg?.type === "REQUEST_SESSION") {
+        const s = sessionRef.current;
+        if (s?.access_token && s?.refresh_token && event.source) {
+          (event.source as Window).postMessage(
+            {
+              type: "SESSION_RESPONSE",
+              payload: {
+                access_token: s.access_token,
+                refresh_token: s.refresh_token,
+              },
+            },
+            origin
+          );
         }
-
-        if (event === "SIGNED_IN") {
-          if (session?.user) {
-            setTimeout(() => {
-              fetchUserCompanies(session.user.id);
-              fetchUserRole(session.user.id);
-              fetchLocalAdminCompanies(session.user.id);
-              setInitialLoadDone(true);
-            }, 0);
-          }
-          return;
-        }
-
-        if (event === "SIGNED_OUT") {
-          setCompanies([]);
-          setBusinessYears([]);
-          setSelectedCompany(null);
-          setSelectedYear(null);
-          setUserRole(null);
-          setLocalAdminCompanyIds([]);
-          setInitialLoadDone(false);
-          setLoading(false);
-          return;
-        }
-
-        // Ignore TOKEN_REFRESHED/USER_UPDATED/etc.
+        return;
       }
-    );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+      // New tab receives session and sets it
+      if (msg?.type === "SESSION_RESPONSE" && msg?.payload?.access_token && msg?.payload?.refresh_token) {
+        awaitingHandoff = false;
+
+        if (handoffTimeout) {
+          window.clearTimeout(handoffTimeout);
+          handoffTimeout = null;
+        }
+
+        // Keep loading until auth state updates with a user
+        setLoading(true);
+
+        void supabase.auth.setSession({
+          access_token: msg.payload.access_token,
+          refresh_token: msg.payload.refresh_token,
+        });
+        return;
+      }
+    };
+
+    window.addEventListener("message", messageHandler);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (!isMounted) return;
+
+      sessionRef.current = nextSession;
+      setSession(nextSession);
+      setUser(nextSession?.user ?? null);
+
+      // IMPORTANT: prevent redirect-to-login while waiting for session handoff
+      if (awaitingHandoff && !nextSession?.user) {
+        setLoading(true);
+        return;
+      }
+
+      // End loading only after initial session check is done
+      if (initialSessionChecked) {
+        setLoading(false);
+      }
+
+      if (event === "SIGNED_IN") {
+        if (nextSession?.user) {
+          setTimeout(() => {
+            fetchUserCompanies(nextSession.user.id);
+            fetchUserRole(nextSession.user.id);
+            fetchLocalAdminCompanies(nextSession.user.id);
+            setInitialLoadDone(true);
+          }, 0);
+        }
+        return;
+      }
+
+      if (event === "SIGNED_OUT") {
+        setCompanies([]);
+        setBusinessYears([]);
+        setSelectedCompany(null);
+        setSelectedYear(null);
+        setUserRole(null);
+        setLocalAdminCompanyIds([]);
+        setInitialLoadDone(false);
+        setLoading(false);
+        return;
+      }
+
+      // Ignore TOKEN_REFRESHED/USER_UPDATED/etc.
+    });
+
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       if (!isMounted) return;
 
       initialSessionChecked = true;
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+      sessionRef.current = initialSession;
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
 
-      if (session?.user && !initialLoadDone) {
-        fetchUserCompanies(session.user.id);
-        fetchUserRole(session.user.id);
-        fetchLocalAdminCompanies(session.user.id);
+      if (!initialSession?.user && window.opener) {
+        // Ask opener (iframe tab) for session and wait a bit before concluding user is logged out
+        awaitingHandoff = true;
+        setLoading(true);
+        try {
+          window.opener.postMessage({ type: "REQUEST_SESSION" }, origin);
+        } catch {
+          // ignore
+        }
+        handoffTimeout = window.setTimeout(() => {
+          awaitingHandoff = false;
+          if (!isMounted) return;
+          setLoading(false);
+        }, 4000);
+      } else {
+        setLoading(false);
+      }
+
+      if (initialSession?.user && !initialLoadDone) {
+        fetchUserCompanies(initialSession.user.id);
+        fetchUserRole(initialSession.user.id);
+        fetchLocalAdminCompanies(initialSession.user.id);
         setInitialLoadDone(true);
       }
     });
 
     return () => {
       isMounted = false;
+      if (handoffTimeout) window.clearTimeout(handoffTimeout);
+      window.removeEventListener("message", messageHandler);
       subscription.unsubscribe();
     };
   }, []);
