@@ -111,8 +111,8 @@ export default function UlazneFaktureUsluge() {
   };
 
   const handleView = (invoice: ServicePurchaseInvoice) => {
-    setSelectedInvoice(invoice);
-    setDetailDialogOpen(true);
+    // Open in new tab for editing
+    window.open(`/nabavka/ulazne-fakture-usluge/${invoice.id}`, "_blank");
   };
 
   const handleDeleteClick = (invoice: ServicePurchaseInvoice) => {
@@ -142,8 +142,8 @@ export default function UlazneFaktureUsluge() {
   };
 
   const handleNewInvoiceSaved = (invoice: ServicePurchaseInvoice) => {
-    setSelectedInvoice(invoice);
-    setDetailDialogOpen(true);
+    // Open new invoice in new tab
+    window.open(`/nabavka/ulazne-fakture-usluge/${invoice.id}`, "_blank");
   };
 
   const handleUnpostClick = (invoice: ServicePurchaseInvoice) => {
