@@ -192,8 +192,12 @@ export default function GlavnaKnjiga() {
                   <Button
                     variant="secondary"
                     onClick={() => {
-                      const url = `/racunovodstvo/kartica-konta/${selectedAccount}${dateFrom ? `?from=${dateFrom}` : ''}${dateTo ? `${dateFrom ? '&' : '?'}to=${dateTo}` : ''}`;
-                      window.open(url, '_blank');
+                      const params = new URLSearchParams();
+                      if (dateFrom) params.set('from', dateFrom);
+                      if (dateTo) params.set('to', dateTo);
+                      const path = `/racunovodstvo/kartica-konta/${selectedAccount}`;
+                      const url = `${window.location.origin}${path}${params.toString() ? `?${params.toString()}` : ''}`;
+                      window.open(url, "_blank");
                     }}
                     title="Otvori karticu konta u novom tabu"
                   >
