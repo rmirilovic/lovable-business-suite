@@ -78,7 +78,11 @@ export default function NaloziZaKnjizenje() {
   };
 
   const handlePostEntry = async (entry: JournalEntry) => {
-    if (confirm(`Da li ste sigurni da želite da proknjižite nalog ${entry.entry_number}?`)) {
+    const message = entry.source_document_type 
+      ? `Da li ste sigurni da želite da proknjižite nalog ${entry.entry_number}?\n\nNAPOMENA: Ovaj nalog je kreiran iz drugog dokumenta i knjiženje se može poništiti samo kroz originalni dokument.`
+      : `Da li ste sigurni da želite da proknjižite nalog ${entry.entry_number}?`;
+    
+    if (confirm(message)) {
       await postEntry.mutateAsync(entry.id);
     }
   };
