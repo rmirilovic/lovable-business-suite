@@ -82,14 +82,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+    let initialSessionChecked = false;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        // Keep session/user in sync, but avoid expensive re-fetching on token refresh.
+        if (!isMounted) return;
+
+        // Keep session/user in sync
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
 
-        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+        // IMPORTANT: do not end "loading" state until we've checked existing session at least once.
+        if (initialSessionChecked) {
+          setLoading(false);
+        }
+
+        if (event === "SIGNED_IN") {
           if (session?.user) {
             setTimeout(() => {
               fetchUserCompanies(session.user.id);
@@ -109,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUserRole(null);
           setLocalAdminCompanyIds([]);
           setInitialLoadDone(false);
+          setLoading(false);
           return;
         }
 
@@ -117,6 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+
+      initialSessionChecked = true;
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -129,7 +142,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserCompanies = async (userId: string) => {
