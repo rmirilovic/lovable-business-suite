@@ -39,13 +39,18 @@ export function useAccountCard(
         return { items: [], openingBalance: 0, totalDebit: 0, totalCredit: 0, closingBalance: 0, allAnalytics: [] };
       }
 
-      // Helper to get analytics value - use partner code if available, otherwise cost_center_code
+      // Helper to get analytics value - prioritize cost_center_code for expense tracking,
+      // fall back to partner code for customer/supplier accounts
       const getAnalytics = (item: any) => {
-        // For partner-related accounts, use partner code as analytics
+        // For cost center entries (expenses, input costs), show cost center code
+        if (item.cost_center_code) {
+          return item.cost_center_code;
+        }
+        // For partner accounts (customers/suppliers), show partner code
         if (item.partners?.code) {
           return item.partners.code;
         }
-        return item.cost_center_code || null;
+        return null;
       };
 
       // Get opening balance (all posted entries before dateFrom)
