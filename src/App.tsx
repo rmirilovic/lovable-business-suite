@@ -122,7 +122,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/racunovodstvo/kartica-konta/:code" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireCompany={false}>
                   <KarticaKonta />
                 </ProtectedRoute>
               } />

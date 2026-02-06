@@ -37,7 +37,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function KarticaKonta() {
   const { code } = useParams<{ code: string }>();
   const [searchParams] = useSearchParams();
-  const { selectedYear } = useAuth();
+  const { selectedYear, selectedCompany } = useAuth();
   const { data: accounts = [] } = useChartOfAccounts();
 
   // Get account name from code
@@ -99,6 +99,8 @@ export default function KarticaKonta() {
     window.print();
   };
 
+  const contextReady = !!selectedCompany && !!selectedYear;
+
   if (!code) {
     return (
       <MainLayout title="Kartica konta">
@@ -109,6 +111,15 @@ export default function KarticaKonta() {
     );
   }
 
+  if (!contextReady) {
+    return (
+      <MainLayout title={`Kartica konta: ${code}`}> 
+        <div className="min-h-[50vh] flex items-center justify-center">
+          <div className="text-muted-foreground">Učitavanje...</div>
+        </div>
+      </MainLayout>
+    );
+  }
   return (
     <MainLayout title={`Kartica konta: ${code} - ${accountName}`}>
       <div className="space-y-4 print:space-y-2">
