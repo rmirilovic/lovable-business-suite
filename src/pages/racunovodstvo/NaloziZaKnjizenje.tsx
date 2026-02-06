@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Eye, Pencil, Trash2, BookCheck, FileText } from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2, BookCheck, Undo2 } from "lucide-react";
 import {
   useJournalEntries,
   useJournalEntryMutations,
@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 
 export default function NaloziZaKnjizenje() {
   const { data: entries = [], isLoading } = useJournalEntries();
-  const { createEntry, deleteEntry, postEntry } = useJournalEntryMutations();
+  const { createEntry, deleteEntry, postEntry, unpostEntry } = useJournalEntryMutations();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -78,8 +78,14 @@ export default function NaloziZaKnjizenje() {
   };
 
   const handlePostEntry = async (entry: JournalEntry) => {
-    if (confirm(`Da li ste sigurni da želite da proknjižite nalog ${entry.entry_number}? Ova akcija se ne može poništiti.`)) {
+    if (confirm(`Da li ste sigurni da želite da proknjižite nalog ${entry.entry_number}?`)) {
       await postEntry.mutateAsync(entry.id);
+    }
+  };
+
+  const handleUnpostEntry = async (entry: JournalEntry) => {
+    if (confirm(`Da li ste sigurni da želite da poništite knjiženje naloga ${entry.entry_number}? Nalog će biti vraćen u status Nacrt.`)) {
+      await unpostEntry.mutateAsync(entry.id);
     }
   };
 
@@ -209,6 +215,17 @@ export default function NaloziZaKnjizenje() {
                               <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
                           </>
+                        )}
+                        {entry.status === "posted" && !entry.source_document_type && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleUnpostEntry(entry)}
+                            title="Poništi knjiženje"
+                            disabled={unpostEntry.isPending}
+                          >
+                            <Undo2 className="w-4 h-4 text-orange-600" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>

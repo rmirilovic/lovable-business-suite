@@ -182,7 +182,28 @@ export function useJournalEntryMutations() {
     },
   });
 
-  return { createEntry, updateEntry, deleteEntry, postEntry };
+  const unpostEntry = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user?.id) throw new Error("Korisnik nije prijavljen");
+
+      const { data, error } = await supabase.rpc("unpost_journal_entry", {
+        _entry_id: id,
+        _user_id: user.id,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      toast.success("Nalog je vraćen u status Nacrt");
+    },
+    onError: (error: Error) => {
+      toast.error(`Greška pri poništavanju: ${error.message}`);
+    },
+  });
+
+  return { createEntry, updateEntry, deleteEntry, postEntry, unpostEntry };
 }
 
 export function useJournalEntryItemMutations() {
