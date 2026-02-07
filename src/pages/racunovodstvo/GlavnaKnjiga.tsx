@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -141,7 +142,7 @@ export default function GlavnaKnjiga() {
 
   return (
     <MainLayout title="Glavna knjiga">
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4 h-full min-h-0">
         {/* Filters */}
         <Card>
           <CardHeader className="py-3">
@@ -243,7 +244,7 @@ export default function GlavnaKnjiga() {
         </div>
 
         {/* Ledger table */}
-        <div className="rounded-md border">
+        <TableScrollContainer className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -318,7 +319,7 @@ export default function GlavnaKnjiga() {
               </TableFooter>
             )}
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
     </MainLayout>
   );
