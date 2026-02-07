@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -17,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Loader2, Warehouse } from "lucide-react";
+import { Search, Loader2, Warehouse, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWarehouseStock, type WarehouseStockRow } from "@/hooks/useWarehouseStock";
@@ -27,6 +28,8 @@ import { useTableSort } from "@/hooks/useTableSort";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { formatPrice, formatDecimal } from "@/lib/formatting";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { exportStockToExcel, exportStockToPdf, printStock } from "@/lib/warehouseExportUtils";
+import { toast } from "sonner";
 
 export default function StanjeMagacina() {
   const { selectedCompany } = useAuth();
@@ -38,6 +41,7 @@ export default function StanjeMagacina() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [search, setSearch] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   const {
     data: stockData,
@@ -49,6 +53,7 @@ export default function StanjeMagacina() {
 
   // Get warehouse name for display
   const selectedWarehouse = warehouses.find((w) => w.id === warehouseId);
+  const warehouseName = selectedWarehouse ? `${selectedWarehouse.code} — ${selectedWarehouse.name}` : "";
 
   // Filter by search
   const filteredStock = useMemo(() => {
@@ -93,11 +98,40 @@ export default function StanjeMagacina() {
     );
   }, [sortedData]);
 
+  const exportMeta = { warehouseName, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined };
+
+  const handleExcelExport = () => {
+    if (sortedData.length === 0) return;
+    exportStockToExcel(sortedData, exportMeta);
+    toast.success("Excel fajl je kreiran.");
+  };
+
+  const handlePdfExport = async () => {
+    if (sortedData.length === 0) return;
+    setExporting(true);
+    try {
+      await exportStockToPdf(sortedData, exportMeta, totals);
+      toast.success("PDF fajl je kreiran.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (sortedData.length === 0) return;
+    setExporting(true);
+    try {
+      await printStock(sortedData, exportMeta, totals);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <MainLayout title="Stanje magacina">
       <div className="space-y-4">
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+        <div className="flex flex-col sm:flex-row gap-4 flex-wrap items-end">
           <Select value={warehouseId} onValueChange={setWarehouseId}>
             <SelectTrigger className="w-[280px]">
               <SelectValue placeholder="Izaberite magacin..." />
@@ -135,6 +169,23 @@ export default function StanjeMagacina() {
               className="pl-10"
             />
           </div>
+
+          {sortedData.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" onClick={handleExcelExport} disabled={exporting}>
+                <FileSpreadsheet className="h-4 w-4 mr-1" />
+                Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePdfExport} disabled={exporting}>
+                <FileText className="h-4 w-4 mr-1" />
+                PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePrint} disabled={exporting}>
+                <Printer className="h-4 w-4 mr-1" />
+                Štampaj
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -240,7 +291,7 @@ export default function StanjeMagacina() {
           onOpenChange={() => setSelectedArticle(null)}
           companyId={companyId}
           warehouseId={warehouseId}
-          warehouseName={selectedWarehouse ? `${selectedWarehouse.code} — ${selectedWarehouse.name}` : ""}
+          warehouseName={warehouseName}
           articleId={selectedArticle.article_id}
           articleCode={selectedArticle.article_code}
           articleName={selectedArticle.article_name}

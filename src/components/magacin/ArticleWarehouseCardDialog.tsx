@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -15,9 +15,12 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useArticleWarehouseCard } from "@/hooks/useWarehouseStock";
 import { formatPrice, formatDecimal, formatDate } from "@/lib/formatting";
+import { exportCardToExcel, exportCardToPdf, printCard } from "@/lib/warehouseExportUtils";
+import { toast } from "sonner";
 
 interface ArticleWarehouseCardDialogProps {
   open: boolean;
@@ -54,6 +57,8 @@ export function ArticleWarehouseCardDialog({
     dateTo
   );
 
+  const [exporting, setExporting] = useState(false);
+
   // Compute running balance and totals
   const { rows, totals } = useMemo(() => {
     if (!movements) return { rows: [], totals: { debit: 0, credit: 0, balanceQty: 0, balanceValue: 0 } };
@@ -87,13 +92,58 @@ export function ArticleWarehouseCardDialog({
     };
   }, [movements]);
 
+  const meta = { articleCode, articleName, unit, warehouseName, dateFrom, dateTo };
+
+  const handleExcelExport = () => {
+    if (rows.length === 0) return;
+    exportCardToExcel(rows, meta, totals);
+    toast.success("Excel fajl je kreiran.");
+  };
+
+  const handlePdfExport = async () => {
+    if (rows.length === 0) return;
+    setExporting(true);
+    try {
+      await exportCardToPdf(rows, meta, totals);
+      toast.success("PDF fajl je kreiran.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (rows.length === 0) return;
+    setExporting(true);
+    try {
+      await printCard(rows, meta, totals);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>
-            Robna kartica
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-4">
+            <DialogTitle>Robna kartica</DialogTitle>
+            {rows.length > 0 && (
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="sm" onClick={handleExcelExport} disabled={exporting}>
+                  <FileSpreadsheet className="h-4 w-4 mr-1" />
+                  Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={handlePdfExport} disabled={exporting}>
+                  <FileText className="h-4 w-4 mr-1" />
+                  PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={handlePrint} disabled={exporting}>
+                  <Printer className="h-4 w-4 mr-1" />
+                  Štampaj
+                </Button>
+              </div>
+            )}
+          </div>
           <div className="text-sm text-muted-foreground space-y-1">
             <div>
               <span className="font-medium text-foreground">Artikal:</span>{" "}
