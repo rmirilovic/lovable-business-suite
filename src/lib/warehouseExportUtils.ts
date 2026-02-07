@@ -187,8 +187,7 @@ export function exportCardToExcel(
 ) {
   const data = rows.map((r) => ({
     "Datum": formatDate(r.movement_date),
-    "Dokument": r.document_type,
-    "Broj": r.document_number,
+    "Dokument": `${r.document_type} ${r.document_number}`,
     "Partner": r.partner_name,
     "Ulaz": r.in_quantity > 0 ? r.in_quantity : "",
     "Izlaz": r.out_quantity > 0 ? r.out_quantity : "",
@@ -202,9 +201,8 @@ export function exportCardToExcel(
   // Add totals row
   data.push({
     "Datum": "",
-    "Dokument": "",
-    "Broj": "",
-    "Partner": "UKUPNO:",
+    "Dokument": "UKUPNO:",
+    "Partner": "",
     "Ulaz": "" as any,
     "Izlaz": "" as any,
     "Cena": "" as any,
@@ -216,7 +214,7 @@ export function exportCardToExcel(
 
   const ws = XLSX.utils.json_to_sheet(data);
   ws["!cols"] = [
-    { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 30 },
+    { wch: 12 }, { wch: 24 }, { wch: 30 },
     { wch: 10 }, { wch: 10 }, { wch: 12 },
     { wch: 14 }, { wch: 14 }, { wch: 10 }, { wch: 14 },
   ];
@@ -259,11 +257,10 @@ async function buildCardPdf(
   }
   y += 7;
 
-  const head = [["Datum", "Dokument", "Broj", "Partner", "Ulaz", "Izlaz", "Cena", "Duguje", "Potražuje", "Stanje", "Saldo"]];
+  const head = [["Datum", "Dokument", "Partner", "Ulaz", "Izlaz", "Cena", "Duguje", "Potražuje", "Stanje", "Saldo"]];
   const body = rows.map((r) => [
     formatDate(r.movement_date),
-    r.document_type,
-    r.document_number,
+    `${r.document_type} ${r.document_number}`,
     r.partner_name,
     r.in_quantity > 0 ? formatDecimal(r.in_quantity) : "",
     r.out_quantity > 0 ? formatDecimal(r.out_quantity) : "",
@@ -274,7 +271,7 @@ async function buildCardPdf(
     formatPrice(r.running_value),
   ]);
 
-  const foot = [["", "", "", "Ukupno:", "", "", "", formatPrice(totals.debit), formatPrice(totals.credit), formatDecimal(totals.balanceQty), formatPrice(totals.balanceValue)]];
+  const foot = [["", "Ukupno:", "", "", "", "", formatPrice(totals.debit), formatPrice(totals.credit), formatDecimal(totals.balanceQty), formatPrice(totals.balanceValue)]];
 
   autoTable(doc, {
     startY: y,
@@ -288,18 +285,17 @@ async function buildCardPdf(
       0: { halign: "left" },
       1: { halign: "left" },
       2: { halign: "left" },
-      3: { halign: "left" },
+      3: { halign: "right" },
       4: { halign: "right" },
       5: { halign: "right" },
       6: { halign: "right" },
       7: { halign: "right" },
       8: { halign: "right" },
       9: { halign: "right" },
-      10: { halign: "right" },
     },
     didParseCell(data) {
       if (data.section === "foot") {
-        data.cell.styles.halign = data.column.index <= 3 ? "right" : "right";
+        data.cell.styles.halign = data.column.index <= 2 ? "right" : "right";
       }
     },
   });

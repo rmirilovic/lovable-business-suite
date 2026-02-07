@@ -177,8 +177,7 @@ export function ArticleWarehouseCardDialog({
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">Datum</TableHead>
-                  <TableHead className="w-[100px]">Dokument</TableHead>
-                  <TableHead>Broj</TableHead>
+                  <TableHead>Dokument</TableHead>
                   <TableHead>Partner</TableHead>
                   <TableHead className="text-right w-[80px]">Ulaz</TableHead>
                   <TableHead className="text-right w-[80px]">Izlaz</TableHead>
@@ -193,8 +192,7 @@ export function ArticleWarehouseCardDialog({
                 {rows.map((row, idx) => (
                   <TableRow key={idx}>
                     <TableCell>{formatDate(row.movement_date)}</TableCell>
-                    <TableCell>{row.document_type}</TableCell>
-                    <TableCell className="font-medium">{row.document_number}</TableCell>
+                    <TableCell className="font-medium">{row.document_type} {row.document_number}</TableCell>
                     <TableCell className="max-w-[150px] truncate">{row.partner_name}</TableCell>
                     <TableCell className="text-right">
                       {row.in_quantity > 0 ? formatDecimal(row.in_quantity) : ""}
@@ -220,7 +218,7 @@ export function ArticleWarehouseCardDialog({
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-right font-semibold">
+                  <TableCell colSpan={6} className="text-right font-semibold">
                     Ukupno:
                   </TableCell>
                   <TableCell className="text-right font-semibold">
