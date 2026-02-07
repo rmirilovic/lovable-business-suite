@@ -2790,6 +2790,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_article_warehouse_card: {
+        Args: {
+          p_article_id: string
+          p_company_id: string
+          p_date_from?: string
+          p_date_to?: string
+          p_warehouse_id: string
+        }
+        Returns: {
+          credit_value: number
+          debit_value: number
+          document_number: string
+          document_type: string
+          in_quantity: number
+          movement_date: string
+          out_quantity: number
+          partner_name: string
+          unit_price: number
+        }[]
+      }
       get_document_updated_at: {
         Args: { _document_id: string; _table_name: string }
         Returns: string
@@ -2830,6 +2850,26 @@ export type Database = {
           _user_id: string
         }
         Returns: Database["public"]["Enums"]["access_level"]
+      }
+      get_warehouse_stock: {
+        Args: {
+          p_company_id: string
+          p_date_from?: string
+          p_date_to?: string
+          p_warehouse_id: string
+        }
+        Returns: {
+          article_code: string
+          article_id: string
+          article_name: string
+          balance_qty: number
+          balance_value: number
+          total_in_qty: number
+          total_in_value: number
+          total_out_qty: number
+          total_out_value: number
+          unit: string
+        }[]
       }
       has_company_access: {
         Args: { _company_id: string; _user_id: string }

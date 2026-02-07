@@ -75,6 +75,7 @@ const navigation: NavItem[] = [
     moduleCode: "robno",
     children: [
       { label: "Prijemnice", href: "/magacin/prijemnice", moduleCode: "robno.prijemnice" },
+      { label: "Stanje magacina", href: "/magacin/stanje", moduleCode: "robno.prijemnice" },
     ],
   },
   {
