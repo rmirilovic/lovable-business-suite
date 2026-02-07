@@ -36,6 +36,7 @@ import ServicePurchaseInvoiceEdit from "./pages/nabavka/ServicePurchaseInvoiceEd
 import UlazneFaktureRoba from "./pages/nabavka/UlazneFaktureRoba";
 import GoodsPurchaseInvoiceEdit from "./pages/nabavka/GoodsPurchaseInvoiceEdit";
 import Prijemnice from "./pages/magacin/Prijemnice";
+import StanjeMagacina from "./pages/magacin/StanjeMagacina";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -189,6 +190,11 @@ const App = () => (
               <Route path="/magacin/prijemnice" element={
                 <ProtectedRoute>
                   <Prijemnice />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/stanje" element={
+                <ProtectedRoute>
+                  <StanjeMagacina />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
