@@ -92,7 +92,7 @@ export function ArticleWarehouseCardDialog({
       <DialogContent className="max-w-5xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
-            Robno-finansijska kartica
+            Robna kartica
           </DialogTitle>
           <div className="text-sm text-muted-foreground space-y-1">
             <div>
