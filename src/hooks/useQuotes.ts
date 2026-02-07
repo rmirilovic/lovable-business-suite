@@ -311,12 +311,19 @@ export function useQuotes() {
         throw new Error("Potrebno je izabrati firmu i godinu");
       }
 
-      // Find existing versions of this quote to determine suffix
-      // Original quote format: PON-YY-NNNN (2-digit year, 4-digit sequence)
-      // Copy format: PON-YY-NNNN-1, PON-YY-NNNN-2, etc.
-      // If copying a copy (PON-YY-NNNN-1), use original base (PON-YY-NNNN)
-      const versionMatch = sourceQuote.quote_number.match(/^(.+-\d{2}-\d{4})(?:-(\d{1,3}))?$/);
-      const baseNumber = versionMatch ? versionMatch[1] : sourceQuote.quote_number;
+      // Find base number from either new format (YYNNNN) or old format (PON-YY-NNNN)
+      // Copies add suffix: YYNNNN-1, YYNNNN-2, etc.
+      let baseNumber: string;
+      const newFormatMatch = sourceQuote.quote_number.match(/^(\d{6})(?:-(\d+))?$/);
+      const oldFormatMatch = sourceQuote.quote_number.match(/^(.+-\d{2}-\d{4})(?:-(\d+))?$/);
+      
+      if (newFormatMatch) {
+        baseNumber = newFormatMatch[1];
+      } else if (oldFormatMatch) {
+        baseNumber = oldFormatMatch[1];
+      } else {
+        baseNumber = sourceQuote.quote_number;
+      }
 
       const { data: existingQuotes } = await supabase
         .from("quotes")
@@ -324,10 +331,8 @@ export function useQuotes() {
         .eq("company_id", selectedCompany.id)
         .like("quote_number", `${baseNumber}-%`);
 
-      // Find the highest version suffix (only count copies, not the original)
       let maxVersion = 0;
       (existingQuotes || []).forEach((q) => {
-        // Match only version suffixes after the base number (e.g., PON-2026-0001-1)
         const copyMatch = q.quote_number.match(new RegExp(`^${baseNumber.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-(\\d+)$`));
         if (copyMatch) {
           const version = parseInt(copyMatch[1], 10);

@@ -52,7 +52,7 @@ export default function NaloziZaKnjizenje() {
   const filteredEntries = entries.filter((entry) => {
     const matchesSearch =
       entry.description.toLowerCase().includes(search.toLowerCase()) ||
-      entry.entry_number.toString().includes(search) ||
+      entry.entry_number.includes(search) ||
       (entry.document_number?.toLowerCase().includes(search.toLowerCase()) ?? false);
 
     const matchesStatus = statusFilter === "all" || entry.status === statusFilter;
