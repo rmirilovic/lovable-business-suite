@@ -10,7 +10,7 @@ export interface JournalEntry {
   company_id: string;
   business_year_id: string;
   org_unit_id: string | null;
-  entry_number: number;
+  entry_number: string;
   entry_date: string;
   document_date: string | null;
   document_number: string | null;
@@ -92,7 +92,7 @@ export function useJournalEntryMutations() {
         throw new Error("Nedostaju podaci");
       }
 
-      // Get next entry number
+      // Get next entry number (returns "R-YYNNNN" text)
       const { data: nextNum } = await supabase.rpc("get_next_journal_entry_number", {
         _company_id: selectedCompany.id,
         _year_id: selectedYear.id,
@@ -103,7 +103,7 @@ export function useJournalEntryMutations() {
         .insert({
           company_id: selectedCompany.id,
           business_year_id: selectedYear.id,
-          entry_number: nextNum || 1,
+          entry_number: nextNum || 'R-000001',
           created_by: user.id,
           ...entry,
         })
@@ -123,7 +123,7 @@ export function useJournalEntryMutations() {
   });
 
   const updateEntry = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<JournalEntry> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: Partial<Omit<JournalEntry, 'entry_number'>> & { id: string }) => {
       const { data, error } = await supabase
         .from("journal_entries")
         .update(updates)

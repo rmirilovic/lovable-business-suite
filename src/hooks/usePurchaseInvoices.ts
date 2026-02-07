@@ -110,33 +110,31 @@ export function usePurchaseInvoices() {
   const getNextInternalNumber = async (): Promise<string> => {
     if (!selectedCompany?.id || !selectedYear?.id) return "";
     
-    // Get the year suffix (last 2 digits)
     const yearSuffix = selectedYear.year.toString().slice(-2);
-    const prefix = `UF-${yearSuffix}-`;
     
     const { data, error } = await supabase
       .from("purchase_invoices")
       .select("internal_number")
       .eq("company_id", selectedCompany.id)
       .eq("business_year_id", selectedYear.id)
-      .ilike("internal_number", `${prefix}%`)
       .order("internal_number", { ascending: false })
-      .limit(1);
+      .limit(100);
 
     if (error) throw error;
 
-    if (!data || data.length === 0) {
-      return `${prefix}0001`;
-    }
-
-    const lastNumber = data[0].internal_number;
-    const match = lastNumber.match(/UF-\d{2}-(\d+)/);
-    if (match) {
-      const nextNum = parseInt(match[1], 10) + 1;
-      return `${prefix}${nextNum.toString().padStart(4, "0")}`;
+    // Find max sequence from both old (UF-YY-NNNN) and new (YYNNNN) formats
+    let maxSeq = 0;
+    const oldRegex = new RegExp(`^[A-Z]+-${yearSuffix}-(\\d{4})$`);
+    const newRegex = new RegExp(`^${yearSuffix}(\\d{4})$`);
+    
+    for (const row of data || []) {
+      const oldMatch = row.internal_number.match(oldRegex);
+      const newMatch = row.internal_number.match(newRegex);
+      const seq = oldMatch ? parseInt(oldMatch[1], 10) : newMatch ? parseInt(newMatch[1], 10) : 0;
+      if (seq > maxSeq) maxSeq = seq;
     }
     
-    return `${prefix}0001`;
+    return `${yearSuffix}${(maxSeq + 1).toString().padStart(4, "0")}`;
   };
 
   const createPurchaseInvoice = useMutation({

@@ -1279,7 +1279,7 @@ export type Database = {
           document_date: string | null
           document_number: string | null
           entry_date: string
-          entry_number: number
+          entry_number: string
           id: string
           org_unit_id: string | null
           posted_at: string | null
@@ -1300,7 +1300,7 @@ export type Database = {
           document_date?: string | null
           document_number?: string | null
           entry_date: string
-          entry_number: number
+          entry_number: string
           id?: string
           org_unit_id?: string | null
           posted_at?: string | null
@@ -1321,7 +1321,7 @@ export type Database = {
           document_date?: string | null
           document_number?: string | null
           entry_date?: string
-          entry_number?: number
+          entry_number?: string
           id?: string
           org_unit_id?: string | null
           posted_at?: string | null
@@ -2824,7 +2824,7 @@ export type Database = {
       }
       get_next_journal_entry_number: {
         Args: { _company_id: string; _year_id: string }
-        Returns: number
+        Returns: string
       }
       get_next_purchase_invoice_number: {
         Args: { _company_id: string; _invoice_type: string; _year_id: string }
@@ -2886,9 +2886,10 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
-      post_goods_purchase_invoice:
-        | { Args: { _invoice_id: string }; Returns: undefined }
-        | { Args: { _invoice_id: string; _user_id: string }; Returns: string }
+      post_goods_purchase_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
+        Returns: string
+      }
       post_goods_receipt: {
         Args: { _receipt_id: string; _user_id: string }
         Returns: string
@@ -2901,9 +2902,10 @@ export type Database = {
         Args: { _entry_id: string; _user_id: string }
         Returns: boolean
       }
-      post_service_purchase_invoice:
-        | { Args: { _invoice_id: string; _user_id: string }; Returns: string }
-        | { Args: { p_invoice_id: string }; Returns: string }
+      post_service_purchase_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
+        Returns: string
+      }
       unpost_goods_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
