@@ -81,6 +81,7 @@ export default function StanjeMagacina() {
         case "total_out_value": return item.total_out_value;
         case "balance_qty": return item.balance_qty;
         case "balance_value": return item.balance_value;
+        case "unit_price": return item.balance_qty !== 0 ? item.balance_value / item.balance_qty : 0;
         default: return "";
       }
     });
@@ -228,12 +229,15 @@ export default function StanjeMagacina() {
                   <TableHead className="text-right">
                     <SortableHeader label="Saldo" column="balance_value" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
+                  <TableHead className="text-right">
+                    <SortableHeader label="Cena" column="unit_price" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       {search
                         ? "Nema rezultata za zadati filter."
                         : "Nema proknjiženih promena u ovom magacinu."}
@@ -255,6 +259,9 @@ export default function StanjeMagacina() {
                       <TableCell className="text-right">{formatPrice(row.total_out_value)}</TableCell>
                       <TableCell className="text-right font-medium">{formatDecimal(row.balance_qty)}</TableCell>
                       <TableCell className="text-right font-medium">{formatPrice(row.balance_value)}</TableCell>
+                      <TableCell className="text-right font-medium">
+                        {row.balance_qty !== 0 ? formatPrice(row.balance_value / row.balance_qty) : "—"}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -276,6 +283,7 @@ export default function StanjeMagacina() {
                     <TableCell className="text-right font-semibold">
                       {formatPrice(totals.balanceValue)}
                     </TableCell>
+                    <TableCell />
                   </TableRow>
                 </TableFooter>
               )}
