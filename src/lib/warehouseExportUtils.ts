@@ -62,13 +62,14 @@ export function exportStockToExcel(
     "Potražuje": r.total_out_value,
     "Stanje kol.": r.balance_qty,
     "Saldo": r.balance_value,
+    "Cena": r.balance_qty !== 0 ? Math.round((r.balance_value / r.balance_qty) * 100) / 100 : 0,
   }));
 
   const ws = XLSX.utils.json_to_sheet(data);
   const colWidths = [
     { wch: 12 }, { wch: 35 }, { wch: 6 },
     { wch: 12 }, { wch: 14 }, { wch: 12 },
-    { wch: 14 }, { wch: 12 }, { wch: 14 },
+    { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 12 },
   ];
   ws["!cols"] = colWidths;
 
@@ -110,7 +111,7 @@ async function buildStockPdf(
   }
   y += 7;
 
-  const head = [["Šifra", "Naziv artikla", "JM", "Ulaz kol.", "Duguje", "Izlaz kol.", "Potražuje", "Stanje kol.", "Saldo"]];
+  const head = [["Šifra", "Naziv artikla", "JM", "Ulaz kol.", "Duguje", "Izlaz kol.", "Potražuje", "Stanje kol.", "Saldo", "Cena"]];
   const body = rows.map((r) => [
     r.article_code,
     r.article_name,
@@ -121,9 +122,10 @@ async function buildStockPdf(
     formatPrice(r.total_out_value),
     formatDecimal(r.balance_qty),
     formatPrice(r.balance_value),
+    r.balance_qty !== 0 ? formatPrice(r.balance_value / r.balance_qty) : "—",
   ]);
 
-  const foot = [["", "", "", "", formatPrice(totals.totalInValue), "", formatPrice(totals.totalOutValue), "", formatPrice(totals.balanceValue)]];
+  const foot = [["", "", "", "", formatPrice(totals.totalInValue), "", formatPrice(totals.totalOutValue), "", formatPrice(totals.balanceValue), ""]];
 
   autoTable(doc, {
     startY: y,
@@ -143,6 +145,7 @@ async function buildStockPdf(
       6: { halign: "right" },
       7: { halign: "right" },
       8: { halign: "right" },
+      9: { halign: "right" },
     },
     didParseCell(data) {
       if (data.section === "foot") {
