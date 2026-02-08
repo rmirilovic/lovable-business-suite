@@ -2790,6 +2790,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_orphaned_goods_receipts: { Args: never; Returns: number }
       get_article_warehouse_card: {
         Args: {
           p_article_id: string
