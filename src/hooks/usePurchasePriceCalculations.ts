@@ -39,6 +39,7 @@ export interface CalculationAdditionalCost {
   description: string;
   amount: number;
   distribution_method: "by_value" | "by_quantity";
+  partner_id: string | null;
   item_order: number;
   created_at: string;
 }
@@ -203,25 +204,43 @@ export function usePurchasePriceCalculations() {
     mutationFn: async (id: string) => {
       if (!user?.id) throw new Error("Korisnik nije prijavljen");
 
-      // Update calculation status to posted
-      const { error } = await (supabase as any)
-        .from("purchase_price_calculations")
-        .update({
-          status: "posted",
-          posted_by: user.id,
-          posted_at: new Date().toISOString(),
-        })
-        .eq("id", id)
-        .eq("status", "draft");
+      const { data, error } = await supabase.rpc(
+        "post_purchase_price_calculation" as any,
+        { _calculation_id: id, _user_id: user.id }
+      );
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["purchase-price-calculations"] });
       queryClient.invalidateQueries({ queryKey: ["purchase-price-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["calculation-items"] });
       toast.success("Kalkulacija uspešno proknjižena");
     },
     onError: (error: any) => {
       toast.error(`Greška pri knjiženju: ${error.message}`);
+    },
+  });
+
+  const unpostCalculation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user?.id) throw new Error("Korisnik nije prijavljen");
+
+      const { data, error } = await supabase.rpc(
+        "unpost_purchase_price_calculation" as any,
+        { _calculation_id: id, _user_id: user.id }
+      );
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculations"] });
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["calculation-items"] });
+      toast.success("Knjiženje kalkulacije poništeno");
+    },
+    onError: (error: any) => {
+      toast.error(`Greška pri poništavanju: ${error.message}`);
     },
   });
 
@@ -232,6 +251,7 @@ export function usePurchasePriceCalculations() {
     createFromReceipt,
     deleteCalculation,
     postCalculation,
+    unpostCalculation,
   };
 }
 
@@ -294,6 +314,7 @@ export function useCalculationCosts(calculationId: string | null) {
       description: string;
       amount: number;
       distribution_method: "by_value" | "by_quantity";
+      partner_id?: string | null;
     }) => {
       if (!calculationId || !selectedCompany?.id) throw new Error("Nedostaju podaci");
 

@@ -1,10 +1,10 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, RefreshCw, Loader2, CheckCircle } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +25,8 @@ import {
   usePurchasePriceCalculations,
   distributeAdditionalCosts,
 } from "@/hooks/usePurchasePriceCalculations";
+import { usePartners } from "@/hooks/usePartners";
+import { useAuth } from "@/contexts/AuthContext";
 import { CalculationCostsEditor } from "@/components/magacin/CalculationCostsEditor";
 import { CalculationItemsTable } from "@/components/magacin/CalculationItemsTable";
 import { formatDecimal } from "@/lib/formatting";
@@ -33,11 +35,13 @@ import { toast } from "sonner";
 export default function CalculationEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { selectedCompany } = useAuth();
 
   const { calculation, isLoading: calcLoading } = useCalculationDetail(id);
   const { costs, isLoading: costsLoading, addCost, updateCost, deleteCost } = useCalculationCosts(id ?? null);
   const { items, isLoading: itemsLoading, updateItem, batchUpdateItems, updateCalculationTotals } = useCalculationItems(id ?? null);
-  const { postCalculation } = usePurchasePriceCalculations();
+  const { postCalculation, unpostCalculation } = usePurchasePriceCalculations();
+  const { partners } = usePartners();
 
   const isEditable = calculation?.status === "draft";
 
@@ -45,6 +49,12 @@ export default function CalculationEdit() {
     if (!id) return;
     await postCalculation.mutateAsync(id);
   };
+
+  const handleUnpost = async () => {
+    if (!id) return;
+    await unpostCalculation.mutateAsync(id);
+  };
+
   // Recalculate cost distribution and update items + totals
   const recalculate = useCallback(async () => {
     if (!items.length) return;
@@ -80,8 +90,8 @@ export default function CalculationEdit() {
     }
   }, [items, costs, batchUpdateItems, updateCalculationTotals]);
 
-  // Handle adding a cost and then recalculate
-  const handleAddCost = async (cost: { description: string; amount: number; distribution_method: "by_value" | "by_quantity" }) => {
+  // Handle adding a cost with partner
+  const handleAddCost = async (cost: { description: string; amount: number; distribution_method: "by_value" | "by_quantity"; partner_id: string | null }) => {
     await addCost.mutateAsync(cost);
   };
 
@@ -183,43 +193,78 @@ export default function CalculationEdit() {
               </p>
             </div>
           </div>
-          {isEditable && (
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={recalculate} disabled={batchUpdateItems.isPending}>
-                {batchUpdateItems.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                )}
-                Preračunaj
-              </Button>
+          <div className="flex items-center gap-2">
+            {isEditable && (
+              <>
+                <Button variant="outline" onClick={recalculate} disabled={batchUpdateItems.isPending}>
+                  {batchUpdateItems.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                  )}
+                  Preračunaj
+                </Button>
 
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button disabled={postCalculation.isPending || items.length === 0}>
+                      {postCalculation.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Proknjiži
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Proknjižiti kalkulaciju?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Knjiženje kalkulacije će:
+                        <ul className="list-disc list-inside mt-2 space-y-1">
+                          <li>Proknjižiti zavisne troškove nabavke u glavnu knjigu</li>
+                          <li>Proknjižiti razliku u ceni robe (RUC) na konto 1329</li>
+                          <li>Ažurirati prodajne cene artikala (SVK=1) u šifarniku</li>
+                        </ul>
+                        <span className="block mt-2">Nakon knjiženja dokument postaje zaključan.</span>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Otkaži</AlertDialogCancel>
+                      <AlertDialogAction onClick={handlePost}>Proknjiži</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
+
+            {calculation.status === "posted" && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button disabled={postCalculation.isPending || items.length === 0}>
-                    {postCalculation.isPending ? (
+                  <Button variant="outline" disabled={unpostCalculation.isPending}>
+                    {unpostCalculation.isPending ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <Undo2 className="h-4 w-4 mr-2" />
                     )}
-                    Proknjiži
+                    Poništi knjiženje
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Proknjižiti kalkulaciju?</AlertDialogTitle>
+                    <AlertDialogTitle>Poništiti knjiženje kalkulacije?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Nakon knjiženja kalkulacija postaje zaključana i nije moguće menjati stavke ni troškove.
+                      Ova akcija će obrisati nalog za knjiženje iz glavne knjige i vratiti prodajne cene artikala na prethodno stanje.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Otkaži</AlertDialogCancel>
-                    <AlertDialogAction onClick={handlePost}>Proknjiži</AlertDialogAction>
+                    <AlertDialogAction onClick={handleUnpost}>Poništi</AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -251,6 +296,7 @@ export default function CalculationEdit() {
         {/* Additional Costs */}
         <CalculationCostsEditor
           costs={costs}
+          partners={partners}
           isLoading={costsLoading}
           isEditable={isEditable}
           onAdd={handleAddCost}

@@ -323,6 +323,7 @@ export type Database = {
           distribution_method: string
           id: string
           item_order: number
+          partner_id: string | null
         }
         Insert: {
           amount?: number
@@ -333,6 +334,7 @@ export type Database = {
           distribution_method?: string
           id?: string
           item_order?: number
+          partner_id?: string | null
         }
         Update: {
           amount?: number
@@ -343,6 +345,7 @@ export type Database = {
           distribution_method?: string
           id?: string
           item_order?: number
+          partner_id?: string | null
         }
         Relationships: [
           {
@@ -357,6 +360,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_additional_costs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]
@@ -3141,6 +3151,10 @@ export type Database = {
         Args: { _entry_id: string; _user_id: string }
         Returns: boolean
       }
+      post_purchase_price_calculation: {
+        Args: { _calculation_id: string; _user_id: string }
+        Returns: string
+      }
       post_service_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: string
@@ -3155,6 +3169,10 @@ export type Database = {
       }
       unpost_journal_entry: {
         Args: { _entry_id: string; _user_id: string }
+        Returns: boolean
+      }
+      unpost_purchase_price_calculation: {
+        Args: { _calculation_id: string; _user_id: string }
         Returns: boolean
       }
       unpost_service_purchase_invoice: {

@@ -11,12 +11,14 @@ import { Plus, Trash2, Loader2 } from "lucide-react";
 import { CalculationAdditionalCost } from "@/hooks/usePurchasePriceCalculations";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
+import { SearchablePartnerSelect, Partner } from "@/components/ui/searchable-partner-select";
 
 interface CalculationCostsEditorProps {
   costs: CalculationAdditionalCost[];
+  partners: Partner[];
   isLoading: boolean;
   isEditable: boolean;
-  onAdd: (cost: { description: string; amount: number; distribution_method: "by_value" | "by_quantity" }) => Promise<void>;
+  onAdd: (cost: { description: string; amount: number; distribution_method: "by_value" | "by_quantity"; partner_id: string | null }) => Promise<void>;
   onUpdate: (id: string, data: Partial<CalculationAdditionalCost>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
@@ -28,6 +30,7 @@ const DISTRIBUTION_METHODS = [
 
 export function CalculationCostsEditor({
   costs,
+  partners,
   isLoading,
   isEditable,
   onAdd,
@@ -37,6 +40,7 @@ export function CalculationCostsEditor({
   const [newDescription, setNewDescription] = useState("");
   const [newAmount, setNewAmount] = useState("0,00");
   const [newMethod, setNewMethod] = useState<"by_value" | "by_quantity">("by_value");
+  const [newPartnerId, setNewPartnerId] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAdd = async () => {
@@ -49,13 +53,21 @@ export function CalculationCostsEditor({
         description: newDescription.trim(),
         amount,
         distribution_method: newMethod,
+        partner_id: newPartnerId || null,
       });
       setNewDescription("");
       setNewAmount("0,00");
       setNewMethod("by_value");
+      setNewPartnerId("");
     } finally {
       setIsAdding(false);
     }
+  };
+
+  const getPartnerName = (partnerId: string | null) => {
+    if (!partnerId) return "—";
+    const p = partners.find((p) => p.id === partnerId);
+    return p ? `${p.code} - ${p.name}` : "—";
   };
 
   const totalCosts = costs.reduce((sum, c) => sum + c.amount, 0);
@@ -73,9 +85,9 @@ export function CalculationCostsEditor({
       <h3 className="text-sm font-semibold">Zavisni troškovi nabavke</h3>
 
       {isEditable && (
-        <div className="border rounded-md p-3 bg-muted/30">
+        <div className="border rounded-md p-3 bg-muted/30 space-y-2">
           <div className="grid grid-cols-12 gap-2 items-end">
-            <div className="col-span-5">
+            <div className="col-span-4">
               <Input
                 placeholder="Opis troška (prevoz, utovar, osiguranje...)"
                 value={newDescription}
@@ -83,6 +95,14 @@ export function CalculationCostsEditor({
               />
             </div>
             <div className="col-span-3">
+              <SearchablePartnerSelect
+                partners={partners}
+                value={newPartnerId}
+                onValueChange={setNewPartnerId}
+                placeholder="Poverilac troška..."
+              />
+            </div>
+            <div className="col-span-2">
               <LocaleNumberInput
                 value={newAmount}
                 onChange={setNewAmount}
@@ -90,7 +110,7 @@ export function CalculationCostsEditor({
                 decimalPlaces={2}
               />
             </div>
-            <div className="col-span-3">
+            <div className="col-span-2">
               <Select value={newMethod} onValueChange={(v) => setNewMethod(v as any)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -123,8 +143,9 @@ export function CalculationCostsEditor({
               <TableRow>
                 <TableHead className="w-12">#</TableHead>
                 <TableHead>Opis</TableHead>
-                <TableHead className="w-[150px] text-right">Iznos</TableHead>
-                <TableHead className="w-[160px]">Raspodela</TableHead>
+                <TableHead>Poverilac</TableHead>
+                <TableHead className="w-[130px] text-right">Iznos</TableHead>
+                <TableHead className="w-[140px]">Raspodela</TableHead>
                 {isEditable && <TableHead className="w-[50px]" />}
               </TableRow>
             </TableHeader>
@@ -133,6 +154,7 @@ export function CalculationCostsEditor({
                 <TableRow key={cost.id}>
                   <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                   <TableCell>{cost.description}</TableCell>
+                  <TableCell className="text-sm">{getPartnerName(cost.partner_id)}</TableCell>
                   <TableCell className="text-right font-medium">
                     {formatDecimal(cost.amount, 2)}
                   </TableCell>
@@ -153,7 +175,7 @@ export function CalculationCostsEditor({
                 </TableRow>
               ))}
               <TableRow className="bg-muted/50 font-medium">
-                <TableCell colSpan={2} className="text-right">
+                <TableCell colSpan={3} className="text-right">
                   Ukupno zavisni troškovi:
                 </TableCell>
                 <TableCell className="text-right">
