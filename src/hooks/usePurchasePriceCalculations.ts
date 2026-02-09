@@ -199,12 +199,39 @@ export function usePurchasePriceCalculations() {
     },
   });
 
+  const postCalculation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user?.id) throw new Error("Korisnik nije prijavljen");
+
+      // Update calculation status to posted
+      const { error } = await (supabase as any)
+        .from("purchase_price_calculations")
+        .update({
+          status: "posted",
+          posted_by: user.id,
+          posted_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("status", "draft");
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculations"] });
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculation"] });
+      toast.success("Kalkulacija uspešno proknjižena");
+    },
+    onError: (error: any) => {
+      toast.error(`Greška pri knjiženju: ${error.message}`);
+    },
+  });
+
   return {
     calculations: calculationsQuery.data || [],
     isLoading: calculationsQuery.isLoading,
     error: calculationsQuery.error,
     createFromReceipt,
     deleteCalculation,
+    postCalculation,
   };
 }
 

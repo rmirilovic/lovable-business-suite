@@ -4,13 +4,25 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, RefreshCw, Loader2 } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, CheckCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import {
   useCalculationDetail,
   useCalculationCosts,
   useCalculationItems,
+  usePurchasePriceCalculations,
   distributeAdditionalCosts,
 } from "@/hooks/usePurchasePriceCalculations";
 import { CalculationCostsEditor } from "@/components/magacin/CalculationCostsEditor";
@@ -25,9 +37,14 @@ export default function CalculationEdit() {
   const { calculation, isLoading: calcLoading } = useCalculationDetail(id);
   const { costs, isLoading: costsLoading, addCost, updateCost, deleteCost } = useCalculationCosts(id ?? null);
   const { items, isLoading: itemsLoading, updateItem, batchUpdateItems, updateCalculationTotals } = useCalculationItems(id ?? null);
+  const { postCalculation } = usePurchasePriceCalculations();
 
   const isEditable = calculation?.status === "draft";
 
+  const handlePost = async () => {
+    if (!id) return;
+    await postCalculation.mutateAsync(id);
+  };
   // Recalculate cost distribution and update items + totals
   const recalculate = useCallback(async () => {
     if (!items.length) return;
@@ -149,7 +166,7 @@ export default function CalculationEdit() {
               <div className="flex items-center gap-3">
                 <h2 className="text-xl font-semibold">{calculation.calculation_number}</h2>
                 {calculation.status === "posted" ? (
-                  <Badge variant="default" className="bg-green-600 hover:bg-green-700">Proknjiženo</Badge>
+                  <Badge variant="default">Proknjiženo</Badge>
                 ) : (
                   <Badge variant="outline">Nacrt</Badge>
                 )}
@@ -167,14 +184,41 @@ export default function CalculationEdit() {
             </div>
           </div>
           {isEditable && (
-            <Button onClick={recalculate} disabled={batchUpdateItems.isPending}>
-              {batchUpdateItems.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Preračunaj
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={recalculate} disabled={batchUpdateItems.isPending}>
+                {batchUpdateItems.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                )}
+                Preračunaj
+              </Button>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button disabled={postCalculation.isPending || items.length === 0}>
+                    {postCalculation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    )}
+                    Proknjiži
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Proknjižiti kalkulaciju?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Nakon knjiženja kalkulacija postaje zaključana i nije moguće menjati stavke ni troškove.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Otkaži</AlertDialogCancel>
+                    <AlertDialogAction onClick={handlePost}>Proknjiži</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           )}
         </div>
 
