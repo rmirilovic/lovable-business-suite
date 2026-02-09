@@ -1,0 +1,147 @@
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import { Loader2 } from "lucide-react";
+import { CalculationItem } from "@/hooks/usePurchasePriceCalculations";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+
+interface CalculationItemsTableProps {
+  items: CalculationItem[];
+  isLoading: boolean;
+  isEditable: boolean;
+  onUpdateMarkup: (itemId: string, markupPercent: number) => void;
+  onUpdateSellingPrice: (itemId: string, sellingPrice: number) => void;
+}
+
+export function CalculationItemsTable({
+  items,
+  isLoading,
+  isEditable,
+  onUpdateMarkup,
+  onUpdateSellingPrice,
+}: CalculationItemsTableProps) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const totals = items.reduce(
+    (acc, item) => ({
+      purchaseValue: acc.purchaseValue + item.purchase_value,
+      allocatedCosts: acc.allocatedCosts + item.allocated_costs,
+      costValue: acc.costValue + item.cost_value,
+      markupValue: acc.markupValue + (item.markup_amount * item.quantity),
+      sellingValue: acc.sellingValue + item.selling_value,
+    }),
+    { purchaseValue: 0, allocatedCosts: 0, costValue: 0, markupValue: 0, sellingValue: 0 }
+  );
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold">Stavke kalkulacije</h3>
+
+      <TableScrollContainer>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10">#</TableHead>
+              <TableHead className="min-w-[60px]">Šifra</TableHead>
+              <TableHead className="min-w-[150px]">Naziv</TableHead>
+              <TableHead className="w-[50px]">JM</TableHead>
+              <TableHead className="w-[70px] text-right">Kol.</TableHead>
+              <TableHead className="w-[100px] text-right">Nab. cena</TableHead>
+              <TableHead className="w-[110px] text-right">Nab. vredn.</TableHead>
+              <TableHead className="w-[100px] text-right">Zav. troš.</TableHead>
+              <TableHead className="w-[100px] text-right">Cena košt.</TableHead>
+              <TableHead className="w-[110px] text-right">Vred. košt.</TableHead>
+              <TableHead className="w-[90px] text-right">Marža %</TableHead>
+              <TableHead className="w-[100px] text-right">Marža izn.</TableHead>
+              <TableHead className="w-[100px] text-right">Prod. cena</TableHead>
+              <TableHead className="w-[110px] text-right">Prod. vred.</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
+                  Nema stavki.
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((item, idx) => {
+                const isGoods = item.svk === "1"; // SVK=1 means Roba (goods)
+
+                return (
+                  <TableRow key={item.id}>
+                    <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                    <TableCell className="text-sm">{item.item_code || "—"}</TableCell>
+                    <TableCell className="text-sm">{item.item_name}</TableCell>
+                    <TableCell className="text-sm">{item.unit}</TableCell>
+                    <TableCell className="text-right">{formatDecimal(item.quantity, 0)}</TableCell>
+                    <TableCell className="text-right">{formatDecimal(item.purchase_price, 2)}</TableCell>
+                    <TableCell className="text-right">{formatDecimal(item.purchase_value, 2)}</TableCell>
+                    <TableCell className="text-right">{formatDecimal(item.allocated_costs, 2)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatDecimal(item.cost_price, 2)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatDecimal(item.cost_value, 2)}</TableCell>
+                    <TableCell>
+                      {isEditable && isGoods ? (
+                        <LocaleNumberInput
+                          value={formatDecimal(item.markup_percent, 2)}
+                          onChange={(val) => {
+                            const pct = parseLocaleNumber(val);
+                            onUpdateMarkup(item.id, pct);
+                          }}
+                          decimalPlaces={2}
+                          className="text-right w-[80px]"
+                        />
+                      ) : (
+                        <span className="block text-right">{formatDecimal(item.markup_percent, 2)}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">{formatDecimal(item.markup_amount, 2)}</TableCell>
+                    <TableCell>
+                      {isEditable && isGoods ? (
+                        <LocaleNumberInput
+                          value={formatDecimal(item.selling_price, 2)}
+                          onChange={(val) => {
+                            const price = parseLocaleNumber(val);
+                            onUpdateSellingPrice(item.id, price);
+                          }}
+                          decimalPlaces={2}
+                          className="text-right w-[90px]"
+                        />
+                      ) : (
+                        <span className="block text-right font-medium">{formatDecimal(item.selling_price, 2)}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatDecimal(item.selling_value, 2)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+            {items.length > 0 && (
+              <TableRow className="bg-muted/50 font-semibold">
+                <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
+                <TableCell className="text-right">{formatDecimal(totals.purchaseValue, 2)}</TableCell>
+                <TableCell className="text-right">{formatDecimal(totals.allocatedCosts, 2)}</TableCell>
+                <TableCell />
+                <TableCell className="text-right">{formatDecimal(totals.costValue, 2)}</TableCell>
+                <TableCell />
+                <TableCell className="text-right">{formatDecimal(totals.markupValue, 2)}</TableCell>
+                <TableCell />
+                <TableCell className="text-right">{formatDecimal(totals.sellingValue, 2)}</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableScrollContainer>
+    </div>
+  );
+}

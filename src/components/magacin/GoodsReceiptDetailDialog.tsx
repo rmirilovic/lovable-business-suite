@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -23,11 +24,16 @@ import {
   Undo2,
   ExternalLink,
   Loader2,
+  Calculator,
 } from "lucide-react";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { GoodsReceipt } from "@/hooks/useGoodsReceipts";
 import { useGoodsReceiptItems } from "@/hooks/useGoodsReceipts";
+import {
+  useExistingCalculation,
+  usePurchasePriceCalculations,
+} from "@/hooks/usePurchasePriceCalculations";
 import { GoodsReceiptItemsEditor } from "./GoodsReceiptItemsEditor";
 import { formatDecimal, formatNumber } from "@/lib/formatting";
 
@@ -48,10 +54,24 @@ export function GoodsReceiptDetailDialog({
   onUnpost,
   onPost,
 }: GoodsReceiptDetailDialogProps) {
+  const navigate = useNavigate();
   const { items, isLoading } = useGoodsReceiptItems(receipt.id);
   const [activeTab, setActiveTab] = useState("details");
+  const { data: existingCalc, isLoading: calcCheckLoading } = useExistingCalculation(receipt.id);
+  const { createFromReceipt } = usePurchasePriceCalculations();
 
   const isEditable = receipt.status === "draft" && !receipt.source_invoice_id;
+
+  const handleCalculation = async () => {
+    if (existingCalc) {
+      onOpenChange(false);
+      navigate(`/magacin/kalkulacije/${existingCalc.id}`);
+    } else {
+      const calc = await createFromReceipt.mutateAsync(receipt.id);
+      onOpenChange(false);
+      navigate(`/magacin/kalkulacije/${calc.id}`);
+    }
+  };
 
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalValue = items.reduce(
@@ -91,17 +111,32 @@ export function GoodsReceiptDetailDialog({
                   Proknjiži
                 </Button>
               )}
-              {onUnpost && receipt.status === "posted" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onUnpost}
-                  className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                >
-                  <Undo2 className="h-4 w-4 mr-2" />
-                  Poništi
-                </Button>
-              )}
+                {onUnpost && receipt.status === "posted" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onUnpost}
+                    className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                  >
+                    <Undo2 className="h-4 w-4 mr-2" />
+                    Poništi
+                  </Button>
+                )}
+                {receipt.status === "posted" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCalculation}
+                    disabled={createFromReceipt.isPending || calcCheckLoading}
+                  >
+                    {createFromReceipt.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Calculator className="h-4 w-4 mr-2" />
+                    )}
+                    {existingCalc ? "Otvori kalkulaciju" : "Kreiraj kalkulaciju"}
+                  </Button>
+                )}
             </div>
           </div>
         </DialogHeader>

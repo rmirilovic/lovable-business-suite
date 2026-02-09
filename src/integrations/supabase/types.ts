@@ -313,6 +313,155 @@ export type Database = {
           },
         ]
       }
+      calculation_additional_costs: {
+        Row: {
+          amount: number
+          calculation_id: string
+          company_id: string
+          created_at: string
+          description: string
+          distribution_method: string
+          id: string
+          item_order: number
+        }
+        Insert: {
+          amount?: number
+          calculation_id: string
+          company_id: string
+          created_at?: string
+          description: string
+          distribution_method?: string
+          id?: string
+          item_order?: number
+        }
+        Update: {
+          amount?: number
+          calculation_id?: string
+          company_id?: string
+          created_at?: string
+          description?: string
+          distribution_method?: string
+          id?: string
+          item_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calculation_additional_costs_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_price_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_additional_costs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calculation_items: {
+        Row: {
+          allocated_costs: number
+          article_id: string | null
+          calculation_id: string
+          company_id: string
+          cost_price: number
+          cost_value: number
+          created_at: string
+          goods_receipt_item_id: string | null
+          id: string
+          item_code: string | null
+          item_name: string
+          item_order: number
+          markup_amount: number
+          markup_percent: number
+          purchase_price: number
+          purchase_value: number
+          quantity: number
+          selling_price: number
+          selling_value: number
+          svk: string | null
+          unit: string
+        }
+        Insert: {
+          allocated_costs?: number
+          article_id?: string | null
+          calculation_id: string
+          company_id: string
+          cost_price?: number
+          cost_value?: number
+          created_at?: string
+          goods_receipt_item_id?: string | null
+          id?: string
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          markup_amount?: number
+          markup_percent?: number
+          purchase_price?: number
+          purchase_value?: number
+          quantity?: number
+          selling_price?: number
+          selling_value?: number
+          svk?: string | null
+          unit?: string
+        }
+        Update: {
+          allocated_costs?: number
+          article_id?: string | null
+          calculation_id?: string
+          company_id?: string
+          cost_price?: number
+          cost_value?: number
+          created_at?: string
+          goods_receipt_item_id?: string | null
+          id?: string
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          markup_amount?: number
+          markup_percent?: number
+          purchase_price?: number
+          purchase_value?: number
+          quantity?: number
+          selling_price?: number
+          selling_value?: number
+          svk?: string | null
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calculation_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_items_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_price_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_items_goods_receipt_item_id_fkey"
+            columns: ["goods_receipt_item_id"]
+            isOneToOne: false
+            referencedRelation: "goods_receipt_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chart_of_accounts: {
         Row: {
           account_type: Database["public"]["Enums"]["account_type"]
@@ -1991,6 +2140,91 @@ export type Database = {
           },
         ]
       }
+      purchase_price_calculations: {
+        Row: {
+          business_year_id: string
+          calculation_date: string
+          calculation_number: string
+          company_id: string
+          created_at: string
+          created_by: string
+          goods_receipt_id: string
+          id: string
+          note: string | null
+          posted_at: string | null
+          posted_by: string | null
+          status: string
+          total_additional_costs: number
+          total_cost_value: number
+          total_markup_value: number
+          total_purchase_value: number
+          total_selling_value: number
+          updated_at: string
+        }
+        Insert: {
+          business_year_id: string
+          calculation_date?: string
+          calculation_number: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          goods_receipt_id: string
+          id?: string
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          total_additional_costs?: number
+          total_cost_value?: number
+          total_markup_value?: number
+          total_purchase_value?: number
+          total_selling_value?: number
+          updated_at?: string
+        }
+        Update: {
+          business_year_id?: string
+          calculation_date?: string
+          calculation_number?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          goods_receipt_id?: string
+          id?: string
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          total_additional_costs?: number
+          total_cost_value?: number
+          total_markup_value?: number
+          total_purchase_value?: number
+          total_selling_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_price_calculations_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_price_calculations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_price_calculations_goods_receipt_id_fkey"
+            columns: ["goods_receipt_id"]
+            isOneToOne: false
+            referencedRelation: "goods_receipts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           article_id: string | null
@@ -2813,6 +3047,10 @@ export type Database = {
       }
       get_document_updated_at: {
         Args: { _document_id: string; _table_name: string }
+        Returns: string
+      }
+      get_next_calculation_number: {
+        Args: { _company_id: string; _year_id: string }
         Returns: string
       }
       get_next_document_number: {
