@@ -10,6 +10,7 @@ export interface PurchasePriceCalculation {
   company_id: string;
   business_year_id: string;
   goods_receipt_id: string;
+  source_goods_invoice_id: string | null;
   calculation_number: string;
   calculation_date: string;
   status: "draft" | "posted";
@@ -30,6 +31,11 @@ export interface PurchasePriceCalculation {
     warehouse: { id: string; code: string; name: string } | null;
     partner: { id: string; code: string; name: string } | null;
   };
+  source_goods_invoice?: {
+    id: string;
+    internal_number: string;
+    supplier_invoice_number: string;
+  } | null;
 }
 
 export interface CalculationAdditionalCost {
@@ -40,8 +46,25 @@ export interface CalculationAdditionalCost {
   amount: number;
   distribution_method: "by_value" | "by_quantity";
   partner_id: string | null;
+  source_ufu_id: string | null;
+  source_ufu_item_id: string | null;
   item_order: number;
   created_at: string;
+}
+
+export interface CalculationUfuLink {
+  id: string;
+  calculation_id: string;
+  service_invoice_id: string;
+  company_id: string;
+  created_at: string;
+  service_invoice?: {
+    id: string;
+    internal_number: string;
+    supplier_invoice_number: string;
+    total_amount: number;
+    partner: { id: string; code: string; name: string } | null;
+  };
 }
 
 export interface CalculationItem {
@@ -87,6 +110,9 @@ export function usePurchasePriceCalculations() {
             id, receipt_number,
             warehouse:warehouses(id, code, name),
             partner:partners(id, code, name)
+          ),
+          source_goods_invoice:goods_purchase_invoices!source_goods_invoice_id(
+            id, internal_number, supplier_invoice_number
           )
         `)
         .eq("company_id", selectedCompany.id)
@@ -125,6 +151,12 @@ export function usePurchasePriceCalculations() {
         .select()
         .single();
       if (calcError) throw calcError;
+
+      // Link receipt to calculation
+      await (supabase as any)
+        .from("goods_receipts")
+        .update({ linked_calculation_id: calc.id })
+        .eq("id", goodsReceiptId);
 
       // Fetch receipt items to populate calculation items
       const { data: receiptItems, error: riError } = await supabase
@@ -185,6 +217,18 @@ export function usePurchasePriceCalculations() {
 
   const deleteCalculation = useMutation({
     mutationFn: async (id: string) => {
+      // Unlink receipt
+      await (supabase as any)
+        .from("goods_receipts")
+        .update({ linked_calculation_id: null })
+        .eq("linked_calculation_id", id);
+      // Unlink UFR
+      await (supabase as any)
+        .from("goods_purchase_invoices")
+        .update({ linked_calculation_id: null })
+        .eq("linked_calculation_id", id);
+      // UFU links are cascade deleted
+      // Delete calculation (items + costs cascade)
       const { error } = await (supabase as any)
         .from("purchase_price_calculations")
         .delete()
@@ -271,6 +315,9 @@ export function useCalculationDetail(calculationId: string | undefined) {
             id, receipt_number, receipt_date,
             warehouse:warehouses(id, code, name),
             partner:partners(id, code, name)
+          ),
+          source_goods_invoice:goods_purchase_invoices!source_goods_invoice_id(
+            id, internal_number, supplier_invoice_number
           )
         `)
         .eq("id", calculationId)
@@ -534,4 +581,355 @@ export function useExistingCalculation(goodsReceiptId: string | null) {
     },
     enabled: !!goodsReceiptId,
   });
+}
+
+// ─── UFR Linking Hook ────────────────────────────────────────────────
+
+export function useCalculationUfrLink(calculationId: string | null) {
+  const { selectedCompany } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Get available UFR documents (posted, same supplier/warehouse, not linked)
+  const availableUfr = useQuery({
+    queryKey: ["available-ufr", calculationId],
+    queryFn: async () => {
+      if (!calculationId || !selectedCompany?.id) return [];
+
+      // Get the calculation's receipt to know supplier and warehouse
+      const { data: calc } = await (supabase as any)
+        .from("purchase_price_calculations")
+        .select(`
+          goods_receipt:goods_receipts(partner_id, warehouse_id)
+        `)
+        .eq("id", calculationId)
+        .single();
+
+      if (!calc?.goods_receipt) return [];
+
+      const { partner_id, warehouse_id } = calc.goods_receipt;
+
+      const { data, error } = await (supabase as any)
+        .from("goods_purchase_invoices")
+        .select("id, internal_number, supplier_invoice_number, total_amount, subtotal, linked_calculation_id")
+        .eq("company_id", selectedCompany.id)
+        .eq("status", "posted")
+        .eq("partner_id", partner_id)
+        .eq("warehouse_id", warehouse_id)
+        .is("linked_calculation_id", null)
+        .order("internal_number", { ascending: false });
+
+      if (error) throw error;
+      return data as Array<{
+        id: string;
+        internal_number: string;
+        supplier_invoice_number: string;
+        total_amount: number;
+        subtotal: number;
+      }>;
+    },
+    enabled: !!calculationId && !!selectedCompany?.id,
+  });
+
+  const linkUfr = useMutation({
+    mutationFn: async (ufrId: string) => {
+      if (!calculationId) throw new Error("Nema kalkulacije");
+
+      // Link UFR to calculation
+      await (supabase as any)
+        .from("purchase_price_calculations")
+        .update({ source_goods_invoice_id: ufrId })
+        .eq("id", calculationId);
+
+      // Mark UFR as linked
+      await (supabase as any)
+        .from("goods_purchase_invoices")
+        .update({ linked_calculation_id: calculationId })
+        .eq("id", ufrId);
+
+      // Update calculation items with purchase prices from UFR items
+      const { data: ufrItems } = await (supabase as any)
+        .from("goods_purchase_invoice_items")
+        .select("article_id, unit_price, discount_percent, line_subtotal, quantity")
+        .eq("goods_purchase_invoice_id", ufrId);
+
+      if (ufrItems) {
+        for (const ufrItem of ufrItems) {
+          if (!ufrItem.article_id) continue;
+          // Net price = line_subtotal / quantity (after discount)
+          const netPrice = ufrItem.quantity > 0 ? ufrItem.line_subtotal / ufrItem.quantity : ufrItem.unit_price;
+          const { data: calcItems } = await (supabase as any)
+            .from("calculation_items")
+            .select("id, quantity")
+            .eq("calculation_id", calculationId)
+            .eq("article_id", ufrItem.article_id);
+
+          if (calcItems) {
+            for (const ci of calcItems) {
+              await (supabase as any)
+                .from("calculation_items")
+                .update({
+                  purchase_price: Math.round(netPrice * 100) / 100,
+                  purchase_value: Math.round(netPrice * ci.quantity * 100) / 100,
+                })
+                .eq("id", ci.id);
+            }
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculation", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["calculation-items", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["available-ufr", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculations"] });
+      toast.success("UFR povezana sa kalkulacijom");
+    },
+    onError: (error: any) => {
+      toast.error(`Greška: ${error.message}`);
+    },
+  });
+
+  const unlinkUfr = useMutation({
+    mutationFn: async (ufrId: string) => {
+      if (!calculationId) throw new Error("Nema kalkulacije");
+
+      await (supabase as any)
+        .from("purchase_price_calculations")
+        .update({ source_goods_invoice_id: null })
+        .eq("id", calculationId);
+
+      await (supabase as any)
+        .from("goods_purchase_invoices")
+        .update({ linked_calculation_id: null })
+        .eq("id", ufrId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculation", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["available-ufr", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculations"] });
+      toast.success("UFR odvezana od kalkulacije");
+    },
+    onError: (error: any) => {
+      toast.error(`Greška: ${error.message}`);
+    },
+  });
+
+  return {
+    availableUfr: availableUfr.data || [],
+    isLoadingUfr: availableUfr.isLoading,
+    linkUfr,
+    unlinkUfr,
+  };
+}
+
+// ─── UFU Linking Hook ────────────────────────────────────────────────
+
+export function useCalculationUfuLinks(calculationId: string | null) {
+  const { selectedCompany } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Get linked UFU documents
+  const linkedUfu = useQuery({
+    queryKey: ["calculation-ufu-links", calculationId],
+    queryFn: async () => {
+      if (!calculationId) return [];
+      const { data, error } = await (supabase as any)
+        .from("calculation_ufu_links")
+        .select(`
+          *,
+          service_invoice:service_purchase_invoices(
+            id, internal_number, supplier_invoice_number, total_amount,
+            partner:partners(id, code, name)
+          )
+        `)
+        .eq("calculation_id", calculationId);
+      if (error) throw error;
+      return data as CalculationUfuLink[];
+    },
+    enabled: !!calculationId,
+  });
+
+  // Get available UFU documents (posted, not linked, with procurement cost accounts)
+  const availableUfu = useQuery({
+    queryKey: ["available-ufu", calculationId, selectedCompany?.id],
+    queryFn: async () => {
+      if (!selectedCompany?.id) return [];
+
+      // Get procurement cost account codes
+      const { data: procAccounts } = await supabase
+        .from("chart_of_accounts")
+        .select("code")
+        .eq("company_id", selectedCompany.id)
+        .eq("is_procurement_cost", true as any);
+
+      const procCodes = (procAccounts || []).map((a: any) => a.code);
+      if (procCodes.length === 0) return [];
+
+      // Get input costs that use procurement cost accounts
+      const { data: inputCosts } = await supabase
+        .from("input_costs")
+        .select("id")
+        .eq("company_id", selectedCompany.id)
+        .in("account_code", procCodes);
+
+      const inputCostIds = (inputCosts || []).map((ic: any) => ic.id);
+      if (inputCostIds.length === 0) return [];
+
+      // Find posted UFU that have items with these input costs and are not linked
+      const { data: ufuItems } = await (supabase as any)
+        .from("service_purchase_invoice_items")
+        .select("service_purchase_invoice_id")
+        .in("input_cost_id", inputCostIds);
+
+      const ufuIds = [...new Set((ufuItems || []).map((i: any) => i.service_purchase_invoice_id))];
+      if (ufuIds.length === 0) return [];
+
+      // Filter: posted, not already linked
+      const { data: linkedIds } = await (supabase as any)
+        .from("calculation_ufu_links")
+        .select("service_invoice_id");
+
+      const alreadyLinked = new Set((linkedIds || []).map((l: any) => l.service_invoice_id));
+      const availableIds = ufuIds.filter((id: string) => !alreadyLinked.has(id));
+
+      if (availableIds.length === 0) return [];
+
+      const { data, error } = await (supabase as any)
+        .from("service_purchase_invoices")
+        .select("id, internal_number, supplier_invoice_number, total_amount, partner:partners(id, code, name)")
+        .eq("company_id", selectedCompany.id)
+        .eq("status", "posted")
+        .in("id", availableIds)
+        .order("internal_number", { ascending: false });
+
+      if (error) throw error;
+      return data as Array<{
+        id: string;
+        internal_number: string;
+        supplier_invoice_number: string;
+        total_amount: number;
+        partner: { id: string; code: string; name: string } | null;
+      }>;
+    },
+    enabled: !!selectedCompany?.id,
+  });
+
+  const linkUfu = useMutation({
+    mutationFn: async (serviceInvoiceId: string) => {
+      if (!calculationId || !selectedCompany?.id) throw new Error("Nedostaju podaci");
+
+      // Create link
+      await (supabase as any)
+        .from("calculation_ufu_links")
+        .insert({
+          calculation_id: calculationId,
+          service_invoice_id: serviceInvoiceId,
+          company_id: selectedCompany.id,
+        });
+
+      // Get procurement cost account codes
+      const { data: procAccounts } = await supabase
+        .from("chart_of_accounts")
+        .select("code")
+        .eq("company_id", selectedCompany.id)
+        .eq("is_procurement_cost", true as any);
+
+      const procCodes = new Set((procAccounts || []).map((a: any) => a.code));
+
+      // Load UFU items that are procurement costs
+      const { data: ufuItems } = await (supabase as any)
+        .from("service_purchase_invoice_items")
+        .select(`
+          *,
+          input_cost:input_costs(id, account_code, name)
+        `)
+        .eq("service_purchase_invoice_id", serviceInvoiceId);
+
+      // Get UFU partner
+      const { data: ufu } = await (supabase as any)
+        .from("service_purchase_invoices")
+        .select("partner_id")
+        .eq("id", serviceInvoiceId)
+        .single();
+
+      // Get existing max order
+      const { data: existing } = await (supabase as any)
+        .from("calculation_additional_costs")
+        .select("item_order")
+        .eq("calculation_id", calculationId)
+        .order("item_order", { ascending: false })
+        .limit(1);
+
+      let nextOrder = (existing?.[0]?.item_order || 0) + 1;
+
+      // Insert each qualifying UFU item as an additional cost
+      for (const item of (ufuItems || [])) {
+        if (!item.input_cost || !procCodes.has(item.input_cost.account_code)) continue;
+
+        // Amount = line_subtotal (neto iznos troška)
+        const amount = item.line_subtotal;
+
+        await (supabase as any)
+          .from("calculation_additional_costs")
+          .insert({
+            calculation_id: calculationId,
+            company_id: selectedCompany.id,
+            description: item.item_name,
+            amount: amount,
+            distribution_method: "by_value",
+            partner_id: ufu?.partner_id || null,
+            source_ufu_id: serviceInvoiceId,
+            source_ufu_item_id: item.id,
+            item_order: nextOrder++,
+          });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["calculation-ufu-links", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["calculation-costs", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["available-ufu"] });
+      toast.success("UFU troškovi učitani u kalkulaciju");
+    },
+    onError: (error: any) => {
+      toast.error(`Greška: ${error.message}`);
+    },
+  });
+
+  const unlinkUfu = useMutation({
+    mutationFn: async (serviceInvoiceId: string) => {
+      if (!calculationId) throw new Error("Nema kalkulacije");
+
+      // Remove costs from this UFU
+      await (supabase as any)
+        .from("calculation_additional_costs")
+        .delete()
+        .eq("calculation_id", calculationId)
+        .eq("source_ufu_id", serviceInvoiceId);
+
+      // Remove link
+      await (supabase as any)
+        .from("calculation_ufu_links")
+        .delete()
+        .eq("calculation_id", calculationId)
+        .eq("service_invoice_id", serviceInvoiceId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["calculation-ufu-links", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["calculation-costs", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["available-ufu"] });
+      toast.success("UFU odvezana od kalkulacije");
+    },
+    onError: (error: any) => {
+      toast.error(`Greška: ${error.message}`);
+    },
+  });
+
+  return {
+    linkedUfu: linkedUfu.data || [],
+    availableUfu: availableUfu.data || [],
+    isLoadingLinked: linkedUfu.isLoading,
+    isLoadingAvailable: availableUfu.isLoading,
+    linkUfu,
+    unlinkUfu,
+  };
 }

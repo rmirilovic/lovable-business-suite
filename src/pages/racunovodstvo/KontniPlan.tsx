@@ -52,6 +52,7 @@ interface AccountFormData {
   parent_code: string;
   is_active: boolean;
   is_posting_allowed: boolean;
+  is_procurement_cost: boolean;
   description: string;
 }
 
@@ -62,6 +63,7 @@ const initialFormData: AccountFormData = {
   parent_code: "",
   is_active: true,
   is_posting_allowed: false,
+  is_procurement_cost: false,
   description: "",
 };
 
@@ -130,6 +132,7 @@ export default function KontniPlan() {
       parent_code: account.parent_code || "",
       is_active: account.is_active,
       is_posting_allowed: account.is_posting_allowed,
+      is_procurement_cost: account.is_procurement_cost,
       description: account.description || "",
     });
     setDialogOpen(true);
@@ -483,7 +486,7 @@ export default function KontniPlan() {
               />
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6 flex-wrap">
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="is_active"
@@ -503,6 +506,16 @@ export default function KontniPlan() {
                   }
                 />
                 <Label htmlFor="is_posting_allowed">Dozvoljeno knjiženje</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="is_procurement_cost"
+                  checked={formData.is_procurement_cost}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_procurement_cost: checked as boolean })
+                  }
+                />
+                <Label htmlFor="is_procurement_cost">Zavisni trošak nabavke</Label>
               </div>
             </div>
           </div>

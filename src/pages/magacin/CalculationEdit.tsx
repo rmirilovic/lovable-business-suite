@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2 } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2, Link, Unlink, FileText } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +16,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import {
@@ -23,6 +26,8 @@ import {
   useCalculationCosts,
   useCalculationItems,
   usePurchasePriceCalculations,
+  useCalculationUfrLink,
+  useCalculationUfuLinks,
   distributeAdditionalCosts,
 } from "@/hooks/usePurchasePriceCalculations";
 import { usePartners } from "@/hooks/usePartners";
@@ -42,6 +47,8 @@ export default function CalculationEdit() {
   const { items, isLoading: itemsLoading, updateItem, batchUpdateItems, updateCalculationTotals } = useCalculationItems(id ?? null);
   const { postCalculation, unpostCalculation } = usePurchasePriceCalculations();
   const { partners } = usePartners();
+  const { availableUfr, linkUfr, unlinkUfr } = useCalculationUfrLink(id ?? null);
+  const { linkedUfu, availableUfu, linkUfu, unlinkUfu } = useCalculationUfuLinks(id ?? null);
 
   const isEditable = calculation?.status === "draft";
 
@@ -64,7 +71,6 @@ export default function CalculationEdit() {
     try {
       await batchUpdateItems.mutateAsync(updates);
 
-      // Calculate and save totals
       const updatedItems = items.map((item) => {
         const update = updates.find((u) => u.id === item.id);
         return update ? { ...item, ...update } : item;
@@ -90,7 +96,6 @@ export default function CalculationEdit() {
     }
   }, [items, costs, batchUpdateItems, updateCalculationTotals]);
 
-  // Handle adding a cost with partner
   const handleAddCost = async (cost: { description: string; amount: number; distribution_method: "by_value" | "by_quantity"; partner_id: string | null }) => {
     await addCost.mutateAsync(cost);
   };
@@ -103,7 +108,6 @@ export default function CalculationEdit() {
     await deleteCost.mutateAsync(costId);
   };
 
-  // Handle markup changes for items
   const handleUpdateMarkup = async (itemId: string, markupPercent: number) => {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
@@ -267,6 +271,133 @@ export default function CalculationEdit() {
           </div>
         </div>
 
+        {/* UFR Link Section */}
+        <div className="border rounded-lg p-4 space-y-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Ulazna faktura za robu (UFR)
+          </h3>
+          {calculation.source_goods_invoice_id ? (
+            <div className="flex items-center justify-between bg-muted/30 rounded-md p-3">
+              <div className="text-sm">
+                <span className="font-medium">
+                  UFR-{(calculation as any).source_goods_invoice?.internal_number || calculation.source_goods_invoice_id}
+                </span>
+                {(calculation as any).source_goods_invoice?.supplier_invoice_number && (
+                  <span className="text-muted-foreground ml-2">
+                    (Faktura dobavljača: {(calculation as any).source_goods_invoice.supplier_invoice_number})
+                  </span>
+                )}
+              </div>
+              {isEditable && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => unlinkUfr.mutateAsync(calculation.source_goods_invoice_id!)}
+                  disabled={unlinkUfr.isPending}
+                >
+                  <Unlink className="h-4 w-4 mr-1" />
+                  Odvezi
+                </Button>
+              )}
+            </div>
+          ) : isEditable ? (
+            <div className="flex items-center gap-2">
+              <Select onValueChange={(ufrId) => linkUfr.mutateAsync(ufrId)}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Izaberite UFR (isti dobavljač i magacin)..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableUfr.length === 0 ? (
+                    <SelectItem value="none" disabled>Nema dostupnih UFR</SelectItem>
+                  ) : (
+                    availableUfr.map((ufr) => (
+                      <SelectItem key={ufr.id} value={ufr.id}>
+                        UFR-{ufr.internal_number} | Faktura: {ufr.supplier_invoice_number} | Neto: {formatDecimal(ufr.subtotal, 2)}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {linkUfr.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Nije povezana UFR.</p>
+          )}
+        </div>
+
+        {/* UFU Links Section */}
+        <div className="border rounded-lg p-4 space-y-3">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Ulazne fakture za troškove nabavke (UFU)
+          </h3>
+          
+          {linkedUfu.length > 0 && (
+            <div className="space-y-2">
+              {linkedUfu.map((link) => (
+                <div key={link.id} className="flex items-center justify-between bg-muted/30 rounded-md p-3">
+                  <div className="text-sm">
+                    <span className="font-medium">
+                      UFU-{link.service_invoice?.internal_number}
+                    </span>
+                    {link.service_invoice?.supplier_invoice_number && (
+                      <span className="text-muted-foreground ml-2">
+                        (Faktura: {link.service_invoice.supplier_invoice_number})
+                      </span>
+                    )}
+                    {link.service_invoice?.partner && (
+                      <span className="text-muted-foreground ml-2">
+                        | {link.service_invoice.partner.name}
+                      </span>
+                    )}
+                    <span className="ml-2 font-medium">
+                      {formatDecimal(link.service_invoice?.total_amount || 0, 2)}
+                    </span>
+                  </div>
+                  {isEditable && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => unlinkUfu.mutateAsync(link.service_invoice_id)}
+                      disabled={unlinkUfu.isPending}
+                    >
+                      <Unlink className="h-4 w-4 mr-1" />
+                      Ukloni
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {isEditable && (
+            <div className="flex items-center gap-2">
+              <Select onValueChange={(ufuId) => linkUfu.mutateAsync(ufuId)}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Dodajte UFU sa zavisnim troškovima nabavke..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableUfu.length === 0 ? (
+                    <SelectItem value="none" disabled>Nema dostupnih UFU (proverite flag "Zavisni trošak nabavke" na kontnom planu)</SelectItem>
+                  ) : (
+                    availableUfu.map((ufu) => (
+                      <SelectItem key={ufu.id} value={ufu.id}>
+                        UFU-{ufu.internal_number} | {ufu.partner?.name || "—"} | {formatDecimal(ufu.total_amount, 2)}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {linkUfu.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            </div>
+          )}
+
+          {linkedUfu.length === 0 && !isEditable && (
+            <p className="text-sm text-muted-foreground">Nema povezanih UFU troškova.</p>
+          )}
+        </div>
+
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="border rounded-lg p-3">
@@ -293,12 +424,12 @@ export default function CalculationEdit() {
 
         <Separator />
 
-        {/* Additional Costs */}
+        {/* Additional Costs (from UFU - read-only display) */}
         <CalculationCostsEditor
           costs={costs}
           partners={partners}
           isLoading={costsLoading}
-          isEditable={isEditable}
+          isEditable={false}
           onAdd={handleAddCost}
           onUpdate={handleUpdateCost}
           onDelete={handleDeleteCost}
