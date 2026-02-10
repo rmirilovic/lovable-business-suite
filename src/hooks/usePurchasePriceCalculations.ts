@@ -259,6 +259,8 @@ export function usePurchasePriceCalculations() {
       queryClient.invalidateQueries({ queryKey: ["purchase-price-calculations"] });
       queryClient.invalidateQueries({ queryKey: ["purchase-price-calculation"] });
       queryClient.invalidateQueries({ queryKey: ["calculation-items"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-stock"] });
+      queryClient.invalidateQueries({ queryKey: ["goods-receipts"] });
       toast.success("Kalkulacija uspešno proknjižena");
     },
     onError: (error: any) => {
@@ -281,6 +283,8 @@ export function usePurchasePriceCalculations() {
       queryClient.invalidateQueries({ queryKey: ["purchase-price-calculations"] });
       queryClient.invalidateQueries({ queryKey: ["purchase-price-calculation"] });
       queryClient.invalidateQueries({ queryKey: ["calculation-items"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-stock"] });
+      queryClient.invalidateQueries({ queryKey: ["goods-receipts"] });
       toast.success("Knjiženje kalkulacije poništeno");
     },
     onError: (error: any) => {
