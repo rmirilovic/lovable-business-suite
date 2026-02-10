@@ -106,12 +106,12 @@ export function usePurchasePriceCalculations() {
         .from("purchase_price_calculations")
         .select(`
           *,
-          goods_receipt:goods_receipts(
+          goods_receipt:goods_receipts!purchase_price_calculations_goods_receipt_id_fkey(
             id, receipt_number,
             warehouse:warehouses(id, code, name),
             partner:partners(id, code, name)
           ),
-          source_goods_invoice:goods_purchase_invoices!source_goods_invoice_id(
+          source_goods_invoice:goods_purchase_invoices!purchase_price_calculations_source_goods_invoice_id_fkey(
             id, internal_number, supplier_invoice_number
           )
         `)
@@ -311,12 +311,12 @@ export function useCalculationDetail(calculationId: string | undefined) {
         .from("purchase_price_calculations")
         .select(`
           *,
-          goods_receipt:goods_receipts(
+          goods_receipt:goods_receipts!purchase_price_calculations_goods_receipt_id_fkey(
             id, receipt_number, receipt_date,
             warehouse:warehouses(id, code, name),
             partner:partners(id, code, name)
           ),
-          source_goods_invoice:goods_purchase_invoices!source_goods_invoice_id(
+          source_goods_invoice:goods_purchase_invoices!purchase_price_calculations_source_goods_invoice_id_fkey(
             id, internal_number, supplier_invoice_number
           )
         `)
@@ -599,7 +599,7 @@ export function useCalculationUfrLink(calculationId: string | null) {
       const { data: calc } = await (supabase as any)
         .from("purchase_price_calculations")
         .select(`
-          goods_receipt:goods_receipts(partner_id, warehouse_id)
+          goods_receipt:goods_receipts!purchase_price_calculations_goods_receipt_id_fkey(partner_id, warehouse_id)
         `)
         .eq("id", calculationId)
         .single();
