@@ -126,6 +126,24 @@ export default function CalculationEdit() {
     });
   };
 
+  const handleUpdateMarkupAmount = async (itemId: string, markupAmount: number) => {
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+
+    const costPrice = item.cost_price;
+    const markupPercent = costPrice > 0 ? Math.round((markupAmount / costPrice) * 10000) / 100 : 0;
+    const sellingPrice = Math.round((costPrice + markupAmount) * 100) / 100;
+    const sellingValue = Math.round(sellingPrice * item.quantity * 100) / 100;
+
+    await updateItem.mutateAsync({
+      id: itemId,
+      markup_percent: markupPercent,
+      markup_amount: Math.round(markupAmount * 100) / 100,
+      selling_price: sellingPrice,
+      selling_value: sellingValue,
+    });
+  };
+
   const handleUpdateSellingPrice = async (itemId: string, sellingPrice: number) => {
     const item = items.find((i) => i.id === itemId);
     if (!item) return;
@@ -443,6 +461,7 @@ export default function CalculationEdit() {
           isLoading={itemsLoading}
           isEditable={isEditable}
           onUpdateMarkup={handleUpdateMarkup}
+          onUpdateMarkupAmount={handleUpdateMarkupAmount}
           onUpdateSellingPrice={handleUpdateSellingPrice}
         />
       </div>

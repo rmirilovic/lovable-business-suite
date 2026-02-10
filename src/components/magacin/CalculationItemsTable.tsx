@@ -13,6 +13,7 @@ interface CalculationItemsTableProps {
   isLoading: boolean;
   isEditable: boolean;
   onUpdateMarkup: (itemId: string, markupPercent: number) => void;
+  onUpdateMarkupAmount: (itemId: string, markupAmount: number) => void;
   onUpdateSellingPrice: (itemId: string, sellingPrice: number) => void;
 }
 
@@ -59,6 +60,7 @@ export function CalculationItemsTable({
   isLoading,
   isEditable,
   onUpdateMarkup,
+  onUpdateMarkupAmount,
   onUpdateSellingPrice,
 }: CalculationItemsTableProps) {
   if (isLoading) {
@@ -139,7 +141,18 @@ export function CalculationItemsTable({
                         <span className="block text-right">{formatDecimal(item.markup_percent, 2)}</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">{formatDecimal(item.markup_amount, 2)}</TableCell>
+                    <TableCell>
+                      {isEditable && isGoods ? (
+                        <BlurCommitNumberInput
+                          value={item.markup_amount}
+                          onCommit={(amt) => onUpdateMarkupAmount(item.id, amt)}
+                          decimalPlaces={2}
+                          className="text-right w-[90px]"
+                        />
+                      ) : (
+                        <span className="block text-right">{formatDecimal(item.markup_amount, 2)}</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {isEditable && isGoods ? (
                         <BlurCommitNumberInput
