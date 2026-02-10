@@ -324,6 +324,8 @@ export type Database = {
           id: string
           item_order: number
           partner_id: string | null
+          source_ufu_id: string | null
+          source_ufu_item_id: string | null
         }
         Insert: {
           amount?: number
@@ -335,6 +337,8 @@ export type Database = {
           id?: string
           item_order?: number
           partner_id?: string | null
+          source_ufu_id?: string | null
+          source_ufu_item_id?: string | null
         }
         Update: {
           amount?: number
@@ -346,6 +350,8 @@ export type Database = {
           id?: string
           item_order?: number
           partner_id?: string | null
+          source_ufu_id?: string | null
+          source_ufu_item_id?: string | null
         }
         Relationships: [
           {
@@ -367,6 +373,20 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_additional_costs_source_ufu_id_fkey"
+            columns: ["source_ufu_id"]
+            isOneToOne: false
+            referencedRelation: "service_purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_additional_costs_source_ufu_item_id_fkey"
+            columns: ["source_ufu_item_id"]
+            isOneToOne: false
+            referencedRelation: "service_purchase_invoice_items"
             referencedColumns: ["id"]
           },
         ]
@@ -472,6 +492,52 @@ export type Database = {
           },
         ]
       }
+      calculation_ufu_links: {
+        Row: {
+          calculation_id: string
+          company_id: string
+          created_at: string
+          id: string
+          service_invoice_id: string
+        }
+        Insert: {
+          calculation_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          service_invoice_id: string
+        }
+        Update: {
+          calculation_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          service_invoice_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calculation_ufu_links_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_price_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_ufu_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calculation_ufu_links_service_invoice_id_fkey"
+            columns: ["service_invoice_id"]
+            isOneToOne: true
+            referencedRelation: "service_purchase_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chart_of_accounts: {
         Row: {
           account_type: Database["public"]["Enums"]["account_type"]
@@ -482,6 +548,7 @@ export type Database = {
           id: string
           is_active: boolean
           is_posting_allowed: boolean
+          is_procurement_cost: boolean
           level: number
           name: string
           parent_code: string | null
@@ -496,6 +563,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_posting_allowed?: boolean
+          is_procurement_cost?: boolean
           level?: number
           name: string
           parent_code?: string | null
@@ -510,6 +578,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_posting_allowed?: boolean
+          is_procurement_cost?: boolean
           level?: number
           name?: string
           parent_code?: string | null
@@ -884,6 +953,7 @@ export type Database = {
           internal_number: string
           invoice_date: string
           journal_entry_id: string | null
+          linked_calculation_id: string | null
           note: string | null
           partner_id: string
           payment_reference: string | null
@@ -920,6 +990,7 @@ export type Database = {
           internal_number: string
           invoice_date?: string
           journal_entry_id?: string | null
+          linked_calculation_id?: string | null
           note?: string | null
           partner_id: string
           payment_reference?: string | null
@@ -956,6 +1027,7 @@ export type Database = {
           internal_number?: string
           invoice_date?: string
           journal_entry_id?: string | null
+          linked_calculation_id?: string | null
           note?: string | null
           partner_id?: string
           payment_reference?: string | null
@@ -999,6 +1071,13 @@ export type Database = {
             columns: ["journal_entry_id"]
             isOneToOne: false
             referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_purchase_invoices_linked_calculation_id_fkey"
+            columns: ["linked_calculation_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_price_calculations"
             referencedColumns: ["id"]
           },
           {
@@ -1088,6 +1167,7 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          linked_calculation_id: string | null
           note: string | null
           partner_id: string | null
           posted_at: string | null
@@ -1105,6 +1185,7 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          linked_calculation_id?: string | null
           note?: string | null
           partner_id?: string | null
           posted_at?: string | null
@@ -1122,6 +1203,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          linked_calculation_id?: string | null
           note?: string | null
           partner_id?: string | null
           posted_at?: string | null
@@ -1146,6 +1228,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goods_receipts_linked_calculation_id_fkey"
+            columns: ["linked_calculation_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_price_calculations"
             referencedColumns: ["id"]
           },
           {
@@ -2163,6 +2252,7 @@ export type Database = {
           note: string | null
           posted_at: string | null
           posted_by: string | null
+          source_goods_invoice_id: string | null
           status: string
           total_additional_costs: number
           total_cost_value: number
@@ -2183,6 +2273,7 @@ export type Database = {
           note?: string | null
           posted_at?: string | null
           posted_by?: string | null
+          source_goods_invoice_id?: string | null
           status?: string
           total_additional_costs?: number
           total_cost_value?: number
@@ -2203,6 +2294,7 @@ export type Database = {
           note?: string | null
           posted_at?: string | null
           posted_by?: string | null
+          source_goods_invoice_id?: string | null
           status?: string
           total_additional_costs?: number
           total_cost_value?: number
@@ -2231,6 +2323,13 @@ export type Database = {
             columns: ["goods_receipt_id"]
             isOneToOne: false
             referencedRelation: "goods_receipts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_price_calculations_source_goods_invoice_id_fkey"
+            columns: ["source_goods_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "goods_purchase_invoices"
             referencedColumns: ["id"]
           },
         ]
