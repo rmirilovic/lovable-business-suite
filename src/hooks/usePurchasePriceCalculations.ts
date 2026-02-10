@@ -546,9 +546,9 @@ export function distributeAdditionalCosts(
     const costValue = item.purchase_value + allocated;
     const costPrice = item.quantity > 0 ? costValue / item.quantity : 0;
 
-    // Preserve existing markup percent
-    const markupAmount = Math.round(costPrice * item.markup_percent) / 100;
-    const sellingPrice = costPrice + markupAmount;
+    // Preserve existing markup percent (stored with 6 decimal precision)
+    const markupAmount = Math.round(costPrice * item.markup_percent * 100) / 10000;
+    const sellingPrice = Math.round((costPrice + markupAmount) * 100) / 100;
     const sellingValue = Math.round(sellingPrice * item.quantity * 100) / 100;
 
     return {
