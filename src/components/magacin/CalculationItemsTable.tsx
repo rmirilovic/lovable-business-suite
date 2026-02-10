@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -13,6 +14,44 @@ interface CalculationItemsTableProps {
   isEditable: boolean;
   onUpdateMarkup: (itemId: string, markupPercent: number) => void;
   onUpdateSellingPrice: (itemId: string, sellingPrice: number) => void;
+}
+
+/** Wrapper that keeps local text state and only commits the parsed number on blur */
+function BlurCommitNumberInput({
+  value,
+  onCommit,
+  decimalPlaces = 2,
+  className,
+}: {
+  value: number;
+  onCommit: (num: number) => void;
+  decimalPlaces?: number;
+  className?: string;
+}) {
+  const [localVal, setLocalVal] = useState(formatDecimal(value, decimalPlaces));
+  const [focused, setFocused] = useState(false);
+
+  // Sync from parent when not focused
+  if (!focused && formatDecimal(value, decimalPlaces) !== localVal) {
+    setLocalVal(formatDecimal(value, decimalPlaces));
+  }
+
+  return (
+    <LocaleNumberInput
+      value={localVal}
+      onChange={setLocalVal}
+      onFocus={() => setFocused(true)}
+      onBlur={() => {
+        setFocused(false);
+        const num = parseLocaleNumber(localVal);
+        if (!isNaN(num)) {
+          onCommit(num);
+        }
+      }}
+      decimalPlaces={decimalPlaces}
+      className={className}
+    />
+  );
 }
 
 export function CalculationItemsTable({
@@ -90,12 +129,9 @@ export function CalculationItemsTable({
                     <TableCell className="text-right font-medium">{formatDecimal(item.cost_value, 2)}</TableCell>
                     <TableCell>
                       {isEditable && isGoods ? (
-                        <LocaleNumberInput
-                          value={formatDecimal(item.markup_percent, 2)}
-                          onChange={(val) => {
-                            const pct = parseLocaleNumber(val);
-                            onUpdateMarkup(item.id, pct);
-                          }}
+                        <BlurCommitNumberInput
+                          value={item.markup_percent}
+                          onCommit={(pct) => onUpdateMarkup(item.id, pct)}
                           decimalPlaces={2}
                           className="text-right w-[80px]"
                         />
@@ -106,12 +142,9 @@ export function CalculationItemsTable({
                     <TableCell className="text-right">{formatDecimal(item.markup_amount, 2)}</TableCell>
                     <TableCell>
                       {isEditable && isGoods ? (
-                        <LocaleNumberInput
-                          value={formatDecimal(item.selling_price, 2)}
-                          onChange={(val) => {
-                            const price = parseLocaleNumber(val);
-                            onUpdateSellingPrice(item.id, price);
-                          }}
+                        <BlurCommitNumberInput
+                          value={item.selling_price}
+                          onCommit={(price) => onUpdateSellingPrice(item.id, price)}
                           decimalPlaces={2}
                           className="text-right w-[90px]"
                         />
