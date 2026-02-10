@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2, Link, Unlink, FileText } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2, Link, Unlink, FileText, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +45,7 @@ export default function CalculationEdit() {
   const { calculation, isLoading: calcLoading } = useCalculationDetail(id);
   const { costs, isLoading: costsLoading, addCost, updateCost, deleteCost } = useCalculationCosts(id ?? null);
   const { items, isLoading: itemsLoading, updateItem, batchUpdateItems, updateCalculationTotals } = useCalculationItems(id ?? null);
-  const { postCalculation, unpostCalculation } = usePurchasePriceCalculations();
+  const { postCalculation, unpostCalculation, deleteCalculation } = usePurchasePriceCalculations();
   const { partners } = usePartners();
   const { availableUfr, linkUfr, unlinkUfr } = useCalculationUfrLink(id ?? null);
   const { linkedUfu, availableUfu, linkUfu, unlinkUfu } = useCalculationUfuLinks(id ?? null);
@@ -260,6 +260,41 @@ export default function CalculationEdit() {
                   </AlertDialogContent>
                 </AlertDialog>
               </>
+            )}
+
+            {isEditable && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="text-destructive hover:text-destructive" disabled={deleteCalculation.isPending}>
+                    {deleteCalculation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 mr-2" />
+                    )}
+                    Obriši
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Obrisati kalkulaciju?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Da li ste sigurni da želite da obrišete kalkulaciju <strong>{calculation.calculation_number}</strong>? Ova akcija se ne može poništiti.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Odustani</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={async () => {
+                        await deleteCalculation.mutateAsync(id!);
+                        navigate("/magacin/kalkulacije");
+                      }}
+                    >
+                      Obriši
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
 
             {calculation.status === "posted" && (
