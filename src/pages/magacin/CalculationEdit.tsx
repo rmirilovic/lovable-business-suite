@@ -113,7 +113,7 @@ export default function CalculationEdit() {
     if (!item) return;
 
     const costPrice = item.cost_price;
-    const markupAmount = Math.round(costPrice * markupPercent) / 100;
+    const markupAmount = Math.round(costPrice * markupPercent * 100) / 10000;
     const sellingPrice = Math.round((costPrice + markupAmount) * 100) / 100;
     const sellingValue = Math.round(sellingPrice * item.quantity * 100) / 100;
 
@@ -131,7 +131,8 @@ export default function CalculationEdit() {
     if (!item) return;
 
     const costPrice = item.cost_price;
-    const markupPercent = costPrice > 0 ? Math.round((markupAmount / costPrice) * 10000) / 100 : 0;
+    // Store percent with 6 decimal precision to avoid rounding drift on recalculate
+    const markupPercent = costPrice > 0 ? Math.round((markupAmount / costPrice) * 100000000) / 1000000 : 0;
     const sellingPrice = Math.round((costPrice + markupAmount) * 100) / 100;
     const sellingValue = Math.round(sellingPrice * item.quantity * 100) / 100;
 
@@ -150,7 +151,8 @@ export default function CalculationEdit() {
 
     const costPrice = item.cost_price;
     const markupAmount = Math.round((sellingPrice - costPrice) * 100) / 100;
-    const markupPercent = costPrice > 0 ? Math.round((markupAmount / costPrice) * 10000) / 100 : 0;
+    // Store percent with 6 decimal precision to avoid rounding drift on recalculate
+    const markupPercent = costPrice > 0 ? Math.round((markupAmount / costPrice) * 100000000) / 1000000 : 0;
     const sellingValue = Math.round(sellingPrice * item.quantity * 100) / 100;
 
     await updateItem.mutateAsync({
