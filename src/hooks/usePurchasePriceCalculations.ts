@@ -211,6 +211,7 @@ export function usePurchasePriceCalculations() {
           const purchasePrice = (ri.article_id && ufrPriceMap[ri.article_id] !== undefined)
             ? ufrPriceMap[ri.article_id]
             : ri.unit_price;
+          const purchaseValue = Math.round(ri.quantity * purchasePrice * 100) / 100;
           return {
             calculation_id: calc.id,
             company_id: selectedCompany.id,
@@ -222,7 +223,9 @@ export function usePurchasePriceCalculations() {
             svk: ri.article?.svk || null,
             quantity: ri.quantity,
             purchase_price: purchasePrice,
-            purchase_value: Math.round(ri.quantity * purchasePrice * 100) / 100,
+            purchase_value: purchaseValue,
+            cost_price: purchasePrice,
+            cost_value: purchaseValue,
             item_order: idx + 1,
           };
         });
