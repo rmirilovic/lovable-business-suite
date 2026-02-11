@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2, Link, Unlink, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2, Unlink, FileText, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +26,6 @@ import {
   useCalculationCosts,
   useCalculationItems,
   usePurchasePriceCalculations,
-  useCalculationUfrLink,
   useCalculationUfuLinks,
   distributeAdditionalCosts,
 } from "@/hooks/usePurchasePriceCalculations";
@@ -47,7 +46,6 @@ export default function CalculationEdit() {
   const { items, isLoading: itemsLoading, updateItem, batchUpdateItems, updateCalculationTotals } = useCalculationItems(id ?? null);
   const { postCalculation, unpostCalculation, deleteCalculation } = usePurchasePriceCalculations();
   const { partners } = usePartners();
-  const { availableUfr, linkUfr, unlinkUfr } = useCalculationUfrLink(id ?? null);
   const { linkedUfu, availableUfu, linkUfu, unlinkUfu } = useCalculationUfuLinks(id ?? null);
 
   const isEditable = calculation?.status === "draft";
@@ -326,14 +324,14 @@ export default function CalculationEdit() {
           </div>
         </div>
 
-        {/* UFR Link Section */}
+        {/* UFR Info Section (read-only) */}
         <div className="border rounded-lg p-4 space-y-3">
           <h3 className="text-sm font-semibold flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Ulazna faktura za robu (UFR)
           </h3>
           {calculation.source_goods_invoice_id ? (
-            <div className="flex items-center justify-between bg-muted/30 rounded-md p-3">
+            <div className="flex items-center bg-muted/30 rounded-md p-3">
               <div className="text-sm">
                 <span className="font-medium">
                   UFR-{(calculation as any).source_goods_invoice?.internal_number || calculation.source_goods_invoice_id}
@@ -344,40 +342,9 @@ export default function CalculationEdit() {
                   </span>
                 )}
               </div>
-              {isEditable && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => unlinkUfr.mutateAsync(calculation.source_goods_invoice_id!)}
-                  disabled={unlinkUfr.isPending}
-                >
-                  <Unlink className="h-4 w-4 mr-1" />
-                  Odvezi
-                </Button>
-              )}
-            </div>
-          ) : isEditable ? (
-            <div className="flex items-center gap-2">
-              <Select onValueChange={(ufrId) => linkUfr.mutateAsync(ufrId)}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Izaberite UFR (isti dobavljač i magacin)..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableUfr.length === 0 ? (
-                    <SelectItem value="none" disabled>Nema dostupnih UFR</SelectItem>
-                  ) : (
-                    availableUfr.map((ufr) => (
-                      <SelectItem key={ufr.id} value={ufr.id}>
-                        UFR-{ufr.internal_number} | Faktura: {ufr.supplier_invoice_number} | Neto: {formatDecimal(ufr.subtotal, 2)}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-              {linkUfr.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Nije povezana UFR.</p>
+            <p className="text-sm text-muted-foreground">Nije povezana UFR (prijemnica nema izvornu fakturu).</p>
           )}
         </div>
 
