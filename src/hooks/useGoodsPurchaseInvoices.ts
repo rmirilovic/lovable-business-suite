@@ -103,6 +103,7 @@ export interface GoodsPurchaseInvoiceFormData {
   has_internal_vat_calculation: boolean;
   note: string | null;
   internal_note: string | null;
+  goods_receipt_id?: string | null;
 }
 
 export interface GoodsPurchaseInvoiceItemFormData {

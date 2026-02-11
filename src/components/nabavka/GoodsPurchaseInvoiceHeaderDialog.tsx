@@ -21,6 +21,7 @@ import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-sele
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { usePartners, usePartnerBankAccounts } from "@/hooks/usePartners";
 import { useWarehouses } from "@/hooks/useWarehouses";
+import { useGoodsReceipts } from "@/hooks/useGoodsReceipts";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -45,6 +46,7 @@ export function GoodsPurchaseInvoiceHeaderDialog({
   const { selectedCompany } = useAuth();
   const { partners } = usePartners();
   const { warehouses } = useWarehouses(selectedCompany?.id);
+  const { receipts } = useGoodsReceipts();
   const { createInvoice, updateInvoice } = useGoodsPurchaseInvoices();
 
   const [formData, setFormData] = useState<GoodsPurchaseInvoiceFormData>({
@@ -67,6 +69,7 @@ export function GoodsPurchaseInvoiceHeaderDialog({
     has_internal_vat_calculation: false,
     note: null,
     internal_note: null,
+    goods_receipt_id: null,
   });
 
   const { bankAccounts } = usePartnerBankAccounts(formData.partner_id || null);
@@ -94,6 +97,7 @@ export function GoodsPurchaseInvoiceHeaderDialog({
         has_internal_vat_calculation: invoice.has_internal_vat_calculation,
         note: invoice.note,
         internal_note: invoice.internal_note,
+        goods_receipt_id: invoice.goods_receipt_id,
       });
     } else {
       const defaultWarehouse = activeWarehouses[0]?.id || "";
@@ -117,6 +121,7 @@ export function GoodsPurchaseInvoiceHeaderDialog({
         has_internal_vat_calculation: false,
         note: null,
         internal_note: null,
+        goods_receipt_id: null,
       });
     }
   }, [invoice, open]);
@@ -247,6 +252,37 @@ export function GoodsPurchaseInvoiceHeaderDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Existing receipt selection */}
+          <div className="space-y-2">
+            <Label>Postojeća prijemnica (opciono)</Label>
+            <Select
+              value={formData.goods_receipt_id || "none"}
+              onValueChange={(value) => setFormData({ ...formData, goods_receipt_id: value === "none" ? null : value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Automatski kreiraj novu prijemnicu" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Automatski kreiraj novu prijemnicu</SelectItem>
+                {receipts
+                  .filter((r) => 
+                    !r.source_invoice_id && 
+                    r.warehouse_id === formData.warehouse_id &&
+                    (!formData.partner_id || r.partner_id === formData.partner_id || !r.partner_id)
+                  )
+                  .map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.receipt_number} - {r.receipt_date} {r.partner?.name ? `(${r.partner.name})` : ""}
+                    </SelectItem>
+                  ))
+                }
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Povežite sa ručno kreiranom prijemnicom da sprečite kreiranje duplikata
+            </p>
           </div>
 
           {/* Snapshot podaci dobavljača */}
