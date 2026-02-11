@@ -16,16 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, Loader2 } from "lucide-react";
-import { format } from "date-fns";
-import { sr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { usePartners } from "@/hooks/usePartners";
 import { useAuth } from "@/contexts/AuthContext";
@@ -123,41 +115,13 @@ export function GoodsReceiptDialog({
 
             <div className="space-y-2">
               <Label>Datum prijema *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !formData.receipt_date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.receipt_date
-                      ? format(new Date(formData.receipt_date), "dd.MM.yyyy", {
-                          locale: sr,
-                        })
-                      : "Izaberite datum"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      formData.receipt_date
-                        ? new Date(formData.receipt_date)
-                        : undefined
-                    }
-                    onSelect={(date) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        receipt_date: date?.toISOString().split("T")[0] || "",
-                      }))
-                    }
-                    locale={sr}
-                  />
-                </PopoverContent>
-              </Popover>
+              <LocaleDateInput
+                value={formData.receipt_date}
+                onChange={(val) =>
+                  setFormData((prev) => ({ ...prev, receipt_date: val }))
+                }
+                required
+              />
             </div>
           </div>
 
