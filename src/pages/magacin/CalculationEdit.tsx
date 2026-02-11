@@ -52,6 +52,30 @@ export default function CalculationEdit() {
 
   const handlePost = async () => {
     if (!id) return;
+    // Auto-recalculate before posting to ensure totals are up-to-date
+    if (items.length > 0) {
+      const updates = distributeAdditionalCosts(items, costs);
+      await batchUpdateItems.mutateAsync(updates);
+
+      const updatedItems = items.map((item) => {
+        const update = updates.find((u) => u.id === item.id);
+        return update ? { ...item, ...update } : item;
+      });
+
+      const totalPurchaseValue = updatedItems.reduce((s, i) => s + i.purchase_value, 0);
+      const totalAdditionalCosts = costs.reduce((s, c) => s + c.amount, 0);
+      const totalCostValue = updatedItems.reduce((s, i) => s + (i.cost_value ?? 0), 0);
+      const totalMarkupValue = updatedItems.reduce((s, i) => s + ((i.markup_amount ?? 0) * i.quantity), 0);
+      const totalSellingValue = updatedItems.reduce((s, i) => s + (i.selling_value ?? 0), 0);
+
+      await updateCalculationTotals.mutateAsync({
+        total_purchase_value: Math.round(totalPurchaseValue * 100) / 100,
+        total_additional_costs: Math.round(totalAdditionalCosts * 100) / 100,
+        total_cost_value: Math.round(totalCostValue * 100) / 100,
+        total_markup_value: Math.round(totalMarkupValue * 100) / 100,
+        total_selling_value: Math.round(totalSellingValue * 100) / 100,
+      });
+    }
     await postCalculation.mutateAsync(id);
   };
 
