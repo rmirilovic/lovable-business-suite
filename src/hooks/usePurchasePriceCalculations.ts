@@ -138,13 +138,24 @@ export function usePurchasePriceCalculations() {
       );
       if (numberError) throw numberError;
 
-      // Create calculation header
+      // Fetch the receipt to get source_invoice_id
+      const { data: receipt, error: receiptError } = await supabase
+        .from("goods_receipts")
+        .select("source_invoice_id")
+        .eq("id", goodsReceiptId)
+        .single();
+      if (receiptError) throw receiptError;
+
+      const sourceInvoiceId = receipt?.source_invoice_id || null;
+
+      // Create calculation header with UFR already linked
       const { data: calc, error: calcError } = await (supabase as any)
         .from("purchase_price_calculations")
         .insert({
           company_id: selectedCompany.id,
           business_year_id: selectedYear.id,
           goods_receipt_id: goodsReceiptId,
+          source_goods_invoice_id: sourceInvoiceId,
           calculation_number: numberData,
           created_by: user.id,
         })
@@ -158,6 +169,31 @@ export function usePurchasePriceCalculations() {
         .update({ linked_calculation_id: calc.id })
         .eq("id", goodsReceiptId);
 
+      // Mark UFR as linked to this calculation
+      if (sourceInvoiceId) {
+        await (supabase as any)
+          .from("goods_purchase_invoices")
+          .update({ linked_calculation_id: calc.id })
+          .eq("id", sourceInvoiceId);
+      }
+
+      // Build a map of UFR item net prices by article_id
+      let ufrPriceMap: Record<string, number> = {};
+      if (sourceInvoiceId) {
+        const { data: ufrItems } = await (supabase as any)
+          .from("goods_purchase_invoice_items")
+          .select("article_id, unit_price, discount_percent, line_subtotal, quantity")
+          .eq("goods_purchase_invoice_id", sourceInvoiceId);
+
+        if (ufrItems) {
+          for (const ui of ufrItems) {
+            if (!ui.article_id) continue;
+            const netPrice = ui.quantity > 0 ? ui.line_subtotal / ui.quantity : ui.unit_price;
+            ufrPriceMap[ui.article_id] = Math.round(netPrice * 100) / 100;
+          }
+        }
+      }
+
       // Fetch receipt items to populate calculation items
       const { data: receiptItems, error: riError } = await supabase
         .from("goods_receipt_items")
@@ -170,20 +206,26 @@ export function usePurchasePriceCalculations() {
       if (riError) throw riError;
 
       if (receiptItems && receiptItems.length > 0) {
-        const calcItems = receiptItems.map((ri: any, idx: number) => ({
-          calculation_id: calc.id,
-          company_id: selectedCompany.id,
-          goods_receipt_item_id: ri.id,
-          article_id: ri.article_id,
-          item_code: ri.item_code || ri.article?.code || null,
-          item_name: ri.item_name,
-          unit: ri.unit,
-          svk: ri.article?.svk || null,
-          quantity: ri.quantity,
-          purchase_price: ri.unit_price,
-          purchase_value: ri.quantity * ri.unit_price,
-          item_order: idx + 1,
-        }));
+        const calcItems = receiptItems.map((ri: any, idx: number) => {
+          // Use UFR net price if available, otherwise receipt price
+          const purchasePrice = (ri.article_id && ufrPriceMap[ri.article_id] !== undefined)
+            ? ufrPriceMap[ri.article_id]
+            : ri.unit_price;
+          return {
+            calculation_id: calc.id,
+            company_id: selectedCompany.id,
+            goods_receipt_item_id: ri.id,
+            article_id: ri.article_id,
+            item_code: ri.item_code || ri.article?.code || null,
+            item_name: ri.item_name,
+            unit: ri.unit,
+            svk: ri.article?.svk || null,
+            quantity: ri.quantity,
+            purchase_price: purchasePrice,
+            purchase_value: Math.round(ri.quantity * purchasePrice * 100) / 100,
+            item_order: idx + 1,
+          };
+        });
 
         const { error: itemsError } = await (supabase as any)
           .from("calculation_items")
