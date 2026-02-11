@@ -99,19 +99,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Opener tab responds with current session
       if (msg?.type === "REQUEST_SESSION") {
-        const s = sessionRef.current;
-        if (s?.access_token && s?.refresh_token && event.source) {
-          (event.source as Window).postMessage(
-            {
-              type: "SESSION_RESPONSE",
-              payload: {
-                access_token: s.access_token,
-                refresh_token: s.refresh_token,
+        // Get fresh session to avoid stale/already-used refresh tokens
+        supabase.auth.getSession().then(({ data: { session: freshSession } }) => {
+          if (freshSession?.access_token && freshSession?.refresh_token && event.source) {
+            (event.source as Window).postMessage(
+              {
+                type: "SESSION_RESPONSE",
+                payload: {
+                  access_token: freshSession.access_token,
+                  refresh_token: freshSession.refresh_token,
+                },
               },
-            },
-            origin
-          );
-        }
+              origin
+            );
+          }
+        });
         return;
       }
 
