@@ -216,6 +216,9 @@ export default function CalculationEdit() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate("/magacin/kalkulacije")}>
+              Zatvori
+            </Button>
             {isEditable && (
               <>
                 <Button variant="outline" onClick={recalculate} disabled={batchUpdateItems.isPending}>
