@@ -142,6 +142,9 @@ export function GoodsReceiptDetailDialog({
                     Kalkulacija zahteva povezan UFR
                   </Badge>
                 )}
+                <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+                  Zatvori
+                </Button>
             </div>
           </div>
         </DialogHeader>
