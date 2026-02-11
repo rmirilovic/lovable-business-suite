@@ -178,7 +178,57 @@ export function useGoodsPurchaseInvoices() {
         .single();
 
       if (error) throw error;
-      return data as GoodsPurchaseInvoice;
+      const invoice = data as GoodsPurchaseInvoice;
+
+      // If linked to an existing receipt, copy its items to the invoice
+      if (formData.goods_receipt_id) {
+        const { data: receiptItems } = await supabase
+          .from("goods_receipt_items")
+          .select("*, article:articles(id, code, name, unit, vat_rate)")
+          .eq("goods_receipt_id", formData.goods_receipt_id)
+          .order("item_order");
+
+        if (receiptItems && receiptItems.length > 0) {
+          const invoiceItems = receiptItems.map((ri, idx) => {
+            const vatRate = ri.article?.vat_rate ?? 20;
+            const lineSubtotal = ri.quantity * ri.unit_price;
+            const lineVat = lineSubtotal * (vatRate / 100);
+            const lineTotal = lineSubtotal + lineVat;
+
+            return {
+              goods_purchase_invoice_id: invoice.id,
+              company_id: selectedCompany.id,
+              item_order: idx + 1,
+              article_id: ri.article_id,
+              item_code: ri.item_code,
+              item_name: ri.item_name,
+              unit: ri.unit,
+              quantity: ri.quantity,
+              unit_price: ri.unit_price,
+              discount_percent: 0,
+              vat_rate: vatRate,
+              is_vat_deductible: true,
+              line_subtotal: lineSubtotal,
+              line_vat: lineVat,
+              line_total: lineTotal,
+            };
+          });
+
+          await supabase.from("goods_purchase_invoice_items").insert(invoiceItems);
+
+          // Update invoice totals
+          const subtotal = invoiceItems.reduce((s, i) => s + i.line_subtotal, 0);
+          const vatAmount = invoiceItems.reduce((s, i) => s + i.line_vat, 0);
+          const totalAmount = invoiceItems.reduce((s, i) => s + i.line_total, 0);
+
+          await supabase
+            .from("goods_purchase_invoices")
+            .update({ subtotal, vat_amount: vatAmount, total_amount: totalAmount })
+            .eq("id", invoice.id);
+        }
+      }
+
+      return invoice;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goods-purchase-invoices"] });
