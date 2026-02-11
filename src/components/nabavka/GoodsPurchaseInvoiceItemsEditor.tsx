@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import {
   Table,
   TableBody,
@@ -9,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Check, X, Trash2 } from "lucide-react";
+import { Plus, X, Trash2 } from "lucide-react";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { useArticles } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,7 +18,7 @@ import {
   GoodsPurchaseInvoiceItem,
   GoodsPurchaseInvoiceItemFormData,
 } from "@/hooks/useGoodsPurchaseInvoices";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
 import { UseMutationResult } from "@tanstack/react-query";
 
 interface GoodsPurchaseInvoiceItemsEditorProps {
@@ -43,6 +44,27 @@ const emptyItem: GoodsPurchaseInvoiceItemFormData = {
   is_vat_deductible: true,
 };
 
+interface TextState {
+  quantity: string;
+  unit_price: string;
+  discount_percent: string;
+  vat_rate: string;
+}
+
+const numToStr = (n: number): string => String(n ?? 0);
+
+const toTextState = (item: GoodsPurchaseInvoiceItemFormData): TextState => ({
+  quantity: numToStr(item.quantity),
+  unit_price: numToStr(item.unit_price),
+  discount_percent: numToStr(item.discount_percent),
+  vat_rate: numToStr(item.vat_rate),
+});
+
+const parseNum = (s: string): number => {
+  const n = parseLocaleNumber(s);
+  return isNaN(n) ? 0 : n;
+};
+
 export function GoodsPurchaseInvoiceItemsEditor({
   invoiceId,
   items,
@@ -57,8 +79,10 @@ export function GoodsPurchaseInvoiceItemsEditor({
 
   const [isAdding, setIsAdding] = useState(false);
   const [newItem, setNewItem] = useState<GoodsPurchaseInvoiceItemFormData>(emptyItem);
+  const [newText, setNewText] = useState<TextState>(toTextState(emptyItem));
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editItem, setEditItem] = useState<GoodsPurchaseInvoiceItemFormData>(emptyItem);
+  const [editText, setEditText] = useState<TextState>(toTextState(emptyItem));
 
   const activeArticles = articles.filter((a) => a.is_active);
 
@@ -71,14 +95,24 @@ export function GoodsPurchaseInvoiceItemsEditor({
       item_code: article.code,
       item_name: article.name,
       unit: article.unit,
-      vat_rate: 20, // Default VAT rate
-      unit_price: article.purchase_price || 0,
+      vat_rate: 20,
+      unit_price: article.purchase_price ?? 0,
     };
 
     if (isNew) {
       setNewItem((prev) => ({ ...prev, ...itemData }));
+      setNewText((prev) => ({
+        ...prev,
+        unit_price: numToStr(itemData.unit_price),
+        vat_rate: numToStr(itemData.vat_rate),
+      }));
     } else {
       setEditItem((prev) => ({ ...prev, ...itemData }));
+      setEditText((prev) => ({
+        ...prev,
+        unit_price: numToStr(itemData.unit_price),
+        vat_rate: numToStr(itemData.vat_rate),
+      }));
     }
   };
 
@@ -93,19 +127,61 @@ export function GoodsPurchaseInvoiceItemsEditor({
     return { netPrice, subtotal, vat, total: subtotal + vat };
   };
 
+  // Derived totals for display using current text states
+  const getNewTotals = () => {
+    const q = parseNum(newText.quantity);
+    const p = parseNum(newText.unit_price);
+    const d = parseNum(newText.discount_percent);
+    const v = parseNum(newText.vat_rate);
+    const net = p * (1 - d / 100);
+    const sub = q * net;
+    const vat = sub * (v / 100);
+    return { netPrice: net, total: sub + vat };
+  };
+
+  const getEditTotals = () => {
+    const q = parseNum(editText.quantity);
+    const p = parseNum(editText.unit_price);
+    const d = parseNum(editText.discount_percent);
+    const v = parseNum(editText.vat_rate);
+    const net = p * (1 - d / 100);
+    const sub = q * net;
+    const vat = sub * (v / 100);
+    return { netPrice: net, total: sub + vat };
+  };
+
+  const commitNewField = (field: keyof TextState) => {
+    const val = parseNum(newText[field]);
+    setNewItem((prev) => ({ ...prev, [field]: val }));
+  };
+
+  const commitEditField = (field: keyof TextState) => {
+    const val = parseNum(editText[field]);
+    setEditItem((prev) => ({ ...prev, [field]: val }));
+  };
+
   const handleAddSubmit = async () => {
     if (!newItem.item_name) return;
+    // Commit all text fields before submit
+    const committed = {
+      ...newItem,
+      quantity: parseNum(newText.quantity),
+      unit_price: parseNum(newText.unit_price),
+      discount_percent: parseNum(newText.discount_percent),
+      vat_rate: parseNum(newText.vat_rate),
+    };
     await addItem.mutateAsync({
       goods_purchase_invoice_id: invoiceId,
-      ...newItem,
+      ...committed,
     });
     setNewItem(emptyItem);
+    setNewText(toTextState(emptyItem));
     setIsAdding(false);
   };
 
   const handleEditStart = (item: GoodsPurchaseInvoiceItem) => {
     setEditingId(item.id);
-    setEditItem({
+    const data: GoodsPurchaseInvoiceItemFormData = {
       article_id: item.article_id,
       item_code: item.item_code,
       item_name: item.item_name,
@@ -116,19 +192,44 @@ export function GoodsPurchaseInvoiceItemsEditor({
       discount_percent: item.discount_percent,
       vat_rate: item.vat_rate,
       is_vat_deductible: item.is_vat_deductible,
-    });
+    };
+    setEditItem(data);
+    setEditText(toTextState(data));
   };
 
   const handleEditSubmit = async () => {
     if (!editingId || !editItem.item_name) return;
-    await updateItem.mutateAsync({ id: editingId, ...editItem });
+    const committed = {
+      ...editItem,
+      quantity: parseNum(editText.quantity),
+      unit_price: parseNum(editText.unit_price),
+      discount_percent: parseNum(editText.discount_percent),
+      vat_rate: parseNum(editText.vat_rate),
+    };
+    await updateItem.mutateAsync({ id: editingId, ...committed });
     setEditingId(null);
     setEditItem(emptyItem);
+    setEditText(toTextState(emptyItem));
   };
 
   const handleDelete = async (id: string) => {
     await deleteItem.mutateAsync(id);
   };
+
+  const renderNumericInput = (
+    value: string,
+    onChange: (v: string) => void,
+    onBlurCommit: () => void,
+    widthClass: string
+  ) => (
+    <LocaleNumberInput
+      value={value}
+      onChange={onChange}
+      onBlur={onBlurCommit}
+      className={`h-8 text-xs text-right ${widthClass}`}
+      allowEmpty
+    />
+  );
 
   return (
     <div className="space-y-4">
@@ -188,50 +289,42 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={editItem.quantity}
-                          onChange={(e) => setEditItem({ ...editItem, quantity: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right w-[180px]"
-                          autoComplete="off"
-                        />
+                        {renderNumericInput(
+                          editText.quantity,
+                          (v) => setEditText((p) => ({ ...p, quantity: v })),
+                          () => commitEditField("quantity"),
+                          "w-[180px]"
+                        )}
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={editItem.unit_price}
-                          onChange={(e) => setEditItem({ ...editItem, unit_price: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right w-[120px]"
-                          autoComplete="off"
-                        />
+                        {renderNumericInput(
+                          editText.unit_price,
+                          (v) => setEditText((p) => ({ ...p, unit_price: v })),
+                          () => commitEditField("unit_price"),
+                          "w-[120px]"
+                        )}
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={editItem.discount_percent}
-                          onChange={(e) => setEditItem({ ...editItem, discount_percent: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right w-[60px]"
-                          autoComplete="off"
-                        />
+                        {renderNumericInput(
+                          editText.discount_percent,
+                          (v) => setEditText((p) => ({ ...p, discount_percent: v })),
+                          () => commitEditField("discount_percent"),
+                          "w-[60px]"
+                        )}
                       </TableCell>
                       <TableCell className="text-xs text-right">
-                        {formatNumber(calculateLineTotal(editItem).netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatNumber(getEditTotals().netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={editItem.vat_rate}
-                          onChange={(e) => setEditItem({ ...editItem, vat_rate: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right w-[70px]"
-                          autoComplete="off"
-                        />
+                        {renderNumericInput(
+                          editText.vat_rate,
+                          (v) => setEditText((p) => ({ ...p, vat_rate: v })),
+                          () => commitEditField("vat_rate"),
+                          "w-[70px]"
+                        )}
                       </TableCell>
                       <TableCell className="text-right text-xs font-medium">
-                        {formatNumber(calculateLineTotal(editItem).total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatNumber(getEditTotals().total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-nowrap">
@@ -309,50 +402,42 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       />
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={newItem.quantity}
-                        onChange={(e) => setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right w-[180px]"
-                        autoComplete="off"
-                      />
+                      {renderNumericInput(
+                        newText.quantity,
+                        (v) => setNewText((p) => ({ ...p, quantity: v })),
+                        () => commitNewField("quantity"),
+                        "w-[180px]"
+                      )}
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={newItem.unit_price}
-                        onChange={(e) => setNewItem({ ...newItem, unit_price: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right w-[120px]"
-                        autoComplete="off"
-                      />
+                      {renderNumericInput(
+                        newText.unit_price,
+                        (v) => setNewText((p) => ({ ...p, unit_price: v })),
+                        () => commitNewField("unit_price"),
+                        "w-[120px]"
+                      )}
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={newItem.discount_percent}
-                        onChange={(e) => setNewItem({ ...newItem, discount_percent: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right w-[60px]"
-                        autoComplete="off"
-                      />
+                      {renderNumericInput(
+                        newText.discount_percent,
+                        (v) => setNewText((p) => ({ ...p, discount_percent: v })),
+                        () => commitNewField("discount_percent"),
+                        "w-[60px]"
+                      )}
                     </TableCell>
                     <TableCell className="text-xs text-right">
-                      {formatNumber(calculateLineTotal(newItem).netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatNumber(getNewTotals().netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={newItem.vat_rate}
-                        onChange={(e) => setNewItem({ ...newItem, vat_rate: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right w-[70px]"
-                        autoComplete="off"
-                      />
+                      {renderNumericInput(
+                        newText.vat_rate,
+                        (v) => setNewText((p) => ({ ...p, vat_rate: v })),
+                        () => commitNewField("vat_rate"),
+                        "w-[70px]"
+                      )}
                     </TableCell>
                     <TableCell className="text-right text-xs font-medium">
-                      {formatNumber(calculateLineTotal(newItem).total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatNumber(getNewTotals().total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-nowrap">
@@ -373,6 +458,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                           onClick={() => {
                             setIsAdding(false);
                             setNewItem(emptyItem);
+                            setNewText(toTextState(emptyItem));
                           }}
                         >
                           <X className="h-4 w-4 text-destructive" />
