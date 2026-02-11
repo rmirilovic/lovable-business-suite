@@ -122,7 +122,7 @@ export function GoodsReceiptDetailDialog({
                     Poništi
                   </Button>
                 )}
-                {receipt.status === "posted" && (
+                {receipt.status === "posted" && receipt.source_invoice_id && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -136,6 +136,11 @@ export function GoodsReceiptDetailDialog({
                     )}
                     {existingCalc ? "Otvori kalkulaciju" : "Kreiraj kalkulaciju"}
                   </Button>
+                )}
+                {receipt.status === "posted" && !receipt.source_invoice_id && (
+                  <Badge variant="outline" className="text-muted-foreground text-xs py-1">
+                    Kalkulacija zahteva povezan UFR
+                  </Badge>
                 )}
             </div>
           </div>
