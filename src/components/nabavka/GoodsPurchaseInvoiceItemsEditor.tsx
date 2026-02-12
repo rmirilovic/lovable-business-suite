@@ -26,6 +26,7 @@ interface GoodsPurchaseInvoiceItemsEditorProps {
   items: GoodsPurchaseInvoiceItem[];
   isLoading: boolean;
   isEditable: boolean;
+  supplierIsInPdv: boolean;
   addItem: UseMutationResult<GoodsPurchaseInvoiceItem, Error, GoodsPurchaseInvoiceItemFormData & { goods_purchase_invoice_id: string }>;
   updateItem: UseMutationResult<GoodsPurchaseInvoiceItem, Error, GoodsPurchaseInvoiceItemFormData & { id: string }>;
   deleteItem: UseMutationResult<void, Error, string>;
@@ -70,6 +71,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
   items,
   isLoading,
   isEditable,
+  supplierIsInPdv,
   addItem,
   updateItem,
   deleteItem,
@@ -123,7 +125,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
   const calculateLineTotal = (item: GoodsPurchaseInvoiceItemFormData) => {
     const netPrice = calculateNetPrice(item.unit_price, item.discount_percent);
     const subtotal = item.quantity * netPrice;
-    const vat = subtotal * (item.vat_rate / 100);
+    const vat = supplierIsInPdv ? subtotal * (item.vat_rate / 100) : 0;
     return { netPrice, subtotal, vat, total: subtotal + vat };
   };
 
@@ -135,7 +137,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
     const v = parseNum(newText.vat_rate);
     const net = p * (1 - d / 100);
     const sub = q * net;
-    const vat = sub * (v / 100);
+    const vat = supplierIsInPdv ? sub * (v / 100) : 0;
     return { netPrice: net, total: sub + vat };
   };
 
@@ -146,7 +148,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
     const v = parseNum(editText.vat_rate);
     const net = p * (1 - d / 100);
     const sub = q * net;
-    const vat = sub * (v / 100);
+    const vat = supplierIsInPdv ? sub * (v / 100) : 0;
     return { netPrice: net, total: sub + vat };
   };
 

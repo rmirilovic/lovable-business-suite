@@ -192,7 +192,7 @@ export function useGoodsPurchaseInvoices() {
           const invoiceItems = receiptItems.map((ri, idx) => {
             const vatRate = ri.article?.vat_rate ?? 20;
             const lineSubtotal = ri.quantity * ri.unit_price;
-            const lineVat = lineSubtotal * (vatRate / 100);
+            const lineVat = formData.supplier_is_in_pdv ? lineSubtotal * (vatRate / 100) : 0;
             const lineTotal = lineSubtotal + lineVat;
 
             return {
@@ -388,8 +388,16 @@ export function useGoodsPurchaseInvoiceItems(invoiceId: string | null) {
     mutationFn: async (item: GoodsPurchaseInvoiceItemFormData & { goods_purchase_invoice_id: string }) => {
       if (!selectedCompany?.id) throw new Error("Potrebno je izabrati firmu");
 
+      // Fetch supplier PDV status from parent invoice
+      const { data: invoiceData } = await supabase
+        .from("goods_purchase_invoices")
+        .select("supplier_is_in_pdv")
+        .eq("id", item.goods_purchase_invoice_id)
+        .single();
+      const supplierInPdv = invoiceData?.supplier_is_in_pdv ?? true;
+
       const lineSubtotal = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
-      const lineVat = lineSubtotal * (item.vat_rate / 100);
+      const lineVat = supplierInPdv ? lineSubtotal * (item.vat_rate / 100) : 0;
       const lineTotal = lineSubtotal + lineVat;
 
       const { data: existingItems } = await supabase
@@ -440,8 +448,24 @@ export function useGoodsPurchaseInvoiceItems(invoiceId: string | null) {
 
   const updateItem = useMutation({
     mutationFn: async ({ id, ...item }: GoodsPurchaseInvoiceItemFormData & { id: string }) => {
+      // Fetch supplier PDV status from parent invoice
+      const { data: parentItem } = await supabase
+        .from("goods_purchase_invoice_items")
+        .select("goods_purchase_invoice_id")
+        .eq("id", id)
+        .single();
+      let supplierInPdv = true;
+      if (parentItem) {
+        const { data: invoiceData } = await supabase
+          .from("goods_purchase_invoices")
+          .select("supplier_is_in_pdv")
+          .eq("id", parentItem.goods_purchase_invoice_id)
+          .single();
+        supplierInPdv = invoiceData?.supplier_is_in_pdv ?? true;
+      }
+
       const lineSubtotal = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
-      const lineVat = lineSubtotal * (item.vat_rate / 100);
+      const lineVat = supplierInPdv ? lineSubtotal * (item.vat_rate / 100) : 0;
       const lineTotal = lineSubtotal + lineVat;
 
       const { data, error } = await supabase
