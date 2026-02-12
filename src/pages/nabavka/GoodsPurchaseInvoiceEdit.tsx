@@ -263,6 +263,7 @@ export default function GoodsPurchaseInvoiceEdit() {
           items={items}
           isLoading={itemsLoading}
           isEditable={isDraft}
+          supplierIsInPdv={invoice.supplier_is_in_pdv}
           addItem={addItem}
           updateItem={updateItem}
           deleteItem={deleteItem}

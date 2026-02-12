@@ -34,6 +34,7 @@ interface ServicePurchaseInvoiceItemsEditorProps {
   items: ServicePurchaseInvoiceItem[];
   isLoading: boolean;
   isEditable: boolean;
+  supplierIsInPdv: boolean;
   addItem: UseMutationResult<ServicePurchaseInvoiceItem, Error, ServicePurchaseInvoiceItemFormData & { service_purchase_invoice_id: string }>;
   updateItem: UseMutationResult<ServicePurchaseInvoiceItem, Error, ServicePurchaseInvoiceItemFormData & { id: string }>;
   deleteItem: UseMutationResult<void, Error, string>;
@@ -58,6 +59,7 @@ export function ServicePurchaseInvoiceItemsEditor({
   items,
   isLoading,
   isEditable,
+  supplierIsInPdv,
   addItem,
   updateItem,
   deleteItem,
@@ -96,6 +98,10 @@ export function ServicePurchaseInvoiceItemsEditor({
   const calculateLineTotal = (item: ServicePurchaseInvoiceItemFormData) => {
     // Cena je sa PDV-om (bruto), računamo unazad
     const grossAmount = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
+    if (!supplierIsInPdv) {
+      // Dobavljač nije u PDV sistemu - cena je neto, PDV = 0
+      return { subtotal: grossAmount, vat: 0, total: grossAmount };
+    }
     const subtotal = grossAmount / (1 + item.vat_rate / 100);
     const vat = grossAmount - subtotal;
     return { subtotal, vat, total: grossAmount };

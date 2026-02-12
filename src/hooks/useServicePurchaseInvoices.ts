@@ -334,11 +334,29 @@ export function useServicePurchaseInvoiceItems(invoiceId: string | null) {
     mutationFn: async (item: ServicePurchaseInvoiceItemFormData & { service_purchase_invoice_id: string }) => {
       if (!selectedCompany?.id) throw new Error("Potrebno je izabrati firmu");
 
+      // Fetch supplier PDV status from parent invoice
+      const { data: invoiceData } = await supabase
+        .from("service_purchase_invoices")
+        .select("supplier_is_in_pdv")
+        .eq("id", item.service_purchase_invoice_id)
+        .single();
+      const supplierInPdv = invoiceData?.supplier_is_in_pdv ?? true;
+
       // unit_price je cena SA PDV-om (bruto). Osnovica i PDV se računaju unazad.
       const grossAmount = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
-      const lineSubtotal = grossAmount / (1 + item.vat_rate / 100);
-      const lineVat = grossAmount - lineSubtotal;
-      const lineTotal = grossAmount;
+      let lineSubtotal: number;
+      let lineVat: number;
+      let lineTotal: number;
+      if (supplierInPdv) {
+        lineSubtotal = grossAmount / (1 + item.vat_rate / 100);
+        lineVat = grossAmount - lineSubtotal;
+        lineTotal = grossAmount;
+      } else {
+        // Dobavljač nije u PDV sistemu - cena je neto, PDV = 0
+        lineSubtotal = grossAmount;
+        lineVat = 0;
+        lineTotal = grossAmount;
+      }
 
       const { data: existingItems } = await supabase
         .from("service_purchase_invoice_items")
@@ -390,11 +408,36 @@ export function useServicePurchaseInvoiceItems(invoiceId: string | null) {
 
   const updateItem = useMutation({
     mutationFn: async ({ id, ...item }: ServicePurchaseInvoiceItemFormData & { id: string }) => {
+      // Fetch supplier PDV status from parent invoice
+      const { data: parentItem } = await supabase
+        .from("service_purchase_invoice_items")
+        .select("service_purchase_invoice_id")
+        .eq("id", id)
+        .single();
+      let supplierInPdv = true;
+      if (parentItem) {
+        const { data: invoiceData } = await supabase
+          .from("service_purchase_invoices")
+          .select("supplier_is_in_pdv")
+          .eq("id", parentItem.service_purchase_invoice_id)
+          .single();
+        supplierInPdv = invoiceData?.supplier_is_in_pdv ?? true;
+      }
+
       // unit_price je cena SA PDV-om (bruto). Osnovica i PDV se računaju unazad.
       const grossAmount = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
-      const lineSubtotal = grossAmount / (1 + item.vat_rate / 100);
-      const lineVat = grossAmount - lineSubtotal;
-      const lineTotal = grossAmount;
+      let lineSubtotal: number;
+      let lineVat: number;
+      let lineTotal: number;
+      if (supplierInPdv) {
+        lineSubtotal = grossAmount / (1 + item.vat_rate / 100);
+        lineVat = grossAmount - lineSubtotal;
+        lineTotal = grossAmount;
+      } else {
+        lineSubtotal = grossAmount;
+        lineVat = 0;
+        lineTotal = grossAmount;
+      }
 
       const { data, error } = await supabase
         .from("service_purchase_invoice_items")
