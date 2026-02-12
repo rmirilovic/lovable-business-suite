@@ -254,6 +254,18 @@ export function useServicePurchaseInvoices() {
     mutationFn: async (invoiceId: string) => {
       if (!user?.id) throw new Error("Niste prijavljeni");
 
+      // Check if this UFU is linked to any calculation
+      const { data: links, error: linkError } = await supabase
+        .from("calculation_ufu_links")
+        .select("id, calculation_id")
+        .eq("service_invoice_id", invoiceId)
+        .limit(1);
+
+      if (linkError) throw linkError;
+      if (links && links.length > 0) {
+        throw new Error("Nije moguće poništiti knjiženje - UFU je povezan sa kalkulacijom. Prvo uklonite vezu sa kalkulacije.");
+      }
+
       const { data, error } = await supabase
         .rpc("unpost_service_purchase_invoice", {
           _invoice_id: invoiceId,
