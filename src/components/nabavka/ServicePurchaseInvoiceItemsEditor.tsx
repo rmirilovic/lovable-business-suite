@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Check, X, Trash2 } from "lucide-react";
+import { Plus, X, Trash2 } from "lucide-react";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { useInputCosts } from "@/hooks/useInputCosts";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
@@ -26,7 +26,7 @@ import {
   ServicePurchaseInvoiceItem,
   ServicePurchaseInvoiceItemFormData,
 } from "@/hooks/useServicePurchaseInvoices";
-import { formatNumber, formatPrice } from "@/lib/formatting";
+import { formatNumber, formatPrice, parseLocaleNumber } from "@/lib/formatting";
 import { UseMutationResult } from "@tanstack/react-query";
 
 interface ServicePurchaseInvoiceItemsEditorProps {
@@ -40,19 +40,49 @@ interface ServicePurchaseInvoiceItemsEditorProps {
   deleteItem: UseMutationResult<void, Error, string>;
 }
 
-const emptyItem: ServicePurchaseInvoiceItemFormData = {
+interface ItemFormState {
+  input_cost_id: string | null;
+  item_code: string | null;
+  item_name: string;
+  description: string | null;
+  org_unit_id: string | null;
+  quantity: string;
+  unit: string;
+  unit_price: string;
+  discount_percent: number;
+  vat_rate: string;
+  is_vat_deductible: boolean;
+}
+
+const fmt = (n: number) => n.toFixed(2).replace('.', ',');
+
+const emptyFormState: ItemFormState = {
   input_cost_id: null,
   item_code: null,
   item_name: "",
   description: null,
   org_unit_id: null,
-  quantity: 1,
+  quantity: "1,00",
   unit: "kom",
-  unit_price: 0,
+  unit_price: "0,00",
   discount_percent: 0,
-  vat_rate: 20,
+  vat_rate: "20,00",
   is_vat_deductible: true,
 };
+
+const toFormData = (s: ItemFormState): ServicePurchaseInvoiceItemFormData => ({
+  input_cost_id: s.input_cost_id,
+  item_code: s.item_code,
+  item_name: s.item_name,
+  description: s.description,
+  org_unit_id: s.org_unit_id,
+  quantity: parseLocaleNumber(s.quantity) || 0,
+  unit: s.unit,
+  unit_price: parseLocaleNumber(s.unit_price) || 0,
+  discount_percent: s.discount_percent,
+  vat_rate: parseLocaleNumber(s.vat_rate) || 0,
+  is_vat_deductible: s.is_vat_deductible,
+});
 
 export function ServicePurchaseInvoiceItemsEditor({
   invoiceId,
@@ -69,9 +99,9 @@ export function ServicePurchaseInvoiceItemsEditor({
   const { units: orgUnits } = useOrganizationalUnits(selectedCompany?.id);
 
   const [isAdding, setIsAdding] = useState(false);
-  const [newItem, setNewItem] = useState<ServicePurchaseInvoiceItemFormData>(emptyItem);
+  const [newItem, setNewItem] = useState<ItemFormState>(emptyFormState);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editItem, setEditItem] = useState<ServicePurchaseInvoiceItemFormData>(emptyItem);
+  const [editItem, setEditItem] = useState<ItemFormState>(emptyFormState);
 
   const activeInputCosts = inputCosts.filter((ic) => ic.is_active);
   const activeOrgUnits = orgUnits.filter((ou) => ou.is_active);
@@ -84,7 +114,7 @@ export function ServicePurchaseInvoiceItemsEditor({
       input_cost_id: cost.id,
       item_code: cost.code,
       item_name: cost.name,
-      vat_rate: cost.vat_rate,
+      vat_rate: fmt(cost.vat_rate),
       is_vat_deductible: cost.is_vat_deductible,
     };
 
@@ -95,14 +125,13 @@ export function ServicePurchaseInvoiceItemsEditor({
     }
   };
 
-  const calculateLineTotal = (item: ServicePurchaseInvoiceItemFormData) => {
-    // Cena je sa PDV-om (bruto), računamo unazad
-    const grossAmount = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
+  const calculateLineTotal = (item: ItemFormState) => {
+    const fd = toFormData(item);
+    const grossAmount = fd.quantity * fd.unit_price * (1 - fd.discount_percent / 100);
     if (!supplierIsInPdv) {
-      // Dobavljač nije u PDV sistemu - cena je neto, PDV = 0
       return { subtotal: grossAmount, vat: 0, total: grossAmount };
     }
-    const subtotal = grossAmount / (1 + item.vat_rate / 100);
+    const subtotal = grossAmount / (1 + fd.vat_rate / 100);
     const vat = grossAmount - subtotal;
     return { subtotal, vat, total: grossAmount };
   };
@@ -111,9 +140,9 @@ export function ServicePurchaseInvoiceItemsEditor({
     if (!newItem.item_name) return;
     await addItem.mutateAsync({
       service_purchase_invoice_id: invoiceId,
-      ...newItem,
+      ...toFormData(newItem),
     });
-    setNewItem(emptyItem);
+    setNewItem(emptyFormState);
     setIsAdding(false);
   };
 
@@ -125,25 +154,60 @@ export function ServicePurchaseInvoiceItemsEditor({
       item_name: item.item_name,
       description: item.description,
       org_unit_id: item.org_unit_id,
-      quantity: item.quantity,
+      quantity: fmt(item.quantity),
       unit: item.unit,
-      unit_price: item.unit_price,
+      unit_price: fmt(item.unit_price),
       discount_percent: item.discount_percent,
-      vat_rate: item.vat_rate,
+      vat_rate: fmt(item.vat_rate),
       is_vat_deductible: item.is_vat_deductible,
     });
   };
 
   const handleEditSubmit = async () => {
     if (!editingId || !editItem.item_name) return;
-    await updateItem.mutateAsync({ id: editingId, ...editItem });
+    await updateItem.mutateAsync({ id: editingId, ...toFormData(editItem) });
     setEditingId(null);
-    setEditItem(emptyItem);
+    setEditItem(emptyFormState);
   };
 
   const handleDelete = async (id: string) => {
     await deleteItem.mutateAsync(id);
   };
+
+  const renderNumericInputs = (
+    item: ItemFormState,
+    setItem: (s: ItemFormState) => void,
+  ) => (
+    <>
+      <TableCell>
+        <LocaleNumberInput
+          value={item.quantity}
+          onChange={(v) => setItem({ ...item, quantity: v })}
+          decimalPlaces={2}
+          allowEmpty
+          className="h-8 text-xs text-right"
+        />
+      </TableCell>
+      <TableCell>
+        <LocaleNumberInput
+          value={item.unit_price}
+          onChange={(v) => setItem({ ...item, unit_price: v })}
+          decimalPlaces={2}
+          allowEmpty
+          className="h-8 text-xs text-right"
+        />
+      </TableCell>
+      <TableCell>
+        <LocaleNumberInput
+          value={item.vat_rate}
+          onChange={(v) => setItem({ ...item, vat_rate: v })}
+          decimalPlaces={2}
+          allowEmpty
+          className="h-8 text-xs text-right"
+        />
+      </TableCell>
+    </>
+  );
 
   return (
     <div className="space-y-4">
@@ -234,36 +298,7 @@ export function ServicePurchaseInvoiceItemsEditor({
                           </SelectContent>
                         </Select>
                       </TableCell>
-                      <TableCell>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={editItem.quantity}
-                          onChange={(e) => setEditItem({ ...editItem, quantity: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right"
-                          autoComplete="off"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={editItem.unit_price}
-                          onChange={(e) => setEditItem({ ...editItem, unit_price: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right"
-                          autoComplete="off"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={editItem.vat_rate}
-                          onChange={(e) => setEditItem({ ...editItem, vat_rate: parseFloat(e.target.value) || 0 })}
-                          className="h-8 text-xs text-right"
-                          autoComplete="off"
-                        />
-                      </TableCell>
+                      {renderNumericInputs(editItem, setEditItem)}
                       <TableCell className="text-center">
                         <Checkbox
                           checked={editItem.is_vat_deductible}
@@ -385,36 +420,7 @@ export function ServicePurchaseInvoiceItemsEditor({
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={newItem.quantity}
-                        onChange={(e) => setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right"
-                        autoComplete="off"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={newItem.unit_price}
-                        onChange={(e) => setNewItem({ ...newItem, unit_price: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right"
-                        autoComplete="off"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={newItem.vat_rate}
-                        onChange={(e) => setNewItem({ ...newItem, vat_rate: parseFloat(e.target.value) || 0 })}
-                        className="h-8 text-xs text-right"
-                        autoComplete="off"
-                      />
-                    </TableCell>
+                    {renderNumericInputs(newItem, setNewItem)}
                     <TableCell className="text-center">
                       <Checkbox
                         checked={newItem.is_vat_deductible}
@@ -444,7 +450,7 @@ export function ServicePurchaseInvoiceItemsEditor({
                           className="h-7 w-7"
                           onClick={() => {
                             setIsAdding(false);
-                            setNewItem(emptyItem);
+                            setNewItem(emptyFormState);
                           }}
                         >
                           <X className="h-4 w-4 text-destructive" />
