@@ -225,15 +225,15 @@ export function ServicePurchaseInvoiceItemsEditor({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[230px] text-xs">Trošak</TableHead>
-              <TableHead className="w-[100px] text-xs">Konto</TableHead>
-              <TableHead className="min-w-[200px] text-xs">Naziv</TableHead>
-              <TableHead className="w-[120px] text-xs">Mesto troška</TableHead>
-              <TableHead className="w-[200px] text-right text-xs">Kol.</TableHead>
-              <TableHead className="w-[250px] text-right text-xs">Cena sa PDV</TableHead>
-              <TableHead className="w-[80px] text-right text-xs">PDV%</TableHead>
-              <TableHead className="w-[50px] text-center text-xs">Odb.</TableHead>
-              <TableHead className="w-[100px] text-right text-xs">Ukupno</TableHead>
+              <TableHead className="w-[350px]">Trošak</TableHead>
+              <TableHead className="w-[100px]">Konto</TableHead>
+              <TableHead className="min-w-[200px]">Naziv</TableHead>
+              <TableHead className="w-[120px]">Mesto troška</TableHead>
+              <TableHead className="w-[200px] text-right">Kol.</TableHead>
+              <TableHead className="w-[250px] text-right">Cena sa PDV</TableHead>
+              <TableHead className="w-[80px] text-right">PDV%</TableHead>
+              <TableHead className="w-[50px] text-center">Odb.</TableHead>
+              <TableHead className="w-[100px] text-right">Ukupno</TableHead>
               {isEditable && <TableHead className="w-[130px]"></TableHead>}
             </TableRow>
           </TableHeader>
@@ -336,13 +336,13 @@ export function ServicePurchaseInvoiceItemsEditor({
                       className={isEditable ? "cursor-pointer hover:bg-muted/50" : ""}
                       onClick={() => isEditable && handleEditStart(item)}
                     >
-                      <TableCell className="text-xs">
+                      <TableCell>
                         <div>
                           <div>{item.item_code || "-"}</div>
-                          <div className="text-[10px] text-muted-foreground">{inputCosts.find((ic) => ic.id === item.input_cost_id)?.name || ""}</div>
+                          <div className="text-xs text-muted-foreground">{inputCosts.find((ic) => ic.id === item.input_cost_id)?.name || ""}</div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-muted-foreground">
                         {(() => {
                           const ic = inputCosts.find((ic) => ic.id === item.input_cost_id);
                           return ic ? (
@@ -353,15 +353,15 @@ export function ServicePurchaseInvoiceItemsEditor({
                           ) : "-";
                         })()}
                       </TableCell>
-                      <TableCell className="text-xs font-medium">{item.item_name}</TableCell>
-                      <TableCell className="text-xs">{item.org_unit?.code || "-"}</TableCell>
-                      <TableCell className="text-xs text-right">{formatNumber(item.quantity)}</TableCell>
-                      <TableCell className="text-xs text-right">{formatPrice(item.unit_price)}</TableCell>
-                      <TableCell className="text-xs text-right">{item.vat_rate}%</TableCell>
+                      <TableCell className="font-medium">{item.item_name}</TableCell>
+                      <TableCell>{item.org_unit?.code || "-"}</TableCell>
+                      <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
+                      <TableCell className="text-right">{formatPrice(item.unit_price)}</TableCell>
+                      <TableCell className="text-right">{item.vat_rate}%</TableCell>
                       <TableCell className="text-center">
                         <Checkbox checked={item.is_vat_deductible} disabled />
                       </TableCell>
-                      <TableCell className="text-xs text-right font-medium">
+                      <TableCell className="text-right font-medium">
                         {formatPrice(item.line_total)}
                       </TableCell>
                       {isEditable && (
