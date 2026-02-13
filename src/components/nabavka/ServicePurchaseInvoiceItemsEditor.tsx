@@ -226,8 +226,8 @@ export function ServicePurchaseInvoiceItemsEditor({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[115px] text-xs">Trošak</TableHead>
-              <TableHead className="w-[80px] text-xs">Konto</TableHead>
-              <TableHead className="min-w-[220px] text-xs">Naziv</TableHead>
+              <TableHead className="w-[100px] text-xs">Konto</TableHead>
+              <TableHead className="min-w-[200px] text-xs">Naziv</TableHead>
               <TableHead className="w-[120px] text-xs">Mesto troška</TableHead>
               <TableHead className="w-[200px] text-right text-xs">Kol.</TableHead>
               <TableHead className="w-[250px] text-right text-xs">Cena sa PDV</TableHead>
@@ -336,9 +336,22 @@ export function ServicePurchaseInvoiceItemsEditor({
                       className={isEditable ? "cursor-pointer hover:bg-muted/50" : ""}
                       onClick={() => isEditable && handleEditStart(item)}
                     >
-                      <TableCell className="text-xs">{item.item_code || "-"}</TableCell>
+                      <TableCell className="text-xs">
+                        <div>
+                          <div>{item.item_code || "-"}</div>
+                          <div className="text-[10px] text-muted-foreground">{inputCosts.find((ic) => ic.id === item.input_cost_id)?.name || ""}</div>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {inputCosts.find((ic) => ic.id === item.input_cost_id)?.account_code || "-"}
+                        {(() => {
+                          const ic = inputCosts.find((ic) => ic.id === item.input_cost_id);
+                          return ic ? (
+                            <div>
+                              <div>{ic.account_code}</div>
+                              <div className="text-[10px]">{/* account name shown via item_name */}</div>
+                            </div>
+                          ) : "-";
+                        })()}
                       </TableCell>
                       <TableCell className="text-xs font-medium">{item.item_name}</TableCell>
                       <TableCell className="text-xs">{item.org_unit?.code || "-"}</TableCell>

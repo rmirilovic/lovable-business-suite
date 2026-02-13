@@ -12,6 +12,7 @@ export interface InputCost {
   vat_rate: number;
   is_vat_deductible: boolean;
   is_active: boolean;
+  is_procurement_cost: boolean;
   description: string | null;
   created_at: string;
   updated_at: string;
@@ -24,6 +25,7 @@ export interface InputCostFormData {
   vat_rate: number;
   is_vat_deductible: boolean;
   is_active: boolean;
+  is_procurement_cost: boolean;
   description?: string | null;
 }
 

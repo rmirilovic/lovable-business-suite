@@ -82,7 +82,6 @@ export function ChartOfAccountsApiDialog({ open, onOpenChange }: ChartOfAccounts
             level: item.level || item.code.length,
             is_active: item.is_active !== false,
             is_posting_allowed: item.is_posting_allowed !== false,
-            is_procurement_cost: false,
             description: item.description || null,
           });
           successCount++;
