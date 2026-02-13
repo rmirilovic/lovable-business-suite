@@ -189,7 +189,7 @@ export function usePurchasePriceCalculations() {
           for (const ui of ufrItems) {
             if (!ui.article_id) continue;
             const netPrice = ui.quantity > 0 ? ui.line_subtotal / ui.quantity : ui.unit_price;
-            ufrPriceMap[ui.article_id] = Math.round(netPrice * 100) / 100;
+            ufrPriceMap[ui.article_id] = Math.round(netPrice * 1000000) / 1000000;
           }
         }
       }
@@ -210,7 +210,7 @@ export function usePurchasePriceCalculations() {
           // Use UFR net price if available, otherwise receipt price
           const purchasePrice = (ri.article_id && ufrPriceMap[ri.article_id] !== undefined)
             ? ufrPriceMap[ri.article_id]
-            : ri.unit_price;
+            : Math.round(ri.unit_price * 1000000) / 1000000;
           const purchaseValue = Math.round(ri.quantity * purchasePrice * 100) / 100;
           return {
             calculation_id: calc.id,
@@ -574,7 +574,7 @@ export function useCalculationItems(calculationId: string | null) {
 export function distributeAdditionalCosts(
   items: CalculationItem[],
   costs: CalculationAdditionalCost[]
-): Array<{ id: string; allocated_costs: number; cost_price: number; cost_value: number; selling_price: number; selling_value: number; markup_amount: number }> {
+): Array<{ id: string; allocated_costs: number; cost_price: number; cost_value: number; purchase_price: number; purchase_value: number; selling_price: number; selling_value: number; markup_amount: number }> {
   const totalPurchaseValue = items.reduce((s, i) => s + i.purchase_value, 0);
   const totalQuantity = items.reduce((s, i) => s + i.quantity, 0);
 
@@ -589,24 +589,34 @@ export function distributeAdditionalCosts(
       }
     }
 
-    // Round to 2 decimals
+    // Round allocated costs to 2 decimals (monetary value)
     allocated = Math.round(allocated * 100) / 100;
 
-    const costValue = item.purchase_value + allocated;
-    const costPrice = item.quantity > 0 ? costValue / item.quantity : 0;
+    // Keep purchase_price at 6 decimal precision for accuracy with large quantities
+    const purchasePrice = Math.round(item.purchase_price * 1000000) / 1000000;
+    const purchaseValue = Math.round(item.quantity * purchasePrice * 100) / 100;
 
+    const costValue = purchaseValue + allocated;
+    // cost_price at 6 decimal precision
+    const costPrice = item.quantity > 0
+      ? Math.round((costValue / item.quantity) * 1000000) / 1000000
+      : 0;
+
+    // Recalculate purchase_value from 6-dec price to minimize rounding error
     // Preserve existing markup percent (stored with 6 decimal precision)
     const markupAmount = Math.round(costPrice * item.markup_percent * 100) / 10000;
-    const sellingPrice = Math.round((costPrice + markupAmount) * 100) / 100;
+    const sellingPrice = Math.round((costPrice + markupAmount) * 1000000) / 1000000;
     const sellingValue = Math.round(sellingPrice * item.quantity * 100) / 100;
 
     return {
       id: item.id,
+      purchase_price: purchasePrice,
+      purchase_value: purchaseValue,
       allocated_costs: allocated,
-      cost_price: Math.round(costPrice * 100) / 100,
+      cost_price: costPrice,
       cost_value: Math.round(costValue * 100) / 100,
       markup_amount: Math.round(markupAmount * 100) / 100,
-      selling_price: Math.round(sellingPrice * 100) / 100,
+      selling_price: sellingPrice,
       selling_value: sellingValue,
     };
   });
@@ -717,7 +727,7 @@ export function useCalculationUfrLink(calculationId: string | null) {
               await (supabase as any)
                 .from("calculation_items")
                 .update({
-                  purchase_price: Math.round(netPrice * 100) / 100,
+                  purchase_price: Math.round(netPrice * 1000000) / 1000000,
                   purchase_value: Math.round(netPrice * ci.quantity * 100) / 100,
                 })
                 .eq("id", ci.id);
