@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2, Unlink, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2, Unlink, FileText, Trash2, FileDown, Printer } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +35,7 @@ import { CalculationCostsEditor } from "@/components/magacin/CalculationCostsEdi
 import { CalculationItemsTable } from "@/components/magacin/CalculationItemsTable";
 import { formatDecimal } from "@/lib/formatting";
 import { toast } from "sonner";
+import { exportCalculationPdf, printCalculation } from "@/lib/calculationPdfGenerator";
 
 export default function CalculationEdit() {
   const { id } = useParams<{ id: string }>();
@@ -241,6 +242,24 @@ export default function CalculationEdit() {
             <Button variant="outline" onClick={() => navigate("/magacin/kalkulacije")}>
               Zatvori
             </Button>
+            {items.length > 0 && selectedCompany && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => exportCalculationPdf(calculation, items, costs, selectedCompany)}
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
+                  PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => printCalculation(calculation, items, costs, selectedCompany)}
+                >
+                  <Printer className="h-4 w-4 mr-2" />
+                  Štampa
+                </Button>
+              </>
+            )}
             {isEditable && (
               <>
                 <Button variant="outline" onClick={recalculate} disabled={batchUpdateItems.isPending}>

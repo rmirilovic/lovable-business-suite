@@ -25,6 +25,8 @@ import {
   ExternalLink,
   Loader2,
   Calculator,
+  FileDown,
+  Printer,
 } from "lucide-react";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
@@ -36,6 +38,8 @@ import {
 } from "@/hooks/usePurchasePriceCalculations";
 import { GoodsReceiptItemsEditor } from "./GoodsReceiptItemsEditor";
 import { formatDecimal, formatNumber } from "@/lib/formatting";
+import { exportGoodsReceiptPdf, printGoodsReceipt } from "@/lib/goodsReceiptPdfGenerator";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface GoodsReceiptDetailDialogProps {
   receipt: GoodsReceipt;
@@ -59,6 +63,7 @@ export function GoodsReceiptDetailDialog({
   const [activeTab, setActiveTab] = useState("details");
   const { data: existingCalc, isLoading: calcCheckLoading } = useExistingCalculation(receipt.id);
   const { createFromReceipt } = usePurchasePriceCalculations();
+  const { selectedCompany } = useAuth();
 
   const isEditable = receipt.status === "draft" && !receipt.source_invoice_id;
 
@@ -141,6 +146,26 @@ export function GoodsReceiptDetailDialog({
                   <Badge variant="outline" className="text-muted-foreground text-xs py-1">
                     Kalkulacija zahteva povezan UFR
                   </Badge>
+                )}
+                {items.length > 0 && selectedCompany && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportGoodsReceiptPdf(receipt, items, selectedCompany)}
+                    >
+                      <FileDown className="h-4 w-4 mr-2" />
+                      PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => printGoodsReceipt(receipt, items, selectedCompany)}
+                    >
+                      <Printer className="h-4 w-4 mr-2" />
+                      Štampa
+                    </Button>
+                  </>
                 )}
                 <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
                   Zatvori
