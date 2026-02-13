@@ -11,21 +11,32 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Trash2, Loader2 } from "lucide-react";
+import { Search, Loader2, MoreHorizontal, Eye, BookCheck, Undo2, FileDown, Trash2 } from "lucide-react";
 import {
   usePurchasePriceCalculations,
   PurchasePriceCalculation,
 } from "@/hooks/usePurchasePriceCalculations";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { useTableSort } from "@/hooks/useTableSort";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { formatDecimal } from "@/lib/formatting";
+import { supabase } from "@/integrations/supabase/client";
+import { exportCalculationPdf } from "@/lib/calculationPdfGenerator";
+import { toast } from "sonner";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Svi statusi" },
@@ -35,11 +46,18 @@ const STATUS_OPTIONS = [
 
 export default function Kalkulacije() {
   const navigate = useNavigate();
-  const { calculations, isLoading, deleteCalculation } = usePurchasePriceCalculations();
+  const { selectedCompany } = useAuth();
+  const { hasAccess } = usePermissions();
+  const canEdit = hasAccess("robno.kalkulacije", "write");
+  const canPostCalc = hasAccess("robno.kalkulacije", "admin");
+
+  const { calculations, isLoading, deleteCalculation, postCalculation, unpostCalculation } = usePurchasePriceCalculations();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteConfirm, setDeleteConfirm] = useState<PurchasePriceCalculation | null>(null);
+  const [postConfirm, setPostConfirm] = useState<PurchasePriceCalculation | null>(null);
+  const [unpostConfirm, setUnpostConfirm] = useState<PurchasePriceCalculation | null>(null);
 
   const filtered = useMemo(() => {
     return calculations.filter((c) => {
@@ -73,6 +91,45 @@ export default function Kalkulacije() {
     if (!deleteConfirm) return;
     await deleteCalculation.mutateAsync(deleteConfirm.id);
     setDeleteConfirm(null);
+  };
+
+  const handlePost = async () => {
+    if (!postConfirm) return;
+    await postCalculation.mutateAsync(postConfirm.id);
+    setPostConfirm(null);
+  };
+
+  const handleUnpost = async () => {
+    if (!unpostConfirm) return;
+    await unpostCalculation.mutateAsync(unpostConfirm.id);
+    setUnpostConfirm(null);
+  };
+
+  const handleDownloadPdf = async (calc: PurchasePriceCalculation) => {
+    if (!selectedCompany?.id) return;
+    try {
+      const [{ data: items }, { data: costs }, { data: company }] = await Promise.all([
+        supabase
+          .from("calculation_items")
+          .select("*")
+          .eq("calculation_id", calc.id)
+          .order("item_order"),
+        supabase
+          .from("calculation_additional_costs")
+          .select("*")
+          .eq("calculation_id", calc.id)
+          .order("item_order"),
+        supabase
+          .from("companies")
+          .select("name, address, city, postal_code, pib, mb")
+          .eq("id", selectedCompany.id)
+          .single(),
+      ]);
+      if (!items || !company) throw new Error("Greška pri učitavanju podataka");
+      await exportCalculationPdf(calc, items as any, costs as any || [], company);
+    } catch (err: any) {
+      toast.error(err.message || "Greška pri generisanju PDF-a");
+    }
   };
 
   if (isLoading) {
@@ -133,7 +190,7 @@ export default function Kalkulacije() {
                   <SortableHeader label="Prod. vrednost" column="total_selling_value" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Akcije</TableHead>
+                <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -173,19 +230,45 @@ export default function Kalkulacije() {
                         <Badge variant="outline">Nacrt</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                        {calc.status === "draft" && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteConfirm(calc)}
-                            title="Obriši"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
-                        )}
-                      </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => navigate(`/magacin/kalkulacije/${calc.id}`)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Prikaži
+                          </DropdownMenuItem>
+                          {calc.status === "draft" && canPostCalc && (
+                            <DropdownMenuItem onClick={() => setPostConfirm(calc)}>
+                              <BookCheck className="h-4 w-4 mr-2" />
+                              Proknjiži
+                            </DropdownMenuItem>
+                          )}
+                          {calc.status === "posted" && canPostCalc && (
+                            <DropdownMenuItem onClick={() => setUnpostConfirm(calc)}>
+                              <Undo2 className="h-4 w-4 mr-2" />
+                              Poništi knjiženje
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => handleDownloadPdf(calc)}>
+                            <FileDown className="h-4 w-4 mr-2" />
+                            PDF
+                          </DropdownMenuItem>
+                          {calc.status === "draft" && canEdit && (
+                            <DropdownMenuItem
+                              onClick={() => setDeleteConfirm(calc)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Obriši
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -212,6 +295,45 @@ export default function Kalkulacije() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Obriši
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Post Confirmation */}
+      <AlertDialog open={!!postConfirm} onOpenChange={() => setPostConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Proknjižiti kalkulaciju?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da proknjižite kalkulaciju{" "}
+              <strong>{postConfirm?.calculation_number}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Odustani</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePost}>Proknjiži</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unpost Confirmation */}
+      <AlertDialog open={!!unpostConfirm} onOpenChange={() => setUnpostConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Poništiti knjiženje?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da poništite knjiženje kalkulacije{" "}
+              <strong>{unpostConfirm?.calculation_number}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Odustani</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleUnpost}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              Poništi knjiženje
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

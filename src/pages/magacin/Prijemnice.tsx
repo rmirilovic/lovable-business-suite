@@ -19,6 +19,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -31,11 +37,13 @@ import {
 import {
   Plus,
   Search,
-  Trash2,
-  ExternalLink,
   Loader2,
-  CheckCircle,
+  MoreHorizontal,
+  Eye,
+  BookCheck,
   Undo2,
+  FileDown,
+  Trash2,
 } from "lucide-react";
 import { useGoodsReceipts, GoodsReceipt } from "@/hooks/useGoodsReceipts";
 import { useWarehouses } from "@/hooks/useWarehouses";
@@ -48,6 +56,9 @@ import { GoodsReceiptDetailDialog } from "@/components/magacin/GoodsReceiptDetai
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { useTableSort } from "@/hooks/useTableSort";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { supabase } from "@/integrations/supabase/client";
+import { exportGoodsReceiptPdf } from "@/lib/goodsReceiptPdfGenerator";
+import { toast } from "sonner";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "Svi statusi" },
@@ -138,6 +149,28 @@ export default function Prijemnice() {
     if (!unpostConfirmReceipt) return;
     await unpostReceipt.mutateAsync(unpostConfirmReceipt.id);
     setUnpostConfirmReceipt(null);
+  };
+
+  const handleDownloadPdf = async (receipt: GoodsReceipt) => {
+    if (!selectedCompany?.id) return;
+    try {
+      const [{ data: items }, { data: company }] = await Promise.all([
+        supabase
+          .from("goods_receipt_items")
+          .select("*")
+          .eq("goods_receipt_id", receipt.id)
+          .order("item_order"),
+        supabase
+          .from("companies")
+          .select("name, address, city, postal_code, pib, mb")
+          .eq("id", selectedCompany.id)
+          .single(),
+      ]);
+      if (!items || !company) throw new Error("Greška pri učitavanju podataka");
+      await exportGoodsReceiptPdf(receipt, items as any, company);
+    } catch (err: any) {
+      toast.error(err.message || "Greška pri generisanju PDF-a");
+    }
   };
 
   const getStatusBadge = (status: string, sourceInvoiceId: string | null) => {
@@ -257,7 +290,7 @@ export default function Prijemnice() {
                   />
                 </TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Akcije</TableHead>
+                <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -280,9 +313,6 @@ export default function Prijemnice() {
                   >
                     <TableCell className="font-medium">
                       {receipt.receipt_number}
-                      {receipt.source_invoice_id && (
-                        <ExternalLink className="inline ml-1 h-3 w-3 text-muted-foreground" />
-                      )}
                     </TableCell>
                     <TableCell>
                       {format(new Date(receipt.receipt_date), "dd.MM.yyyy", {
@@ -300,42 +330,45 @@ export default function Prijemnice() {
                     <TableCell>
                       {getStatusBadge(receipt.status, receipt.source_invoice_id)}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div
-                        className="flex justify-end gap-1"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {receipt.status === "draft" && canPost && !receipt.source_invoice_id && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setPostConfirmReceipt(receipt)}
-                            title="Proknjiži"
-                          >
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
-                        )}
-                        {receipt.status === "posted" && canPost && !receipt.source_invoice_id && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setUnpostConfirmReceipt(receipt)}
-                            title="Poništi knjiženje"
-                          >
-                            <Undo2 className="h-4 w-4 text-orange-600" />
-                          </Button>
-                        )}
-                        {receipt.status === "draft" && canEdit && !receipt.source_invoice_id && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteConfirmReceipt(receipt)}
-                            title="Obriši"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        )}
-                      </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setDetailReceipt(receipt)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Prikaži
+                          </DropdownMenuItem>
+                          {receipt.status === "draft" && canPost && !receipt.source_invoice_id && (
+                            <DropdownMenuItem onClick={() => setPostConfirmReceipt(receipt)}>
+                              <BookCheck className="h-4 w-4 mr-2" />
+                              Proknjiži
+                            </DropdownMenuItem>
+                          )}
+                          {receipt.status === "posted" && canPost && !receipt.source_invoice_id && (
+                            <DropdownMenuItem onClick={() => setUnpostConfirmReceipt(receipt)}>
+                              <Undo2 className="h-4 w-4 mr-2" />
+                              Poništi knjiženje
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => handleDownloadPdf(receipt)}>
+                            <FileDown className="h-4 w-4 mr-2" />
+                            PDF
+                          </DropdownMenuItem>
+                          {receipt.status === "draft" && canEdit && !receipt.source_invoice_id && (
+                            <DropdownMenuItem
+                              onClick={() => setDeleteConfirmReceipt(receipt)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Obriši
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
