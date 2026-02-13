@@ -905,8 +905,8 @@ export function useCalculationUfuLinks(calculationId: string | null) {
       for (const item of (ufuItems || [])) {
         if (!item.input_cost || !procInputCostIds.has(item.input_cost.id)) continue;
 
-        // Amount = line_subtotal (neto iznos troška)
-        const amount = item.line_subtotal;
+        // If VAT is not deductible, full amount (with VAT) goes to cost; otherwise net amount
+        const amount = item.is_vat_deductible ? item.line_subtotal : item.line_total;
 
         await (supabase as any)
           .from("calculation_additional_costs")
