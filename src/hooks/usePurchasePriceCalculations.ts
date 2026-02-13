@@ -857,14 +857,27 @@ export function useCalculationUfuLinks(calculationId: string | null) {
     mutationFn: async (serviceInvoiceId: string) => {
       if (!calculationId || !selectedCompany?.id) throw new Error("Nedostaju podaci");
 
+      // Check if already linked to ANY calculation (unique constraint on service_invoice_id)
+      const { data: existingLink } = await (supabase as any)
+        .from("calculation_ufu_links")
+        .select("id, calculation_id")
+        .eq("service_invoice_id", serviceInvoiceId)
+        .maybeSingle();
+
+      if (existingLink) {
+        throw new Error("Ova UFU je već povezana sa kalkulacijom");
+      }
+
       // Create link
-      await (supabase as any)
+      const { error: linkError } = await (supabase as any)
         .from("calculation_ufu_links")
         .insert({
           calculation_id: calculationId,
           service_invoice_id: serviceInvoiceId,
           company_id: selectedCompany.id,
         });
+
+      if (linkError) throw linkError;
 
       // Get input costs marked as procurement costs
       const { data: procInputCosts } = await supabase
@@ -908,7 +921,7 @@ export function useCalculationUfuLinks(calculationId: string | null) {
         // If VAT is not deductible, full amount (with VAT) goes to cost; otherwise net amount
         const amount = item.is_vat_deductible ? item.line_subtotal : item.line_total;
 
-        await (supabase as any)
+        const { error: costError } = await (supabase as any)
           .from("calculation_additional_costs")
           .insert({
             calculation_id: calculationId,
@@ -921,6 +934,8 @@ export function useCalculationUfuLinks(calculationId: string | null) {
             source_ufu_item_id: item.id,
             item_order: nextOrder++,
           });
+
+        if (costError) throw costError;
       }
     },
     onSuccess: () => {
