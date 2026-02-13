@@ -58,7 +58,7 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
 
   const totalDebit = items.reduce((sum, item) => sum + Number(item.debit_amount), 0);
   const totalCredit = items.reduce((sum, item) => sum + Number(item.credit_amount), 0);
-  const isBalanced = totalDebit === totalCredit && totalDebit > 0;
+  const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01 && totalDebit > 0;
 
   const getAccountName = (code: string) => {
     const account = accounts.find((a) => a.code === code);
