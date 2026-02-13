@@ -5,35 +5,24 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, FileText, BookCheck } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Trash2, Eye, FileText, BookCheck, Undo2, FileDown } from "lucide-react";
 import { useServicePurchaseInvoices, ServicePurchaseInvoice } from "@/hooks/useServicePurchaseInvoices";
 import { ServicePurchaseInvoiceHeaderDialog } from "@/components/nabavka/ServicePurchaseInvoiceHeaderDialog";
 import { ServicePurchaseInvoiceDetailDialog } from "@/components/nabavka/ServicePurchaseInvoiceDetailDialog";
 import { formatNumber, formatDate } from "@/lib/formatting";
+import { generateServicePurchaseInvoicePdf } from "@/lib/servicePurchaseInvoicePdfGenerator";
+import { toast } from "sonner";
 
 const statusLabels: Record<string, string> = {
   draft: "Nacrt",
@@ -111,7 +100,6 @@ export default function UlazneFaktureUsluge() {
   };
 
   const handleView = (invoice: ServicePurchaseInvoice) => {
-    // Open in new tab for editing
     window.open(`/nabavka/ulazne-fakture-usluge/${invoice.id}`, "_blank");
   };
 
@@ -142,7 +130,6 @@ export default function UlazneFaktureUsluge() {
   };
 
   const handleNewInvoiceSaved = (invoice: ServicePurchaseInvoice) => {
-    // Open new invoice in new tab
     window.open(`/nabavka/ulazne-fakture-usluge/${invoice.id}`, "_blank");
   };
 
@@ -156,6 +143,28 @@ export default function UlazneFaktureUsluge() {
       await unpostInvoice.mutateAsync(invoiceToUnpost.id);
       setUnpostDialogOpen(false);
       setInvoiceToUnpost(null);
+    }
+  };
+
+  const handleDownloadPdf = async (invoice: ServicePurchaseInvoice) => {
+    if (!selectedCompany?.id) return;
+    try {
+      const [{ data: items }, { data: company }] = await Promise.all([
+        supabase
+          .from("service_purchase_invoice_items")
+          .select("*")
+          .eq("service_purchase_invoice_id", invoice.id)
+          .order("item_order"),
+        supabase
+          .from("companies")
+          .select("name, address, city, postal_code, pib, mb, phone, email")
+          .eq("id", selectedCompany.id)
+          .single(),
+      ]);
+      if (!items || !company) throw new Error("Greška pri učitavanju podataka");
+      await generateServicePurchaseInvoicePdf(invoice, items as any, company);
+    } catch (err: any) {
+      toast.error(err.message || "Greška pri generisanju PDF-a");
     }
   };
 
@@ -262,23 +271,29 @@ export default function UlazneFaktureUsluge() {
                             Prikaži
                           </DropdownMenuItem>
                           {invoice.status === "draft" && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleEdit(invoice)}>
-                                <Pencil className="h-4 w-4 mr-2" />
-                                Uredi zaglavlje
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handlePostClick(invoice)}>
-                                <BookCheck className="h-4 w-4 mr-2" />
-                                Proknjiži
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteClick(invoice)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Obriši
-                              </DropdownMenuItem>
-                            </>
+                            <DropdownMenuItem onClick={() => handlePostClick(invoice)}>
+                              <BookCheck className="h-4 w-4 mr-2" />
+                              Proknjiži
+                            </DropdownMenuItem>
+                          )}
+                          {invoice.status === "posted" && canUnpost && (
+                            <DropdownMenuItem onClick={() => handleUnpostClick(invoice)}>
+                              <Undo2 className="h-4 w-4 mr-2" />
+                              Poništi knjiženje
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => handleDownloadPdf(invoice)}>
+                            <FileDown className="h-4 w-4 mr-2" />
+                            PDF
+                          </DropdownMenuItem>
+                          {invoice.status === "draft" && (
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(invoice)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Obriši
+                            </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -344,7 +359,7 @@ export default function UlazneFaktureUsluge() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Otkaži</AlertDialogCancel>
-          <AlertDialogAction onClick={handlePostConfirm}>
+            <AlertDialogAction onClick={handlePostConfirm}>
               Proknjiži
             </AlertDialogAction>
           </AlertDialogFooter>

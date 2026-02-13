@@ -3,35 +3,26 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Eye, Package, BookCheck, Undo2 } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Trash2, Eye, Package, BookCheck, Undo2, FileDown } from "lucide-react";
 import { useGoodsPurchaseInvoices, GoodsPurchaseInvoice } from "@/hooks/useGoodsPurchaseInvoices";
 import { GoodsPurchaseInvoiceHeaderDialog } from "@/components/nabavka/GoodsPurchaseInvoiceHeaderDialog";
 import { GoodsPurchaseInvoiceDetailDialog } from "@/components/nabavka/GoodsPurchaseInvoiceDetailDialog";
 import { formatNumber, formatDate } from "@/lib/formatting";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { generateGoodsPurchaseInvoicePdf } from "@/lib/goodsPurchaseInvoicePdfGenerator";
+import { toast } from "sonner";
 
 const statusLabels: Record<string, string> = {
   draft: "Nacrt",
@@ -47,6 +38,7 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive" | "
 
 export default function UlazneFaktureRoba() {
   const { invoices, isLoading, deleteInvoice, postInvoice, unpostInvoice } = useGoodsPurchaseInvoices();
+  const { selectedCompany } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -135,6 +127,28 @@ export default function UlazneFaktureRoba() {
   const handleNewInvoiceSaved = (invoice: GoodsPurchaseInvoice) => {
     setSelectedInvoice(invoice);
     setDetailDialogOpen(true);
+  };
+
+  const handleDownloadPdf = async (invoice: GoodsPurchaseInvoice) => {
+    if (!selectedCompany?.id) return;
+    try {
+      const [{ data: items }, { data: company }] = await Promise.all([
+        supabase
+          .from("goods_purchase_invoice_items")
+          .select("*")
+          .eq("goods_purchase_invoice_id", invoice.id)
+          .order("item_order"),
+        supabase
+          .from("companies")
+          .select("name, address, city, postal_code, pib, mb, phone, email")
+          .eq("id", selectedCompany.id)
+          .single(),
+      ]);
+      if (!items || !company) throw new Error("Greška pri učitavanju podataka");
+      await generateGoodsPurchaseInvoicePdf(invoice, items as any, company);
+    } catch (err: any) {
+      toast.error(err.message || "Greška pri generisanju PDF-a");
+    }
   };
 
   return (
@@ -245,31 +259,28 @@ export default function UlazneFaktureRoba() {
                             Prikaži
                           </DropdownMenuItem>
                           {invoice.status === "draft" && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleEdit(invoice)}>
-                                <Pencil className="h-4 w-4 mr-2" />
-                                Uredi zaglavlje
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handlePostClick(invoice)}>
-                                <BookCheck className="h-4 w-4 mr-2" />
-                                Proknjiži
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteClick(invoice)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Obriši
-                              </DropdownMenuItem>
-                            </>
+                            <DropdownMenuItem onClick={() => handlePostClick(invoice)}>
+                              <BookCheck className="h-4 w-4 mr-2" />
+                              Proknjiži
+                            </DropdownMenuItem>
                           )}
                           {invoice.status === "posted" && (
-                            <DropdownMenuItem
-                              onClick={() => handleUnpostClick(invoice)}
-                              className="text-destructive"
-                            >
+                            <DropdownMenuItem onClick={() => handleUnpostClick(invoice)}>
                               <Undo2 className="h-4 w-4 mr-2" />
                               Poništi knjiženje
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => handleDownloadPdf(invoice)}>
+                            <FileDown className="h-4 w-4 mr-2" />
+                            PDF
+                          </DropdownMenuItem>
+                          {invoice.status === "draft" && (
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(invoice)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Obriši
                             </DropdownMenuItem>
                           )}
                         </DropdownMenuContent>
