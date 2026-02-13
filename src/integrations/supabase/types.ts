@@ -548,7 +548,6 @@ export type Database = {
           id: string
           is_active: boolean
           is_posting_allowed: boolean
-          is_procurement_cost: boolean
           level: number
           name: string
           parent_code: string | null
@@ -563,7 +562,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_posting_allowed?: boolean
-          is_procurement_cost?: boolean
           level?: number
           name: string
           parent_code?: string | null
@@ -578,7 +576,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_posting_allowed?: boolean
-          is_procurement_cost?: boolean
           level?: number
           name?: string
           parent_code?: string | null
@@ -1269,6 +1266,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_procurement_cost: boolean
           is_vat_deductible: boolean
           name: string
           updated_at: string
@@ -1282,6 +1280,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_procurement_cost?: boolean
           is_vat_deductible?: boolean
           name: string
           updated_at?: string
@@ -1295,6 +1294,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_procurement_cost?: boolean
           is_vat_deductible?: boolean
           name?: string
           updated_at?: string

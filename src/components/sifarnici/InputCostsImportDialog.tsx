@@ -133,6 +133,7 @@ export function InputCostsImportDialog({ open, onOpenChange }: InputCostsImportD
               ? String(row[mapping.is_active]).toLowerCase() !== "ne"
               : true,
             description: mapping.description ? String(row[mapping.description] || "") || null : null,
+            is_procurement_cost: false,
           };
 
           const existing = existingMap.get(code);

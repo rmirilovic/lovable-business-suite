@@ -804,22 +804,12 @@ export function useCalculationUfuLinks(calculationId: string | null) {
     queryFn: async () => {
       if (!selectedCompany?.id) return [];
 
-      // Get procurement cost account codes
-      const { data: procAccounts } = await supabase
-        .from("chart_of_accounts")
-        .select("code")
-        .eq("company_id", selectedCompany.id)
-        .eq("is_procurement_cost", true as any);
-
-      const procCodes = (procAccounts || []).map((a: any) => a.code);
-      if (procCodes.length === 0) return [];
-
-      // Get input costs that use procurement cost accounts
+      // Get input costs marked as procurement costs
       const { data: inputCosts } = await supabase
         .from("input_costs")
         .select("id")
         .eq("company_id", selectedCompany.id)
-        .in("account_code", procCodes);
+        .eq("is_procurement_cost", true as any);
 
       const inputCostIds = (inputCosts || []).map((ic: any) => ic.id);
       if (inputCostIds.length === 0) return [];
@@ -876,14 +866,14 @@ export function useCalculationUfuLinks(calculationId: string | null) {
           company_id: selectedCompany.id,
         });
 
-      // Get procurement cost account codes
-      const { data: procAccounts } = await supabase
-        .from("chart_of_accounts")
-        .select("code")
+      // Get input costs marked as procurement costs
+      const { data: procInputCosts } = await supabase
+        .from("input_costs")
+        .select("id")
         .eq("company_id", selectedCompany.id)
         .eq("is_procurement_cost", true as any);
 
-      const procCodes = new Set((procAccounts || []).map((a: any) => a.code));
+      const procInputCostIds = new Set((procInputCosts || []).map((ic: any) => ic.id));
 
       // Load UFU items that are procurement costs
       const { data: ufuItems } = await (supabase as any)
@@ -913,7 +903,7 @@ export function useCalculationUfuLinks(calculationId: string | null) {
 
       // Insert each qualifying UFU item as an additional cost
       for (const item of (ufuItems || [])) {
-        if (!item.input_cost || !procCodes.has(item.input_cost.account_code)) continue;
+        if (!item.input_cost || !procInputCostIds.has(item.input_cost.id)) continue;
 
         // Amount = line_subtotal (neto iznos troška)
         const amount = item.line_subtotal;

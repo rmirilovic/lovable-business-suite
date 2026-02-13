@@ -15,7 +15,6 @@ export interface ChartOfAccountsRow {
   level: number;
   is_active: boolean;
   is_posting_allowed: boolean;
-  is_procurement_cost: boolean;
   description: string | null;
   created_at: string;
   updated_at: string;

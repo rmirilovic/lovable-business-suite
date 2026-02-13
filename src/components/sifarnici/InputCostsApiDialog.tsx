@@ -31,6 +31,7 @@ export function InputCostsApiDialog({ open, onOpenChange }: InputCostsApiDialogP
     vat_rate: c.vat_rate,
     is_vat_deductible: c.is_vat_deductible,
     is_active: c.is_active,
+    is_procurement_cost: c.is_procurement_cost,
     description: c.description,
   }));
 
@@ -71,6 +72,7 @@ export function InputCostsApiDialog({ open, onOpenChange }: InputCostsApiDialogP
           vat_rate: Number(item.vat_rate) || 20,
           is_vat_deductible: item.is_vat_deductible !== false,
           is_active: item.is_active !== false,
+          is_procurement_cost: item.is_procurement_cost === true,
           description: item.description || null,
         }));
 
