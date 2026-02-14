@@ -160,8 +160,16 @@ export default function NaloziZaKnjizenje() {
                 </TableRow>
               ) : (
                 filteredEntries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell className="font-medium">{entry.entry_number}</TableCell>
+                  <TableRow key={entry.id} className="relative cursor-pointer hover:bg-muted/50">
+                    <TableCell className="font-medium">
+                      <a
+                        href={`/racunovodstvo/nalozi/${entry.id}`}
+                        onClick={(e) => { e.preventDefault(); handleViewEntry(entry); }}
+                        className="absolute inset-0 z-0"
+                        tabIndex={-1}
+                      />
+                      {entry.entry_number}
+                    </TableCell>
                     <TableCell>{format(new Date(entry.entry_date), "dd.MM.yyyy")}</TableCell>
                     <TableCell className="max-w-[300px] truncate">{entry.description}</TableCell>
                     <TableCell className="text-muted-foreground">
@@ -178,7 +186,7 @@ export default function NaloziZaKnjizenje() {
                         {STATUS_LABELS[entry.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="relative z-10">
                       <div className="flex items-center gap-1">
                         <Button variant="ghost" size="icon" title="Pregled" asChild>
                           <a href={`/racunovodstvo/nalozi/${entry.id}`} onClick={(e) => { e.preventDefault(); handleViewEntry(entry); }}>
