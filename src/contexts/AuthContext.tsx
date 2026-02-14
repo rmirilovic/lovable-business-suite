@@ -21,6 +21,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  initialLoadDone: boolean;
   companies: Company[];
   businessYears: BusinessYear[];
   selectedCompany: Company | null;
@@ -375,6 +376,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         session,
         loading,
+        initialLoadDone,
         companies,
         businessYears,
         selectedCompany,

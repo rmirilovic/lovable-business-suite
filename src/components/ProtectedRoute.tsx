@@ -13,7 +13,7 @@ export function ProtectedRoute({
   requireCompany = true,
   requireAdmin = false 
 }: ProtectedRouteProps) {
-  const { user, loading, selectedCompany, selectedYear, isSuperAdmin, isLocalAdmin, userRole, localAdminCompanyIds } = useAuth();
+  const { user, loading, selectedCompany, selectedYear, isSuperAdmin, isLocalAdmin, userRole, localAdminCompanyIds, initialLoadDone } = useAuth();
 
   if (loading) {
     return (
@@ -38,6 +38,15 @@ export function ProtectedRoute({
 
   if (requireAdmin && !isSuperAdmin && !isLocalAdmin) {
     return <Navigate to="/" replace />;
+  }
+
+  // Don't redirect to select-company until initial data load is complete
+  if (requireCompany && !initialLoadDone) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Učitavanje...</div>
+      </div>
+    );
   }
 
   if (requireCompany && (!selectedCompany || !selectedYear)) {
