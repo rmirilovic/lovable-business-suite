@@ -18,9 +18,21 @@ interface Props {
   countId: string;
   warehouseId: string;
   countDate: string;
+  warehouseType: string;
 }
 
-export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: Props) {
+function getAllowedSvkForWarehouseType(warehouseType: string): string[] {
+  switch (warehouseType) {
+    case "1": return ["1"];
+    case "2": return ["2"];
+    case "6": return ["6"];
+    case "9": return ["9"];
+    case "12": return ["1", "2"];
+    default: return ["0", "1", "2", "6", "8", "9"];
+  }
+}
+
+export function InventoryCountItemsEditor({ countId, warehouseId, countDate, warehouseType }: Props) {
   const { selectedCompany, selectedYear } = useAuth();
   const { items, isLoading, addItem, updateItem, deleteItem } = useInventoryCountItems(countId);
   const { articles } = useArticles(selectedCompany?.id);
@@ -269,7 +281,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
         <div className="flex-1" />
         <div className="flex items-center gap-4 text-sm">
           <SearchableArticleSelect
-            articles={articles.filter((a) => a.is_active)}
+            articles={articles.filter((a) => a.is_active && getAllowedSvkForWarehouseType(warehouseType).includes(a.svk || "1"))}
             value=""
             onValueChange={(id) => handleAddArticle(id)}
             placeholder="Dodaj artikal..."

@@ -65,7 +65,7 @@ export default function InventoryCountEdit() {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("inventory_counts")
-      .select(`*, warehouse:warehouses(id, code, name)`)
+      .select(`*, warehouse:warehouses(id, code, name, warehouse_type)`)
       .eq("id", id)
       .single();
     if (error) {
@@ -200,6 +200,7 @@ export default function InventoryCountEdit() {
             countId={countDoc.id}
             warehouseId={countDoc.warehouse_id}
             countDate={countDoc.count_date}
+            warehouseType={countDoc.warehouse?.warehouse_type || "1"}
           />
         ) : (
           <div className="border rounded-md">
