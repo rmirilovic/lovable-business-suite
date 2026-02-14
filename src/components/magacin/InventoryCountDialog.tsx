@@ -32,6 +32,7 @@ export function InventoryCountDialog({ open, onOpenChange, count, onSave }: Prop
   });
 
   useEffect(() => {
+    if (!open) return;
     if (count) {
       setFormData({
         warehouse_id: count.warehouse_id,
@@ -45,7 +46,8 @@ export function InventoryCountDialog({ open, onOpenChange, count, onSave }: Prop
         note: null,
       });
     }
-  }, [count, open, warehouses]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [count, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

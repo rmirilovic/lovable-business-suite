@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -30,7 +30,6 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
     if (!selectedCompany?.id || !selectedYear?.id) return;
     setIsLoadingStock(true);
     try {
-      // Get stock data from warehouse up to count_date
       const { data: stockData, error } = await supabase.rpc("get_warehouse_stock", {
         p_company_id: selectedCompany.id,
         p_warehouse_id: warehouseId,
@@ -72,7 +71,6 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
         return;
       }
 
-      // Batch insert
       for (let i = 0; i < newItems.length; i += 50) {
         const batch = newItems.slice(i, i + 50);
         const { error: insErr } = await supabase.from("inventory_count_items").insert(batch);
@@ -80,8 +78,6 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
       }
 
       toast.success(`Učitano ${newItems.length} artikala iz magacina`);
-      // Refresh
-      await addItem.reset?.();
       window.location.reload();
     } catch (e: any) {
       toast.error(`Greška: ${e.message}`);
@@ -95,7 +91,6 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
     const article = articles.find((a) => a.id === articleId);
     if (!article) return;
 
-    // Check duplicate
     if (items.some((i) => i.article_id === articleId)) {
       toast.error("Artikal je već u popisnoj listi");
       return;
@@ -135,7 +130,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
     return updated;
   };
 
-  const handleFieldBlur = async (item: InventoryCountItem, field: string, rawValue: string) => {
+  const handleFieldCommit = async (item: InventoryCountItem, field: string, rawValue: string) => {
     const value = parseLocaleNumber(rawValue);
     const updated = recalcItem(item, field, value);
     await updateItem.mutateAsync({
@@ -165,7 +160,6 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
         return;
       }
 
-      // Try to find column mappings
       const headers = Object.keys(rows[0]);
       const codeCol = headers.find((h) => /šifra|sifra|code/i.test(h));
       const qtyCol = headers.find((h) => /popisana|količina|kolicina|qty|counted/i.test(h));
@@ -191,7 +185,6 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
         const price = priceCol ? Number(row[priceCol]) || 0 : undefined;
 
         if (existingItem) {
-          // Update counted_quantity
           const updated = recalcItem(existingItem, "counted_quantity", countedQty);
           if (price !== undefined) {
             updated.price = price;
@@ -209,7 +202,6 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
           });
           imported++;
         } else {
-          // Add new item
           const nextOrder = items.length + imported + 1;
           const bookQty = 0;
           const itemPrice = price ?? article.selling_price ?? article.purchase_price ?? 0;
@@ -285,21 +277,21 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
       </div>
 
       {/* Items table */}
-      <div className="border rounded-md">
+      <div className="border rounded-md overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">#</TableHead>
-              <TableHead>Šifra</TableHead>
+              <TableHead className="w-[80px]">Šifra</TableHead>
               <TableHead className="min-w-[200px]">Naziv</TableHead>
               <TableHead className="w-[60px]">JM</TableHead>
-              <TableHead className="w-[100px] text-right">Knjižna kol.</TableHead>
-              <TableHead className="w-[100px] text-right">Popisana kol.</TableHead>
-              <TableHead className="w-[80px] text-right">Višak</TableHead>
-              <TableHead className="w-[80px] text-right">Manjak</TableHead>
-              <TableHead className="w-[100px] text-right">Cena</TableHead>
-              <TableHead className="w-[100px] text-right">Vr. viška</TableHead>
-              <TableHead className="w-[100px] text-right">Vr. manjka</TableHead>
+              <TableHead className="w-[140px] text-right">Knjižna kol.</TableHead>
+              <TableHead className="w-[160px] text-right">Popisana kol.</TableHead>
+              <TableHead className="w-[120px] text-right">Višak</TableHead>
+              <TableHead className="w-[120px] text-right">Manjak</TableHead>
+              <TableHead className="w-[140px] text-right">Cena</TableHead>
+              <TableHead className="w-[140px] text-right">Vr. viška</TableHead>
+              <TableHead className="w-[140px] text-right">Vr. manjka</TableHead>
               <TableHead className="w-[40px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -312,56 +304,13 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
               </TableRow>
             ) : (
               items.map((item, index) => (
-                <TableRow key={item.id}>
-                  <TableCell className="text-muted-foreground">{index + 1}</TableCell>
-                  <TableCell>{item.item_code || "-"}</TableCell>
-                  <TableCell>{item.item_name}</TableCell>
-                  <TableCell>{item.unit}</TableCell>
-                  <TableCell className="text-right text-muted-foreground">
-                    {formatDecimal(item.book_quantity, 2)}
-                  </TableCell>
-                  <TableCell>
-                    <LocaleNumberInput
-                      value={formatDecimal(item.counted_quantity, 2)}
-                      onChange={(val) => handleFieldBlur(item, "counted_quantity", val)}
-                      className="text-right"
-                      decimalPlaces={2}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {item.surplus_qty > 0 ? (
-                      <span className="text-green-600">{formatDecimal(item.surplus_qty, 2)}</span>
-                    ) : ""}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {item.deficit_qty > 0 ? (
-                      <span className="text-destructive">{formatDecimal(item.deficit_qty, 2)}</span>
-                    ) : ""}
-                  </TableCell>
-                  <TableCell>
-                    <LocaleNumberInput
-                      value={formatDecimal(item.price, 2)}
-                      onChange={(val) => handleFieldBlur(item, "price", val)}
-                      className="text-right"
-                      decimalPlaces={2}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {item.surplus_value > 0 ? (
-                      <span className="text-green-600">{formatDecimal(item.surplus_value, 2)}</span>
-                    ) : ""}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {item.deficit_value > 0 ? (
-                      <span className="text-destructive">{formatDecimal(item.deficit_value, 2)}</span>
-                    ) : ""}
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" onClick={() => deleteItem.mutateAsync(item.id)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                <InventoryCountRow
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  onFieldCommit={handleFieldCommit}
+                  onDelete={() => deleteItem.mutateAsync(item.id)}
+                />
               ))
             )}
             {items.length > 0 && (
@@ -380,5 +329,83 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
         </Table>
       </div>
     </div>
+  );
+}
+
+/* ── Row component with local state for commit-on-blur ── */
+
+interface RowProps {
+  item: InventoryCountItem;
+  index: number;
+  onFieldCommit: (item: InventoryCountItem, field: string, rawValue: string) => Promise<void>;
+  onDelete: () => void;
+}
+
+function InventoryCountRow({ item, index, onFieldCommit, onDelete }: RowProps) {
+  const [countedQty, setCountedQty] = useState(formatDecimal(item.counted_quantity, 3));
+  const [price, setPrice] = useState(formatDecimal(item.price, 2));
+
+  // Sync from external changes (e.g. after mutation settles)
+  React.useEffect(() => {
+    setCountedQty(formatDecimal(item.counted_quantity, 3));
+  }, [item.counted_quantity]);
+
+  React.useEffect(() => {
+    setPrice(formatDecimal(item.price, 2));
+  }, [item.price]);
+
+  return (
+    <TableRow>
+      <TableCell className="text-muted-foreground">{index + 1}</TableCell>
+      <TableCell>{item.item_code || "-"}</TableCell>
+      <TableCell>{item.item_name}</TableCell>
+      <TableCell>{item.unit}</TableCell>
+      <TableCell className="text-right text-muted-foreground">
+        {formatDecimal(item.book_quantity, 3)}
+      </TableCell>
+      <TableCell>
+        <LocaleNumberInput
+          value={countedQty}
+          onChange={setCountedQty}
+          onBlur={() => onFieldCommit(item, "counted_quantity", countedQty)}
+          className="text-right text-sm"
+          decimalPlaces={3}
+        />
+      </TableCell>
+      <TableCell className="text-right">
+        {item.surplus_qty > 0 ? (
+          <span className="text-green-600">{formatDecimal(item.surplus_qty, 3)}</span>
+        ) : ""}
+      </TableCell>
+      <TableCell className="text-right">
+        {item.deficit_qty > 0 ? (
+          <span className="text-destructive">{formatDecimal(item.deficit_qty, 3)}</span>
+        ) : ""}
+      </TableCell>
+      <TableCell>
+        <LocaleNumberInput
+          value={price}
+          onChange={setPrice}
+          onBlur={() => onFieldCommit(item, "price", price)}
+          className="text-right text-sm"
+          decimalPlaces={2}
+        />
+      </TableCell>
+      <TableCell className="text-right">
+        {item.surplus_value > 0 ? (
+          <span className="text-green-600">{formatDecimal(item.surplus_value, 2)}</span>
+        ) : ""}
+      </TableCell>
+      <TableCell className="text-right">
+        {item.deficit_value > 0 ? (
+          <span className="text-destructive">{formatDecimal(item.deficit_value, 2)}</span>
+        ) : ""}
+      </TableCell>
+      <TableCell>
+        <Button variant="ghost" size="icon" onClick={onDelete}>
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+      </TableCell>
+    </TableRow>
   );
 }
