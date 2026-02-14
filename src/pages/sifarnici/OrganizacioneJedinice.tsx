@@ -689,14 +689,14 @@ export default function OrganizacioneJedinice() {
             <div className="space-y-2">
               <Label htmlFor="parent">Nadređena jedinica</Label>
               <Select
-                value={formData.parent_code}
-                onValueChange={(value) => setFormData({ ...formData, parent_code: value })}
+                value={formData.parent_code || "__none__"}
+                onValueChange={(value) => setFormData({ ...formData, parent_code: value === "__none__" ? "" : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Bez nadređene (korenski nivo)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Bez nadređene (korenski nivo)</SelectItem>
+                  <SelectItem value="__none__">Bez nadređene (korenski nivo)</SelectItem>
                   {potentialParents.map((u) => (
                     <SelectItem key={u.id} value={u.code}>
                       {u.code} - {u.name}
