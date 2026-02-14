@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -246,8 +246,12 @@ export function Sidebar() {
         {filteredNavigation.map((item) => (
           <div key={item.label}>
             {item.href ? (
-              <Link
-                to={item.href}
+              <a
+                href={item.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(item.href!);
+                }}
                 className={cn(
                   "erp-sidebar-link",
                   isActive(item.href) && "erp-sidebar-link-active"
@@ -255,7 +259,7 @@ export function Sidebar() {
               >
                 <item.icon className="w-5 h-5" />
                 <span>{item.label}</span>
-              </Link>
+              </a>
             ) : (
               <>
                 <button
@@ -279,9 +283,13 @@ export function Sidebar() {
                 {expandedItems.includes(item.label) && item.children && (
                   <div className="ml-8 mt-1 space-y-1">
                     {getFilteredChildren(item.children).map((child) => (
-                      <Link
+                      <a
                         key={child.href}
-                        to={child.href}
+                        href={child.href}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(child.href);
+                        }}
                         className={cn(
                           "block px-3 py-2 text-sm rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors",
                           isActive(child.href) &&
@@ -289,7 +297,7 @@ export function Sidebar() {
                         )}
                       >
                         {child.label}
-                      </Link>
+                      </a>
                     ))}
                   </div>
                 )}
