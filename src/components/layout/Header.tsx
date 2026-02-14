@@ -1,4 +1,4 @@
-import { Bell, Search, Settings, LogOut } from "lucide-react";
+import { Bell, Search, Settings, LogOut, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,9 +16,10 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 interface HeaderProps {
   title: string;
   userName: string;
+  onMobileMenuToggle?: () => void;
 }
 
-export function Header({ title, userName }: HeaderProps) {
+export function Header({ title, userName, onMobileMenuToggle }: HeaderProps) {
   const navigate = useNavigate();
   const { signOut, user, isSuperAdmin, isLocalAdmin } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -64,13 +65,22 @@ export function Header({ title, userName }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 bg-card border-b border-border px-6 flex items-center justify-between">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+    <header className="h-14 lg:h-16 bg-card border-b border-border px-4 lg:px-6 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        {/* Hamburger menu - mobile only */}
+        {onMobileMenuToggle && (
+          <button
+            onClick={onMobileMenuToggle}
+            className="lg:hidden p-2 -ml-2 rounded-md hover:bg-secondary transition-colors"
+          >
+            <Menu className="w-5 h-5 text-foreground" />
+          </button>
+        )}
+        <h1 className="text-lg lg:text-xl font-semibold text-foreground truncate">{title}</h1>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Search */}
+      <div className="flex items-center gap-2 lg:gap-4">
+        {/* Search - desktop only */}
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
@@ -97,7 +107,7 @@ export function Header({ title, userName }: HeaderProps) {
                 <p className="text-sm font-medium text-foreground">{userName}</p>
                 <p className="text-xs text-muted-foreground">{getRoleLabel()}</p>
               </div>
-              <Avatar className="h-9 w-9">
+              <Avatar className="h-8 w-8 lg:h-9 lg:w-9">
                 <AvatarImage src={avatarUrl || undefined} alt="Profilna slika" />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                   {getUserInitials()}
