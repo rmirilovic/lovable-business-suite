@@ -2156,6 +2156,165 @@ export type Database = {
           },
         ]
       }
+      price_adjustment_items: {
+        Row: {
+          article_id: string
+          company_id: string
+          created_at: string
+          id: string
+          item_code: string | null
+          item_name: string
+          item_order: number
+          new_price: number
+          old_price: number
+          price_adjustment_id: string
+          price_difference: number
+          quantity: number
+          unit: string
+          value_difference: number
+        }
+        Insert: {
+          article_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          new_price?: number
+          old_price?: number
+          price_adjustment_id: string
+          price_difference?: number
+          quantity?: number
+          unit?: string
+          value_difference?: number
+        }
+        Update: {
+          article_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          new_price?: number
+          old_price?: number
+          price_adjustment_id?: string
+          price_difference?: number
+          quantity?: number
+          unit?: string
+          value_difference?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_adjustment_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_adjustment_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_adjustment_items_price_adjustment_id_fkey"
+            columns: ["price_adjustment_id"]
+            isOneToOne: false
+            referencedRelation: "price_adjustments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      price_adjustments: {
+        Row: {
+          adjustment_date: string
+          adjustment_number: string
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          id: string
+          journal_entry_id: string | null
+          note: string | null
+          posted_at: string | null
+          posted_by: string | null
+          status: string
+          total_decrease: number
+          total_increase: number
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          adjustment_date?: string
+          adjustment_number: string
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          total_decrease?: number
+          total_increase?: number
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          adjustment_date?: string
+          adjustment_number?: string
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          total_decrease?: number
+          total_increase?: number
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_adjustments_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_adjustments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_adjustments_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "price_adjustments_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3337,6 +3496,10 @@ export type Database = {
         Args: { _company_id: string; _year_id: string }
         Returns: string
       }
+      get_next_price_adjustment_number: {
+        Args: { _company_id: string; _year_id: string }
+        Returns: string
+      }
       get_next_purchase_invoice_number: {
         Args: { _company_id: string; _invoice_type: string; _year_id: string }
         Returns: string
@@ -3417,6 +3580,10 @@ export type Database = {
         Args: { _entry_id: string; _user_id: string }
         Returns: boolean
       }
+      post_price_adjustment: {
+        Args: { _adjustment_id: string; _user_id: string }
+        Returns: undefined
+      }
       post_purchase_price_calculation: {
         Args: { _calculation_id: string; _user_id: string }
         Returns: string
@@ -3440,6 +3607,10 @@ export type Database = {
       unpost_journal_entry: {
         Args: { _entry_id: string; _user_id: string }
         Returns: boolean
+      }
+      unpost_price_adjustment: {
+        Args: { _adjustment_id: string; _user_id: string }
+        Returns: undefined
       }
       unpost_purchase_price_calculation: {
         Args: { _calculation_id: string; _user_id: string }
