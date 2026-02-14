@@ -18,7 +18,7 @@ export interface InventoryCount {
   posted_by: string | null;
   created_at: string;
   updated_at: string;
-  warehouse?: { id: string; code: string; name: string };
+  warehouse?: { id: string; code: string; name: string; warehouse_type: string };
 }
 
 export interface InventoryCountItem {
