@@ -192,23 +192,31 @@ export default function GlavnaKnjiga() {
                 />
               </div>
               <div className="flex items-end gap-2">
-                {selectedAccount && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      const params = new URLSearchParams();
-                      if (dateFrom) params.set('from', dateFrom);
-                      if (dateTo) params.set('to', dateTo);
-                      params.set('account', selectedAccount);
-                      const path = `/racunovodstvo/kartica-konta/${selectedAccount}`;
-                      navigate(`${path}?${params.toString()}`);
-                    }}
-                    title="Otvori karticu konta"
-                  >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Kartica
-                  </Button>
-                )}
+                {selectedAccount && (() => {
+                    const params = new URLSearchParams();
+                    if (dateFrom) params.set('from', dateFrom);
+                    if (dateTo) params.set('to', dateTo);
+                    params.set('account', selectedAccount);
+                    const href = `/racunovodstvo/kartica-konta/${selectedAccount}?${params.toString()}`;
+                    return (
+                      <Button
+                        variant="secondary"
+                        asChild
+                      >
+                        <a
+                          href={href}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(href);
+                          }}
+                          title="Levi klik: otvori ovde | Desni klik → Otvori u novom tabu"
+                        >
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Kartica
+                        </a>
+                      </Button>
+                    );
+                  })()}
                 <Button variant="outline">
                   <Download className="w-4 h-4 mr-2" />
                   Izvezi
