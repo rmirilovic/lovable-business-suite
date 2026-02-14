@@ -310,17 +310,18 @@ export default function Prijemnice() {
                 sortedData.map((receipt) => (
                   <TableRow
                     key={receipt.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate(`/magacin/prijemnice/${receipt.id}`)}
+                    className="relative cursor-pointer hover:bg-muted/50"
                   >
                     <TableCell className="font-medium">
                       <a
                         href={`/magacin/prijemnice/${receipt.id}`}
-                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/magacin/prijemnice/${receipt.id}`); }}
-                        className="hover:underline"
-                      >
+                        onClick={(e) => { e.preventDefault(); navigate(`/magacin/prijemnice/${receipt.id}`); }}
+                        className="absolute inset-0 z-0"
+                        aria-hidden="true"
+                      />
+                      <span className="relative z-[1]">
                         {receipt.receipt_number}
-                      </a>
+                      </span>
                     </TableCell>
                     <TableCell>
                       {format(new Date(receipt.receipt_date), "dd.MM.yyyy", {
@@ -338,7 +339,7 @@ export default function Prijemnice() {
                     <TableCell>
                       {getStatusBadge(receipt.status, receipt.source_invoice_id)}
                     </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+                    <TableCell className="relative z-10" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
