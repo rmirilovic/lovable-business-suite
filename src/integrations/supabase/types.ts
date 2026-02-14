@@ -1310,6 +1310,165 @@ export type Database = {
           },
         ]
       }
+      inventory_count_items: {
+        Row: {
+          article_id: string
+          book_quantity: number
+          company_id: string
+          counted_quantity: number
+          created_at: string
+          deficit_qty: number
+          deficit_value: number
+          id: string
+          inventory_count_id: string
+          item_code: string | null
+          item_name: string
+          item_order: number
+          price: number
+          surplus_qty: number
+          surplus_value: number
+          unit: string
+        }
+        Insert: {
+          article_id: string
+          book_quantity?: number
+          company_id: string
+          counted_quantity?: number
+          created_at?: string
+          deficit_qty?: number
+          deficit_value?: number
+          id?: string
+          inventory_count_id: string
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          price?: number
+          surplus_qty?: number
+          surplus_value?: number
+          unit?: string
+        }
+        Update: {
+          article_id?: string
+          book_quantity?: number
+          company_id?: string
+          counted_quantity?: number
+          created_at?: string
+          deficit_qty?: number
+          deficit_value?: number
+          id?: string
+          inventory_count_id?: string
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          price?: number
+          surplus_qty?: number
+          surplus_value?: number
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_count_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_count_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_count_items_inventory_count_id_fkey"
+            columns: ["inventory_count_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_counts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_counts: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          count_date: string
+          count_number: string
+          created_at: string
+          created_by: string
+          id: string
+          journal_entry_id: string | null
+          note: string | null
+          posted_at: string | null
+          posted_by: string | null
+          status: string
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          count_date?: string
+          count_number: string
+          created_at?: string
+          created_by: string
+          id?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          count_date?: string
+          count_number?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_counts_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_counts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_counts_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_counts_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           article_id: string | null
@@ -3170,6 +3329,10 @@ export type Database = {
         Args: { _company_id: string; _year_id: string }
         Returns: string
       }
+      get_next_inventory_count_number: {
+        Args: { _company_id: string; _year_id: string }
+        Returns: string
+      }
       get_next_journal_entry_number: {
         Args: { _company_id: string; _year_id: string }
         Returns: string
@@ -3242,6 +3405,10 @@ export type Database = {
         Args: { _receipt_id: string; _user_id: string }
         Returns: string
       }
+      post_inventory_count: {
+        Args: { _count_id: string; _user_id: string }
+        Returns: undefined
+      }
       post_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
@@ -3265,6 +3432,10 @@ export type Database = {
       unpost_goods_receipt: {
         Args: { _receipt_id: string; _user_id: string }
         Returns: string
+      }
+      unpost_inventory_count: {
+        Args: { _count_id: string; _user_id: string }
+        Returns: undefined
       }
       unpost_journal_entry: {
         Args: { _entry_id: string; _user_id: string }
