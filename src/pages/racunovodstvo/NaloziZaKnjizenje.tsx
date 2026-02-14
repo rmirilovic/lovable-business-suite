@@ -180,23 +180,17 @@ export default function NaloziZaKnjizenje() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleViewEntry(entry)}
-                          title="Pregled"
-                        >
-                          <Eye className="w-4 h-4" />
+                        <Button variant="ghost" size="icon" title="Pregled" asChild>
+                          <a href={`/racunovodstvo/nalozi/${entry.id}`} onClick={(e) => { e.preventDefault(); handleViewEntry(entry); }}>
+                            <Eye className="w-4 h-4" />
+                          </a>
                         </Button>
                         {entry.status === "draft" && (
                           <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleViewEntry(entry)}
-                              title="Izmeni"
-                            >
-                              <Pencil className="w-4 h-4" />
+                            <Button variant="ghost" size="icon" title="Izmeni" asChild>
+                              <a href={`/racunovodstvo/nalozi/${entry.id}`} onClick={(e) => { e.preventDefault(); handleViewEntry(entry); }}>
+                                <Pencil className="w-4 h-4" />
+                              </a>
                             </Button>
                             <Button
                               variant="ghost"
