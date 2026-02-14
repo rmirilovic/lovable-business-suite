@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, Filter, CreditCard, ExternalLink } from "lucide-react";
+import { FileText, Download, Filter, CreditCard } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,6 +46,7 @@ interface LedgerEntry {
 export default function GlavnaKnjiga() {
   const { selectedCompany, selectedYear } = useAuth();
   const { data: accounts = [] } = useChartOfAccounts();
+  const navigate = useNavigate();
 
   const [selectedAccount, setSelectedAccount] = useState<string>("");
   const [dateFrom, setDateFrom] = useState<string>("");
@@ -197,12 +199,11 @@ export default function GlavnaKnjiga() {
                       if (dateFrom) params.set('from', dateFrom);
                       if (dateTo) params.set('to', dateTo);
                       const path = `/racunovodstvo/kartica-konta/${selectedAccount}`;
-                      const url = `${window.location.origin}${path}${params.toString() ? `?${params.toString()}` : ''}`;
-                      window.open(url, "_blank");
+                      navigate(`${path}${params.toString() ? `?${params.toString()}` : ''}`);
                     }}
-                    title="Otvori karticu konta u novom tabu"
+                    title="Otvori karticu konta"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <CreditCard className="w-4 h-4 mr-2" />
                     Kartica
                   </Button>
                 )}
