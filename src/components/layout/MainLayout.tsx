@@ -17,11 +17,11 @@ export function MainLayout({ children, title }: MainLayoutProps) {
     : user?.email || "Korisnik";
 
   return (
-    <div className="h-screen bg-background flex overflow-hidden">
+    <div className="min-h-screen lg:h-screen bg-background flex overflow-x-hidden lg:overflow-hidden">
       <Sidebar mobileOpen={mobileMenuOpen} onMobileClose={() => setMobileMenuOpen(false)} />
-      <div className="lg:ml-64 flex-1 flex flex-col min-h-0">
+      <div className="lg:ml-64 flex-1 flex flex-col min-h-0 w-full min-w-0">
         <Header title={title} userName={userName} onMobileMenuToggle={() => setMobileMenuOpen(true)} />
-        <main className="flex-1 min-h-0 p-4 lg:p-6 flex flex-col overflow-hidden">{children}</main>
+        <main className="flex-1 min-h-0 p-4 lg:p-6 flex flex-col lg:overflow-hidden">{children}</main>
       </div>
     </div>
   );
