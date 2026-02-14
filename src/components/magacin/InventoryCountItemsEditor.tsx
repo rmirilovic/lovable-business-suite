@@ -30,10 +30,11 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate }: P
     if (!selectedCompany?.id || !selectedYear?.id) return;
     setIsLoadingStock(true);
     try {
+      const yearStart = `${selectedYear.year}-01-01`;
       const { data: stockData, error } = await supabase.rpc("get_warehouse_stock", {
         p_company_id: selectedCompany.id,
         p_warehouse_id: warehouseId,
-        p_date_from: null,
+        p_date_from: yearStart,
         p_date_to: countDate,
       });
       if (error) throw error;
