@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,7 @@ import {
 import { Plus, Search, MoreHorizontal, Trash2, Eye, Package, BookCheck, Undo2, FileDown } from "lucide-react";
 import { useGoodsPurchaseInvoices, GoodsPurchaseInvoice } from "@/hooks/useGoodsPurchaseInvoices";
 import { GoodsPurchaseInvoiceHeaderDialog } from "@/components/nabavka/GoodsPurchaseInvoiceHeaderDialog";
-import { GoodsPurchaseInvoiceDetailDialog } from "@/components/nabavka/GoodsPurchaseInvoiceDetailDialog";
+
 import { formatNumber, formatDate } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,11 +38,12 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 export default function UlazneFaktureRoba() {
+  const navigate = useNavigate();
   const { invoices, isLoading, deleteInvoice, postInvoice, unpostInvoice } = useGoodsPurchaseInvoices();
   const { selectedCompany } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  
   const [selectedInvoice, setSelectedInvoice] = useState<GoodsPurchaseInvoice | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<GoodsPurchaseInvoice | null>(null);
@@ -81,8 +83,7 @@ export default function UlazneFaktureRoba() {
   };
 
   const handleView = (invoice: GoodsPurchaseInvoice) => {
-    setSelectedInvoice(invoice);
-    setDetailDialogOpen(true);
+    navigate(`/nabavka/ulazne-fakture-roba/${invoice.id}`);
   };
 
   const handleDeleteClick = (invoice: GoodsPurchaseInvoice) => {
@@ -125,8 +126,7 @@ export default function UlazneFaktureRoba() {
   };
 
   const handleNewInvoiceSaved = (invoice: GoodsPurchaseInvoice) => {
-    setSelectedInvoice(invoice);
-    setDetailDialogOpen(true);
+    navigate(`/nabavka/ulazne-fakture-roba/${invoice.id}`);
   };
 
   const handleDownloadPdf = async (invoice: GoodsPurchaseInvoice) => {
@@ -301,18 +301,7 @@ export default function UlazneFaktureRoba() {
         onSaved={handleNewInvoiceSaved}
       />
 
-      <GoodsPurchaseInvoiceDetailDialog
-        open={detailDialogOpen}
-        onOpenChange={setDetailDialogOpen}
-        invoice={selectedInvoice}
-        onEdit={() => {
-          setDetailDialogOpen(false);
-          handleEdit(selectedInvoice!);
-        }}
-        onPost={() => handlePostClick(selectedInvoice!)}
-        onUnpost={() => selectedInvoice && handleUnpostClick(selectedInvoice)}
-        canUnpost={true}
-      />
+
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
