@@ -170,6 +170,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("message", messageHandler);
 
+    const loadUserData = async (userId: string) => {
+      await Promise.all([
+        fetchUserCompanies(userId),
+        fetchUserRole(userId),
+        fetchLocalAdminCompanies(userId),
+      ]);
+      setInitialLoadDone(true);
+      setLoading(false);
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!isMounted) return;
 
@@ -185,19 +195,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // End loading only after initial session check is done
-      if (initialSessionChecked) {
-        setLoading(false);
-      }
-
       if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         if (nextSession?.user) {
-          setTimeout(() => {
-            fetchUserCompanies(nextSession.user.id);
-            fetchUserRole(nextSession.user.id);
-            fetchLocalAdminCompanies(nextSession.user.id);
-            setInitialLoadDone(true);
-          }, 0);
+          // Keep loading=true until user data is fully loaded
+          setLoading(true);
+          loadUserData(nextSession.user.id);
+        } else if (initialSessionChecked) {
+          setLoading(false);
         }
         return;
       }
@@ -214,7 +218,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Ignore TOKEN_REFRESHED/USER_UPDATED/etc.
+      // For TOKEN_REFRESHED/USER_UPDATED - just end loading if needed
+      if (initialSessionChecked) {
+        setLoading(false);
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
@@ -252,17 +259,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log("[AuthContext] Handoff timeout - no session received");
           setLoading(false);
         }, 4000);
-      } else {
-        console.log("[AuthContext] Session found from localStorage, setting loading=false");
-        setLoading(false);
       }
-
-      if (initialSession?.user && !initialLoadDone) {
-        fetchUserCompanies(initialSession.user.id);
-        fetchUserRole(initialSession.user.id);
-        fetchLocalAdminCompanies(initialSession.user.id);
-        setInitialLoadDone(true);
-      }
+      // Note: loading=false is handled by loadUserData() called from onAuthStateChange
+      // If session exists, INITIAL_SESSION event will trigger loadUserData which sets loading=false
+      // If no session and no handoff, the timeout above sets loading=false
     });
 
     return () => {
@@ -274,7 +274,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const fetchUserCompanies = async (userId: string) => {
+  const fetchUserCompanies = async (userId: string): Promise<boolean> => {
     const { data: companiesData, error } = await supabase
       .from("companies")
       .select("id, name, code");
@@ -287,12 +287,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (savedCompany) {
         setSelectedCompany(savedCompany);
-        fetchBusinessYears(savedCompany.id);
+        await fetchBusinessYears(savedCompany.id);
       } else if (companiesData.length > 0) {
         setSelectedCompany(companiesData[0]);
-        fetchBusinessYears(companiesData[0].id);
+        await fetchBusinessYears(companiesData[0].id);
       }
+      return true;
     }
+    return false;
   };
 
   const fetchBusinessYears = async (companyId: string) => {
