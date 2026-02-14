@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { Button } from "@/components/ui/button";
@@ -47,10 +47,11 @@ export default function GlavnaKnjiga() {
   const { selectedCompany, selectedYear } = useAuth();
   const { data: accounts = [] } = useChartOfAccounts();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [selectedAccount, setSelectedAccount] = useState<string>("");
-  const [dateFrom, setDateFrom] = useState<string>("");
-  const [dateTo, setDateTo] = useState<string>("");
+  const [selectedAccount, setSelectedAccount] = useState<string>(searchParams.get("account") || "");
+  const [dateFrom, setDateFrom] = useState<string>(searchParams.get("from") || "");
+  const [dateTo, setDateTo] = useState<string>(searchParams.get("to") || "");
 
   const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
 
@@ -198,8 +199,9 @@ export default function GlavnaKnjiga() {
                       const params = new URLSearchParams();
                       if (dateFrom) params.set('from', dateFrom);
                       if (dateTo) params.set('to', dateTo);
+                      params.set('account', selectedAccount);
                       const path = `/racunovodstvo/kartica-konta/${selectedAccount}`;
-                      navigate(`${path}${params.toString() ? `?${params.toString()}` : ''}`);
+                      navigate(`${path}?${params.toString()}`);
                     }}
                     title="Otvori karticu konta"
                   >

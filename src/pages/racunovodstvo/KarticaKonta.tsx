@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Loader2, Download, CalendarIcon, Printer } from "lucide-react";
+import { Loader2, Download, CalendarIcon, Printer, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function KarticaKonta() {
   const { code } = useParams<{ code: string }>();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { selectedYear, selectedCompany } = useAuth();
   const { data: accounts = [] } = useChartOfAccounts();
 
@@ -99,6 +100,17 @@ export default function KarticaKonta() {
     window.print();
   };
 
+  const handleBack = () => {
+    const params = new URLSearchParams();
+    const accountParam = searchParams.get("account");
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+    if (accountParam) params.set('account', accountParam);
+    if (fromParam) params.set('from', fromParam);
+    if (toParam) params.set('to', toParam);
+    navigate(`/racunovodstvo/glavna-knjiga${params.toString() ? `?${params.toString()}` : ''}`);
+  };
+
   const contextReady = !!selectedCompany && !!selectedYear;
 
   if (!code) {
@@ -124,7 +136,13 @@ export default function KarticaKonta() {
     <MainLayout title={`Kartica konta: ${code} - ${accountName}`}>
       <div className="space-y-4 print:space-y-2">
         {/* Date and Analytics filters */}
-        <div className="grid grid-cols-4 gap-4 print:hidden">
+        <div className="grid grid-cols-5 gap-4 print:hidden">
+          <div className="flex items-end">
+            <Button variant="outline" size="sm" onClick={handleBack}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Glavna knjiga
+            </Button>
+          </div>
           <div className="space-y-1">
             <Label className="text-sm">Datum od</Label>
             <Popover>
