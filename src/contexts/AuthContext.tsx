@@ -173,6 +173,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!isMounted) return;
 
+      console.log("[AuthContext] onAuthStateChange:", event, "user:", !!nextSession?.user, "initialSessionChecked:", initialSessionChecked, "awaitingHandoff:", awaitingHandoff);
+
       sessionRef.current = nextSession;
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
@@ -188,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
 
-      if (event === "SIGNED_IN") {
+      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         if (nextSession?.user) {
           setTimeout(() => {
             fetchUserCompanies(nextSession.user.id);
@@ -218,6 +220,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       if (!isMounted) return;
 
+      console.log("[AuthContext] getSession result:", "user:", !!initialSession?.user, "initialLoadDone:", initialLoadDone);
+
       initialSessionChecked = true;
       sessionRef.current = initialSession;
       setSession(initialSession);
@@ -227,6 +231,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // No session - request from other tabs via BroadcastChannel and/or opener
         awaitingHandoff = true;
         setLoading(true);
+
+        console.log("[AuthContext] No session found, requesting handoff...");
 
         // Try BroadcastChannel first (works for right-click "Open in new tab")
         bc?.postMessage({ type: "REQUEST_SESSION" });
@@ -243,9 +249,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         handoffTimeout = window.setTimeout(() => {
           awaitingHandoff = false;
           if (!isMounted) return;
+          console.log("[AuthContext] Handoff timeout - no session received");
           setLoading(false);
         }, 4000);
       } else {
+        console.log("[AuthContext] Session found from localStorage, setting loading=false");
         setLoading(false);
       }
 
