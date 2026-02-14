@@ -218,7 +218,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // For TOKEN_REFRESHED/USER_UPDATED - just end loading if needed
+      // For TOKEN_REFRESHED/USER_UPDATED - load user data if not yet loaded (e.g. session handoff to new tab)
+      if (nextSession?.user && !initialLoadDone) {
+        setLoading(true);
+        loadUserData(nextSession.user.id);
+        return;
+      }
       if (initialSessionChecked) {
         setLoading(false);
       }
