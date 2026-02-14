@@ -13,6 +13,7 @@ import {
   Building2,
   Calendar,
   LogOut,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -106,7 +107,12 @@ const navigation: NavItem[] = [
   { label: "Administracija", icon: Settings, href: "/admin", moduleCode: "administracija" },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin } = useAuth();
@@ -133,23 +139,24 @@ export function Sidebar() {
     }
   }, [location.pathname]);
 
+  // Close mobile sidebar on navigation
+  useEffect(() => {
+    if (mobileOpen && onMobileClose) {
+      onMobileClose();
+    }
+  }, [location.pathname]);
+
   // Filter navigation based on permissions
   const getFilteredNavigation = () => {
-    // While loading permissions, show basic navigation
     if (permissionsLoading) {
       return navigation.filter(item => !item.moduleCode || item.href === "/");
     }
 
     return navigation.filter((item) => {
-      // Dashboard is always visible
       if (item.href === "/") return true;
-
-      // Admin panel - only for super admin or local admin
       if (item.href === "/admin") {
         return isSuperAdmin || isLocalAdmin;
       }
-
-      // Check if user has access to any child module
       if (item.children) {
         const accessibleChildren = item.children.filter(child => {
           if (!child.moduleCode) return true;
@@ -157,17 +164,13 @@ export function Sidebar() {
         });
         return accessibleChildren.length > 0;
       }
-
-      // Single item - check module access
       if (item.moduleCode) {
         return hasAccess(item.moduleCode);
       }
-
       return true;
     });
   };
 
-  // Filter children based on permissions
   const getFilteredChildren = (children: NavChild[]) => {
     return children.filter(child => {
       if (!child.moduleCode) return true;
@@ -181,15 +184,13 @@ export function Sidebar() {
     setExpandedItems((prev) =>
       prev.includes(label)
         ? prev.filter((item) => item !== label)
-        : [label] // Only keep this one open (accordion behavior)
+        : [label]
     );
   };
 
   const isActive = (href: string) => location.pathname === href;
   const isParentActive = (children?: NavChild[]) =>
     children?.some((child) => location.pathname === child.href);
-
-
 
   const handleSignOut = async () => {
     await signOut();
@@ -200,22 +201,33 @@ export function Sidebar() {
     navigate("/select-company");
   };
 
-  return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
+  const sidebarContent = (
+    <>
       {/* Logo & Company */}
       <div className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-lg font-semibold text-sidebar-foreground">
+                Mini ERP
+              </h1>
+              <p className="text-xs text-sidebar-foreground/60">
+                Poslovno rešenje
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-lg font-semibold text-sidebar-foreground">
-              Mini ERP
-            </h1>
-            <p className="text-xs text-sidebar-foreground/60">
-              Poslovno rešenje
-            </p>
-          </div>
+          {/* Close button - mobile only */}
+          {onMobileClose && (
+            <button
+              onClick={onMobileClose}
+              className="lg:hidden p-1 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Company & Year Selector */}
@@ -319,6 +331,30 @@ export function Sidebar() {
           <span>Odjavi se</span>
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar - always visible */}
+      <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border flex-col">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile sidebar - overlay */}
+      {mobileOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="lg:hidden fixed inset-0 z-40 bg-black/50"
+            onClick={onMobileClose}
+          />
+          {/* Sidebar panel */}
+          <aside className="lg:hidden fixed left-0 top-0 z-50 h-screen w-64 bg-sidebar border-r border-sidebar-border flex flex-col animate-slide-in-left">
+            {sidebarContent}
+          </aside>
+        </>
+      )}
+    </>
   );
 }
