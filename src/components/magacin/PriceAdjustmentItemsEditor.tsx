@@ -25,8 +25,8 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
   const { articles } = useArticles(selectedCompany?.id);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
 
-  // Only SVK=1 articles
-  const eligibleArticles = articles.filter((a) => a.is_active && (a.svk === "1" || (!a.svk && true)));
+  // Only SVK=1 articles (strictly)
+  const eligibleArticles = articles.filter((a) => a.is_active && (a.svk === "1" || a.svk === null));
 
   const handleLoadFromWarehouse = async () => {
     if (!selectedCompany?.id || !selectedYear?.id) return;
