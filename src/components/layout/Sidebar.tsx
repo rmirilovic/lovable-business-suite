@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -187,33 +187,7 @@ export function Sidebar() {
   const isParentActive = (children?: NavChild[]) =>
     children?.some((child) => location.pathname === child.href);
 
-  // Smart link click handler: left click navigates in same tab,
-  // Ctrl/Cmd+click and middle-click open in new tab via window.open() 
-  // which sets window.opener for session handoff via postMessage
-  const handleLinkClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    // Middle click
-    if (e.button === 1) {
-      e.preventDefault();
-      window.open(href, "_blank");
-      return;
-    }
-    // Ctrl+click or Cmd+click
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      window.open(href, "_blank");
-      return;
-    }
-    // Regular left click - navigate in same tab
-    e.preventDefault();
-    navigate(href);
-  }, [navigate]);
 
-  const handleAuxClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (e.button === 1) {
-      e.preventDefault();
-      window.open(href, "_blank");
-    }
-  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -272,10 +246,8 @@ export function Sidebar() {
         {filteredNavigation.map((item) => (
           <div key={item.label}>
             {item.href ? (
-              <a
-                href={item.href}
-                onClick={(e) => handleLinkClick(e, item.href!)}
-                onAuxClick={(e) => handleAuxClick(e, item.href!)}
+              <Link
+                to={item.href}
                 className={cn(
                   "erp-sidebar-link",
                   isActive(item.href) && "erp-sidebar-link-active"
@@ -283,7 +255,7 @@ export function Sidebar() {
               >
                 <item.icon className="w-5 h-5" />
                 <span>{item.label}</span>
-              </a>
+              </Link>
             ) : (
               <>
                 <button
@@ -307,11 +279,9 @@ export function Sidebar() {
                 {expandedItems.includes(item.label) && item.children && (
                   <div className="ml-8 mt-1 space-y-1">
                     {getFilteredChildren(item.children).map((child) => (
-                      <a
+                      <Link
                         key={child.href}
-                        href={child.href}
-                        onClick={(e) => handleLinkClick(e, child.href)}
-                        onAuxClick={(e) => handleAuxClick(e, child.href)}
+                        to={child.href}
                         className={cn(
                           "block px-3 py-2 text-sm rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors",
                           isActive(child.href) &&
@@ -319,7 +289,7 @@ export function Sidebar() {
                         )}
                       >
                         {child.label}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 )}
