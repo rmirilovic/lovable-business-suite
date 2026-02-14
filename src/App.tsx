@@ -36,6 +36,7 @@ import ServicePurchaseInvoiceEdit from "./pages/nabavka/ServicePurchaseInvoiceEd
 import UlazneFaktureRoba from "./pages/nabavka/UlazneFaktureRoba";
 import GoodsPurchaseInvoiceEdit from "./pages/nabavka/GoodsPurchaseInvoiceEdit";
 import Prijemnice from "./pages/magacin/Prijemnice";
+import GoodsReceiptEdit from "./pages/magacin/GoodsReceiptEdit";
 import Kalkulacije from "./pages/magacin/Kalkulacije";
 import CalculationEdit from "./pages/magacin/CalculationEdit";
 import StanjeMagacina from "./pages/magacin/StanjeMagacina";
@@ -192,6 +193,11 @@ const App = () => (
               <Route path="/magacin/prijemnice" element={
                 <ProtectedRoute>
                   <Prijemnice />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/prijemnice/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <GoodsReceiptEdit />
                 </ProtectedRoute>
               } />
               <Route path="/magacin/kalkulacije" element={

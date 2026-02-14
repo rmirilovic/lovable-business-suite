@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +53,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { GoodsReceiptDialog } from "@/components/magacin/GoodsReceiptDialog";
-import { GoodsReceiptDetailDialog } from "@/components/magacin/GoodsReceiptDetailDialog";
+
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { useTableSort } from "@/hooks/useTableSort";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
@@ -67,6 +68,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function Prijemnice() {
+  const navigate = useNavigate();
   const { selectedCompany } = useAuth();
   const { hasAccess } = usePermissions();
   const canEdit = hasAccess("robno.prijemnice", "write");
@@ -90,7 +92,7 @@ export default function Prijemnice() {
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<GoodsReceipt | null>(null);
-  const [detailReceipt, setDetailReceipt] = useState<GoodsReceipt | null>(null);
+  
   const [deleteConfirmReceipt, setDeleteConfirmReceipt] = useState<GoodsReceipt | null>(null);
   const [postConfirmReceipt, setPostConfirmReceipt] = useState<GoodsReceipt | null>(null);
   const [unpostConfirmReceipt, setUnpostConfirmReceipt] = useState<GoodsReceipt | null>(null);
@@ -309,7 +311,7 @@ export default function Prijemnice() {
                   <TableRow
                     key={receipt.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setDetailReceipt(receipt)}
+                    onClick={() => navigate(`/magacin/prijemnice/${receipt.id}`)}
                   >
                     <TableCell className="font-medium">
                       {receipt.receipt_number}
@@ -338,7 +340,7 @@ export default function Prijemnice() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setDetailReceipt(receipt)}>
+                          <DropdownMenuItem onClick={() => navigate(`/magacin/prijemnice/${receipt.id}`)}>
                             <Eye className="h-4 w-4 mr-2" />
                             Prikaži
                           </DropdownMenuItem>
@@ -401,32 +403,6 @@ export default function Prijemnice() {
         />
       )}
 
-      {/* Detail Dialog */}
-      {detailReceipt && (
-        <GoodsReceiptDetailDialog
-          receipt={detailReceipt}
-          open={!!detailReceipt}
-          onOpenChange={() => setDetailReceipt(null)}
-          onEdit={canEdit && detailReceipt.status === "draft" && !detailReceipt.source_invoice_id
-            ? () => {
-                setDetailReceipt(null);
-                setSelectedReceipt(detailReceipt);
-              }
-            : undefined}
-          onPost={canPost && detailReceipt.status === "draft" && !detailReceipt.source_invoice_id
-            ? () => {
-                setDetailReceipt(null);
-                setPostConfirmReceipt(detailReceipt);
-              }
-            : undefined}
-          onUnpost={canPost && detailReceipt.status === "posted" && !detailReceipt.source_invoice_id
-            ? () => {
-                setDetailReceipt(null);
-                setUnpostConfirmReceipt(detailReceipt);
-              }
-            : undefined}
-        />
-      )}
 
       {/* Delete Confirmation */}
       <AlertDialog
