@@ -1693,6 +1693,7 @@ export type Database = {
           posted_by: string | null
           source_document_id: string | null
           source_document_type: string | null
+          source_type: string | null
           status: Database["public"]["Enums"]["document_status"]
           total_credit: number
           total_debit: number
@@ -1714,6 +1715,7 @@ export type Database = {
           posted_by?: string | null
           source_document_id?: string | null
           source_document_type?: string | null
+          source_type?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           total_credit?: number
           total_debit?: number
@@ -1735,6 +1737,7 @@ export type Database = {
           posted_by?: string | null
           source_document_id?: string | null
           source_document_type?: string | null
+          source_type?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           total_credit?: number
           total_debit?: number
