@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +39,7 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive" | "
 
 export default function UlazneFaktureUsluge() {
   const { invoices, isLoading, deleteInvoice, postInvoice, unpostInvoice } = useServicePurchaseInvoices();
+  const navigate = useNavigate();
   const { user, selectedCompany } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
@@ -100,7 +102,7 @@ export default function UlazneFaktureUsluge() {
   };
 
   const handleView = (invoice: ServicePurchaseInvoice) => {
-    window.open(`/nabavka/ulazne-fakture-usluge/${invoice.id}`, "_blank");
+    navigate(`/nabavka/ulazne-fakture-usluge/${invoice.id}`);
   };
 
   const handleDeleteClick = (invoice: ServicePurchaseInvoice) => {
@@ -130,7 +132,7 @@ export default function UlazneFaktureUsluge() {
   };
 
   const handleNewInvoiceSaved = (invoice: ServicePurchaseInvoice) => {
-    window.open(`/nabavka/ulazne-fakture-usluge/${invoice.id}`, "_blank");
+    navigate(`/nabavka/ulazne-fakture-usluge/${invoice.id}`);
   };
 
   const handleUnpostClick = (invoice: ServicePurchaseInvoice) => {
