@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,18 +30,16 @@ import {
 } from "@/hooks/useJournalEntries";
 import { format } from "date-fns";
 import { formatNumber } from "@/lib/formatting";
-import { JournalEntryDialog } from "@/components/racunovodstvo/JournalEntryDialog";
 import { cn } from "@/lib/utils";
 
 export default function NaloziZaKnjizenje() {
   const { data: entries = [], isLoading } = useJournalEntries();
   const { createEntry, deleteEntry, postEntry, unpostEntry } = useJournalEntryMutations();
+  const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [newDialogOpen, setNewDialogOpen] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
   const [newEntryForm, setNewEntryForm] = useState({
     description: "",
@@ -94,8 +93,7 @@ export default function NaloziZaKnjizenje() {
   };
 
   const handleViewEntry = (entry: JournalEntry) => {
-    setSelectedEntry(entry);
-    setViewDialogOpen(true);
+    navigate(`/racunovodstvo/nalozi/${entry.id}`);
   };
 
   return (
@@ -305,12 +303,6 @@ export default function NaloziZaKnjizenje() {
         </DialogContent>
       </Dialog>
 
-      {/* View/Edit Entry Dialog */}
-      <JournalEntryDialog
-        entry={selectedEntry}
-        open={viewDialogOpen}
-        onOpenChange={setViewDialogOpen}
-      />
     </MainLayout>
   );
 }
