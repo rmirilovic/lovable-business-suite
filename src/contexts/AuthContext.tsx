@@ -90,16 +90,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const origin = window.location.origin;
 
-    // --- Session handoff between iframe and new tab ---
-    // Some browsers partition storage between preview iframe and a new tab.
-    // We pass the session via postMessage so the report tab doesn't require re-login.
+    // --- Session handoff between tabs ---
+    // Use BroadcastChannel for cross-tab session sharing (works for right-click "Open in new tab")
+    // Falls back to postMessage for iframe/opener scenarios
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel("erp_session_sync");
+    } catch {
+      // BroadcastChannel not supported in some environments
+    }
+
+    const handleSessionRequest = async () => {
+      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      if (freshSession?.access_token && freshSession?.refresh_token) {
+        const payload = {
+          type: "SESSION_RESPONSE",
+          payload: {
+            access_token: freshSession.access_token,
+            refresh_token: freshSession.refresh_token,
+          },
+        };
+        bc?.postMessage(payload);
+      }
+    };
+
+    const handleSessionResponse = (access_token: string, refresh_token: string) => {
+      awaitingHandoff = false;
+      if (handoffTimeout) {
+        window.clearTimeout(handoffTimeout);
+        handoffTimeout = null;
+      }
+      setLoading(true);
+      void supabase.auth.setSession({ access_token, refresh_token });
+    };
+
+    // BroadcastChannel handler
+    if (bc) {
+      bc.onmessage = (event: MessageEvent) => {
+        const msg = event.data as any;
+        if (msg?.type === "REQUEST_SESSION") {
+          handleSessionRequest();
+          return;
+        }
+        if (msg?.type === "SESSION_RESPONSE" && msg?.payload?.access_token && msg?.payload?.refresh_token) {
+          handleSessionResponse(msg.payload.access_token, msg.payload.refresh_token);
+          return;
+        }
+      };
+    }
+
+    // postMessage handler (for iframe/opener scenarios)
     const messageHandler = (event: MessageEvent) => {
       if (event.origin !== origin) return;
       const msg = event.data as any;
 
-      // Opener tab responds with current session
       if (msg?.type === "REQUEST_SESSION") {
-        // Get fresh session to avoid stale/already-used refresh tokens
         supabase.auth.getSession().then(({ data: { session: freshSession } }) => {
           if (freshSession?.access_token && freshSession?.refresh_token && event.source) {
             (event.source as Window).postMessage(
@@ -117,22 +162,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // New tab receives session and sets it
       if (msg?.type === "SESSION_RESPONSE" && msg?.payload?.access_token && msg?.payload?.refresh_token) {
-        awaitingHandoff = false;
-
-        if (handoffTimeout) {
-          window.clearTimeout(handoffTimeout);
-          handoffTimeout = null;
-        }
-
-        // Keep loading until auth state updates with a user
-        setLoading(true);
-
-        void supabase.auth.setSession({
-          access_token: msg.payload.access_token,
-          refresh_token: msg.payload.refresh_token,
-        });
+        handleSessionResponse(msg.payload.access_token, msg.payload.refresh_token);
         return;
       }
     };
@@ -192,15 +223,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
 
-      if (!initialSession?.user && window.opener) {
-        // Ask opener (iframe tab) for session and wait a bit before concluding user is logged out
+      if (!initialSession?.user) {
+        // No session - request from other tabs via BroadcastChannel and/or opener
         awaitingHandoff = true;
         setLoading(true);
-        try {
-          window.opener.postMessage({ type: "REQUEST_SESSION" }, origin);
-        } catch {
-          // ignore
+
+        // Try BroadcastChannel first (works for right-click "Open in new tab")
+        bc?.postMessage({ type: "REQUEST_SESSION" });
+
+        // Also try opener for iframe scenarios
+        if (window.opener) {
+          try {
+            window.opener.postMessage({ type: "REQUEST_SESSION" }, origin);
+          } catch {
+            // ignore
+          }
         }
+
         handoffTimeout = window.setTimeout(() => {
           awaitingHandoff = false;
           if (!isMounted) return;
@@ -222,6 +261,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isMounted = false;
       if (handoffTimeout) window.clearTimeout(handoffTimeout);
       window.removeEventListener("message", messageHandler);
+      bc?.close();
       subscription.unsubscribe();
     };
   }, []);
