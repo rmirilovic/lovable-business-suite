@@ -210,18 +210,19 @@ export default function UlazneFaktureRoba() {
                 filteredInvoices.map((invoice) => (
                   <TableRow
                     key={invoice.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleView(invoice)}
+                    className="relative cursor-pointer hover:bg-muted/50"
                   >
                     <TableCell>
                       <a
                         href={`/nabavka/ulazne-fakture-roba/${invoice.id}`}
-                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleView(invoice); }}
-                        className="flex items-center gap-2 hover:underline"
-                      >
+                        onClick={(e) => { e.preventDefault(); handleView(invoice); }}
+                        className="absolute inset-0 z-0"
+                        aria-hidden="true"
+                      />
+                      <span className="relative z-[1] flex items-center gap-2">
                         <Package className="w-4 h-4 text-muted-foreground" />
                         <span className="font-medium">{invoice.internal_number}</span>
-                      </a>
+                      </span>
                     </TableCell>
                     <TableCell>{invoice.supplier_invoice_number}</TableCell>
                     <TableCell>{formatDate(invoice.invoice_date)}</TableCell>
@@ -250,7 +251,7 @@ export default function UlazneFaktureRoba() {
                         {statusLabels[invoice.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+                    <TableCell className="relative z-10" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">

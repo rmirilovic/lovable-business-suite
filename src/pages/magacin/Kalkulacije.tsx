@@ -206,17 +206,18 @@ export default function Kalkulacije() {
                 sortedData.map((calc) => (
                   <TableRow
                     key={calc.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate(`/magacin/kalkulacije/${calc.id}`)}
+                    className="relative cursor-pointer hover:bg-muted/50"
                   >
                     <TableCell className="font-medium">
                       <a
                         href={`/magacin/kalkulacije/${calc.id}`}
-                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/magacin/kalkulacije/${calc.id}`); }}
-                        className="hover:underline"
-                      >
+                        onClick={(e) => { e.preventDefault(); navigate(`/magacin/kalkulacije/${calc.id}`); }}
+                        className="absolute inset-0 z-0"
+                        aria-hidden="true"
+                      />
+                      <span className="relative z-[1]">
                         {calc.calculation_number}
-                      </a>
+                      </span>
                     </TableCell>
                     <TableCell>
                       {format(new Date(calc.calculation_date), "dd.MM.yyyy", { locale: sr })}
@@ -238,7 +239,7 @@ export default function Kalkulacije() {
                         <Badge variant="outline">Nacrt</Badge>
                       )}
                     </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+                    <TableCell className="relative z-10" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
