@@ -209,7 +209,15 @@ export default function Kalkulacije() {
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => navigate(`/magacin/kalkulacije/${calc.id}`)}
                   >
-                    <TableCell className="font-medium">{calc.calculation_number}</TableCell>
+                    <TableCell className="font-medium">
+                      <a
+                        href={`/magacin/kalkulacije/${calc.id}`}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/magacin/kalkulacije/${calc.id}`); }}
+                        className="hover:underline"
+                      >
+                        {calc.calculation_number}
+                      </a>
+                    </TableCell>
                     <TableCell>
                       {format(new Date(calc.calculation_date), "dd.MM.yyyy", { locale: sr })}
                     </TableCell>
@@ -238,9 +246,14 @@ export default function Kalkulacije() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/magacin/kalkulacije/${calc.id}`)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Prikaži
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={`/magacin/kalkulacije/${calc.id}`}
+                              onClick={(e) => { e.preventDefault(); navigate(`/magacin/kalkulacije/${calc.id}`); }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Prikaži
+                            </a>
                           </DropdownMenuItem>
                           {calc.status === "draft" && canPostCalc && (
                             <DropdownMenuItem onClick={() => setPostConfirm(calc)}>

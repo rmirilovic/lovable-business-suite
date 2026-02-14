@@ -314,7 +314,13 @@ export default function Prijemnice() {
                     onClick={() => navigate(`/magacin/prijemnice/${receipt.id}`)}
                   >
                     <TableCell className="font-medium">
-                      {receipt.receipt_number}
+                      <a
+                        href={`/magacin/prijemnice/${receipt.id}`}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/magacin/prijemnice/${receipt.id}`); }}
+                        className="hover:underline"
+                      >
+                        {receipt.receipt_number}
+                      </a>
                     </TableCell>
                     <TableCell>
                       {format(new Date(receipt.receipt_date), "dd.MM.yyyy", {
@@ -340,9 +346,14 @@ export default function Prijemnice() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/magacin/prijemnice/${receipt.id}`)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Prikaži
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={`/magacin/prijemnice/${receipt.id}`}
+                              onClick={(e) => { e.preventDefault(); navigate(`/magacin/prijemnice/${receipt.id}`); }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Prikaži
+                            </a>
                           </DropdownMenuItem>
                           {receipt.status === "draft" && canPost && !receipt.source_invoice_id && (
                             <DropdownMenuItem onClick={() => setPostConfirmReceipt(receipt)}>

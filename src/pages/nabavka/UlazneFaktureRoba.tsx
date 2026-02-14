@@ -214,10 +214,14 @@ export default function UlazneFaktureRoba() {
                     onClick={() => handleView(invoice)}
                   >
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <a
+                        href={`/nabavka/ulazne-fakture-roba/${invoice.id}`}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleView(invoice); }}
+                        className="flex items-center gap-2 hover:underline"
+                      >
                         <Package className="w-4 h-4 text-muted-foreground" />
                         <span className="font-medium">{invoice.internal_number}</span>
-                      </div>
+                      </a>
                     </TableCell>
                     <TableCell>{invoice.supplier_invoice_number}</TableCell>
                     <TableCell>{formatDate(invoice.invoice_date)}</TableCell>
@@ -254,9 +258,14 @@ export default function UlazneFaktureRoba() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleView(invoice)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Prikaži
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={`/nabavka/ulazne-fakture-roba/${invoice.id}`}
+                              onClick={(e) => { e.preventDefault(); handleView(invoice); }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Prikaži
+                            </a>
                           </DropdownMenuItem>
                           {invoice.status === "draft" && (
                             <DropdownMenuItem onClick={() => handlePostClick(invoice)}>
