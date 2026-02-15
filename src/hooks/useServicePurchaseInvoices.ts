@@ -33,6 +33,8 @@ export interface ServicePurchaseInvoice {
   posted_at: string | null;
   posted_by: string | null;
   journal_entry_id: string | null;
+  currency: string;
+  exchange_rate: number;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -101,6 +103,8 @@ export interface ServicePurchaseInvoiceFormData {
   has_internal_vat_calculation: boolean;
   note: string | null;
   internal_note: string | null;
+  currency: string;
+  exchange_rate: number;
 }
 
 export interface ServicePurchaseInvoiceItemFormData {

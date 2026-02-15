@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { usePartners, usePartnerBankAccounts } from "@/hooks/usePartners";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useGoodsReceipts } from "@/hooks/useGoodsReceipts";
@@ -29,6 +30,7 @@ import {
   GoodsPurchaseInvoice,
   GoodsPurchaseInvoiceFormData,
 } from "@/hooks/useGoodsPurchaseInvoices";
+import { CURRENCIES, isForeignCurrency } from "@/lib/currencies";
 
 interface GoodsPurchaseInvoiceHeaderDialogProps {
   open: boolean;
@@ -70,7 +72,11 @@ export function GoodsPurchaseInvoiceHeaderDialog({
     note: null,
     internal_note: null,
     goods_receipt_id: null,
+    currency: "RSD",
+    exchange_rate: 1,
   });
+
+  const [exchangeRateText, setExchangeRateText] = useState("1");
 
   const { bankAccounts } = usePartnerBankAccounts(formData.partner_id || null);
   const activeWarehouses = warehouses.filter((w) => w.is_active);
@@ -98,7 +104,10 @@ export function GoodsPurchaseInvoiceHeaderDialog({
         note: invoice.note,
         internal_note: invoice.internal_note,
         goods_receipt_id: invoice.goods_receipt_id,
+        currency: invoice.currency || "RSD",
+        exchange_rate: invoice.exchange_rate || 1,
       });
+      setExchangeRateText(String(invoice.exchange_rate || 1));
     } else {
       const defaultWarehouse = activeWarehouses[0]?.id || "";
       setFormData({
@@ -122,7 +131,10 @@ export function GoodsPurchaseInvoiceHeaderDialog({
         note: null,
         internal_note: null,
         goods_receipt_id: null,
+        currency: "RSD",
+        exchange_rate: 1,
       });
+      setExchangeRateText("1");
     }
   }, [invoice, open]);
 
@@ -221,6 +233,50 @@ export function GoodsPurchaseInvoiceHeaderDialog({
                 }
               />
             </div>
+          </div>
+
+          {/* Valuta */}
+          <div className="grid grid-cols-2 gap-4 p-3 border rounded-lg">
+            <div className="space-y-2">
+              <Label>Valuta fakture</Label>
+              <Select
+                value={formData.currency}
+                onValueChange={(value) => {
+                  const isRsd = value === "RSD";
+                  setFormData({ ...formData, currency: value, exchange_rate: isRsd ? 1 : formData.exchange_rate });
+                  if (isRsd) setExchangeRateText("1");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.code} - {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {isForeignCurrency(formData.currency) && (
+              <div className="space-y-2">
+                <Label>Kurs (srednji NBS)</Label>
+                <LocaleNumberInput
+                  value={exchangeRateText}
+                  onChange={setExchangeRateText}
+                  onBlur={() => {
+                    const parsed = parseFloat(exchangeRateText.replace(",", ".")) || 1;
+                    setFormData({ ...formData, exchange_rate: parsed });
+                  }}
+                  className="h-10"
+                  allowEmpty
+                />
+                <p className="text-xs text-muted-foreground">
+                  1 {formData.currency} = {exchangeRateText} RSD
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -14,6 +14,7 @@ import { ServicePurchaseInvoiceItemsEditor } from "@/components/nabavka/ServiceP
 import { ServicePurchaseInvoiceHeaderDialog } from "@/components/nabavka/ServicePurchaseInvoiceHeaderDialog";
 import { formatNumber, formatDate, formatPrice } from "@/lib/formatting";
 import { generateServicePurchaseInvoicePdf } from "@/lib/servicePurchaseInvoicePdfGenerator";
+import { isForeignCurrency } from "@/lib/currencies";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
@@ -299,6 +300,20 @@ export default function ServicePurchaseInvoiceEdit() {
             <div className="font-medium">{invoice.due_date ? formatDate(invoice.due_date) : "-"}</div>
           </div>
         </div>
+
+        {/* Currency info */}
+        {isForeignCurrency(invoice.currency) && (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm p-3 border border-dashed rounded-lg">
+            <div>
+              <div className="text-muted-foreground">Valuta</div>
+              <div className="font-medium">{invoice.currency}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Kurs</div>
+              <div className="font-medium">1 {invoice.currency} = {formatNumber(invoice.exchange_rate, { minimumFractionDigits: 4, maximumFractionDigits: 4 })} RSD</div>
+            </div>
+          </div>
+        )}
 
         {/* Supplier info */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">

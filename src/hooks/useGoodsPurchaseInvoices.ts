@@ -35,6 +35,8 @@ export interface GoodsPurchaseInvoice {
   posted_by: string | null;
   journal_entry_id: string | null;
   goods_receipt_id: string | null;
+  currency: string;
+  exchange_rate: number;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -104,6 +106,8 @@ export interface GoodsPurchaseInvoiceFormData {
   note: string | null;
   internal_note: string | null;
   goods_receipt_id?: string | null;
+  currency: string;
+  exchange_rate: number;
 }
 
 export interface GoodsPurchaseInvoiceItemFormData {
