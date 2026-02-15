@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { isForeignCurrency } from "@/lib/currencies";
 import {
   Table,
   TableBody,
@@ -35,6 +36,8 @@ interface ServicePurchaseInvoiceItemsEditorProps {
   isLoading: boolean;
   isEditable: boolean;
   supplierIsInPdv: boolean;
+  currency: string;
+  exchangeRate: number;
   addItem: UseMutationResult<ServicePurchaseInvoiceItem, Error, ServicePurchaseInvoiceItemFormData & { service_purchase_invoice_id: string }>;
   updateItem: UseMutationResult<ServicePurchaseInvoiceItem, Error, ServicePurchaseInvoiceItemFormData & { id: string }>;
   deleteItem: UseMutationResult<void, Error, string>;
@@ -49,6 +52,7 @@ interface ItemFormState {
   quantity: string;
   unit: string;
   unit_price: string;
+  foreign_unit_price: string;
   discount_percent: number;
   vat_rate: string;
   is_vat_deductible: boolean;
@@ -65,6 +69,7 @@ const emptyFormState: ItemFormState = {
   quantity: "1,00",
   unit: "kom",
   unit_price: "0,00",
+  foreign_unit_price: "0,00",
   discount_percent: 0,
   vat_rate: "20,00",
   is_vat_deductible: true,
@@ -79,6 +84,7 @@ const toFormData = (s: ItemFormState): ServicePurchaseInvoiceItemFormData => ({
   quantity: parseLocaleNumber(s.quantity) || 0,
   unit: s.unit,
   unit_price: parseLocaleNumber(s.unit_price) || 0,
+  foreign_unit_price: parseLocaleNumber(s.foreign_unit_price ?? "0") || 0,
   discount_percent: s.discount_percent,
   vat_rate: parseLocaleNumber(s.vat_rate) || 0,
   is_vat_deductible: s.is_vat_deductible,
@@ -90,6 +96,8 @@ export function ServicePurchaseInvoiceItemsEditor({
   isLoading,
   isEditable,
   supplierIsInPdv,
+  currency,
+  exchangeRate,
   addItem,
   updateItem,
   deleteItem,
@@ -97,6 +105,8 @@ export function ServicePurchaseInvoiceItemsEditor({
   const { selectedCompany } = useAuth();
   const { data: inputCosts = [] } = useInputCosts();
   const { units: orgUnits } = useOrganizationalUnits(selectedCompany?.id);
+
+  const isForeign = isForeignCurrency(currency);
 
   const [isAdding, setIsAdding] = useState(false);
   const [newItem, setNewItem] = useState<ItemFormState>(emptyFormState);
@@ -157,6 +167,7 @@ export function ServicePurchaseInvoiceItemsEditor({
       quantity: fmt(item.quantity),
       unit: item.unit,
       unit_price: fmt(item.unit_price),
+      foreign_unit_price: fmt(item.foreign_unit_price ?? 0),
       discount_percent: item.discount_percent,
       vat_rate: fmt(item.vat_rate),
       is_vat_deductible: item.is_vat_deductible,
@@ -174,6 +185,26 @@ export function ServicePurchaseInvoiceItemsEditor({
     await deleteItem.mutateAsync(id);
   };
 
+  const handleForeignPriceBlur = (
+    item: ItemFormState,
+    setItem: (s: ItemFormState) => void,
+  ) => {
+    if (!isForeign) return;
+    const foreignPrice = parseLocaleNumber(item.foreign_unit_price) || 0;
+    const rsdPrice = foreignPrice * exchangeRate;
+    setItem({ ...item, unit_price: fmt(rsdPrice) });
+  };
+
+  const handleRsdPriceBlur = (
+    item: ItemFormState,
+    setItem: (s: ItemFormState) => void,
+  ) => {
+    if (!isForeign) return;
+    const rsdPrice = parseLocaleNumber(item.unit_price) || 0;
+    const foreignPrice = exchangeRate > 0 ? rsdPrice / exchangeRate : 0;
+    setItem({ ...item, foreign_unit_price: fmt(foreignPrice) });
+  };
+
   const renderNumericInputs = (
     item: ItemFormState,
     setItem: (s: ItemFormState) => void,
@@ -188,10 +219,23 @@ export function ServicePurchaseInvoiceItemsEditor({
           className="h-8 text-xs text-right"
         />
       </TableCell>
+      {isForeign && (
+        <TableCell>
+          <LocaleNumberInput
+            value={item.foreign_unit_price}
+            onChange={(v) => setItem({ ...item, foreign_unit_price: v })}
+            onBlur={() => handleForeignPriceBlur(item, setItem)}
+            decimalPlaces={2}
+            allowEmpty
+            className="h-8 text-xs text-right"
+          />
+        </TableCell>
+      )}
       <TableCell>
         <LocaleNumberInput
           value={item.unit_price}
           onChange={(v) => setItem({ ...item, unit_price: v })}
+          onBlur={() => isForeign && handleRsdPriceBlur(item, setItem)}
           decimalPlaces={2}
           allowEmpty
           className="h-8 text-xs text-right"
@@ -230,7 +274,10 @@ export function ServicePurchaseInvoiceItemsEditor({
               <TableHead className="min-w-[200px]">Naziv</TableHead>
               <TableHead className="w-[120px]">Mesto troška</TableHead>
               <TableHead className="w-[200px] text-right">Kol.</TableHead>
-              <TableHead className="w-[250px] text-right">Cena sa PDV</TableHead>
+              {isForeign && (
+                <TableHead className="w-[140px] text-right">Cena ({currency})</TableHead>
+              )}
+              <TableHead className="w-[250px] text-right">{isForeign ? "Cena (RSD)" : "Cena sa PDV"}</TableHead>
               <TableHead className="w-[80px] text-right">PDV%</TableHead>
               <TableHead className="w-[50px] text-center">Odb.</TableHead>
               <TableHead className="w-[100px] text-right">Ukupno</TableHead>
@@ -356,6 +403,11 @@ export function ServicePurchaseInvoiceItemsEditor({
                       <TableCell className="font-medium">{item.item_name}</TableCell>
                       <TableCell>{item.org_unit?.code || "-"}</TableCell>
                       <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
+                      {isForeign && (
+                        <TableCell className="text-right">
+                          {formatNumber(item.foreign_unit_price ?? 0, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </TableCell>
+                      )}
                       <TableCell className="text-right">{formatPrice(item.unit_price)}</TableCell>
                       <TableCell className="text-right">{item.vat_rate}%</TableCell>
                       <TableCell className="text-center">
