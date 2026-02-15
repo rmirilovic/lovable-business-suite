@@ -232,10 +232,10 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
               <TableHead className="w-12">#</TableHead>
               <TableHead>Šifra</TableHead>
               <TableHead className="min-w-[200px]">Naziv</TableHead>
-              <TableHead className="w-[100px] text-right">Količina</TableHead>
+              <TableHead className="w-[200px] text-right">Količina</TableHead>
               <TableHead className="w-[80px]">JM</TableHead>
-              <TableHead className="w-[120px] text-right">Cena</TableHead>
-              <TableHead className="w-[120px] text-right">Vrednost</TableHead>
+              <TableHead className="w-[250px] text-right">Cena</TableHead>
+              <TableHead className="w-[250px] text-right">Vrednost</TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
