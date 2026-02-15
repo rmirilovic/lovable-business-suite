@@ -123,7 +123,7 @@ export function CalculationItemsTable({
                     <TableCell className="text-sm">{item.item_code || "—"}</TableCell>
                     <TableCell className="text-sm">{item.item_name}</TableCell>
                     <TableCell className="text-sm">{item.unit}</TableCell>
-                    <TableCell className="text-right">{formatDecimal(item.quantity, 0)}</TableCell>
+                    <TableCell className="text-right">{formatDecimal(item.quantity, 3)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.purchase_price, 2)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.purchase_value, 2)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.allocated_costs, 2)}</TableCell>

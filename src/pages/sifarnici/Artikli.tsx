@@ -1377,7 +1377,7 @@ export default function Artikli() {
                   id="stock"
                   value={formData.stock}
                   onChange={(value) => setFormData({ ...formData, stock: value })}
-                  decimalPlaces={0}
+                  decimalPlaces={3}
                 />
               </div>
               <div className="space-y-2">
@@ -1386,7 +1386,7 @@ export default function Artikli() {
                   id="min_stock"
                   value={formData.min_stock}
                   onChange={(value) => setFormData({ ...formData, min_stock: value })}
-                  decimalPlaces={0}
+                  decimalPlaces={3}
                 />
               </div>
             </div>
