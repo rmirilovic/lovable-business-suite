@@ -164,7 +164,7 @@ export function GoodsReceiptItemsEditor({
               value={newItemQuantity}
               onChange={setNewItemQuantity}
               placeholder="Kol."
-              decimalPlaces={0}
+              decimalPlaces={3}
             />
           </div>
           <div className="col-span-1">
@@ -237,10 +237,10 @@ export function GoodsReceiptItemsEditor({
                   <TableCell>{item.item_name}</TableCell>
                   <TableCell>
                     <LocaleNumberInput
-                      value={formatDecimal(item.quantity, 0)}
+                      value={formatDecimal(item.quantity, 3)}
                       onChange={(val) => handleUpdateItemQuantity(item.id, val)}
                       className="text-right"
-                      decimalPlaces={0}
+                      decimalPlaces={3}
                     />
                   </TableCell>
                   <TableCell>{item.unit}</TableCell>
