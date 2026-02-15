@@ -39,6 +39,8 @@ export default function NaloziZaKnjizenje() {
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [newDialogOpen, setNewDialogOpen] = useState(false);
 
   const [newEntryForm, setNewEntryForm] = useState({
@@ -55,8 +57,10 @@ export default function NaloziZaKnjizenje() {
       (entry.document_number?.toLowerCase().includes(search.toLowerCase()) ?? false);
 
     const matchesStatus = statusFilter === "all" || entry.status === statusFilter;
+    const matchesDateFrom = !dateFrom || entry.entry_date >= dateFrom;
+    const matchesDateTo = !dateTo || entry.entry_date <= dateTo;
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
   });
 
   const handleCreateEntry = async () => {
@@ -111,7 +115,7 @@ export default function NaloziZaKnjizenje() {
                 className="pl-10"
               />
             </div>
-            <div className="flex gap-1">
+             <div className="flex gap-1">
               {["all", "draft", "posted"].map((status) => (
                 <Button
                   key={status}
@@ -123,6 +127,22 @@ export default function NaloziZaKnjizenje() {
                 </Button>
               ))}
             </div>
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-[150px]"
+              placeholder="Od"
+              title="Datum od"
+            />
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-[150px]"
+              placeholder="Do"
+              title="Datum do"
+            />
           </div>
           <Button onClick={() => setNewDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
