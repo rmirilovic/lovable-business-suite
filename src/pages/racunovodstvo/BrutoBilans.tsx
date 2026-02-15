@@ -3,6 +3,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
   Table,
   TableBody,
@@ -252,20 +253,18 @@ export default function BrutoBilans() {
         <div className="flex flex-wrap gap-4 items-end">
           <div className="space-y-2">
             <Label>Datum od</Label>
-            <Input
-              type="date"
+            <LocaleDateInput
               value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-40"
+              onChange={setDateFrom}
+              className="w-48"
             />
           </div>
           <div className="space-y-2">
             <Label>Datum do</Label>
-            <Input
-              type="date"
+            <LocaleDateInput
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-40"
+              onChange={setDateTo}
+              className="w-48"
             />
           </div>
           <Button
