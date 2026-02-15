@@ -379,20 +379,38 @@ export default function ServicePurchaseInvoiceEdit() {
 
         {/* Totals */}
         <div className="flex justify-end">
-          <div className="w-64 space-y-2 text-sm">
-            <div className="flex justify-between">
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between gap-8">
               <span className="text-muted-foreground">Osnovica:</span>
-              <span className="font-medium">{formatPrice(invoice.subtotal)}</span>
+              <span className="font-medium">{formatPrice(invoice.subtotal)} RSD</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-8">
               <span className="text-muted-foreground">PDV:</span>
-              <span className="font-medium">{formatPrice(invoice.vat_amount)}</span>
+              <span className="font-medium">{formatPrice(invoice.vat_amount)} RSD</span>
             </div>
             <Separator />
-            <div className="flex justify-between text-base">
+            <div className="flex justify-between gap-8 text-base">
               <span className="font-medium">Ukupno:</span>
-              <span className="font-bold">{formatPrice(invoice.total_amount)}</span>
+              <span className="font-bold">{formatPrice(invoice.total_amount)} RSD</span>
             </div>
+            {isForeignCurrency(invoice.currency) && invoice.exchange_rate > 0 && (
+              <>
+                <Separator />
+                <div className="flex justify-between gap-8">
+                  <span className="text-muted-foreground">Osnovica ({invoice.currency}):</span>
+                  <span className="font-medium">{formatPrice(invoice.subtotal / invoice.exchange_rate)} {invoice.currency}</span>
+                </div>
+                <div className="flex justify-between gap-8">
+                  <span className="text-muted-foreground">PDV ({invoice.currency}):</span>
+                  <span className="font-medium">{formatPrice(invoice.vat_amount / invoice.exchange_rate)} {invoice.currency}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between gap-8 text-base">
+                  <span className="font-medium">Ukupno ({invoice.currency}):</span>
+                  <span className="font-bold">{formatPrice(invoice.total_amount / invoice.exchange_rate)} {invoice.currency}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
