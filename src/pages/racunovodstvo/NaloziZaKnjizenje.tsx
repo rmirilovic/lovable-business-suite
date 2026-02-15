@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
   Table,
   TableBody,
@@ -127,22 +128,22 @@ export default function NaloziZaKnjizenje() {
                 </Button>
               ))}
             </div>
-            <Input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-[150px]"
-              placeholder="Od"
-              title="Datum od"
-            />
-            <Input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-[150px]"
-              placeholder="Do"
-              title="Datum do"
-            />
+            <div className="space-y-1">
+              <Label className="text-xs">Datum od</Label>
+              <LocaleDateInput
+                value={dateFrom}
+                onChange={setDateFrom}
+                className="w-[170px]"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Datum do</Label>
+              <LocaleDateInput
+                value={dateTo}
+                onChange={setDateTo}
+                className="w-[170px]"
+              />
+            </div>
           </div>
           <Button onClick={() => setNewDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
