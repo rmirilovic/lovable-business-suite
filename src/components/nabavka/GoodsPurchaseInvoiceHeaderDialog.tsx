@@ -169,8 +169,11 @@ export function GoodsPurchaseInvoiceHeaderDialog({
     e.preventDefault();
 
     if (invoice) {
-      await updateInvoice.mutateAsync({ id: invoice.id, ...formData });
+      const updated = await updateInvoice.mutateAsync({ id: invoice.id, ...formData });
       onOpenChange(false);
+      if (onSaved && updated) {
+        onSaved(updated);
+      }
     } else {
       const created = await createInvoice.mutateAsync(formData);
       onOpenChange(false);
