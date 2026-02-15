@@ -195,17 +195,17 @@ export function ArticleWarehouseCardDialog({
                     <TableCell className="font-medium">{row.document_type} {row.document_number}</TableCell>
                     <TableCell className="max-w-[150px] truncate">{row.partner_name}</TableCell>
                     <TableCell className="text-right">
-                      {row.in_quantity > 0 ? formatDecimal(row.in_quantity) : ""}
+                      {row.in_quantity !== 0 ? formatDecimal(row.in_quantity) : ""}
                     </TableCell>
                     <TableCell className="text-right">
-                      {row.out_quantity > 0 ? formatDecimal(row.out_quantity) : ""}
+                      {row.out_quantity !== 0 ? formatDecimal(row.out_quantity) : ""}
                     </TableCell>
                     <TableCell className="text-right">{formatPrice(row.unit_price)}</TableCell>
                     <TableCell className="text-right">
-                      {row.debit_value > 0 ? formatPrice(row.debit_value) : ""}
+                      {row.debit_value !== 0 ? formatPrice(row.debit_value) : ""}
                     </TableCell>
                     <TableCell className="text-right">
-                      {row.credit_value > 0 ? formatPrice(row.credit_value) : ""}
+                      {row.credit_value !== 0 ? formatPrice(row.credit_value) : ""}
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {formatDecimal(row.running_qty)}
