@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -11,15 +12,8 @@ import {
   TableRow,
   TableFooter,
 } from "@/components/ui/table";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, FileDown, Users } from "lucide-react";
-import { format, startOfYear, endOfYear } from "date-fns";
-import { sr } from "date-fns/locale";
+import { FileDown, Users } from "lucide-react";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { usePartners } from "@/hooks/usePartners";
 import { usePartnerCard } from "@/hooks/usePartnerCard";
@@ -36,13 +30,13 @@ export default function KarticePartnera() {
   const defaultDateTo = `${currentYear}-12-31`;
 
   const [selectedPartnerId, setSelectedPartnerId] = useState<string>("");
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(new Date(defaultDateFrom));
-  const [dateTo, setDateTo] = useState<Date | undefined>(new Date(defaultDateTo));
+  const [dateFrom, setDateFrom] = useState<string>(defaultDateFrom);
+  const [dateTo, setDateTo] = useState<string>(defaultDateTo);
 
   const { data, isLoading } = usePartnerCard(
     selectedPartnerId || null,
-    dateFrom ? format(dateFrom, "yyyy-MM-dd") : null,
-    dateTo ? format(dateTo, "yyyy-MM-dd") : null
+    dateFrom || null,
+    dateTo || null
   );
 
   const selectedPartner = partners.find((p) => p.id === selectedPartnerId);
@@ -98,54 +92,20 @@ export default function KarticePartnera() {
 
             <div className="space-y-2">
               <Label>Datum od</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dateFrom && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFrom ? format(dateFrom, "dd.MM.yyyy", { locale: sr }) : "Od"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dateFrom}
-                    onSelect={setDateFrom}
-                    locale={sr}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Datum do</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !dateTo && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateTo ? format(dateTo, "dd.MM.yyyy", { locale: sr }) : "Do"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dateTo}
-                    onSelect={setDateTo}
-                    locale={sr}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+              />
             </div>
           </div>
         </div>
