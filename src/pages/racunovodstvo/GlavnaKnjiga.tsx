@@ -299,10 +299,10 @@ export default function GlavnaKnjiga() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {entry.debit_amount > 0 ? formatNumber(entry.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
+                      {entry.debit_amount !== 0 ? formatNumber(entry.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {entry.credit_amount > 0 ? formatNumber(entry.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
+                      {entry.credit_amount !== 0 ? formatNumber(entry.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
                     </TableCell>
                     <TableCell className={`text-right font-mono font-medium ${entry.balance >= 0 ? "text-green-600" : "text-red-600"}`}>
                       {formatNumber(entry.balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
