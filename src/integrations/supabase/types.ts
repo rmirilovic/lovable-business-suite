@@ -1319,6 +1319,160 @@ export type Database = {
           },
         ]
       }
+      inter_warehouse_transfer_items: {
+        Row: {
+          article_id: string
+          company_id: string
+          created_at: string
+          id: string
+          item_code: string | null
+          item_name: string
+          item_order: number
+          quantity: number
+          transfer_id: string
+          unit: string
+          unit_price: number
+        }
+        Insert: {
+          article_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          quantity?: number
+          transfer_id: string
+          unit?: string
+          unit_price?: number
+        }
+        Update: {
+          article_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          quantity?: number
+          transfer_id?: string
+          unit?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inter_warehouse_transfer_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inter_warehouse_transfer_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inter_warehouse_transfer_items_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "inter_warehouse_transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inter_warehouse_transfers: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          destination_warehouse_id: string
+          id: string
+          journal_entry_id: string | null
+          note: string | null
+          posted_at: string | null
+          posted_by: string | null
+          source_warehouse_id: string
+          status: string
+          transfer_date: string
+          transfer_number: string
+          updated_at: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          destination_warehouse_id: string
+          id?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          source_warehouse_id: string
+          status?: string
+          transfer_date?: string
+          transfer_number: string
+          updated_at?: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          destination_warehouse_id?: string
+          id?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          source_warehouse_id?: string
+          status?: string
+          transfer_date?: string
+          transfer_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inter_warehouse_transfers_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inter_warehouse_transfers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inter_warehouse_transfers_destination_warehouse_id_fkey"
+            columns: ["destination_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inter_warehouse_transfers_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inter_warehouse_transfers_source_warehouse_id_fkey"
+            columns: ["source_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_count_items: {
         Row: {
           article_id: string
@@ -3528,6 +3682,10 @@ export type Database = {
         Args: { _company_id: string; _invoice_type: string; _year_id: string }
         Returns: string
       }
+      get_next_transfer_number: {
+        Args: { _company_id: string; _year_id: string }
+        Returns: string
+      }
       get_uninvoiced_delivery_notes: {
         Args: { _company_id: string; _partner_id?: string }
         Returns: {
@@ -3592,6 +3750,10 @@ export type Database = {
         Args: { _receipt_id: string; _user_id: string }
         Returns: string
       }
+      post_inter_warehouse_transfer: {
+        Args: { _transfer_id: string; _user_id: string }
+        Returns: string
+      }
       post_inventory_count: {
         Args: { _count_id: string; _user_id: string }
         Returns: undefined
@@ -3622,6 +3784,10 @@ export type Database = {
       }
       unpost_goods_receipt: {
         Args: { _receipt_id: string; _user_id: string }
+        Returns: string
+      }
+      unpost_inter_warehouse_transfer: {
+        Args: { _transfer_id: string; _user_id: string }
         Returns: string
       }
       unpost_inventory_count: {

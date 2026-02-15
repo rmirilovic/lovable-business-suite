@@ -44,6 +44,8 @@ import Popisi from "./pages/magacin/Popisi";
 import InventoryCountEdit from "./pages/magacin/InventoryCountEdit";
 import Nivelacije from "./pages/magacin/Nivelacije";
 import PriceAdjustmentEdit from "./pages/magacin/PriceAdjustmentEdit";
+import MedjumagacinskiPrenosi from "./pages/magacin/MedjumagacinskiPrenosi";
+import TransferEdit from "./pages/magacin/TransferEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -237,6 +239,16 @@ const App = () => (
               <Route path="/magacin/nivelacije/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <PriceAdjustmentEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/prenosi" element={
+                <ProtectedRoute>
+                  <MedjumagacinskiPrenosi />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/prenosi/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <TransferEdit />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
