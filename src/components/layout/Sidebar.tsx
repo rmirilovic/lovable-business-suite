@@ -79,6 +79,7 @@ const navigation: NavItem[] = [
       { label: "Kalkulacije", href: "/magacin/kalkulacije", moduleCode: "robno.prijemnice" },
       { label: "Nivelacije", href: "/magacin/nivelacije", moduleCode: "robno.prijemnice" },
       { label: "Međumagacinski prenosi", href: "/magacin/prenosi", moduleCode: "robno.prijemnice" },
+      { label: "Zamena artikla", href: "/magacin/zamene", moduleCode: "robno.prijemnice" },
       { label: "Popisi", href: "/magacin/popisi", moduleCode: "robno.prijemnice" },
       { label: "Stanje magacina", href: "/magacin/stanje", moduleCode: "robno.prijemnice" },
     ],

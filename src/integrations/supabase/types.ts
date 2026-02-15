@@ -210,6 +210,129 @@ export type Database = {
         }
         Relationships: []
       }
+      article_swaps: {
+        Row: {
+          article_1_code: string
+          article_1_id: string
+          article_1_name: string
+          article_1_unit: string
+          article_2_code: string
+          article_2_id: string
+          article_2_name: string
+          article_2_unit: string
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          id: string
+          note: string | null
+          posted_at: string | null
+          posted_by: string | null
+          price_1: number
+          price_2: number
+          quantity_1: number
+          quantity_2: number
+          status: string
+          swap_date: string
+          swap_number: string
+          swap_value: number
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          article_1_code: string
+          article_1_id: string
+          article_1_name: string
+          article_1_unit?: string
+          article_2_code: string
+          article_2_id: string
+          article_2_name: string
+          article_2_unit?: string
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          price_1?: number
+          price_2?: number
+          quantity_1?: number
+          quantity_2?: number
+          status?: string
+          swap_date?: string
+          swap_number: string
+          swap_value?: number
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          article_1_code?: string
+          article_1_id?: string
+          article_1_name?: string
+          article_1_unit?: string
+          article_2_code?: string
+          article_2_id?: string
+          article_2_name?: string
+          article_2_unit?: string
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          price_1?: number
+          price_2?: number
+          quantity_1?: number
+          quantity_2?: number
+          status?: string
+          swap_date?: string
+          swap_number?: string
+          swap_value?: number
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_swaps_article_1_id_fkey"
+            columns: ["article_1_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_swaps_article_2_id_fkey"
+            columns: ["article_2_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_swaps_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_swaps_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_swaps_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       articles: {
         Row: {
           article_group: string | null
@@ -3682,6 +3805,10 @@ export type Database = {
         Args: { _company_id: string; _invoice_type: string; _year_id: string }
         Returns: string
       }
+      get_next_swap_number: {
+        Args: { _company_id: string; _year_id: string }
+        Returns: string
+      }
       get_next_transfer_number: {
         Args: { _company_id: string; _year_id: string }
         Returns: string
@@ -3742,6 +3869,10 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      post_article_swap: {
+        Args: { _swap_id: string; _user_id: string }
+        Returns: string
+      }
       post_goods_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: string
@@ -3776,6 +3907,10 @@ export type Database = {
       }
       post_service_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
+        Returns: string
+      }
+      unpost_article_swap: {
+        Args: { _swap_id: string; _user_id: string }
         Returns: string
       }
       unpost_goods_purchase_invoice: {
