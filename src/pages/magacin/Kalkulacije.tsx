@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -54,6 +56,8 @@ export default function Kalkulacije() {
   const { calculations, isLoading, deleteCalculation, postCalculation, unpostCalculation } = usePurchasePriceCalculations();
 
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteConfirm, setDeleteConfirm] = useState<PurchasePriceCalculation | null>(null);
   const [postConfirm, setPostConfirm] = useState<PurchasePriceCalculation | null>(null);
@@ -67,8 +71,10 @@ export default function Kalkulacije() {
         c.goods_receipt?.partner?.name?.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus = statusFilter === "all" || c.status === statusFilter;
+      const matchesDateFrom = !dateFrom || c.calculation_date >= dateFrom;
+      const matchesDateTo = !dateTo || c.calculation_date <= dateTo;
 
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
     });
   }, [calculations, search, statusFilter]);
 
@@ -166,6 +172,14 @@ export default function Kalkulacije() {
               ))}
             </SelectContent>
           </Select>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum od</Label>
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum do</Label>
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+          </div>
         </div>
 
         {/* Table */}

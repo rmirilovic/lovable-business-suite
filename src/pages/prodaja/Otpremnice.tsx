@@ -2,6 +2,8 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
   Table,
   TableBody,
@@ -72,6 +74,8 @@ export default function Otpremnice() {
   const postMutation = usePostDeliveryNote();
 
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [showItemsDialog, setShowItemsDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
@@ -81,10 +85,15 @@ export default function Otpremnice() {
   const [items, setItems] = useState<DeliveryNoteItemData[]>([]);
 
   const filteredDeliveryNotes = (deliveryNotes || []).filter(
-    (dn) =>
-      dn.delivery_number.toLowerCase().includes(search.toLowerCase()) ||
-      dn.partner?.name.toLowerCase().includes(search.toLowerCase()) ||
-      dn.partner?.code.toLowerCase().includes(search.toLowerCase())
+    (dn) => {
+      const matchesSearch =
+        dn.delivery_number.toLowerCase().includes(search.toLowerCase()) ||
+        dn.partner?.name.toLowerCase().includes(search.toLowerCase()) ||
+        dn.partner?.code.toLowerCase().includes(search.toLowerCase());
+      const matchesDateFrom = !dateFrom || dn.delivery_date >= dateFrom;
+      const matchesDateTo = !dateTo || dn.delivery_date <= dateTo;
+      return matchesSearch && matchesDateFrom && matchesDateTo;
+    }
   );
 
   const handleCreateNew = () => {
@@ -185,7 +194,7 @@ export default function Otpremnice() {
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-end gap-4">
             <div className="relative w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -195,6 +204,14 @@ export default function Otpremnice() {
                 className="pl-8"
                 autoComplete="off"
               />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Datum od</Label>
+              <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Datum do</Label>
+              <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
             </div>
           </div>
           <div className="flex items-center gap-2">

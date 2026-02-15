@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
   Table,
   TableBody,
@@ -48,6 +50,8 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive" | "
 export default function UlazneFakture() {
   const { purchaseInvoices, isLoading, deletePurchaseInvoice } = usePurchaseInvoices();
   const [searchTerm, setSearchTerm] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<PurchaseInvoice | null>(null);
@@ -70,11 +74,16 @@ export default function UlazneFakture() {
   }, [purchaseInvoices, selectedInvoice?.id, selectedInvoice?.status, selectedInvoice?.total_amount, selectedInvoice?.subtotal]);
 
   const filteredInvoices = purchaseInvoices.filter(
-    (invoice) =>
-      invoice.internal_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.supplier_invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.partner?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.partner?.code.toLowerCase().includes(searchTerm.toLowerCase())
+    (invoice) => {
+      const matchesSearch =
+        invoice.internal_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.supplier_invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.partner?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.partner?.code.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesDateFrom = !dateFrom || invoice.invoice_date >= dateFrom;
+      const matchesDateTo = !dateTo || invoice.invoice_date <= dateTo;
+      return matchesSearch && matchesDateFrom && matchesDateTo;
+    }
   );
 
   const handleCreate = () => {
@@ -126,9 +135,8 @@ export default function UlazneFakture() {
           </Button>
         </div>
 
-        {/* Search */}
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Pretraži po broju ili dobavljaču..."
@@ -137,6 +145,14 @@ export default function UlazneFakture() {
               className="pl-10"
               autoComplete="off"
             />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum od</Label>
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum do</Label>
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
           </div>
         </div>
 

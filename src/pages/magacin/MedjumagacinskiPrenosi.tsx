@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -50,6 +52,8 @@ export default function MedjumagacinskiPrenosi() {
   } = useInterWarehouseTransfers();
 
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<InterWarehouseTransfer | null>(null);
@@ -63,7 +67,9 @@ export default function MedjumagacinskiPrenosi() {
         t.source_warehouse?.name?.toLowerCase().includes(search.toLowerCase()) ||
         t.destination_warehouse?.name?.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = statusFilter === "all" || t.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesDateFrom = !dateFrom || t.transfer_date >= dateFrom;
+      const matchesDateTo = !dateTo || t.transfer_date <= dateTo;
+      return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
     });
   }, [transfers, search, statusFilter]);
 
@@ -114,6 +120,14 @@ export default function MedjumagacinskiPrenosi() {
               ))}
             </SelectContent>
           </Select>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum od</Label>
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum do</Label>
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+          </div>
           {canEdit && (
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
