@@ -279,6 +279,8 @@ export default function GoodsPurchaseInvoiceEdit() {
           isLoading={itemsLoading}
           isEditable={isDraft}
           supplierIsInPdv={invoice.supplier_is_in_pdv}
+          currency={invoice.currency || "RSD"}
+          exchangeRate={invoice.exchange_rate || 1}
           addItem={addItem}
           updateItem={updateItem}
           deleteItem={deleteItem}

@@ -63,6 +63,7 @@ export interface ServicePurchaseInvoiceItem {
   quantity: number;
   unit: string;
   unit_price: number;
+  foreign_unit_price: number;
   discount_percent: number;
   vat_rate: number;
   is_vat_deductible: boolean;
@@ -116,6 +117,7 @@ export interface ServicePurchaseInvoiceItemFormData {
   quantity: number;
   unit: string;
   unit_price: number;
+  foreign_unit_price: number;
   discount_percent: number;
   vat_rate: number;
   is_vat_deductible: boolean;
@@ -397,6 +399,7 @@ export function useServicePurchaseInvoiceItems(invoiceId: string | null) {
           unit: item.unit,
           quantity: item.quantity,
           unit_price: item.unit_price,
+          foreign_unit_price: item.foreign_unit_price,
           discount_percent: item.discount_percent,
           vat_rate: item.vat_rate,
           is_vat_deductible: item.is_vat_deductible,
@@ -466,6 +469,7 @@ export function useServicePurchaseInvoiceItems(invoiceId: string | null) {
           unit: item.unit,
           quantity: item.quantity,
           unit_price: item.unit_price,
+          foreign_unit_price: item.foreign_unit_price,
           discount_percent: item.discount_percent,
           vat_rate: item.vat_rate,
           is_vat_deductible: item.is_vat_deductible,

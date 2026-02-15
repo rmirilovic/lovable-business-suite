@@ -19,6 +19,7 @@ import {
   GoodsPurchaseInvoiceItemFormData,
 } from "@/hooks/useGoodsPurchaseInvoices";
 import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
+import { isForeignCurrency } from "@/lib/currencies";
 import { UseMutationResult } from "@tanstack/react-query";
 
 interface GoodsPurchaseInvoiceItemsEditorProps {
@@ -27,6 +28,8 @@ interface GoodsPurchaseInvoiceItemsEditorProps {
   isLoading: boolean;
   isEditable: boolean;
   supplierIsInPdv: boolean;
+  currency: string;
+  exchangeRate: number;
   addItem: UseMutationResult<GoodsPurchaseInvoiceItem, Error, GoodsPurchaseInvoiceItemFormData & { goods_purchase_invoice_id: string }>;
   updateItem: UseMutationResult<GoodsPurchaseInvoiceItem, Error, GoodsPurchaseInvoiceItemFormData & { id: string }>;
   deleteItem: UseMutationResult<void, Error, string>;
@@ -40,6 +43,7 @@ const emptyItem: GoodsPurchaseInvoiceItemFormData = {
   quantity: 1,
   unit: "kom",
   unit_price: 0,
+  foreign_unit_price: 0,
   discount_percent: 0,
   vat_rate: 20,
   is_vat_deductible: true,
@@ -48,6 +52,7 @@ const emptyItem: GoodsPurchaseInvoiceItemFormData = {
 interface TextState {
   quantity: string;
   unit_price: string;
+  foreign_unit_price: string;
   discount_percent: string;
   vat_rate: string;
 }
@@ -57,6 +62,7 @@ const numToStr = (n: number): string => String(n ?? 0);
 const toTextState = (item: GoodsPurchaseInvoiceItemFormData): TextState => ({
   quantity: numToStr(item.quantity),
   unit_price: numToStr(item.unit_price),
+  foreign_unit_price: numToStr(item.foreign_unit_price),
   discount_percent: numToStr(item.discount_percent),
   vat_rate: numToStr(item.vat_rate),
 });
@@ -72,12 +78,16 @@ export function GoodsPurchaseInvoiceItemsEditor({
   isLoading,
   isEditable,
   supplierIsInPdv,
+  currency,
+  exchangeRate,
   addItem,
   updateItem,
   deleteItem,
 }: GoodsPurchaseInvoiceItemsEditorProps) {
   const { selectedCompany } = useAuth();
   const { articles } = useArticles(selectedCompany?.id);
+
+  const isForeign = isForeignCurrency(currency);
 
   const [isAdding, setIsAdding] = useState(false);
   const [newItem, setNewItem] = useState<GoodsPurchaseInvoiceItemFormData>(emptyItem);
@@ -92,13 +102,17 @@ export function GoodsPurchaseInvoiceItemsEditor({
     const article = articles.find((a) => a.id === articleId);
     if (!article) return;
 
+    const purchasePrice = article.purchase_price ?? 0;
+    const foreignPrice = isForeign && exchangeRate > 0 ? purchasePrice / exchangeRate : 0;
+
     const itemData = {
       article_id: article.id,
       item_code: article.code,
       item_name: article.name,
       unit: article.unit,
       vat_rate: 20,
-      unit_price: article.purchase_price ?? 0,
+      unit_price: purchasePrice,
+      foreign_unit_price: foreignPrice,
     };
 
     if (isNew) {
@@ -106,6 +120,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
       setNewText((prev) => ({
         ...prev,
         unit_price: numToStr(itemData.unit_price),
+        foreign_unit_price: numToStr(itemData.foreign_unit_price),
         vat_rate: numToStr(itemData.vat_rate),
       }));
     } else {
@@ -113,6 +128,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
       setEditText((prev) => ({
         ...prev,
         unit_price: numToStr(itemData.unit_price),
+        foreign_unit_price: numToStr(itemData.foreign_unit_price),
         vat_rate: numToStr(itemData.vat_rate),
       }));
     }
@@ -122,53 +138,47 @@ export function GoodsPurchaseInvoiceItemsEditor({
     return unitPrice * (1 - discountPercent / 100);
   };
 
-  const calculateLineTotal = (item: GoodsPurchaseInvoiceItemFormData) => {
-    const netPrice = calculateNetPrice(item.unit_price, item.discount_percent);
-    const subtotal = item.quantity * netPrice;
-    const vat = supplierIsInPdv ? subtotal * (item.vat_rate / 100) : 0;
-    return { netPrice, subtotal, vat, total: subtotal + vat };
-  };
-
   // Derived totals for display using current text states
-  const getNewTotals = () => {
-    const q = parseNum(newText.quantity);
-    const p = parseNum(newText.unit_price);
-    const d = parseNum(newText.discount_percent);
-    const v = parseNum(newText.vat_rate);
+  const getTotals = (text: TextState) => {
+    const q = parseNum(text.quantity);
+    const p = parseNum(text.unit_price);
+    const d = parseNum(text.discount_percent);
+    const v = parseNum(text.vat_rate);
     const net = p * (1 - d / 100);
     const sub = q * net;
     const vat = supplierIsInPdv ? sub * (v / 100) : 0;
     return { netPrice: net, total: sub + vat };
   };
 
-  const getEditTotals = () => {
-    const q = parseNum(editText.quantity);
-    const p = parseNum(editText.unit_price);
-    const d = parseNum(editText.discount_percent);
-    const v = parseNum(editText.vat_rate);
-    const net = p * (1 - d / 100);
-    const sub = q * net;
-    const vat = supplierIsInPdv ? sub * (v / 100) : 0;
-    return { netPrice: net, total: sub + vat };
-  };
-
-  const commitNewField = (field: keyof TextState) => {
-    const val = parseNum(newText[field]);
-    setNewItem((prev) => ({ ...prev, [field]: val }));
-  };
-
-  const commitEditField = (field: keyof TextState) => {
-    const val = parseNum(editText[field]);
-    setEditItem((prev) => ({ ...prev, [field]: val }));
+  const commitField = (
+    text: TextState,
+    setText: (fn: (prev: TextState) => TextState) => void,
+    setItem: (fn: (prev: GoodsPurchaseInvoiceItemFormData) => GoodsPurchaseInvoiceItemFormData) => void,
+    field: keyof TextState
+  ) => {
+    const val = parseNum(text[field]);
+    if (field === "foreign_unit_price" && isForeign) {
+      // Auto-calculate RSD price from foreign price
+      const rsdPrice = val * exchangeRate;
+      setItem((prev) => ({ ...prev, foreign_unit_price: val, unit_price: rsdPrice }));
+      setText((prev) => ({ ...prev, unit_price: numToStr(rsdPrice) }));
+    } else if (field === "unit_price" && isForeign) {
+      // Reverse-calculate foreign price from RSD
+      const foreignPrice = exchangeRate > 0 ? val / exchangeRate : 0;
+      setItem((prev) => ({ ...prev, unit_price: val, foreign_unit_price: foreignPrice }));
+      setText((prev) => ({ ...prev, foreign_unit_price: numToStr(foreignPrice) }));
+    } else {
+      setItem((prev) => ({ ...prev, [field]: val }));
+    }
   };
 
   const handleAddSubmit = async () => {
     if (!newItem.item_name) return;
-    // Commit all text fields before submit
-    const committed = {
+    const committed: GoodsPurchaseInvoiceItemFormData = {
       ...newItem,
       quantity: parseNum(newText.quantity),
       unit_price: parseNum(newText.unit_price),
+      foreign_unit_price: parseNum(newText.foreign_unit_price),
       discount_percent: parseNum(newText.discount_percent),
       vat_rate: parseNum(newText.vat_rate),
     };
@@ -191,6 +201,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
       quantity: item.quantity,
       unit: item.unit,
       unit_price: item.unit_price,
+      foreign_unit_price: item.foreign_unit_price ?? 0,
       discount_percent: item.discount_percent,
       vat_rate: item.vat_rate,
       is_vat_deductible: item.is_vat_deductible,
@@ -201,10 +212,11 @@ export function GoodsPurchaseInvoiceItemsEditor({
 
   const handleEditSubmit = async () => {
     if (!editingId || !editItem.item_name) return;
-    const committed = {
+    const committed: GoodsPurchaseInvoiceItemFormData = {
       ...editItem,
       quantity: parseNum(editText.quantity),
       unit_price: parseNum(editText.unit_price),
+      foreign_unit_price: parseNum(editText.foreign_unit_price),
       discount_percent: parseNum(editText.discount_percent),
       vat_rate: parseNum(editText.vat_rate),
     };
@@ -233,6 +245,8 @@ export function GoodsPurchaseInvoiceItemsEditor({
     />
   );
 
+  const colCount = (isForeign ? 1 : 0) + (isEditable ? 10 : 9);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -254,7 +268,10 @@ export function GoodsPurchaseInvoiceItemsEditor({
                 <TableHead>Naziv artikla</TableHead>
                 <TableHead className="w-[60px]">JM</TableHead>
                 <TableHead className="w-[200px] text-right">Količina</TableHead>
-                <TableHead className="w-[140px] text-right">Cena</TableHead>
+                {isForeign && (
+                  <TableHead className="w-[140px] text-right">Cena ({currency})</TableHead>
+                )}
+                <TableHead className="w-[140px] text-right">Cena (RSD)</TableHead>
                 <TableHead className="w-[80px] text-right">Rabat%</TableHead>
                 <TableHead className="w-[140px] text-right">Cena neto</TableHead>
                 <TableHead className="w-[90px] text-right">PDV%</TableHead>
@@ -265,7 +282,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={isEditable ? 10 : 9} className="text-center py-4">
+                  <TableCell colSpan={colCount} className="text-center py-4">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
@@ -294,15 +311,25 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         {renderNumericInput(
                           editText.quantity,
                           (v) => setEditText((p) => ({ ...p, quantity: v })),
-                          () => commitEditField("quantity"),
+                          () => commitField(editText, setEditText, setEditItem, "quantity"),
                           "w-[180px]"
                         )}
                       </TableCell>
+                      {isForeign && (
+                        <TableCell>
+                          {renderNumericInput(
+                            editText.foreign_unit_price,
+                            (v) => setEditText((p) => ({ ...p, foreign_unit_price: v })),
+                            () => commitField(editText, setEditText, setEditItem, "foreign_unit_price"),
+                            "w-[120px]"
+                          )}
+                        </TableCell>
+                      )}
                       <TableCell>
                         {renderNumericInput(
                           editText.unit_price,
                           (v) => setEditText((p) => ({ ...p, unit_price: v })),
-                          () => commitEditField("unit_price"),
+                          () => commitField(editText, setEditText, setEditItem, "unit_price"),
                           "w-[120px]"
                         )}
                       </TableCell>
@@ -310,23 +337,23 @@ export function GoodsPurchaseInvoiceItemsEditor({
                         {renderNumericInput(
                           editText.discount_percent,
                           (v) => setEditText((p) => ({ ...p, discount_percent: v })),
-                          () => commitEditField("discount_percent"),
+                          () => commitField(editText, setEditText, setEditItem, "discount_percent"),
                           "w-[60px]"
                         )}
                       </TableCell>
                       <TableCell className="text-xs text-right">
-                        {formatNumber(getEditTotals().netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatNumber(getTotals(editText).netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell>
                         {renderNumericInput(
                           editText.vat_rate,
                           (v) => setEditText((p) => ({ ...p, vat_rate: v })),
-                          () => commitEditField("vat_rate"),
+                          () => commitField(editText, setEditText, setEditItem, "vat_rate"),
                           "w-[70px]"
                         )}
                       </TableCell>
                       <TableCell className="text-right text-xs font-medium">
-                        {formatNumber(getEditTotals().total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatNumber(getTotals(editText).total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-nowrap">
@@ -361,6 +388,11 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs font-medium">{item.item_name}</TableCell>
                       <TableCell className="text-xs">{item.unit}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(item.quantity)}</TableCell>
+                      {isForeign && (
+                        <TableCell className="text-xs text-right">
+                          {formatNumber(item.foreign_unit_price, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </TableCell>
+                      )}
                       <TableCell className="text-xs text-right">{formatNumber(item.unit_price, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-xs text-right">{item.discount_percent > 0 ? `${formatNumber(item.discount_percent)}%` : "-"}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(calculateNetPrice(item.unit_price, item.discount_percent), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
@@ -407,15 +439,25 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       {renderNumericInput(
                         newText.quantity,
                         (v) => setNewText((p) => ({ ...p, quantity: v })),
-                        () => commitNewField("quantity"),
+                        () => commitField(newText, setNewText, setNewItem, "quantity"),
                         "w-[180px]"
                       )}
                     </TableCell>
+                    {isForeign && (
+                      <TableCell>
+                        {renderNumericInput(
+                          newText.foreign_unit_price,
+                          (v) => setNewText((p) => ({ ...p, foreign_unit_price: v })),
+                          () => commitField(newText, setNewText, setNewItem, "foreign_unit_price"),
+                          "w-[120px]"
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell>
                       {renderNumericInput(
                         newText.unit_price,
                         (v) => setNewText((p) => ({ ...p, unit_price: v })),
-                        () => commitNewField("unit_price"),
+                        () => commitField(newText, setNewText, setNewItem, "unit_price"),
                         "w-[120px]"
                       )}
                     </TableCell>
@@ -423,23 +465,23 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       {renderNumericInput(
                         newText.discount_percent,
                         (v) => setNewText((p) => ({ ...p, discount_percent: v })),
-                        () => commitNewField("discount_percent"),
+                        () => commitField(newText, setNewText, setNewItem, "discount_percent"),
                         "w-[60px]"
                       )}
                     </TableCell>
                     <TableCell className="text-xs text-right">
-                      {formatNumber(getNewTotals().netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatNumber(getTotals(newText).netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
                       {renderNumericInput(
                         newText.vat_rate,
                         (v) => setNewText((p) => ({ ...p, vat_rate: v })),
-                        () => commitNewField("vat_rate"),
+                        () => commitField(newText, setNewText, setNewItem, "vat_rate"),
                         "w-[70px]"
                       )}
                     </TableCell>
                     <TableCell className="text-right text-xs font-medium">
-                      {formatNumber(getNewTotals().total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatNumber(getTotals(newText).total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-nowrap">
@@ -472,7 +514,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
 
                 {items.length === 0 && !isAdding && (
                   <TableRow>
-                    <TableCell colSpan={isEditable ? 10 : 9} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={colCount} className="text-center py-4 text-muted-foreground">
                       Nema stavki. {isEditable && "Kliknite 'Dodaj stavku' za dodavanje."}
                     </TableCell>
                   </TableRow>
