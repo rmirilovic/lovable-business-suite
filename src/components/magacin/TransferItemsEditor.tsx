@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -118,40 +118,47 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
     }
   };
 
-  const handleUpdateItemQuantity = async (id: string, value: string) => {
-    const item = items.find((i) => i.id === id);
-    if (!item) return;
-    const quantity = parseLocaleNumber(value);
-    const maxQty = getMaxQuantity(item.article_id);
-    if (quantity > maxQty) {
-      const { toast } = await import("sonner");
-      toast.error(`Maksimalna količina za ovaj artikal je ${formatDecimal(maxQty, 3)} (stanje u magacinu)`);
-      return;
-    }
-    await updateItem.mutateAsync({
-      id,
-      article_id: item.article_id,
-      item_code: item.item_code,
-      item_name: item.item_name,
-      unit: item.unit,
-      quantity,
-      unit_price: item.unit_price,
-    });
+  // Track pending edits for inline fields (commit on blur)
+  const pendingEdits = React.useRef<Record<string, { quantity?: string; price?: string }>>({});
+
+  const handleInlineChange = (id: string, field: "quantity" | "price", value: string) => {
+    if (!pendingEdits.current[id]) pendingEdits.current[id] = {};
+    if (field === "quantity") pendingEdits.current[id].quantity = value;
+    else pendingEdits.current[id].price = value;
   };
 
-  const handleUpdateItemPrice = async (id: string, value: string) => {
+  const handleInlineBlur = async (id: string, field: "quantity" | "price") => {
+    const pending = pendingEdits.current[id];
+    if (!pending) return;
     const item = items.find((i) => i.id === id);
     if (!item) return;
-    const unitPrice = parseLocaleNumber(value);
-    await updateItem.mutateAsync({
-      id,
-      article_id: item.article_id,
-      item_code: item.item_code,
-      item_name: item.item_name,
-      unit: item.unit,
-      quantity: item.quantity,
-      unit_price: unitPrice,
-    });
+
+    if (field === "quantity" && pending.quantity !== undefined) {
+      const quantity = parseLocaleNumber(pending.quantity);
+      const maxQty = getMaxQuantity(item.article_id);
+      if (quantity > maxQty) {
+        const { toast } = await import("sonner");
+        toast.error(`Maksimalna količina za ovaj artikal je ${formatDecimal(maxQty, 3)} (stanje u magacinu)`);
+        delete pending.quantity;
+        return;
+      }
+      if (Math.abs(quantity - item.quantity) < 0.0005) { delete pending.quantity; return; }
+      await updateItem.mutateAsync({
+        id, article_id: item.article_id, item_code: item.item_code,
+        item_name: item.item_name, unit: item.unit, quantity, unit_price: item.unit_price,
+      });
+      delete pending.quantity;
+    }
+
+    if (field === "price" && pending.price !== undefined) {
+      const unitPrice = parseLocaleNumber(pending.price);
+      if (Math.abs(unitPrice - item.unit_price) < 0.005) { delete pending.price; return; }
+      await updateItem.mutateAsync({
+        id, article_id: item.article_id, item_code: item.item_code,
+        item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: unitPrice,
+      });
+      delete pending.price;
+    }
   };
 
   const totalValue = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
@@ -248,7 +255,8 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
                   <TableCell>
                     <LocaleNumberInput
                       value={formatDecimal(item.quantity, 3)}
-                      onChange={(val) => handleUpdateItemQuantity(item.id, val)}
+                      onChange={(val) => handleInlineChange(item.id, "quantity", val)}
+                      onBlur={() => handleInlineBlur(item.id, "quantity")}
                       className="text-right"
                       decimalPlaces={3}
                     />
@@ -257,7 +265,8 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
                   <TableCell>
                     <LocaleNumberInput
                       value={formatDecimal(item.unit_price, 2)}
-                      onChange={(val) => handleUpdateItemPrice(item.id, val)}
+                      onChange={(val) => handleInlineChange(item.id, "price", val)}
+                      onBlur={() => handleInlineBlur(item.id, "price")}
                       decimalPlaces={2}
                       className="text-right"
                     />
