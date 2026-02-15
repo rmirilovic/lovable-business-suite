@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { usePartners, usePartnerBankAccounts } from "@/hooks/usePartners";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +28,7 @@ import {
   ServicePurchaseInvoice,
   ServicePurchaseInvoiceFormData,
 } from "@/hooks/useServicePurchaseInvoices";
+import { CURRENCIES, isForeignCurrency } from "@/lib/currencies";
 
 interface ServicePurchaseInvoiceHeaderDialogProps {
   open: boolean;
@@ -64,7 +66,11 @@ export function ServicePurchaseInvoiceHeaderDialog({
     has_internal_vat_calculation: false,
     note: null,
     internal_note: null,
+    currency: "RSD",
+    exchange_rate: 1,
   });
+
+  const [exchangeRateText, setExchangeRateText] = useState("1");
 
   const { bankAccounts } = usePartnerBankAccounts(formData.partner_id || null);
 
@@ -89,7 +95,10 @@ export function ServicePurchaseInvoiceHeaderDialog({
         has_internal_vat_calculation: invoice.has_internal_vat_calculation,
         note: invoice.note,
         internal_note: invoice.internal_note,
+        currency: invoice.currency || "RSD",
+        exchange_rate: invoice.exchange_rate || 1,
       });
+      setExchangeRateText(String(invoice.exchange_rate || 1));
     } else {
       setFormData({
         supplier_invoice_number: "",
@@ -110,7 +119,10 @@ export function ServicePurchaseInvoiceHeaderDialog({
         has_internal_vat_calculation: false,
         note: null,
         internal_note: null,
+        currency: "RSD",
+        exchange_rate: 1,
       });
+      setExchangeRateText("1");
     }
   }, [invoice, open]);
 
@@ -255,6 +267,50 @@ export function ServicePurchaseInvoiceHeaderDialog({
                 </Label>
               </div>
             </div>
+          </div>
+
+          {/* Valuta */}
+          <div className="grid grid-cols-2 gap-4 p-3 border rounded-lg">
+            <div className="space-y-2">
+              <Label>Valuta fakture</Label>
+              <Select
+                value={formData.currency}
+                onValueChange={(value) => {
+                  const isRsd = value === "RSD";
+                  setFormData({ ...formData, currency: value, exchange_rate: isRsd ? 1 : formData.exchange_rate });
+                  if (isRsd) setExchangeRateText("1");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.code} - {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {isForeignCurrency(formData.currency) && (
+              <div className="space-y-2">
+                <Label>Kurs (srednji NBS)</Label>
+                <LocaleNumberInput
+                  value={exchangeRateText}
+                  onChange={setExchangeRateText}
+                  onBlur={() => {
+                    const parsed = parseFloat(exchangeRateText.replace(",", ".")) || 1;
+                    setFormData({ ...formData, exchange_rate: parsed });
+                  }}
+                  className="h-10"
+                  allowEmpty
+                />
+                <p className="text-xs text-muted-foreground">
+                  1 {formData.currency} = {exchangeRateText} RSD
+                </p>
+              </div>
+            )}
           </div>
 
           {/* PDV opcije */}

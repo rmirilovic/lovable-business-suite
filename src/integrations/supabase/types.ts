@@ -858,6 +858,7 @@ export type Database = {
           created_at: string
           description: string | null
           discount_percent: number
+          foreign_unit_price: number
           goods_purchase_invoice_id: string
           id: string
           is_vat_deductible: boolean
@@ -878,6 +879,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discount_percent?: number
+          foreign_unit_price?: number
           goods_purchase_invoice_id: string
           id?: string
           is_vat_deductible?: boolean
@@ -898,6 +900,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discount_percent?: number
+          foreign_unit_price?: number
           goods_purchase_invoice_id?: string
           id?: string
           is_vat_deductible?: boolean
@@ -942,7 +945,9 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string
+          currency: string
           due_date: string | null
+          exchange_rate: number
           goods_receipt_id: string | null
           has_internal_vat_calculation: boolean
           id: string
@@ -979,7 +984,9 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by: string
+          currency?: string
           due_date?: string | null
+          exchange_rate?: number
           goods_receipt_id?: string | null
           has_internal_vat_calculation?: boolean
           id?: string
@@ -1016,7 +1023,9 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string
+          currency?: string
           due_date?: string | null
+          exchange_rate?: number
           goods_receipt_id?: string | null
           has_internal_vat_calculation?: boolean
           id?: string
@@ -2967,6 +2976,7 @@ export type Database = {
           created_at: string
           description: string | null
           discount_percent: number
+          foreign_unit_price: number
           id: string
           input_cost_id: string | null
           is_vat_deductible: boolean
@@ -2988,6 +2998,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discount_percent?: number
+          foreign_unit_price?: number
           id?: string
           input_cost_id?: string | null
           is_vat_deductible?: boolean
@@ -3009,6 +3020,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discount_percent?: number
+          foreign_unit_price?: number
           id?: string
           input_cost_id?: string | null
           is_vat_deductible?: boolean
@@ -3062,7 +3074,9 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string
+          currency: string
           due_date: string | null
+          exchange_rate: number
           has_internal_vat_calculation: boolean
           id: string
           internal_note: string | null
@@ -3097,7 +3111,9 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by: string
+          currency?: string
           due_date?: string | null
+          exchange_rate?: number
           has_internal_vat_calculation?: boolean
           id?: string
           internal_note?: string | null
@@ -3132,7 +3148,9 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string
+          currency?: string
           due_date?: string | null
+          exchange_rate?: number
           has_internal_vat_calculation?: boolean
           id?: string
           internal_note?: string | null
