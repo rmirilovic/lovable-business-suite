@@ -329,12 +329,12 @@ export default function KarticaKonta() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {item.debit_amount > 0
+                      {item.debit_amount !== 0
                         ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         : ""}
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {item.credit_amount > 0
+                      {item.credit_amount !== 0
                         ? formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         : ""}
                     </TableCell>
