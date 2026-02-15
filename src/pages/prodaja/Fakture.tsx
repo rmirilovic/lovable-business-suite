@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -11,6 +12,7 @@ import { InvoiceDialog } from "@/components/prodaja/InvoiceDialog";
 import { InvoiceDetailDialog } from "@/components/prodaja/InvoiceDetailDialog";
 import { CreateInvoiceFromSourceDialog } from "@/components/prodaja/CreateInvoiceFromSourceDialog";
 import { formatDate, formatPrice } from "@/lib/formatting";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +40,8 @@ export default function Fakture() {
   const { invoices, isLoading, createInvoice, updateInvoice, deleteInvoice, postInvoice } = useInvoices();
   
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [fromSourceDialogOpen, setFromSourceDialogOpen] = useState(false);
@@ -47,11 +51,13 @@ export default function Fakture() {
 
   const filteredInvoices = invoices.filter(invoice => {
     const query = searchQuery.toLowerCase();
-    return (
+    const matchesSearch =
       invoice.invoice_number.toLowerCase().includes(query) ||
       invoice.partner?.name?.toLowerCase().includes(query) ||
-      invoice.partner?.code?.toLowerCase().includes(query)
-    );
+      invoice.partner?.code?.toLowerCase().includes(query);
+    const matchesDateFrom = !dateFrom || invoice.invoice_date >= dateFrom;
+    const matchesDateTo = !dateTo || invoice.invoice_date <= dateTo;
+    return matchesSearch && matchesDateFrom && matchesDateTo;
   });
 
   const handleCreateNew = () => {
@@ -115,14 +121,24 @@ export default function Fakture() {
       <div className="space-y-4">
         {/* Header */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Pretraži fakture..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Pretraži fakture..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Datum od</Label>
+              <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Datum do</Label>
+              <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+            </div>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleCreateFromSource}>

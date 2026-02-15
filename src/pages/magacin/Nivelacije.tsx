@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -53,6 +55,8 @@ export default function Nivelacije() {
   const svk1Warehouses = warehouses.filter((w) => w.warehouse_type === "1");
 
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [warehouseFilter, setWarehouseFilter] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -67,7 +71,9 @@ export default function Nivelacije() {
         a.warehouse?.name?.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = statusFilter === "all" || a.status === statusFilter;
       const matchesWarehouse = warehouseFilter === "all" || a.warehouse_id === warehouseFilter;
-      return matchesSearch && matchesStatus && matchesWarehouse;
+      const matchesDateFrom = !dateFrom || a.adjustment_date >= dateFrom;
+      const matchesDateTo = !dateTo || a.adjustment_date <= dateTo;
+      return matchesSearch && matchesStatus && matchesWarehouse && matchesDateFrom && matchesDateTo;
     });
   }, [adjustments, search, statusFilter, warehouseFilter]);
 
@@ -114,6 +120,14 @@ export default function Nivelacije() {
               {svk1Warehouses.map((wh) => <SelectItem key={wh.id} value={wh.id}>{wh.code} - {wh.name}</SelectItem>)}
             </SelectContent>
           </Select>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum od</Label>
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum do</Label>
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+          </div>
           {canEdit && (
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />Nova nivelacija

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -87,6 +89,8 @@ export default function Prijemnice() {
   const { warehouses } = useWarehouses(selectedCompany?.id);
 
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [warehouseFilter, setWarehouseFilter] = useState("all");
 
@@ -111,7 +115,10 @@ export default function Prijemnice() {
       const matchesWarehouse =
         warehouseFilter === "all" || receipt.warehouse_id === warehouseFilter;
 
-      return matchesSearch && matchesStatus && matchesWarehouse;
+      const matchesDateFrom = !dateFrom || receipt.receipt_date >= dateFrom;
+      const matchesDateTo = !dateTo || receipt.receipt_date <= dateTo;
+
+      return matchesSearch && matchesStatus && matchesWarehouse && matchesDateFrom && matchesDateTo;
     });
   }, [receipts, search, statusFilter, warehouseFilter]);
 
@@ -242,6 +249,14 @@ export default function Prijemnice() {
               ))}
             </SelectContent>
           </Select>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum od</Label>
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum do</Label>
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+          </div>
           {canEdit && (
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />

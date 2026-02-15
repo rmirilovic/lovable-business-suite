@@ -3,6 +3,7 @@ import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye, ArrowRight
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -11,6 +12,7 @@ import { QuoteDialog } from "@/components/prodaja/QuoteDialog";
 import { QuoteDetailDialog } from "@/components/prodaja/QuoteDetailDialog";
 import { formatDecimal } from "@/lib/formatting";
 import { format } from "date-fns";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
@@ -22,6 +24,8 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
 export default function Ponude() {
   const { quotes, isLoading, createQuote, updateQuote, deleteQuote } = useQuotes();
   const [searchTerm, setSearchTerm] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
@@ -44,11 +48,13 @@ export default function Ponude() {
 
   const filteredQuotes = quotes.filter((quote) => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    const matchesSearch =
       quote.quote_number.toLowerCase().includes(searchLower) ||
       quote.partner?.name?.toLowerCase().includes(searchLower) ||
-      quote.partner?.code?.toLowerCase().includes(searchLower)
-    );
+      quote.partner?.code?.toLowerCase().includes(searchLower);
+    const matchesDateFrom = !dateFrom || quote.quote_date >= dateFrom;
+    const matchesDateTo = !dateTo || quote.quote_date <= dateTo;
+    return matchesSearch && matchesDateFrom && matchesDateTo;
   });
 
   const handleCreate = () => {
@@ -112,9 +118,9 @@ export default function Ponude() {
           </Button>
         </div>
 
-        {/* Search */}
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-md">
+        {/* Search & Date Filters */}
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Pretraži po broju ili kupcu..."
@@ -122,6 +128,14 @@ export default function Ponude() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum od</Label>
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum do</Label>
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
           </div>
         </div>
 
