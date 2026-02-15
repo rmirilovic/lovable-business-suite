@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,9 +13,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SearchableArticleSelect, Article } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
+import { useWarehouseStock } from "@/hooks/useWarehouseStock";
 
 interface TransferItemsEditorProps {
   transferId: string;
+  sourceWarehouseId: string;
 }
 
 const emptyItem: TransferItemFormData = {
@@ -27,11 +29,31 @@ const emptyItem: TransferItemFormData = {
   unit_price: 0,
 };
 
-export function TransferItemsEditor({ transferId }: TransferItemsEditorProps) {
+export function TransferItemsEditor({ transferId, sourceWarehouseId }: TransferItemsEditorProps) {
   const { selectedCompany } = useAuth();
   const { items, isLoading, addItem, updateItem, deleteItem } =
     useInterWarehouseTransferItems(transferId);
   const { articles } = useArticles(selectedCompany?.id);
+  const { data: warehouseStock } = useWarehouseStock(selectedCompany?.id, sourceWarehouseId);
+
+  // Build a map of article_id -> stock info for the source warehouse
+  const stockMap = useMemo(() => {
+    const map = new Map<string, { balance_qty: number; unit_price: number }>();
+    if (warehouseStock) {
+      for (const row of warehouseStock) {
+        if (row.balance_qty > 0) {
+          const unitPrice = row.balance_qty > 0 ? row.balance_value / row.balance_qty : 0;
+          map.set(row.article_id, { balance_qty: row.balance_qty, unit_price: unitPrice });
+        }
+      }
+    }
+    return map;
+  }, [warehouseStock]);
+
+  // Only show articles that have stock > 0 in source warehouse
+  const availableArticles = useMemo(() => {
+    return articles.filter((a) => a.is_active && stockMap.has(a.id));
+  }, [articles, stockMap]);
 
   const [newItem, setNewItem] = useState<TransferItemFormData>(emptyItem);
   const [newItemQuantity, setNewItemQuantity] = useState("1");
@@ -46,17 +68,19 @@ export function TransferItemsEditor({ transferId }: TransferItemsEditorProps) {
       return;
     }
     const fullArticle = articles.find((a) => a.id === articleId);
+    const stock = stockMap.get(articleId);
     if (fullArticle) {
+      const price = stock?.unit_price ?? fullArticle.purchase_price ?? 0;
       setNewItem({
         article_id: fullArticle.id,
         item_code: fullArticle.code,
         item_name: fullArticle.name,
         unit: fullArticle.unit,
         quantity: 1,
-        unit_price: fullArticle.purchase_price || 0,
+        unit_price: price,
       });
       setNewItemQuantity("1");
-      setNewItemPrice(formatDecimal(fullArticle.purchase_price || 0, 2));
+      setNewItemPrice(formatDecimal(price, 2));
     }
   };
 
@@ -129,7 +153,7 @@ export function TransferItemsEditor({ transferId }: TransferItemsEditorProps) {
         <div className="grid grid-cols-12 gap-2 items-end">
           <div className="col-span-4">
             <SearchableArticleSelect
-              articles={articles.filter((a) => a.is_active)}
+              articles={availableArticles}
               value={newItem.article_id || ""}
               onValueChange={handleArticleSelect}
               placeholder="Izaberi artikal..."
