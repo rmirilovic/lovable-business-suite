@@ -198,7 +198,7 @@ export default function TransferEdit() {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : isDraft && canEdit ? (
-          <TransferItemsEditor transferId={transfer.id} sourceWarehouseId={transfer.source_warehouse_id} />
+          <TransferItemsEditor transferId={transfer.id} sourceWarehouseId={transfer.source_warehouse_id} transferDate={transfer.transfer_date} />
         ) : (
           <div className="border rounded-md">
             <Table>

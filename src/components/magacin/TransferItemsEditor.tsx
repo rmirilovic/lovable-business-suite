@@ -18,6 +18,7 @@ import { useWarehouseStock } from "@/hooks/useWarehouseStock";
 interface TransferItemsEditorProps {
   transferId: string;
   sourceWarehouseId: string;
+  transferDate: string;
 }
 
 const emptyItem: TransferItemFormData = {
@@ -29,12 +30,12 @@ const emptyItem: TransferItemFormData = {
   unit_price: 0,
 };
 
-export function TransferItemsEditor({ transferId, sourceWarehouseId }: TransferItemsEditorProps) {
+export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDate }: TransferItemsEditorProps) {
   const { selectedCompany } = useAuth();
   const { items, isLoading, addItem, updateItem, deleteItem } =
     useInterWarehouseTransferItems(transferId);
   const { articles } = useArticles(selectedCompany?.id);
-  const { data: warehouseStock } = useWarehouseStock(selectedCompany?.id, sourceWarehouseId);
+  const { data: warehouseStock } = useWarehouseStock(selectedCompany?.id, sourceWarehouseId, undefined, transferDate);
 
   // Build a map of article_id -> stock info for the source warehouse
   const stockMap = useMemo(() => {
@@ -84,10 +85,22 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId }: TransferI
     }
   };
 
+  const getMaxQuantity = (articleId: string) => {
+    const stock = stockMap.get(articleId);
+    return stock?.balance_qty ?? 0;
+  };
+
   const handleAddItem = async () => {
     const quantity = parseLocaleNumber(newItemQuantity);
     const unitPrice = parseLocaleNumber(newItemPrice);
     if (!newItem.item_name || !newItem.article_id || quantity <= 0) return;
+
+    const maxQty = getMaxQuantity(newItem.article_id);
+    if (quantity > maxQty) {
+      const { toast } = await import("sonner");
+      toast.error(`Maksimalna količina za ovaj artikal je ${formatDecimal(maxQty, 3)} (stanje u magacinu)`);
+      return;
+    }
 
     setIsAdding(true);
     try {
@@ -109,6 +122,12 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId }: TransferI
     const item = items.find((i) => i.id === id);
     if (!item) return;
     const quantity = parseLocaleNumber(value);
+    const maxQty = getMaxQuantity(item.article_id);
+    if (quantity > maxQty) {
+      const { toast } = await import("sonner");
+      toast.error(`Maksimalna količina za ovaj artikal je ${formatDecimal(maxQty, 3)} (stanje u magacinu)`);
+      return;
+    }
     await updateItem.mutateAsync({
       id,
       article_id: item.article_id,
