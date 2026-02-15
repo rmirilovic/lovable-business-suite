@@ -27,6 +27,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 import { format } from "date-fns";
 import { formatNumber } from "@/lib/formatting";
 
@@ -62,6 +64,8 @@ export default function GlavnaKnjiga() {
   const [dateTo, setDateTo] = useState<string>(searchParams.get("to") || "");
   const [analyticsFilter, setAnalyticsFilter] = useState<string>("");
   const [docTypeFilter, setDocTypeFilter] = useState<string>("");
+
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("entry_date", "asc");
 
   const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
 
@@ -155,7 +159,7 @@ export default function GlavnaKnjiga() {
     setAnalyticsFilter("");
   };
 
-  // Filter by date, analytics and calculate running balance
+  // Filter, sort, then calculate running balance
   const filteredData = useMemo(() => {
     let data = ledgerData;
 
@@ -172,13 +176,28 @@ export default function GlavnaKnjiga() {
       data = data.filter((e) => e.doc_type_prefix === docTypeFilter);
     }
 
+    // Sort
+    const sorted = sortItems(data, (item, col) => {
+      switch (col) {
+        case "entry_date": return item.entry_date;
+        case "document_date": return item.item_document_date || item.document_date || "";
+        case "entry_number": return item.entry_number;
+        case "account_code": return item.account_code;
+        case "analytics": return item.analytics || "";
+        case "description": return item.description;
+        case "debit_amount": return item.debit_amount;
+        case "credit_amount": return item.credit_amount;
+        default: return null;
+      }
+    });
+
     // Calculate running balance
     let balance = 0;
-    return data.map((entry) => {
+    return sorted.map((entry) => {
       balance += entry.debit_amount - entry.credit_amount;
       return { ...entry, balance };
     });
-  }, [ledgerData, dateFrom, dateTo, analyticsFilter, docTypeFilter]);
+  }, [ledgerData, dateFrom, dateTo, analyticsFilter, docTypeFilter, sortItems]);
 
   // Summary calculations
   const totals = useMemo(() => {
@@ -351,14 +370,30 @@ export default function GlavnaKnjiga() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Datum</TableHead>
-                <TableHead className="w-[100px]">Valuta</TableHead>
-                <TableHead className="w-[80px]">Nalog</TableHead>
-                <TableHead className="w-[100px]">Konto</TableHead>
-                <TableHead className="w-[80px]">Analitika</TableHead>
-                <TableHead>Opis</TableHead>
-                <TableHead className="w-[120px] text-right">Duguje</TableHead>
-                <TableHead className="w-[120px] text-right">Potražuje</TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader column="entry_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader column="document_date" label="Valuta" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[80px]">
+                  <SortableHeader column="entry_number" label="Nalog" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader column="account_code" label="Konto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[80px]">
+                  <SortableHeader column="analytics" label="Analitika" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="description" label="Opis" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[120px]">
+                  <SortableHeader column="debit_amount" label="Duguje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                </TableHead>
+                <TableHead className="w-[120px]">
+                  <SortableHeader column="credit_amount" label="Potražuje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                </TableHead>
                 <TableHead className="w-[120px] text-right">Saldo</TableHead>
               </TableRow>
             </TableHeader>
