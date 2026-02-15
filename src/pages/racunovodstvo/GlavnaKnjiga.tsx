@@ -35,14 +35,21 @@ interface LedgerEntry {
   entry_date: string;
   document_date: string | null;
   item_document_date: string | null;
-  entry_number: number;
+  entry_number: string;
   description: string;
   account_code: string;
   item_description: string | null;
   debit_amount: number;
   credit_amount: number;
   analytics: string | null;
+  doc_type_prefix: string;
 }
+
+const extractDocTypePrefix = (entryNumber: string): string => {
+  const s = String(entryNumber);
+  const match = s.match(/^([A-Za-z]+-?)/);
+  return match ? match[1] : "Ostalo";
+};
 
 export default function GlavnaKnjiga() {
   const { selectedCompany, selectedYear } = useAuth();
@@ -54,6 +61,7 @@ export default function GlavnaKnjiga() {
   const [dateFrom, setDateFrom] = useState<string>(searchParams.get("from") || "");
   const [dateTo, setDateTo] = useState<string>(searchParams.get("to") || "");
   const [analyticsFilter, setAnalyticsFilter] = useState<string>("");
+  const [docTypeFilter, setDocTypeFilter] = useState<string>("");
 
   const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
 
@@ -103,19 +111,23 @@ export default function GlavnaKnjiga() {
         return null;
       };
 
-      return (data || []).map((item: any) => ({
-        id: item.id,
-        entry_date: item.journal_entries.entry_date,
-        document_date: item.journal_entries.document_date,
-        item_document_date: item.document_date,
-        entry_number: item.journal_entries.entry_number,
-        description: item.journal_entries.description,
-        account_code: item.account_code,
-        item_description: item.description,
-        debit_amount: Number(item.debit_amount),
-        credit_amount: Number(item.credit_amount),
-        analytics: getAnalytics(item),
-      })) as LedgerEntry[];
+      return (data || []).map((item: any) => {
+        const en = String(item.journal_entries.entry_number);
+        return {
+          id: item.id,
+          entry_date: item.journal_entries.entry_date,
+          document_date: item.journal_entries.document_date,
+          item_document_date: item.document_date,
+          entry_number: en,
+          description: item.journal_entries.description,
+          account_code: item.account_code,
+          item_description: item.description,
+          debit_amount: Number(item.debit_amount),
+          credit_amount: Number(item.credit_amount),
+          analytics: getAnalytics(item),
+          doc_type_prefix: extractDocTypePrefix(en),
+        };
+      }) as LedgerEntry[];
     },
     enabled: !!selectedCompany?.id && !!selectedYear?.id,
   });
@@ -129,6 +141,13 @@ export default function GlavnaKnjiga() {
     });
     return Array.from(set).sort();
   }, [ledgerData, selectedAccount]);
+
+  // Collect unique doc type prefixes
+  const docTypeOptions = useMemo(() => {
+    const set = new Set<string>();
+    ledgerData.forEach((e) => set.add(e.doc_type_prefix));
+    return Array.from(set).sort();
+  }, [ledgerData]);
 
   // Reset analytics filter when account changes
   const handleAccountChange = (val: string) => {
@@ -149,6 +168,9 @@ export default function GlavnaKnjiga() {
     if (analyticsFilter) {
       data = data.filter((e) => e.analytics === analyticsFilter);
     }
+    if (docTypeFilter) {
+      data = data.filter((e) => e.doc_type_prefix === docTypeFilter);
+    }
 
     // Calculate running balance
     let balance = 0;
@@ -156,7 +178,7 @@ export default function GlavnaKnjiga() {
       balance += entry.debit_amount - entry.credit_amount;
       return { ...entry, balance };
     });
-  }, [ledgerData, dateFrom, dateTo, analyticsFilter]);
+  }, [ledgerData, dateFrom, dateTo, analyticsFilter, docTypeFilter]);
 
   // Summary calculations
   const totals = useMemo(() => {
@@ -186,7 +208,7 @@ export default function GlavnaKnjiga() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div className="space-y-2">
                 <Label>Konto</Label>
                 <Select 
@@ -219,6 +241,25 @@ export default function GlavnaKnjiga() {
                   <SelectContent>
                     <SelectItem value="__all__">Sve analitike</SelectItem>
                     {analyticsOptions.map((opt) => (
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+              </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Vrsta dokumenta</Label>
+                <Select
+                  value={docTypeFilter || "__all__"}
+                  onValueChange={(val) => setDocTypeFilter(val === "__all__" ? "" : val)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sve vrste" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Sve vrste</SelectItem>
+                    {docTypeOptions.map((opt) => (
                       <SelectItem key={opt} value={opt}>
                         {opt}
                       </SelectItem>
