@@ -87,10 +87,33 @@ export default function ArticleSwapEdit() {
     return map;
   }, [warehouseStock]);
 
-  // Articles available in warehouse (stock > 0)
+  // Get selected warehouse to determine SVK filter
+  const selectedWarehouse = activeWarehouses.find((w) => w.id === warehouseId);
+
+  // SVK values allowed for a given warehouse type
+  const getAllowedSvk = (warehouseType: string | null | undefined): string[] => {
+    switch (warehouseType) {
+      case "1": return ["1"];
+      case "2": return ["2"];
+      case "6": return ["6"];
+      case "9": return ["9"];
+      case "12": return ["1", "2"];
+      default: return [];
+    }
+  };
+
+  const allowedSvk = useMemo(() => getAllowedSvk(selectedWarehouse?.warehouse_type), [selectedWarehouse]);
+
+  // Articles available in warehouse (stock > 0) for Article 1
   const availableArticles = useMemo(() => {
     return articles.filter((a) => a.is_active !== false && stockMap.has(a.id));
   }, [articles, stockMap]);
+
+  // Articles for Article 2: active + matching SVK
+  const availableArticles2 = useMemo(() => {
+    if (allowedSvk.length === 0) return articles.filter((a) => a.is_active !== false);
+    return articles.filter((a) => a.is_active !== false && allowedSvk.includes(a.svk || "1"));
+  }, [articles, allowedSvk]);
 
   const { checkLock, updateLockTimestamp } = useDocumentLock({
     tableName: "article_swaps",
@@ -417,7 +440,7 @@ export default function ArticleSwapEdit() {
             <div className="col-span-5">
               <Label>Artikal *</Label>
               <SearchableArticleSelect
-                articles={articles.filter(a => a.is_active !== false)}
+                articles={availableArticles2}
                 value={article2Id}
                 onValueChange={handleArticle2Select}
                 placeholder="Izaberite artikal..."
