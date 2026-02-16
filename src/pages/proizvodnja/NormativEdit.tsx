@@ -178,9 +178,7 @@ export default function NormativEdit() {
             </h1>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground mt-1">
               <span>JM: <span className="text-foreground font-medium">{norm.article_unit}</span></span>
-              {norm.article_kg_po_jm != null && norm.article_kg_po_jm > 0 && (
-                <span>Masa kg/JM: <span className="text-foreground font-medium">{norm.article_kg_po_jm}</span></span>
-              )}
+              <span>Masa kg/JM: <span className="text-foreground font-medium">{norm.article_kg_po_jm ?? 0}</span></span>
               {norm.article_kol_mas != null && norm.article_kol_mas > 0 && (
                 <span>Količina za masu: <span className="text-foreground font-medium">{norm.article_kol_mas}</span></span>
               )}
