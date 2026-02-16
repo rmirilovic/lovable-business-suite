@@ -91,8 +91,8 @@ const navigation: NavItem[] = [
     icon: Factory,
     moduleCode: "proizvodnja",
     children: [
+      { label: "Normativi", href: "/proizvodnja/normativi", moduleCode: "proizvodnja.sastavnice" },
       { label: "Radni nalozi", href: "/proizvodnja/nalozi", moduleCode: "proizvodnja.radni_nalozi" },
-      { label: "Sastavnice", href: "/proizvodnja/sastavnice", moduleCode: "proizvodnja.sastavnice" },
       { label: "Recepture", href: "/proizvodnja/recepture", moduleCode: "proizvodnja.sastavnice" },
     ],
   },
