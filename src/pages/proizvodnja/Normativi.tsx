@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMaterialNorms, MaterialNorm } from "@/hooks/useMaterialNorms";
 import { useArticles } from "@/hooks/useArticles";
+import { useClassifications } from "@/hooks/useClassifications";
+import { ClassificationBadge } from "@/components/sifarnici/ClassificationBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -30,7 +32,9 @@ export default function Normativi() {
   const companyId = selectedCompany?.id;
   const { norms, isLoading, invalidate } = useMaterialNorms(companyId);
   const { articles } = useArticles(companyId);
+  const { classifications } = useClassifications(companyId);
   const [search, setSearch] = useState("");
+  const [classFilter, setClassFilter] = useState<string>("");
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState("");
   const [creating, setCreating] = useState(false);
@@ -39,7 +43,15 @@ export default function Normativi() {
   // Only SVK=9 articles for finished products
   const finishedProducts = articles.filter((a) => a.svk === "9" && a.is_active);
 
+  // Unique classification codes for filter dropdown
+  const classificationOptions = useMemo(() => {
+    const codes = new Set<string>();
+    norms.forEach((n) => { if (n.article_group) codes.add(n.article_group); });
+    return Array.from(codes).sort();
+  }, [norms]);
+
   const filtered = norms.filter((n) => {
+    if (classFilter && n.article_group !== classFilter) return false;
     if (!search.trim()) return true;
     const s = search.toLowerCase();
     return (
@@ -48,11 +60,18 @@ export default function Normativi() {
     );
   });
 
+  const getClassificationName = useCallback((code: string | null | undefined) => {
+    if (!code) return "";
+    const cls = classifications.find((c) => c.code === code);
+    return cls ? cls.name : code;
+  }, [classifications]);
+
   const sorted = sortItems(filtered, (item: MaterialNorm, column: string) => {
     switch (column) {
       case "article_code": return item.article_code ?? "";
       case "article_name": return item.article_name ?? "";
       case "article_unit": return item.article_unit ?? "";
+      case "article_group": return getClassificationName(item.article_group);
       case "variant_count": return item.variant_count ?? 0;
       case "approved_variant_count": return item.approved_variant_count ?? 0;
       case "created_at": return item.created_at;
@@ -115,21 +134,27 @@ export default function Normativi() {
     }
   };
 
+  const classNameMap = useMemo(() => {
+    const m = new Map<string, string>();
+    classifications.forEach((c) => m.set(c.code, c.name));
+    return m;
+  }, [classifications]);
+
   return (
     <MainLayout title="Normativi utroška materijala">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Normativi utroška materijala</h1>
           <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" onClick={() => exportNormListToExcel(filtered)}>
+            <Button variant="outline" size="sm" onClick={() => exportNormListToExcel(filtered, classNameMap)}>
               <FileSpreadsheet className="h-4 w-4 mr-1" />
               Excel
             </Button>
-            <Button variant="outline" size="sm" onClick={() => exportNormListToPdf(filtered)}>
+            <Button variant="outline" size="sm" onClick={() => exportNormListToPdf(filtered, classNameMap)}>
               <FileText className="h-4 w-4 mr-1" />
               PDF
             </Button>
-            <Button variant="outline" size="sm" onClick={() => printNormList(filtered)}>
+            <Button variant="outline" size="sm" onClick={() => printNormList(filtered, classNameMap)}>
               <Printer className="h-4 w-4 mr-1" />
               Štampa
             </Button>
@@ -140,15 +165,32 @@ export default function Normativi() {
           </div>
         </div>
 
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Pretraži po šifri ili nazivu..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-            autoComplete="off"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Pretraži po šifri ili nazivu..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+              autoComplete="off"
+            />
+          </div>
+          <select
+            value={classFilter}
+            onChange={(e) => setClassFilter(e.target.value)}
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">Sve klasifikacije</option>
+            {classificationOptions.map((code) => {
+              const cls = classifications.find((c) => c.code === code);
+              return (
+                <option key={code} value={code}>
+                  {code} - {cls?.name ?? code}
+                </option>
+              );
+            })}
+          </select>
         </div>
 
         <TableScrollContainer className="max-h-[calc(100vh-220px)]">
@@ -158,6 +200,7 @@ export default function Normativi() {
                 <TableHead><SortableHeader column="article_code" label="Šifra GP" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="article_name" label="Naziv gotovog proizvoda" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="article_unit" label="JM" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="article_group" label="Klasifikacija" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="text-center"><SortableHeader column="variant_count" label="Varijanti" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
                 <TableHead className="text-center"><SortableHeader column="approved_variant_count" label="Odobreno" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
                 <TableHead><SortableHeader column="created_at" label="Kreiran" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
@@ -167,13 +210,13 @@ export default function Normativi() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nema normativa
                   </TableCell>
                 </TableRow>
@@ -187,6 +230,9 @@ export default function Normativi() {
                     <TableCell className="font-medium">{norm.article_code}</TableCell>
                     <TableCell>{norm.article_name}</TableCell>
                     <TableCell>{norm.article_unit}</TableCell>
+                    <TableCell>
+                      <ClassificationBadge code={norm.article_group} classifications={classifications} />
+                    </TableCell>
                     <TableCell className="text-center">{norm.variant_count ?? 0}</TableCell>
                     <TableCell className="text-center">{norm.approved_variant_count ?? 0}</TableCell>
                     <TableCell>{formatDate(norm.created_at)}</TableCell>

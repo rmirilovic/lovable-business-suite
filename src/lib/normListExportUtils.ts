@@ -8,12 +8,13 @@ import type { MaterialNorm } from "@/hooks/useMaterialNorms";
 
 // ── Excel ───────────────────────────────────────────────────────────────────
 
-export function exportNormListToExcel(norms: MaterialNorm[]) {
+export function exportNormListToExcel(norms: MaterialNorm[], classificationNames?: Map<string, string>) {
   const data = norms.map((n, idx) => ({
     "R.br.": idx + 1,
     "Šifra GP": n.article_code || "",
     "Naziv gotovog proizvoda": n.article_name || "",
     "JM": n.article_unit || "",
+    "Klasifikacija": n.article_group ? `${n.article_group} - ${classificationNames?.get(n.article_group) ?? n.article_group}` : "",
     "Varijanti": n.variant_count ?? 0,
     "Odobreno": n.approved_variant_count ?? 0,
     "Kreiran": formatDate(n.created_at),
@@ -22,7 +23,7 @@ export function exportNormListToExcel(norms: MaterialNorm[]) {
   const ws = XLSX.utils.json_to_sheet(data);
   ws["!cols"] = [
     { wch: 6 }, { wch: 12 }, { wch: 40 }, { wch: 6 },
-    { wch: 10 }, { wch: 10 }, { wch: 12 },
+    { wch: 25 }, { wch: 10 }, { wch: 10 }, { wch: 12 },
   ];
 
   const wb = XLSX.utils.book_new();
@@ -32,9 +33,9 @@ export function exportNormListToExcel(norms: MaterialNorm[]) {
 
 // ── PDF ─────────────────────────────────────────────────────────────────────
 
-async function buildNormListPdf(norms: MaterialNorm[]): Promise<jsPDF> {
+async function buildNormListPdf(norms: MaterialNorm[], classificationNames?: Map<string, string>): Promise<jsPDF> {
   await initializePdfFonts();
-  const doc = new jsPDF({ orientation: "portrait" });
+  const doc = new jsPDF({ orientation: "landscape" });
   configurePdfFonts(doc);
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -45,12 +46,13 @@ async function buildNormListPdf(norms: MaterialNorm[]): Promise<jsPDF> {
   doc.text("Normativi utroška materijala", pageWidth / 2, y, { align: "center" });
   y += 10;
 
-  const head = [["R.br.", "Šifra GP", "Naziv gotovog proizvoda", "JM", "Varijanti", "Odobreno", "Kreiran"]];
+  const head = [["R.br.", "Šifra GP", "Naziv gotovog proizvoda", "JM", "Klasifikacija", "Varijanti", "Odobreno", "Kreiran"]];
   const body = norms.map((n, idx) => [
     String(idx + 1),
     n.article_code || "",
     n.article_name || "",
     n.article_unit || "",
+    n.article_group ? `${n.article_group} - ${classificationNames?.get(n.article_group) ?? n.article_group}` : "",
     String(n.variant_count ?? 0),
     String(n.approved_variant_count ?? 0),
     formatDate(n.created_at),
@@ -67,22 +69,23 @@ async function buildNormListPdf(norms: MaterialNorm[]): Promise<jsPDF> {
       1: { halign: "left", cellWidth: 22 },
       2: { halign: "left" },
       3: { halign: "center", cellWidth: 12 },
-      4: { halign: "center", cellWidth: 18 },
+      4: { halign: "left", cellWidth: 35 },
       5: { halign: "center", cellWidth: 18 },
-      6: { halign: "center", cellWidth: 22 },
+      6: { halign: "center", cellWidth: 18 },
+      7: { halign: "center", cellWidth: 22 },
     },
   });
 
   return doc;
 }
 
-export async function exportNormListToPdf(norms: MaterialNorm[]) {
-  const doc = await buildNormListPdf(norms);
+export async function exportNormListToPdf(norms: MaterialNorm[], classificationNames?: Map<string, string>) {
+  const doc = await buildNormListPdf(norms, classificationNames);
   doc.save("Normativi_lista.pdf");
 }
 
-export async function printNormList(norms: MaterialNorm[]) {
-  const doc = await buildNormListPdf(norms);
+export async function printNormList(norms: MaterialNorm[], classificationNames?: Map<string, string>) {
+  const doc = await buildNormListPdf(norms, classificationNames);
   const blob = doc.output("blob");
   printPdfBlob(blob);
 }
