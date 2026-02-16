@@ -32,6 +32,8 @@ interface NormImportDialogProps {
 interface ParsedNormRow {
   product_code: string;
   variant_name: string;
+  variant_date: string;
+  variant_status: string;
   material_code: string;
   qty_per_kg: number;
   qty_per_m: number;
@@ -65,6 +67,8 @@ type NormField = keyof ParsedNormRow;
 const MAPPABLE_FIELDS: { key: NormField; label: string; required?: boolean }[] = [
   { key: "product_code", label: "Šifra proizvoda", required: true },
   { key: "variant_name", label: "Varijanta", required: true },
+  { key: "variant_date", label: "Datum" },
+  { key: "variant_status", label: "Status (Nacrt/Odobren)" },
   { key: "material_code", label: "Šifra repromaterijala", required: true },
   { key: "qty_per_kg", label: "Količina po kg" },
   { key: "qty_per_m", label: "Količina po m" },
@@ -81,6 +85,11 @@ const COLUMN_MAPPINGS: Record<string, NormField> = {
   "variant": "variant_name",
   "naziv varijante": "variant_name",
   "varijanta normativa": "variant_name",
+  "datum": "variant_date",
+  "date": "variant_date",
+  "datum varijante": "variant_date",
+  "status": "variant_status",
+  "status varijante": "variant_status",
   "sifra repromaterijala": "material_code",
   "sifra materijala": "material_code",
   "material code": "material_code",
@@ -148,6 +157,33 @@ export function NormImportDialog({ open, onOpenChange }: NormImportDialogProps) 
     const strValue = String(value).trim().replace(",", ".");
     const num = parseFloat(strValue);
     return isNaN(num) ? 0 : num;
+  };
+
+  const parseDate = (value: any): string => {
+    if (!value) return "";
+    // Handle Excel serial date numbers
+    if (typeof value === "number") {
+      const excelEpoch = new Date(1899, 11, 30);
+      const date = new Date(excelEpoch.getTime() + value * 86400000);
+      return date.toISOString().split("T")[0];
+    }
+    const str = String(value).trim();
+    // Try DD.MM.YYYY format
+    const dotMatch = str.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (dotMatch) return `${dotMatch[3]}-${dotMatch[2].padStart(2, "0")}-${dotMatch[1].padStart(2, "0")}`;
+    // Try DD/MM/YYYY format
+    const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (slashMatch) return `${slashMatch[3]}-${slashMatch[2].padStart(2, "0")}-${slashMatch[1].padStart(2, "0")}`;
+    // Try YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    return str;
+  };
+
+  const parseStatus = (value: any): string => {
+    if (!value) return "draft";
+    const str = String(value).trim().toLowerCase();
+    if (str === "odobren" || str === "odobrena" || str === "approved") return "approved";
+    return "draft";
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,6 +273,10 @@ export function NormImportDialog({ open, onOpenChange }: NormImportDialogProps) 
           const value = row[excelCol];
           if (field === "qty_per_kg" || field === "qty_per_m" || field === "qty_per_pc") {
             (item as any)[field] = parseNumber(value);
+          } else if (field === "variant_date") {
+            (item as any)[field] = parseDate(value);
+          } else if (field === "variant_status") {
+            (item as any)[field] = parseStatus(value);
           } else {
             (item as any)[field] = value !== undefined && value !== null ? String(value).trim() : "";
           }
@@ -351,6 +391,11 @@ export function NormImportDialog({ open, onOpenChange }: NormImportDialogProps) 
 
         // Process each variant
         for (const [variantName, items] of Object.entries(variants)) {
+          // Get date and status from first item in group
+          const firstItem = items[0];
+          const variantDate = firstItem.variant_date || undefined;
+          const variantStatus = firstItem.variant_status || "draft";
+
           // Check existing variant
           const { data: existingVariant } = await supabase
             .from("material_norm_variants")
@@ -371,6 +416,20 @@ export function NormImportDialog({ open, onOpenChange }: NormImportDialogProps) 
             }
             variantId = existingVariant.id;
 
+            // Update variant date and status
+            const updateData: Record<string, any> = {};
+            if (variantDate) updateData.variant_date = variantDate;
+            if (variantStatus === "approved") {
+              updateData.status = "approved";
+              updateData.approved_at = new Date().toISOString();
+            }
+            if (Object.keys(updateData).length > 0) {
+              await supabase
+                .from("material_norm_variants")
+                .update(updateData)
+                .eq("id", variantId);
+            }
+
             // Delete existing items for replacement
             await supabase
               .from("material_norm_items")
@@ -387,15 +446,22 @@ export function NormImportDialog({ open, onOpenChange }: NormImportDialogProps) 
 
             const nextNumber = (allVariants?.[0]?.variant_number ?? 0) + 1;
 
+            const insertData: Record<string, any> = {
+              norm_id: normId,
+              company_id: companyId,
+              variant_number: nextNumber,
+              variant_name: variantName,
+              is_default: nextNumber === 1,
+            };
+            if (variantDate) insertData.variant_date = variantDate;
+            if (variantStatus === "approved") {
+              insertData.status = "approved";
+              insertData.approved_at = new Date().toISOString();
+            }
+
             const { data: newVariant, error: varError } = await supabase
               .from("material_norm_variants")
-              .insert({
-                norm_id: normId,
-                company_id: companyId,
-                variant_number: nextNumber,
-                variant_name: variantName,
-                is_default: nextNumber === 1,
-              })
+              .insert(insertData as any)
               .select("id")
               .single();
 
@@ -468,7 +534,7 @@ export function NormImportDialog({ open, onOpenChange }: NormImportDialogProps) 
             Uvoz normativa iz Excel-a
           </DialogTitle>
           <DialogDescription>
-            Format: Šifra proizvoda, Varijanta, Šifra repromaterijala, Količine (po kg/m/kom)
+            Format: Šifra proizvoda, Varijanta, Datum, Status, Šifra repromaterijala, Količine (po kg/m/kom)
           </DialogDescription>
         </DialogHeader>
 
@@ -496,6 +562,8 @@ export function NormImportDialog({ open, onOpenChange }: NormImportDialogProps) 
               <p><strong>Očekivane kolone:</strong></p>
               <p>• Šifra proizvoda (SVK=9) — obavezno</p>
               <p>• Varijanta normativa — obavezno</p>
+              <p>• Datum — opciono (datum varijante)</p>
+              <p>• Status (Nacrt/Odobren) — opciono</p>
               <p>• Šifra repromaterijala (SVK=2) — obavezno</p>
               <p>• Količina po kg, Količina po m, Količina po kom — opciono</p>
               <p className="mt-2"><strong>Napomena:</strong> Ako normativ za proizvod već postoji, varijante u statusu "Nacrt" će biti ažurirane (stavke zamenjene). Odobrene varijante se preskaču.</p>
@@ -570,7 +638,10 @@ export function NormImportDialog({ open, onOpenChange }: NormImportDialogProps) 
                   {Object.entries(variants).map(([varName, items]) => (
                     <div key={varName} className="ml-4 mt-1">
                       <p className="text-xs text-muted-foreground">
-                        Varijanta: {varName} ({items.length} stavki)
+                        Varijanta: {varName}
+                        {items[0]?.variant_date ? ` | Datum: ${items[0].variant_date}` : ""}
+                        {" | Status: "}{items[0]?.variant_status === "approved" ? "Odobren" : "Nacrt"}
+                        {" "}({items.length} stavki)
                       </p>
                       <div className="ml-4 text-xs space-y-0.5">
                         {items.slice(0, 5).map((item, idx) => (

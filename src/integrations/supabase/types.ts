@@ -2202,6 +2202,7 @@ export type Database = {
           note: string | null
           status: string
           updated_at: string
+          variant_date: string | null
           variant_name: string
           variant_number: number
         }
@@ -2216,6 +2217,7 @@ export type Database = {
           note?: string | null
           status?: string
           updated_at?: string
+          variant_date?: string | null
           variant_name?: string
           variant_number?: number
         }
@@ -2230,6 +2232,7 @@ export type Database = {
           note?: string | null
           status?: string
           updated_at?: string
+          variant_date?: string | null
           variant_name?: string
           variant_number?: number
         }
