@@ -10,9 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { Plus, Search, Trash2, Edit } from "lucide-react";
+import { Plus, Search, Trash2, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { formatDate } from "@/lib/formatting";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
+import { exportNormListToExcel, exportNormListToPdf, printNormList } from "@/lib/normListExportUtils";
 import {
   Dialog,
   DialogContent,
@@ -47,7 +48,6 @@ export default function Normativi() {
   const handleCreate = async () => {
     if (!selectedArticleId || !companyId) return;
 
-    // Check if norm already exists for this article
     const exists = norms.find((n) => n.article_id === selectedArticleId);
     if (exists) {
       toast.error("Normativ za ovaj artikal već postoji");
@@ -56,7 +56,6 @@ export default function Normativi() {
 
     setCreating(true);
     try {
-      // Create norm
       const { data: norm, error: normError } = await supabase
         .from("material_norms")
         .insert({ company_id: companyId, article_id: selectedArticleId })
@@ -65,7 +64,6 @@ export default function Normativi() {
 
       if (normError) throw normError;
 
-      // Create default variant
       const { error: varError } = await supabase
         .from("material_norm_variants")
         .insert({
@@ -107,10 +105,21 @@ export default function Normativi() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Normativi utroška materijala</h1>
-          <Button onClick={() => setShowNewDialog(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novi normativ
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" title="Excel" onClick={() => exportNormListToExcel(filtered)}>
+              <FileSpreadsheet className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" title="PDF" onClick={() => exportNormListToPdf(filtered)}>
+              <FileText className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" title="Štampa" onClick={() => printNormList(filtered)}>
+              <Printer className="w-4 h-4" />
+            </Button>
+            <Button onClick={() => setShowNewDialog(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novi normativ
+            </Button>
+          </div>
         </div>
 
         <div className="relative max-w-sm">
@@ -131,6 +140,8 @@ export default function Normativi() {
                 <TableHead>Šifra GP</TableHead>
                 <TableHead>Naziv gotovog proizvoda</TableHead>
                 <TableHead>JM</TableHead>
+                <TableHead className="text-center">Varijanti</TableHead>
+                <TableHead className="text-center">Odobreno</TableHead>
                 <TableHead>Kreiran</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
@@ -138,13 +149,13 @@ export default function Normativi() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Nema normativa
                   </TableCell>
                 </TableRow>
@@ -158,6 +169,8 @@ export default function Normativi() {
                     <TableCell className="font-medium">{norm.article_code}</TableCell>
                     <TableCell>{norm.article_name}</TableCell>
                     <TableCell>{norm.article_unit}</TableCell>
+                    <TableCell className="text-center">{norm.variant_count ?? 0}</TableCell>
+                    <TableCell className="text-center">{norm.approved_variant_count ?? 0}</TableCell>
                     <TableCell>{formatDate(norm.created_at)}</TableCell>
                     <TableCell>
                       <Button

@@ -16,6 +16,8 @@ export interface MaterialNorm {
   article_group?: string | null;
   article_kg_po_jm?: number | null;
   article_kol_mas?: number | null;
+  variant_count?: number;
+  approved_variant_count?: number;
 }
 
 export interface MaterialNormVariant {
@@ -62,6 +64,27 @@ export function useMaterialNorms(companyId: string | undefined) {
 
       if (error) throw error;
 
+      // Fetch variant counts per norm
+      const normIds = (data ?? []).map((n: any) => n.id);
+      let variantCounts: Record<string, { total: number; approved: number }> = {};
+
+      if (normIds.length > 0) {
+        const { data: variants } = await supabase
+          .from("material_norm_variants")
+          .select("norm_id, status")
+          .in("norm_id", normIds);
+
+        for (const v of variants ?? []) {
+          if (!variantCounts[v.norm_id]) {
+            variantCounts[v.norm_id] = { total: 0, approved: 0 };
+          }
+          variantCounts[v.norm_id].total++;
+          if (v.status === "approved") {
+            variantCounts[v.norm_id].approved++;
+          }
+        }
+      }
+
       return (data ?? []).map((n: any) => ({
         id: n.id,
         company_id: n.company_id,
@@ -75,6 +98,8 @@ export function useMaterialNorms(companyId: string | undefined) {
         article_group: n.articles?.article_group,
         article_kg_po_jm: n.articles?.kg_po_jm,
         article_kol_mas: n.articles?.kol_mas,
+        variant_count: variantCounts[n.id]?.total ?? 0,
+        approved_variant_count: variantCounts[n.id]?.approved ?? 0,
       })) as MaterialNorm[];
     },
     enabled: !!companyId,
