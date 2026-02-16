@@ -83,6 +83,7 @@ const navigation: NavItem[] = [
       { label: "Popisi", href: "/magacin/popisi", moduleCode: "robno.prijemnice" },
       { label: "Stanje magacina", href: "/magacin/stanje", moduleCode: "robno.prijemnice" },
       { label: "Promet magacina", href: "/magacin/promet", moduleCode: "robno.prijemnice" },
+      { label: "Lager lista", href: "/magacin/lager-lista", moduleCode: "robno.prijemnice" },
     ],
   },
   {
