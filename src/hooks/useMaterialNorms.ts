@@ -56,27 +56,46 @@ export function useMaterialNorms(companyId: string | undefined) {
   const query = useQuery({
     queryKey: ["material_norms", companyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("material_norms")
-        .select("*, articles!material_norms_article_id_fkey(code, name, unit, article_group, kg_po_jm, kol_mas)")
-        .eq("company_id", companyId!)
-        .order("created_at", { ascending: false });
+      // Fetch all norms with batch pagination to avoid 1000 row limit
+      let allNorms: any[] = [];
+      const PAGE_SIZE = 1000;
+      let from = 0;
+      while (true) {
+        const { data: page, error } = await supabase
+          .from("material_norms")
+          .select("*, articles!material_norms_article_id_fkey(code, name, unit, article_group, kg_po_jm, kol_mas)")
+          .eq("company_id", companyId!)
+          .order("created_at", { ascending: false })
+          .range(from, from + PAGE_SIZE - 1);
 
-      if (error) throw error;
+        if (error) throw error;
+        allNorms = allNorms.concat(page ?? []);
+        if (!page || page.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
 
-      // Fetch variant counts per norm (batch to avoid URL length limits)
-      const normIds = (data ?? []).map((n: any) => n.id);
+      // Fetch variant counts per norm (batched + parallel)
+      const normIds = allNorms.map((n: any) => n.id);
       let variantCounts: Record<string, { total: number; approved: number }> = {};
 
       if (normIds.length > 0) {
         const BATCH_SIZE = 100;
+        const batches: string[][] = [];
         for (let i = 0; i < normIds.length; i += BATCH_SIZE) {
-          const batch = normIds.slice(i, i + BATCH_SIZE);
-          const { data: variants } = await supabase
-            .from("material_norm_variants")
-            .select("norm_id, status")
-            .in("norm_id", batch);
+          batches.push(normIds.slice(i, i + BATCH_SIZE));
+        }
 
+        const results = await Promise.all(
+          batches.map((batch) =>
+            supabase
+              .from("material_norm_variants")
+              .select("norm_id, status")
+              .in("norm_id", batch)
+              .limit(5000)
+          )
+        );
+
+        for (const { data: variants } of results) {
           for (const v of variants ?? []) {
             if (!variantCounts[v.norm_id]) {
               variantCounts[v.norm_id] = { total: 0, approved: 0 };
@@ -89,7 +108,7 @@ export function useMaterialNorms(companyId: string | undefined) {
         }
       }
 
-      return (data ?? []).map((n: any) => ({
+      return allNorms.map((n: any) => ({
         id: n.id,
         company_id: n.company_id,
         article_id: n.article_id,
