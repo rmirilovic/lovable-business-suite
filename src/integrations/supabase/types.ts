@@ -2192,34 +2192,43 @@ export type Database = {
       }
       material_norm_variants: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           company_id: string
           created_at: string
           id: string
           is_default: boolean
           norm_id: string
           note: string | null
+          status: string
           updated_at: string
           variant_name: string
           variant_number: number
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           company_id: string
           created_at?: string
           id?: string
           is_default?: boolean
           norm_id: string
           note?: string | null
+          status?: string
           updated_at?: string
           variant_name?: string
           variant_number?: number
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           company_id?: string
           created_at?: string
           id?: string
           is_default?: boolean
           norm_id?: string
           note?: string | null
+          status?: string
           updated_at?: string
           variant_name?: string
           variant_number?: number
@@ -2243,36 +2252,27 @@ export type Database = {
       }
       material_norms: {
         Row: {
-          approved_at: string | null
-          approved_by: string | null
           article_id: string
           company_id: string
           created_at: string
           id: string
           note: string | null
-          status: string
           updated_at: string
         }
         Insert: {
-          approved_at?: string | null
-          approved_by?: string | null
           article_id: string
           company_id: string
           created_at?: string
           id?: string
           note?: string | null
-          status?: string
           updated_at?: string
         }
         Update: {
-          approved_at?: string | null
-          approved_by?: string | null
           article_id?: string
           company_id?: string
           created_at?: string
           id?: string
           note?: string | null
-          status?: string
           updated_at?: string
         }
         Relationships: [

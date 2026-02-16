@@ -7,9 +7,6 @@ export interface MaterialNorm {
   company_id: string;
   article_id: string;
   note: string | null;
-  status: string;
-  approved_at: string | null;
-  approved_by: string | null;
   created_at: string;
   updated_at: string;
   // joined
@@ -28,6 +25,9 @@ export interface MaterialNormVariant {
   variant_number: number;
   variant_name: string;
   is_default: boolean;
+  status: string;
+  approved_at: string | null;
+  approved_by: string | null;
   note: string | null;
   created_at: string;
   updated_at: string;
