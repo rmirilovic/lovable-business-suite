@@ -7,6 +7,8 @@ import {
   useMaterialNormVariants,
   MaterialNormVariant,
 } from "@/hooks/useMaterialNorms";
+import { useClassifications } from "@/hooks/useClassifications";
+import { ClassificationBadge } from "@/components/sifarnici/ClassificationBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { NormItemsEditor } from "@/components/proizvodnja/NormItemsEditor";
+import { formatDate } from "@/lib/formatting";
 
 export default function NormativEdit() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +27,7 @@ export default function NormativEdit() {
   const { data: norm, isLoading: normLoading } = useMaterialNorm(id);
   const { variants, isLoading: variantsLoading, invalidate: invalidateVariants } =
     useMaterialNormVariants(id);
+  const { classifications } = useClassifications(companyId);
 
   const [activeVariant, setActiveVariant] = useState<string>("");
   const [editingName, setEditingName] = useState<string | null>(null);
@@ -113,11 +117,24 @@ export default function NormativEdit() {
           <Button variant="outline" size="icon" onClick={() => navigate("/proizvodnja/normativi")}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold">
               Normativ: {norm.article_code} - {norm.article_name}
             </h1>
-            <p className="text-sm text-muted-foreground">JM: {norm.article_unit}</p>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground mt-1">
+              <span>JM: <span className="text-foreground font-medium">{norm.article_unit}</span></span>
+              {norm.article_kg_po_jm != null && norm.article_kg_po_jm > 0 && (
+                <span>Masa kg/JM: <span className="text-foreground font-medium">{norm.article_kg_po_jm}</span></span>
+              )}
+              {norm.article_kol_mas != null && norm.article_kol_mas > 0 && (
+                <span>Količina za masu: <span className="text-foreground font-medium">{norm.article_kol_mas}</span></span>
+              )}
+              <span>Klasifikacija: <ClassificationBadge code={norm.article_group} classifications={classifications} /></span>
+              <span>Kreiran: <span className="text-foreground font-medium">{formatDate(norm.created_at)}</span></span>
+              {norm.updated_at !== norm.created_at && (
+                <span>Izmenjen: <span className="text-foreground font-medium">{formatDate(norm.updated_at)}</span></span>
+              )}
+            </div>
           </div>
         </div>
 
