@@ -105,15 +105,18 @@ export default function Normativi() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Normativi utroška materijala</h1>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" title="Excel" onClick={() => exportNormListToExcel(filtered)}>
-              <FileSpreadsheet className="w-4 h-4" />
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="sm" onClick={() => exportNormListToExcel(filtered)}>
+              <FileSpreadsheet className="h-4 w-4 mr-1" />
+              Excel
             </Button>
-            <Button variant="outline" size="icon" title="PDF" onClick={() => exportNormListToPdf(filtered)}>
-              <FileText className="w-4 h-4" />
+            <Button variant="outline" size="sm" onClick={() => exportNormListToPdf(filtered)}>
+              <FileText className="h-4 w-4 mr-1" />
+              PDF
             </Button>
-            <Button variant="outline" size="icon" title="Štampa" onClick={() => printNormList(filtered)}>
-              <Printer className="w-4 h-4" />
+            <Button variant="outline" size="sm" onClick={() => printNormList(filtered)}>
+              <Printer className="h-4 w-4 mr-1" />
+              Štampa
             </Button>
             <Button onClick={() => setShowNewDialog(true)}>
               <Plus className="w-4 h-4 mr-2" />
