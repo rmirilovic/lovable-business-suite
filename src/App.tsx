@@ -48,6 +48,7 @@ import MedjumagacinskiPrenosi from "./pages/magacin/MedjumagacinskiPrenosi";
 import TransferEdit from "./pages/magacin/TransferEdit";
 import ZameneArtikala from "./pages/magacin/ZameneArtikala";
 import ArticleSwapEdit from "./pages/magacin/ArticleSwapEdit";
+import PrometMagacina from "./pages/magacin/PrometMagacina";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -261,6 +262,11 @@ const App = () => (
               <Route path="/magacin/zamene/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <ArticleSwapEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/promet" element={
+                <ProtectedRoute>
+                  <PrometMagacina />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
