@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +26,19 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+const STORAGE_KEY = "normativi_filters";
+
+function loadFilters() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveFilters(filters: Record<string, string>) {
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
+}
+
 export default function Normativi() {
   const navigate = useNavigate();
   const { selectedCompany } = useAuth();
@@ -33,12 +46,25 @@ export default function Normativi() {
   const { norms, isLoading, invalidate } = useMaterialNorms(companyId);
   const { articles } = useArticles(companyId);
   const { classifications } = useClassifications(companyId);
-  const [search, setSearch] = useState("");
-  const [classFilter, setClassFilter] = useState<string>("");
+
+  const saved = useMemo(() => loadFilters(), []);
+  const [search, setSearch] = useState(saved.search ?? "");
+  const [classFilter, setClassFilter] = useState<string>(saved.classFilter ?? "");
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState("");
   const [creating, setCreating] = useState(false);
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
+    saved.sortColumn ?? "article_code",
+    saved.sortDirection ?? "asc"
+  );
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const lastEditedId = saved.lastEditedId as string | undefined;
+  const hasScrolled = useRef(false);
+
+  // Persist filters to sessionStorage
+  useEffect(() => {
+    saveFilters({ search, classFilter, sortColumn: sortColumn ?? "", sortDirection, lastEditedId: lastEditedId ?? "" });
+  }, [search, classFilter, sortColumn, sortDirection]);
 
   // Only SVK=9 articles for finished products
   const finishedProducts = articles.filter((a) => a.svk === "9" && a.is_active);
@@ -78,6 +104,19 @@ export default function Normativi() {
       default: return "";
     }
   });
+
+  // Scroll to last edited row when data loads
+  useEffect(() => {
+    if (!isLoading && lastEditedId && !hasScrolled.current && sorted.length > 0) {
+      hasScrolled.current = true;
+      requestAnimationFrame(() => {
+        const row = scrollRef.current?.querySelector(`[data-norm-id="${lastEditedId}"]`);
+        if (row) {
+          row.scrollIntoView({ block: "center", behavior: "auto" });
+        }
+      });
+    }
+  }, [isLoading, sorted.length, lastEditedId]);
 
   const handleCreate = async () => {
     if (!selectedArticleId || !companyId) return;
@@ -193,7 +232,7 @@ export default function Normativi() {
           </select>
         </div>
 
-        <TableScrollContainer className="max-h-[calc(100vh-220px)]">
+        <TableScrollContainer ref={scrollRef} className="max-h-[calc(100vh-220px)]">
           <Table>
             <TableHeader>
               <TableRow>
@@ -224,8 +263,12 @@ export default function Normativi() {
                 sorted.map((norm) => (
                   <TableRow
                     key={norm.id}
+                    data-norm-id={norm.id}
                     className="cursor-pointer"
-                    onClick={() => navigate(`/proizvodnja/normativi/${norm.id}`)}
+                    onClick={() => {
+                      saveFilters({ search, classFilter, sortColumn: sortColumn ?? "", sortDirection, lastEditedId: norm.id });
+                      navigate(`/proizvodnja/normativi/${norm.id}`);
+                    }}
                   >
                     <TableCell className="font-medium">{norm.article_code}</TableCell>
                     <TableCell>{norm.article_name}</TableCell>
