@@ -7,7 +7,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWarehouseTurnover, type WarehouseTurnoverRow } from "@/hooks/useWarehouseTurnover";
 import { useWarehouses } from "@/hooks/useWarehouses";
@@ -17,6 +18,8 @@ import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { formatPrice } from "@/lib/formatting";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { format } from "date-fns";
+import { exportTurnoverToExcel, exportTurnoverToPdf, printTurnover } from "@/lib/turnoverExportUtils";
+import { toast } from "sonner";
 
 const DOCUMENT_TYPES = [
   "Prijemnica",
@@ -42,6 +45,7 @@ export default function PrometMagacina() {
   const [dateTo, setDateTo] = useState(defaultTo);
   const [warehouseFilter, setWarehouseFilter] = useState("__all__");
   const [docTypeFilter, setDocTypeFilter] = useState("__all__");
+  const [exporting, setExporting] = useState(false);
 
   const { warehouses } = useWarehouses(companyId);
   const { data: turnoverData, isLoading } = useWarehouseTurnover(
@@ -86,6 +90,35 @@ export default function PrometMagacina() {
       { debit: 0, credit: 0, balance: 0 }
     );
   }, [sorted]);
+
+  const exportMeta = { dateFrom: dateFrom || undefined, dateTo: dateTo || undefined };
+
+  const handleExcelExport = () => {
+    if (sorted.length === 0) return;
+    exportTurnoverToExcel(sorted, exportMeta);
+    toast.success("Excel fajl je kreiran.");
+  };
+
+  const handlePdfExport = async () => {
+    if (sorted.length === 0) return;
+    setExporting(true);
+    try {
+      await exportTurnoverToPdf(sorted, exportMeta, totals);
+      toast.success("PDF fajl je kreiran.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (sorted.length === 0) return;
+    setExporting(true);
+    try {
+      await printTurnover(sorted, exportMeta, totals);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <MainLayout title="Promet magacina">
@@ -132,6 +165,23 @@ export default function PrometMagacina() {
               </SelectContent>
             </Select>
           </div>
+
+          {sorted.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" onClick={handleExcelExport} disabled={exporting}>
+                <FileSpreadsheet className="h-4 w-4 mr-1" />
+                Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePdfExport} disabled={exporting}>
+                <FileText className="h-4 w-4 mr-1" />
+                PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePrint} disabled={exporting}>
+                <Printer className="h-4 w-4 mr-1" />
+                Štampaj
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Table */}
