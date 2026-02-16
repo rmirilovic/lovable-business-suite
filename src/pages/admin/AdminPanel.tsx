@@ -60,7 +60,7 @@ export default function AdminPanel() {
             <UserRolesTab />
           </TabsContent>
 
-          <TabsContent value="data" className="mt-6">
+          <TabsContent value="data" className="mt-6 overflow-y-auto max-h-[calc(100vh-12rem)]">
             <DataImportTab />
           </TabsContent>
         </Tabs>
