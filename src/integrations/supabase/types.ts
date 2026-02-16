@@ -3932,10 +3932,12 @@ export type Database = {
         Args: { _adjustment_id: string; _user_id: string }
         Returns: undefined
       }
-      post_purchase_price_calculation: {
-        Args: { _calculation_id: string; _user_id: string }
-        Returns: string
-      }
+      post_purchase_price_calculation:
+        | { Args: { _calculation_id: string }; Returns: undefined }
+        | {
+            Args: { _calculation_id: string; _user_id: string }
+            Returns: string
+          }
       post_service_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: string
