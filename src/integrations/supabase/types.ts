@@ -2123,6 +2123,166 @@ export type Database = {
           },
         ]
       }
+      material_norm_items: {
+        Row: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at: string
+          id: string
+          item_order: number
+          qty_per_kg: number
+          qty_per_m: number
+          qty_per_pc: number
+          unit: string
+          variant_id: string
+        }
+        Insert: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          qty_per_kg?: number
+          qty_per_m?: number
+          qty_per_pc?: number
+          unit?: string
+          variant_id: string
+        }
+        Update: {
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          qty_per_kg?: number
+          qty_per_m?: number
+          qty_per_pc?: number
+          unit?: string
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_norm_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_norm_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_norm_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "material_norm_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_norm_variants: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          norm_id: string
+          note: string | null
+          updated_at: string
+          variant_name: string
+          variant_number: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          norm_id: string
+          note?: string | null
+          updated_at?: string
+          variant_name?: string
+          variant_number?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          norm_id?: string
+          note?: string | null
+          updated_at?: string
+          variant_name?: string
+          variant_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_norm_variants_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_norm_variants_norm_id_fkey"
+            columns: ["norm_id"]
+            isOneToOne: false
+            referencedRelation: "material_norms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_norms: {
+        Row: {
+          article_id: string
+          company_id: string
+          created_at: string
+          id: string
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          article_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          article_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_norms_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_norms_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       modules: {
         Row: {
           code: string
