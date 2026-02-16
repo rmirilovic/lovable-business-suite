@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMaterialNorms } from "@/hooks/useMaterialNorms";
+import { useMaterialNorms, MaterialNorm } from "@/hooks/useMaterialNorms";
 import { useArticles } from "@/hooks/useArticles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,6 +14,8 @@ import { Plus, Search, Trash2, FileSpreadsheet, FileText, Printer } from "lucide
 import { formatDate } from "@/lib/formatting";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { exportNormListToExcel, exportNormListToPdf, printNormList } from "@/lib/normListExportUtils";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +34,7 @@ export default function Normativi() {
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState("");
   const [creating, setCreating] = useState(false);
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
 
   // Only SVK=9 articles for finished products
   const finishedProducts = articles.filter((a) => a.svk === "9" && a.is_active);
@@ -43,6 +46,18 @@ export default function Normativi() {
       n.article_code?.toLowerCase().includes(s) ||
       n.article_name?.toLowerCase().includes(s)
     );
+  });
+
+  const sorted = sortItems(filtered, (item: MaterialNorm, column: string) => {
+    switch (column) {
+      case "article_code": return item.article_code ?? "";
+      case "article_name": return item.article_name ?? "";
+      case "article_unit": return item.article_unit ?? "";
+      case "variant_count": return item.variant_count ?? 0;
+      case "approved_variant_count": return item.approved_variant_count ?? 0;
+      case "created_at": return item.created_at;
+      default: return "";
+    }
   });
 
   const handleCreate = async () => {
@@ -140,12 +155,12 @@ export default function Normativi() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Šifra GP</TableHead>
-                <TableHead>Naziv gotovog proizvoda</TableHead>
-                <TableHead>JM</TableHead>
-                <TableHead className="text-center">Varijanti</TableHead>
-                <TableHead className="text-center">Odobreno</TableHead>
-                <TableHead>Kreiran</TableHead>
+                <TableHead><SortableHeader column="article_code" label="Šifra GP" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="article_name" label="Naziv gotovog proizvoda" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="article_unit" label="JM" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="text-center"><SortableHeader column="variant_count" label="Varijanti" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
+                <TableHead className="text-center"><SortableHeader column="approved_variant_count" label="Odobreno" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
+                <TableHead><SortableHeader column="created_at" label="Kreiran" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -156,14 +171,14 @@ export default function Normativi() {
                     Učitavanje...
                   </TableCell>
                 </TableRow>
-              ) : filtered.length === 0 ? (
+              ) : sorted.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Nema normativa
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((norm) => (
+                sorted.map((norm) => (
                   <TableRow
                     key={norm.id}
                     className="cursor-pointer"
