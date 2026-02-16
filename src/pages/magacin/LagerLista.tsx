@@ -100,19 +100,6 @@ export default function LagerLista() {
     });
   }, [filtered, sortItems]);
 
-  // Totals
-  const totals = useMemo(() => {
-    return sorted.reduce(
-      (acc, row) => ({
-        opening: acc.opening + Number(row.opening_qty),
-        inQty: acc.inQty + Number(row.in_qty),
-        outQty: acc.outQty + Number(row.out_qty),
-        turnover: acc.turnover + Number(row.turnover_qty),
-        closing: acc.closing + Number(row.closing_qty),
-      }),
-      { opening: 0, inQty: 0, outQty: 0, turnover: 0, closing: 0 }
-    );
-  }, [sorted]);
 
   const exportMeta = { warehouseName, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined };
 
@@ -126,7 +113,7 @@ export default function LagerLista() {
     if (sorted.length === 0) return;
     setExporting(true);
     try {
-      await exportInventoryListToPdf(sorted, exportMeta, totals);
+      await exportInventoryListToPdf(sorted, exportMeta);
       toast.success("PDF fajl je kreiran.");
     } finally {
       setExporting(false);
@@ -137,7 +124,7 @@ export default function LagerLista() {
     if (sorted.length === 0) return;
     setExporting(true);
     try {
-      await printInventoryList(sorted, exportMeta, totals);
+      await printInventoryList(sorted, exportMeta);
     } finally {
       setExporting(false);
     }
@@ -310,18 +297,6 @@ export default function LagerLista() {
                   ))
                 )}
               </TableBody>
-              {sorted.length > 0 && (
-                <TableFooter>
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-right font-semibold">Ukupno:</TableCell>
-                    <TableCell className="text-right font-semibold">{formatDecimal(totals.opening)}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatDecimal(totals.inQty)}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatDecimal(totals.outQty)}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatDecimal(totals.turnover)}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatDecimal(totals.closing)}</TableCell>
-                  </TableRow>
-                </TableFooter>
-              )}
             </Table>
           </TableScrollContainer>
         )}

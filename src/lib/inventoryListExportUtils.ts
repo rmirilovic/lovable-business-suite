@@ -43,8 +43,7 @@ export function exportInventoryListToExcel(rows: InventoryListRow[], meta: Expor
 
 async function buildInventoryListPdf(
   rows: InventoryListRow[],
-  meta: ExportMeta,
-  totals: { opening: number; inQty: number; outQty: number; turnover: number; closing: number }
+  meta: ExportMeta
 ): Promise<jsPDF> {
   await initializePdfFonts();
   const doc = new jsPDF({ orientation: "landscape" });
@@ -82,23 +81,13 @@ async function buildInventoryListPdf(
     formatDecimal(r.closing_qty),
   ]);
 
-  const foot = [[
-    "", "", "Ukupno:",
-    formatDecimal(totals.opening),
-    formatDecimal(totals.inQty),
-    formatDecimal(totals.outQty),
-    formatDecimal(totals.turnover),
-    formatDecimal(totals.closing),
-  ]];
 
   autoTable(doc, {
     startY: y,
     head,
     body,
-    foot,
     styles: { font: "Roboto", fontSize: 8, cellPadding: 2 },
     headStyles: { fillColor: [60, 60, 60], fontStyle: "bold", halign: "center" },
-    footStyles: { fillColor: [240, 240, 240], fontStyle: "bold" },
     columnStyles: {
       0: { halign: "left" },
       1: { halign: "left" },
@@ -109,11 +98,6 @@ async function buildInventoryListPdf(
       6: { halign: "right" },
       7: { halign: "right" },
     },
-    didParseCell(data) {
-      if (data.section === "foot") {
-        data.cell.styles.halign = data.column.index <= 2 ? "right" : "right";
-      }
-    },
   });
 
   return doc;
@@ -121,19 +105,17 @@ async function buildInventoryListPdf(
 
 export async function exportInventoryListToPdf(
   rows: InventoryListRow[],
-  meta: ExportMeta,
-  totals: { opening: number; inQty: number; outQty: number; turnover: number; closing: number }
+  meta: ExportMeta
 ) {
-  const doc = await buildInventoryListPdf(rows, meta, totals);
+  const doc = await buildInventoryListPdf(rows, meta);
   const safeName = meta.warehouseName.replace(/[^a-zA-Z0-9а-яА-ЯёЁa-žA-Ž\s_-]/g, "").trim();
   doc.save(`Lager_lista_${safeName}.pdf`);
 }
 
 export async function printInventoryList(
   rows: InventoryListRow[],
-  meta: ExportMeta,
-  totals: { opening: number; inQty: number; outQty: number; turnover: number; closing: number }
+  meta: ExportMeta
 ) {
-  const doc = await buildInventoryListPdf(rows, meta, totals);
+  const doc = await buildInventoryListPdf(rows, meta);
   printPdfBlob(doc.output("blob"));
 }
