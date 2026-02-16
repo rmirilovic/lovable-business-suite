@@ -5,6 +5,7 @@ import { formatDecimal, formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { initializePdfFonts, configurePdfFonts } from "@/lib/pdfFonts";
+import { printPdfBlob } from "@/lib/printPdf";
 
 interface CompanyData {
   name: string;
@@ -13,26 +14,6 @@ interface CompanyData {
   postal_code?: string | null;
   pib?: string | null;
   mb?: string | null;
-}
-
-function printPdfBlob(blob: Blob) {
-  const blobUrl = URL.createObjectURL(blob);
-  const printFrame = document.createElement("iframe");
-  printFrame.style.position = "fixed";
-  printFrame.style.right = "0";
-  printFrame.style.bottom = "0";
-  printFrame.style.width = "0";
-  printFrame.style.height = "0";
-  printFrame.style.border = "none";
-  printFrame.src = blobUrl;
-  printFrame.onload = () => {
-    setTimeout(() => { printFrame.contentWindow?.print(); }, 100);
-  };
-  document.body.appendChild(printFrame);
-  setTimeout(() => {
-    document.body.removeChild(printFrame);
-    URL.revokeObjectURL(blobUrl);
-  }, 60000);
 }
 
 async function buildGoodsReceiptPdf(
