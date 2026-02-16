@@ -13,6 +13,9 @@ export interface MaterialNorm {
   article_code?: string;
   article_name?: string;
   article_unit?: string;
+  article_group?: string | null;
+  article_kg_po_jm?: number | null;
+  article_kol_mas?: number | null;
 }
 
 export interface MaterialNormVariant {
@@ -50,7 +53,7 @@ export function useMaterialNorms(companyId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("material_norms")
-        .select("*, articles!material_norms_article_id_fkey(code, name, unit)")
+        .select("*, articles!material_norms_article_id_fkey(code, name, unit, article_group, kg_po_jm, kol_mas)")
         .eq("company_id", companyId!)
         .order("created_at", { ascending: false });
 
@@ -66,6 +69,9 @@ export function useMaterialNorms(companyId: string | undefined) {
         article_code: n.articles?.code,
         article_name: n.articles?.name,
         article_unit: n.articles?.unit,
+        article_group: n.articles?.article_group,
+        article_kg_po_jm: n.articles?.kg_po_jm,
+        article_kol_mas: n.articles?.kol_mas,
       })) as MaterialNorm[];
     },
     enabled: !!companyId,
@@ -82,7 +88,7 @@ export function useMaterialNorm(normId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("material_norms")
-        .select("*, articles!material_norms_article_id_fkey(code, name, unit)")
+        .select("*, articles!material_norms_article_id_fkey(code, name, unit, article_group, kg_po_jm, kol_mas)")
         .eq("id", normId!)
         .single();
 
@@ -93,6 +99,9 @@ export function useMaterialNorm(normId: string | undefined) {
         article_code: (data as any).articles?.code,
         article_name: (data as any).articles?.name,
         article_unit: (data as any).articles?.unit,
+        article_group: (data as any).articles?.article_group,
+        article_kg_po_jm: (data as any).articles?.kg_po_jm,
+        article_kol_mas: (data as any).articles?.kol_mas,
       } as MaterialNorm;
     },
     enabled: !!normId,
