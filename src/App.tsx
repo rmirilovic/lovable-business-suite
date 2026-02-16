@@ -49,6 +49,7 @@ import TransferEdit from "./pages/magacin/TransferEdit";
 import ZameneArtikala from "./pages/magacin/ZameneArtikala";
 import ArticleSwapEdit from "./pages/magacin/ArticleSwapEdit";
 import PrometMagacina from "./pages/magacin/PrometMagacina";
+import LagerLista from "./pages/magacin/LagerLista";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -267,6 +268,11 @@ const App = () => (
               <Route path="/magacin/promet" element={
                 <ProtectedRoute>
                   <PrometMagacina />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/lager-lista" element={
+                <ProtectedRoute>
+                  <LagerLista />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />

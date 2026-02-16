@@ -3834,6 +3834,25 @@ export type Database = {
         }
         Returns: Database["public"]["Enums"]["access_level"]
       }
+      get_warehouse_inventory_list: {
+        Args: {
+          p_company_id: string
+          p_date_from?: string
+          p_date_to?: string
+          p_warehouse_id: string
+        }
+        Returns: {
+          article_code: string
+          article_id: string
+          article_name: string
+          closing_qty: number
+          in_qty: number
+          opening_qty: number
+          out_qty: number
+          turnover_qty: number
+          unit: string
+        }[]
+      }
       get_warehouse_stock: {
         Args: {
           p_company_id: string
