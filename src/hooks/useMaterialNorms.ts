@@ -64,23 +64,27 @@ export function useMaterialNorms(companyId: string | undefined) {
 
       if (error) throw error;
 
-      // Fetch variant counts per norm
+      // Fetch variant counts per norm (batch to avoid URL length limits)
       const normIds = (data ?? []).map((n: any) => n.id);
       let variantCounts: Record<string, { total: number; approved: number }> = {};
 
       if (normIds.length > 0) {
-        const { data: variants } = await supabase
-          .from("material_norm_variants")
-          .select("norm_id, status")
-          .in("norm_id", normIds);
+        const BATCH_SIZE = 100;
+        for (let i = 0; i < normIds.length; i += BATCH_SIZE) {
+          const batch = normIds.slice(i, i + BATCH_SIZE);
+          const { data: variants } = await supabase
+            .from("material_norm_variants")
+            .select("norm_id, status")
+            .in("norm_id", batch);
 
-        for (const v of variants ?? []) {
-          if (!variantCounts[v.norm_id]) {
-            variantCounts[v.norm_id] = { total: 0, approved: 0 };
-          }
-          variantCounts[v.norm_id].total++;
-          if (v.status === "approved") {
-            variantCounts[v.norm_id].approved++;
+          for (const v of variants ?? []) {
+            if (!variantCounts[v.norm_id]) {
+              variantCounts[v.norm_id] = { total: 0, approved: 0 };
+            }
+            variantCounts[v.norm_id].total++;
+            if (v.status === "approved") {
+              variantCounts[v.norm_id].approved++;
+            }
           }
         }
       }
