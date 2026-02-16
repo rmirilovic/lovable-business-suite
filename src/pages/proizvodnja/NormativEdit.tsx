@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   useMaterialNorm,
   useMaterialNormVariants,
+  useMaterialNormItems,
   MaterialNormVariant,
 } from "@/hooks/useMaterialNorms";
 import { useClassifications } from "@/hooks/useClassifications";
@@ -14,10 +15,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Plus, Trash2, CheckCircle, Undo2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, CheckCircle, Undo2, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { NormItemsEditor } from "@/components/proizvodnja/NormItemsEditor";
 import { formatDate } from "@/lib/formatting";
 import { Badge } from "@/components/ui/badge";
+import { exportNormToExcel, exportNormToPdf, printNorm } from "@/lib/normExportUtils";
 
 export default function NormativEdit() {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +44,27 @@ export default function NormativEdit() {
   const activeVariantObj = variants.find((v) => v.id === activeVariant);
   const isActiveApproved = activeVariantObj?.status === "approved";
   const isActiveDraft = activeVariantObj?.status === "draft";
+  const { items: activeItems } = useMaterialNormItems(activeVariant || undefined);
+
+  const getExportMeta = () => {
+    if (!norm || !activeVariantObj) return null;
+    return { norm, variant: activeVariantObj, items: activeItems };
+  };
+
+  const handleExcelExport = () => {
+    const meta = getExportMeta();
+    if (meta) exportNormToExcel(meta);
+  };
+
+  const handlePdfExport = async () => {
+    const meta = getExportMeta();
+    if (meta) await exportNormToPdf(meta);
+  };
+
+  const handlePrint = async () => {
+    const meta = getExportMeta();
+    if (meta) await printNorm(meta);
+  };
 
   const handleApproveVariant = async () => {
     if (!activeVariant) return;
@@ -239,6 +262,21 @@ export default function NormativEdit() {
                   Obriši
                 </Button>
               )}
+              {/* Export buttons */}
+              <div className="ml-auto flex items-center gap-1">
+                <Button variant="outline" size="sm" onClick={handleExcelExport} disabled={activeItems.length === 0}>
+                  <FileSpreadsheet className="w-3 h-3 mr-1" />
+                  Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={handlePdfExport} disabled={activeItems.length === 0}>
+                  <FileText className="w-3 h-3 mr-1" />
+                  PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={handlePrint} disabled={activeItems.length === 0}>
+                  <Printer className="w-3 h-3 mr-1" />
+                  Štampa
+                </Button>
+              </div>
             </div>
 
             {variants.map((v) => (
