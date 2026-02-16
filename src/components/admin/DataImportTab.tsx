@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt } from "lucide-react";
+import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt, Factory } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -19,6 +19,7 @@ import { ChartOfAccountsExportDialog } from "@/components/racunovodstvo/ChartOfA
 import { InputCostsApiDialog } from "@/components/sifarnici/InputCostsApiDialog";
 import { InputCostsImportDialog } from "@/components/sifarnici/InputCostsImportDialog";
 import { InputCostsExportDialog } from "@/components/sifarnici/InputCostsExportDialog";
+import { NormImportDialog } from "@/components/proizvodnja/NormImportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 
@@ -50,6 +51,9 @@ export function DataImportTab() {
   const [inputCostsApiOpen, setInputCostsApiOpen] = useState(false);
   const [inputCostsImportOpen, setInputCostsImportOpen] = useState(false);
   const [inputCostsExportOpen, setInputCostsExportOpen] = useState(false);
+  
+  // Dialog states for norms
+  const [normImportOpen, setNormImportOpen] = useState(false);
   
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
@@ -336,6 +340,36 @@ export function DataImportTab() {
         </CardContent>
       </Card>
 
+      <Separator />
+
+      {/* Norms Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Factory className="w-5 h-5" />
+            Normativi utroška materijala
+          </CardTitle>
+          <CardDescription>
+            Uvoz normativa iz Excel fajla za više gotovih proizvoda odjednom
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setNormImportOpen(true)}
+            >
+              <Upload className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Normativi (flat)</div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Partner Dialogs */}
       <PartnerImportDialog 
         open={partnerImportOpen} 
@@ -410,6 +444,12 @@ export function DataImportTab() {
       <InputCostsExportDialog 
         open={inputCostsExportOpen} 
         onOpenChange={setInputCostsExportOpen} 
+      />
+
+      {/* Norm Dialogs */}
+      <NormImportDialog 
+        open={normImportOpen} 
+        onOpenChange={setNormImportOpen} 
       />
     </div>
   );
