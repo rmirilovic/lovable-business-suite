@@ -7,6 +7,9 @@ export interface MaterialNorm {
   company_id: string;
   article_id: string;
   note: string | null;
+  status: string;
+  approved_at: string | null;
+  approved_by: string | null;
   created_at: string;
   updated_at: string;
   // joined
@@ -83,7 +86,9 @@ export function useMaterialNorms(companyId: string | undefined) {
 }
 
 export function useMaterialNorm(normId: string | undefined) {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["material_norm", normId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -106,6 +111,10 @@ export function useMaterialNorm(normId: string | undefined) {
     },
     enabled: !!normId,
   });
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["material_norm", normId] });
+
+  return { data: query.data, isLoading: query.isLoading, invalidate };
 }
 
 export function useMaterialNormVariants(normId: string | undefined) {
