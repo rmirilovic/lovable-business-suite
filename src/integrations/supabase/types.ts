@@ -3854,6 +3854,18 @@ export type Database = {
           unit: string
         }[]
       }
+      get_warehouse_turnover: {
+        Args: { p_company_id: string; p_date_from?: string; p_date_to?: string }
+        Returns: {
+          balance_value: number
+          credit_value: number
+          debit_value: number
+          document_type: string
+          warehouse_code: string
+          warehouse_id: string
+          warehouse_name: string
+        }[]
+      }
       has_company_access: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
