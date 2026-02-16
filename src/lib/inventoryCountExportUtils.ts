@@ -4,23 +4,7 @@ import * as XLSX from "xlsx";
 import { initializePdfFonts, configurePdfFonts } from "@/lib/pdfFonts";
 import { formatDecimal, formatDate } from "@/lib/formatting";
 import type { InventoryCountItem } from "@/hooks/useInventoryCounts";
-
-// ── Helpers ──────────────────────────────────────────────────────────
-
-function printPdfBlob(blob: Blob) {
-  const blobUrl = URL.createObjectURL(blob);
-  const printFrame = document.createElement("iframe");
-  printFrame.style.position = "fixed";
-  printFrame.style.right = "0";
-  printFrame.style.bottom = "0";
-  printFrame.style.width = "0";
-  printFrame.style.height = "0";
-  printFrame.style.border = "none";
-  printFrame.src = blobUrl;
-  printFrame.onload = () => { setTimeout(() => { printFrame.contentWindow?.print(); }, 100); };
-  document.body.appendChild(printFrame);
-  setTimeout(() => { document.body.removeChild(printFrame); URL.revokeObjectURL(blobUrl); }, 60000);
-}
+import { printPdfBlob } from "@/lib/printPdf";
 
 interface ExportMeta {
   countNumber: string;
