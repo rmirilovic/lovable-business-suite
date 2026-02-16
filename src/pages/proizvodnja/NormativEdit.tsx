@@ -14,9 +14,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, CheckCircle, Undo2 } from "lucide-react";
 import { NormItemsEditor } from "@/components/proizvodnja/NormItemsEditor";
 import { formatDate } from "@/lib/formatting";
+import { Badge } from "@/components/ui/badge";
 
 export default function NormativEdit() {
   const { id } = useParams<{ id: string }>();
@@ -24,10 +25,13 @@ export default function NormativEdit() {
   const { selectedCompany } = useAuth();
   const companyId = selectedCompany?.id;
 
-  const { data: norm, isLoading: normLoading } = useMaterialNorm(id);
+  const { data: norm, isLoading: normLoading, invalidate: invalidateNorm } = useMaterialNorm(id);
   const { variants, isLoading: variantsLoading, invalidate: invalidateVariants } =
     useMaterialNormVariants(id);
   const { classifications } = useClassifications(companyId);
+
+  const isApproved = norm?.status === "approved";
+  const isDraft = norm?.status === "draft";
 
   const [activeVariant, setActiveVariant] = useState<string>("");
   const [editingName, setEditingName] = useState<string | null>(null);
@@ -37,6 +41,28 @@ export default function NormativEdit() {
   if (!activeVariant && variants.length > 0) {
     setActiveVariant(variants[0].id);
   }
+
+  const handleApprove = async () => {
+    if (!id) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("material_norms")
+      .update({ status: "approved", approved_at: new Date().toISOString(), approved_by: user?.id })
+      .eq("id", id);
+    if (error) toast.error("Greška: " + error.message);
+    else { toast.success("Normativ odobren"); invalidateNorm(); }
+  };
+
+  const handleUnapprove = async () => {
+    if (!id) return;
+    if (!confirm("Da li ste sigurni da želite da poništite odobravanje?")) return;
+    const { error } = await supabase
+      .from("material_norms")
+      .update({ status: "draft", approved_at: null, approved_by: null })
+      .eq("id", id);
+    if (error) toast.error("Greška: " + error.message);
+    else { toast.success("Odobravanje poništeno"); invalidateNorm(); }
+  };
 
   const handleAddVariant = async () => {
     if (!id || !companyId) return;
@@ -118,9 +144,14 @@ export default function NormativEdit() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold">
-              Normativ: {norm.article_code} - {norm.article_name}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold">
+                Normativ: {norm.article_code} - {norm.article_name}
+              </h1>
+              <Badge variant={isApproved ? "default" : "secondary"}>
+                {isApproved ? "Odobren" : "Nacrt"}
+              </Badge>
+            </div>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground mt-1">
               <span>JM: <span className="text-foreground font-medium">{norm.article_unit}</span></span>
               {norm.article_kg_po_jm != null && norm.article_kg_po_jm > 0 && (
@@ -136,6 +167,20 @@ export default function NormativEdit() {
               )}
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            {isDraft && (
+              <Button onClick={handleApprove} variant="default" size="sm">
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Odobri
+              </Button>
+            )}
+            {isApproved && (
+              <Button onClick={handleUnapprove} variant="outline" size="sm">
+                <Undo2 className="w-4 h-4 mr-1" />
+                Poništi odobrenje
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Variants tabs */}
@@ -149,7 +194,7 @@ export default function NormativEdit() {
               <TabsList>
                 {variants.map((v) => (
                   <TabsTrigger key={v.id} value={v.id} className="relative group">
-                    {editingName === v.id ? (
+                     {editingName === v.id && !isApproved ? (
                       <Input
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
@@ -165,10 +210,11 @@ export default function NormativEdit() {
                     ) : (
                       <span
                         onDoubleClick={() => {
+                          if (isApproved) return;
                           setEditingName(v.id);
                           setNewName(v.variant_name);
                         }}
-                        title="Dupli klik za preimenovanje"
+                        title={isApproved ? undefined : "Dupli klik za preimenovanje"}
                       >
                         {v.variant_name}
                       </span>
@@ -176,11 +222,13 @@ export default function NormativEdit() {
                   </TabsTrigger>
                 ))}
               </TabsList>
-              <Button variant="outline" size="sm" onClick={handleAddVariant}>
-                <Plus className="w-3 h-3 mr-1" />
-                Varijanta
-              </Button>
-              {variants.length > 1 && activeVariant && (
+              {!isApproved && (
+                <Button variant="outline" size="sm" onClick={handleAddVariant}>
+                  <Plus className="w-3 h-3 mr-1" />
+                  Varijanta
+                </Button>
+              )}
+              {!isApproved && variants.length > 1 && activeVariant && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -198,6 +246,7 @@ export default function NormativEdit() {
                 <NormItemsEditor
                   variantId={v.id}
                   companyId={companyId!}
+                  readOnly={isApproved}
                 />
               </TabsContent>
             ))}

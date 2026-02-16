@@ -13,6 +13,7 @@ import { Plus, Trash2 } from "lucide-react";
 interface NormItemsEditorProps {
   variantId: string;
   companyId: string;
+  readOnly?: boolean;
 }
 
 /** Format a number showing up to 6 decimal places, but trim trailing zeros */
@@ -24,7 +25,7 @@ function formatFlexDecimal(val: number): string {
   return s.replace(/\.?0+$/, "");
 }
 
-export function NormItemsEditor({ variantId, companyId }: NormItemsEditorProps) {
+export function NormItemsEditor({ variantId, companyId, readOnly = false }: NormItemsEditorProps) {
   const { items, isLoading, invalidate } = useMaterialNormItems(variantId);
   const { articles } = useArticles(companyId);
   const [addingArticleId, setAddingArticleId] = useState("");
@@ -102,21 +103,23 @@ export function NormItemsEditor({ variantId, companyId }: NormItemsEditorProps) 
   return (
     <div className="space-y-4">
       {/* Add item */}
-      <div className="flex items-end gap-2">
-        <div className="w-[400px]">
-          <label className="text-sm font-medium mb-1 block">Dodaj materijal (SVK=2)</label>
-          <SearchableArticleSelect
-            articles={rawMaterials}
-            value={addingArticleId}
-            onValueChange={(id) => setAddingArticleId(id)}
-            placeholder="Izaberite repromaterijal..."
-          />
+      {!readOnly && (
+        <div className="flex items-end gap-2">
+          <div className="w-[400px]">
+            <label className="text-sm font-medium mb-1 block">Dodaj materijal (SVK=2)</label>
+            <SearchableArticleSelect
+              articles={rawMaterials}
+              value={addingArticleId}
+              onValueChange={(id) => setAddingArticleId(id)}
+              placeholder="Izaberite repromaterijal..."
+            />
+          </div>
+          <Button onClick={handleAddItem} disabled={!addingArticleId} size="sm">
+            <Plus className="w-4 h-4 mr-1" />
+            Dodaj
+          </Button>
         </div>
-        <Button onClick={handleAddItem} disabled={!addingArticleId} size="sm">
-          <Plus className="w-4 h-4 mr-1" />
-          Dodaj
-        </Button>
-      </div>
+      )}
 
       <TableScrollContainer className="max-h-[calc(100vh-350px)]">
         <Table>
@@ -129,7 +132,7 @@ export function NormItemsEditor({ variantId, companyId }: NormItemsEditorProps) 
               <TableHead className="w-[160px] text-right">Utrošak / kg</TableHead>
               <TableHead className="w-[160px] text-right">Utrošak / m</TableHead>
               <TableHead className="w-[160px] text-right">Utrošak / kom</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              {!readOnly && <TableHead className="w-[50px]"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -153,6 +156,7 @@ export function NormItemsEditor({ variantId, companyId }: NormItemsEditorProps) 
                   index={idx}
                   onUpdateQty={handleUpdateQty}
                   onDelete={handleDeleteItem}
+                  readOnly={readOnly}
                 />
               ))
             )}
@@ -172,7 +176,7 @@ export function NormItemsEditor({ variantId, companyId }: NormItemsEditorProps) 
                 <TableCell className="text-right font-medium">
                   {formatFlexDecimal(totalPc)}
                 </TableCell>
-                <TableCell></TableCell>
+                {!readOnly && <TableCell></TableCell>}
               </TableRow>
             </TableFooter>
           )}
@@ -188,11 +192,13 @@ function NormItemRow({
   index,
   onUpdateQty,
   onDelete,
+  readOnly = false,
 }: {
   item: MaterialNormItem;
   index: number;
   onUpdateQty: (id: string, field: "qty_per_kg" | "qty_per_m" | "qty_per_pc", value: string) => void;
   onDelete: (id: string) => void;
+  readOnly?: boolean;
 }) {
   const [kgVal, setKgVal] = useState(formatFlexDecimal(item.qty_per_kg));
   const [mVal, setMVal] = useState(formatFlexDecimal(item.qty_per_m));
@@ -205,45 +211,59 @@ function NormItemRow({
       <TableCell>{item.article_name}</TableCell>
       <TableCell>{item.unit}</TableCell>
       <TableCell>
-        <LocaleNumberInput
-          value={kgVal}
-          onChange={setKgVal}
-          onBlur={() => onUpdateQty(item.id, "qty_per_kg", kgVal)}
-          decimalPlaces={6}
-          allowEmpty
-          className="h-7 text-sm text-right w-full"
-        />
+        {readOnly ? (
+          <span className="text-sm text-right block">{formatFlexDecimal(item.qty_per_kg)}</span>
+        ) : (
+          <LocaleNumberInput
+            value={kgVal}
+            onChange={setKgVal}
+            onBlur={() => onUpdateQty(item.id, "qty_per_kg", kgVal)}
+            decimalPlaces={6}
+            allowEmpty
+            className="h-7 text-sm text-right w-full"
+          />
+        )}
       </TableCell>
       <TableCell>
-        <LocaleNumberInput
-          value={mVal}
-          onChange={setMVal}
-          onBlur={() => onUpdateQty(item.id, "qty_per_m", mVal)}
-          decimalPlaces={6}
-          allowEmpty
-          className="h-7 text-sm text-right w-full"
-        />
+        {readOnly ? (
+          <span className="text-sm text-right block">{formatFlexDecimal(item.qty_per_m)}</span>
+        ) : (
+          <LocaleNumberInput
+            value={mVal}
+            onChange={setMVal}
+            onBlur={() => onUpdateQty(item.id, "qty_per_m", mVal)}
+            decimalPlaces={6}
+            allowEmpty
+            className="h-7 text-sm text-right w-full"
+          />
+        )}
       </TableCell>
       <TableCell>
-        <LocaleNumberInput
-          value={pcVal}
-          onChange={setPcVal}
-          onBlur={() => onUpdateQty(item.id, "qty_per_pc", pcVal)}
-          decimalPlaces={6}
-          allowEmpty
-          className="h-7 text-sm text-right w-full"
-        />
+        {readOnly ? (
+          <span className="text-sm text-right block">{formatFlexDecimal(item.qty_per_pc)}</span>
+        ) : (
+          <LocaleNumberInput
+            value={pcVal}
+            onChange={setPcVal}
+            onBlur={() => onUpdateQty(item.id, "qty_per_pc", pcVal)}
+            decimalPlaces={6}
+            allowEmpty
+            className="h-7 text-sm text-right w-full"
+          />
+        )}
       </TableCell>
-      <TableCell>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-destructive hover:text-destructive"
-          onClick={() => onDelete(item.id)}
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </TableCell>
+      {!readOnly && (
+        <TableCell>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-destructive hover:text-destructive"
+            onClick={() => onDelete(item.id)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </TableCell>
+      )}
     </TableRow>
   );
 }

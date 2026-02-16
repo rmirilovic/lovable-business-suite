@@ -2243,27 +2243,36 @@ export type Database = {
       }
       material_norms: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           article_id: string
           company_id: string
           created_at: string
           id: string
           note: string | null
+          status: string
           updated_at: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           article_id: string
           company_id: string
           created_at?: string
           id?: string
           note?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           article_id?: string
           company_id?: string
           created_at?: string
           id?: string
           note?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: [
