@@ -15,7 +15,10 @@ import { Label } from "@/components/ui/label";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SortableHeader } from "@/components/ui/sortable-header";
-import { Plus, Search, Trash2, Rocket, Lock, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Search, Trash2, Rocket, Lock, FileSpreadsheet, FileText, Printer, MoreHorizontal, Eye } from "lucide-react";
 import { exportWorkOrdersToExcel, exportWorkOrdersToPdf, printWorkOrders } from "@/lib/workOrderExportUtils";
 import { useWorkOrders, STATUS_LABELS, STATUS_COLORS, WorkOrder } from "@/hooks/useWorkOrders";
 import { supabase } from "@/integrations/supabase/client";
@@ -150,22 +153,19 @@ export default function RadniNalozi() {
     navigate(`/proizvodnja/nalozi/${result.id}`);
   };
 
-  const handleDelete = async (e: React.MouseEvent, order: WorkOrder) => {
-    e.stopPropagation();
+  const handleDelete = async (order: WorkOrder) => {
     if (confirm(`Obrisati radni nalog ${order.order_number}?`)) {
       await deleteOrder.mutateAsync(order.id);
     }
   };
 
-  const handleLaunch = async (e: React.MouseEvent, order: WorkOrder) => {
-    e.stopPropagation();
+  const handleLaunch = async (order: WorkOrder) => {
     if (confirm(`Lansirati radni nalog ${order.order_number}?`)) {
       await launchOrder.mutateAsync(order.id);
     }
   };
 
-  const handleClose = async (e: React.MouseEvent, order: WorkOrder) => {
-    e.stopPropagation();
+  const handleClose = async (order: WorkOrder) => {
     if (confirm(`Zaključiti radni nalog ${order.order_number}?`)) {
       await closeOrder.mutateAsync(order.id);
     }
@@ -260,7 +260,7 @@ export default function RadniNalozi() {
                 <TableHead className="w-[100px]">
                   <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead className="w-[120px]">Akcije</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -294,24 +294,34 @@ export default function RadniNalozi() {
                         {STATUS_LABELS[order.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1 relative z-10" onClick={(e) => e.stopPropagation()}>
-                        {order.status === "draft" && (
-                          <>
-                            <Button variant="ghost" size="icon" title="Lansiraj" onClick={(e) => handleLaunch(e, order)}>
-                              <Rocket className="w-4 h-4 text-blue-600" />
-                            </Button>
-                            <Button variant="ghost" size="icon" title="Obriši" onClick={(e) => handleDelete(e, order)}>
-                              <Trash2 className="w-4 h-4 text-destructive" />
-                            </Button>
-                          </>
-                        )}
-                        {order.status === "launched" && (
-                          <Button variant="ghost" size="icon" title="Zaključi" onClick={(e) => handleClose(e, order)}>
-                            <Lock className="w-4 h-4 text-green-600" />
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
-                        )}
-                      </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => persistAndNavigate(order.id)}>
+                            <Eye className="h-4 w-4 mr-2" /> Prikaži
+                          </DropdownMenuItem>
+                          {order.status === "draft" && (
+                            <DropdownMenuItem onClick={() => handleLaunch(order)}>
+                              <Rocket className="h-4 w-4 mr-2" /> Lansiraj
+                            </DropdownMenuItem>
+                          )}
+                          {order.status === "launched" && (
+                            <DropdownMenuItem onClick={() => handleClose(order)}>
+                              <Lock className="h-4 w-4 mr-2" /> Zaključi
+                            </DropdownMenuItem>
+                          )}
+                          {order.status === "draft" && (
+                            <DropdownMenuItem onClick={() => handleDelete(order)} className="text-destructive">
+                              <Trash2 className="h-4 w-4 mr-2" /> Obriši
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
