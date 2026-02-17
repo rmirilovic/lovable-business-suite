@@ -133,6 +133,30 @@ const emptyFilters: ArticleFilters = {
   attributeValue: "",
 };
 
+const ARTIKLI_STORAGE_KEY = "artikli_view_state";
+
+interface ArtikliViewState {
+  searchTerm: string;
+  filters: ArticleFilters;
+  filtersOpen: boolean;
+  sortColumn: string | null;
+  sortDirection: 'asc' | 'desc';
+  currentPage: number;
+  itemsPerPage: number;
+  scrollTop: number;
+}
+
+function loadViewState(): Partial<ArtikliViewState> {
+  try {
+    const raw = sessionStorage.getItem(ARTIKLI_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveViewState(state: ArtikliViewState) {
+  sessionStorage.setItem(ARTIKLI_STORAGE_KEY, JSON.stringify(state));
+}
+
 const emptyForm: ArticleForm = {
   code: "",
   name: "",
@@ -171,24 +195,27 @@ export default function Artikli() {
   
   // Use article attributes hook for filter dropdown
   const { attributes: availableAttributes } = useArticleAttributes(selectedCompany?.id);
+
+  const saved = loadViewState();
   
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(saved.searchTerm ?? "");
   
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [filters, setFilters] = useState<ArticleFilters>(emptyFilters);
+  const [filtersOpen, setFiltersOpen] = useState(saved.filtersOpen ?? false);
+  const [filters, setFilters] = useState<ArticleFilters>(saved.filters ?? emptyFilters);
   
   // Sorting state
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortColumn, setSortColumn] = useState<string | null>(saved.sortColumn ?? null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(saved.sortDirection ?? 'asc');
   
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(saved.currentPage ?? 1);
   const [itemsPerPage, setItemsPerPage] = useState(() => {
+    if (saved.itemsPerPage) return saved.itemsPerPage;
     const companyId = selectedCompany?.id;
     const yearId = selectedYear?.id;
     if (companyId && yearId) {
-      const saved = localStorage.getItem(`artikli-itemsPerPage-${companyId}-${yearId}`);
-      if (saved) return parseInt(saved, 10);
+      const lsSaved = localStorage.getItem(`artikli-itemsPerPage-${companyId}-${yearId}`);
+      if (lsSaved) return parseInt(lsSaved, 10);
     }
     return 20;
   });
@@ -211,7 +238,43 @@ export default function Artikli() {
   const [activeEditCell, setActiveEditCell] = useState<{ articleId: string; field: string } | null>(null);
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const savedScrollPositionRef = useRef<number | null>(null);
+  const savedScrollPositionRef = useRef<number | null>(saved.scrollTop ?? null);
+  const restoredScrollRef = useRef(false);
+
+  // Persist view state on changes
+  useEffect(() => {
+    const scrollTop = tableContainerRef.current?.scrollTop ?? 0;
+    saveViewState({
+      searchTerm, filters, filtersOpen, sortColumn, sortDirection,
+      currentPage, itemsPerPage, scrollTop,
+    });
+  }, [searchTerm, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
+
+  // Restore scroll position after data loads
+  useEffect(() => {
+    if (!loading && !restoredScrollRef.current && saved.scrollTop && tableContainerRef.current) {
+      restoredScrollRef.current = true;
+      requestAnimationFrame(() => {
+        if (tableContainerRef.current) {
+          tableContainerRef.current.scrollTop = saved.scrollTop!;
+        }
+      });
+    }
+  }, [loading]);
+
+  // Save scroll position on scroll
+  useEffect(() => {
+    const el = tableContainerRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      saveViewState({
+        searchTerm, filters, filtersOpen, sortColumn, sortDirection,
+        currentPage, itemsPerPage, scrollTop: el.scrollTop,
+      });
+    };
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [searchTerm, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
 
   // Define editable fields order for Tab navigation
   const editableFields = ['name', 'article_group', 'unit', 'purchase_price', 'selling_price'] as const;
@@ -431,8 +494,13 @@ export default function Artikli() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedArticles = sortedArticles.slice(startIndex, endIndex);
 
-  // Reset to first page when filters/search change
+  // Reset to first page when filters/search change (skip on initial mount with restored state)
+  const isInitialMount = useRef(true);
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     setCurrentPage(1);
   }, [searchTerm, filters, sortColumn, sortDirection]);
 
