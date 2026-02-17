@@ -4234,6 +4234,10 @@ export type Database = {
         Args: { _company_id: string; _invoice_type: string; _year_id: string }
         Returns: string
       }
+      get_next_requisition_number: {
+        Args: { _company_id: string; _year_id: string }
+        Returns: string
+      }
       get_next_swap_number: {
         Args: { _company_id: string; _year_id: string }
         Returns: string
