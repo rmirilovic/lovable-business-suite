@@ -18,7 +18,7 @@ import { SortableHeader } from "@/components/ui/sortable-header";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Trash2, Rocket, Lock, FileSpreadsheet, FileText, Printer, MoreHorizontal, Eye } from "lucide-react";
+import { Plus, Search, Trash2, Rocket, Lock, FileSpreadsheet, FileText, Printer, MoreHorizontal, Eye, Undo2 } from "lucide-react";
 import { exportWorkOrdersToExcel, exportWorkOrdersToPdf, printWorkOrders } from "@/lib/workOrderExportUtils";
 import { useWorkOrders, STATUS_LABELS, STATUS_COLORS, WorkOrder } from "@/hooks/useWorkOrders";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +44,7 @@ export default function RadniNalozi() {
   const navigate = useNavigate();
   const { selectedCompany, selectedYear, user } = useAuth();
   const companyId = selectedCompany?.id;
-  const { orders, isLoading, createOrder, deleteOrder, launchOrder, closeOrder } = useWorkOrders();
+  const { orders, isLoading, createOrder, deleteOrder, launchOrder, closeOrder, reopenOrder, unlaunchOrder } = useWorkOrders();
   const { warehouses } = useWarehouses(companyId);
   const gpWarehouses = warehouses.filter((w) => w.warehouse_type === "9" && w.is_active);
 
@@ -168,6 +168,18 @@ export default function RadniNalozi() {
   const handleClose = async (order: WorkOrder) => {
     if (confirm(`Zaključiti radni nalog ${order.order_number}?`)) {
       await closeOrder.mutateAsync(order.id);
+    }
+  };
+
+  const handleReopen = async (order: WorkOrder) => {
+    if (confirm(`Vratiti radni nalog ${order.order_number} u status Lansiran?`)) {
+      await reopenOrder.mutateAsync(order.id);
+    }
+  };
+
+  const handleUnlaunch = async (order: WorkOrder) => {
+    if (confirm(`Vratiti radni nalog ${order.order_number} u status Nacrt?`)) {
+      await unlaunchOrder.mutateAsync(order.id);
     }
   };
 
@@ -313,6 +325,16 @@ export default function RadniNalozi() {
                           {order.status === "launched" && (
                             <DropdownMenuItem onClick={() => handleClose(order)}>
                               <Lock className="h-4 w-4 mr-2" /> Zaključi
+                            </DropdownMenuItem>
+                          )}
+                          {order.status === "launched" && (
+                            <DropdownMenuItem onClick={() => handleUnlaunch(order)}>
+                              <Undo2 className="h-4 w-4 mr-2" /> Vrati u Nacrt
+                            </DropdownMenuItem>
+                          )}
+                          {order.status === "closed" && (
+                            <DropdownMenuItem onClick={() => handleReopen(order)}>
+                              <Undo2 className="h-4 w-4 mr-2" /> Vrati u Lansiran
                             </DropdownMenuItem>
                           )}
                           {order.status === "draft" && (

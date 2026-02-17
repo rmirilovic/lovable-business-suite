@@ -209,6 +209,54 @@ export function useWorkOrders() {
     onError: (e) => toast.error(`Greška: ${e.message}`),
   });
 
+  const reopenOrder = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
+        .from("work_orders")
+        .update({ status: "launched", closed_at: null, closed_by: null })
+        .eq("id", id)
+        .select(`*, warehouse:warehouses(id, code, name)`)
+        .single();
+      if (error) throw error;
+      return data as WorkOrder;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["work-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["work-order"] });
+      toast.success("Radni nalog vraćen u status Lansiran");
+    },
+    onError: (e) => toast.error(`Greška: ${e.message}`),
+  });
+
+  const unlaunchOrder = useMutation({
+    mutationFn: async (id: string) => {
+      // Check if there are any requisitions for this work order
+      const { data: reqs, error: reqErr } = await (supabase as any)
+        .from("material_requisitions")
+        .select("id")
+        .eq("work_order_id", id)
+        .limit(1);
+      if (reqErr) throw reqErr;
+      if (reqs && reqs.length > 0) {
+        throw new Error("Nije moguće vratiti u Nacrt - postoje trebovanja za ovaj radni nalog!");
+      }
+      const { data, error } = await supabase
+        .from("work_orders")
+        .update({ status: "draft", launched_at: null, launched_by: null })
+        .eq("id", id)
+        .select(`*, warehouse:warehouses(id, code, name)`)
+        .single();
+      if (error) throw error;
+      return data as WorkOrder;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["work-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["work-order"] });
+      toast.success("Radni nalog vraćen u status Nacrt");
+    },
+    onError: (e) => toast.error(`Greška: ${e.message}`),
+  });
+
   return {
     orders: ordersQuery.data ?? [],
     isLoading: ordersQuery.isLoading,
@@ -217,6 +265,8 @@ export function useWorkOrders() {
     deleteOrder,
     launchOrder,
     closeOrder,
+    reopenOrder,
+    unlaunchOrder,
   };
 }
 
