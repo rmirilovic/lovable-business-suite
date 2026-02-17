@@ -575,10 +575,7 @@ export default function WorkOrderEdit() {
           {/* Issued materials tab */}
           <TabsContent value="issued" className="p-0 m-0">
             <div className="flex items-center justify-between p-3 border-b bg-muted/20">
-              <span className="text-sm text-muted-foreground">
-                Zbir vrednosti: <strong>{formatNumber(issuedMaterials.reduce((s, r) => s + r.total_value, 0), { minimumFractionDigits: 2 })}</strong>
-              </span>
-              {issuedMaterials.length > 0 && order && (
+              {issuedMaterials.length > 0 && order ? (
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => exportIssuedMaterialsPdf(order, issuedMaterials, selectedCompany?.name || "")}>
                     <FileDown className="w-4 h-4 mr-2" /> PDF
@@ -587,7 +584,10 @@ export default function WorkOrderEdit() {
                     <Printer className="w-4 h-4 mr-2" /> Štampa
                   </Button>
                 </div>
-              )}
+              ) : <div />}
+              <span className="text-sm text-muted-foreground">
+                Zbir vrednosti: <strong>{formatNumber(issuedMaterials.reduce((s, r) => s + r.total_value, 0), { minimumFractionDigits: 2 })}</strong>
+              </span>
             </div>
             <TableScrollContainer>
               <Table>
