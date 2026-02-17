@@ -105,10 +105,13 @@ export default function Trebovanja() {
 
   const handleCreate = async () => {
     if (!newForm.warehouse_id || !newForm.requisition_date) return;
+    const meta = user?.user_metadata;
+    const fullName = [meta?.first_name, meta?.last_name].filter(Boolean).join(" ");
     const result = await createRequisition.mutateAsync({
       requisition_date: newForm.requisition_date,
       warehouse_id: newForm.warehouse_id,
       work_order_id: newForm.work_order_id || undefined,
+      received_by: fullName || "",
     });
     setShowNewDialog(false);
     navigate(`/proizvodnja/trebovanja/${result.id}`);
