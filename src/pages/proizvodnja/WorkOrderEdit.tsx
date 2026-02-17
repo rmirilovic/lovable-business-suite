@@ -31,6 +31,7 @@ import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { useIssuedMaterials } from "@/hooks/useIssuedMaterials";
 import { exportIssuedMaterialsPdf, printIssuedMaterials } from "@/lib/issuedMaterialsPdfGenerator";
+import { useWorkOrderRequisitions } from "@/hooks/useWorkOrderRequisitions";
 
 export default function WorkOrderEdit() {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +43,7 @@ export default function WorkOrderEdit() {
   const { items, isLoading: itemsLoading, invalidate: invalidateItems } = useWorkOrderItems(id);
   const { materials, isLoading: materialsLoading, invalidate: invalidateMaterials } = useWorkOrderMaterials(id);
   const { data: issuedMaterials = [], isLoading: issuedLoading } = useIssuedMaterials(id);
+  const { data: requisitions = [] } = useWorkOrderRequisitions(id);
   const { updateOrder, launchOrder, closeOrder } = useWorkOrders();
   const { articles } = useArticles(companyId);
   const { warehouses } = useWarehouses(companyId);
@@ -631,9 +633,45 @@ export default function WorkOrderEdit() {
             </TableScrollContainer>
           </TabsContent>
 
-          {/* Requisitions - placeholder */}
-          <TabsContent value="requisitions" className="p-6 text-center text-muted-foreground">
-            Pregled trebovanja - biće implementirano uz trebovanja.
+          {/* Requisitions tab */}
+          <TabsContent value="requisitions" className="p-0 m-0">
+            <div className="flex items-center justify-end p-3 border-b bg-muted/20">
+              <span className="text-sm text-muted-foreground">
+                Zbir vrednosti: <strong>{formatNumber(requisitions.reduce((s, r) => s + r.total_value, 0), { minimumFractionDigits: 2 })}</strong>
+              </span>
+            </div>
+            <TableScrollContainer>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[120px]">Datum</TableHead>
+                    <TableHead className="w-[120px]">Broj trebovanja</TableHead>
+                    <TableHead>Magacin</TableHead>
+                    <TableHead className="w-[140px] text-right">Vrednost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {requisitions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
+                        Nema trebovanja za ovaj radni nalog.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    requisitions.map((req) => (
+                      <TableRow key={req.id}>
+                        <TableCell>{new Date(req.requisition_date).toLocaleDateString("sr-Latn-RS")}</TableCell>
+                        <TableCell className="font-mono text-xs">{req.requisition_number}</TableCell>
+                        <TableCell>{req.warehouse_code} - {req.warehouse_name}</TableCell>
+                        <TableCell className="text-right font-mono font-semibold">
+                          {formatNumber(req.total_value, { minimumFractionDigits: 2 })}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableScrollContainer>
           </TabsContent>
 
           {/* Deliveries - placeholder */}
