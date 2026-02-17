@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer } from "lucide-react";
 import {
   useWorkOrder, useWorkOrderItems, useWorkOrderMaterials,
   useWorkOrders, WorkOrderItem, WorkOrderMaterial,
@@ -29,6 +29,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
+import { useIssuedMaterials } from "@/hooks/useIssuedMaterials";
+import { exportIssuedMaterialsPdf, printIssuedMaterials } from "@/lib/issuedMaterialsPdfGenerator";
 
 export default function WorkOrderEdit() {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +41,7 @@ export default function WorkOrderEdit() {
   const { data: order, isLoading: orderLoading } = useWorkOrder(id);
   const { items, isLoading: itemsLoading, invalidate: invalidateItems } = useWorkOrderItems(id);
   const { materials, isLoading: materialsLoading, invalidate: invalidateMaterials } = useWorkOrderMaterials(id);
+  const { data: issuedMaterials = [], isLoading: issuedLoading } = useIssuedMaterials(id);
   const { updateOrder, launchOrder, closeOrder } = useWorkOrders();
   const { articles } = useArticles(companyId);
   const { warehouses } = useWarehouses(companyId);
@@ -569,9 +572,63 @@ export default function WorkOrderEdit() {
             </TableScrollContainer>
           </TabsContent>
 
-          {/* Issued materials - placeholder for future */}
-          <TabsContent value="issued" className="p-6 text-center text-muted-foreground">
-            Istrebovani materijal - biće implementirano uz trebovanja.
+          {/* Issued materials tab */}
+          <TabsContent value="issued" className="p-0 m-0 flex-1 flex flex-col min-h-0">
+            <div className="flex items-center justify-between p-3 border-b bg-muted/20">
+              <span className="text-sm text-muted-foreground">
+                Zbir vrednosti: <strong>{formatNumber(issuedMaterials.reduce((s, r) => s + r.total_value, 0), { minimumFractionDigits: 2 })}</strong>
+              </span>
+              {issuedMaterials.length > 0 && order && (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => exportIssuedMaterialsPdf(order, issuedMaterials, selectedCompany?.name || "")}>
+                    <FileDown className="w-4 h-4 mr-2" /> PDF
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => printIssuedMaterials(order, issuedMaterials, selectedCompany?.name || "")}>
+                    <Printer className="w-4 h-4 mr-2" /> Štampa
+                  </Button>
+                </div>
+              )}
+            </div>
+            <TableScrollContainer className="max-h-[400px] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[80px]">Šifra</TableHead>
+                    <TableHead>Naziv materijala</TableHead>
+                    <TableHead className="w-[50px]">JM</TableHead>
+                    <TableHead className="w-[120px] text-right">Prosečna cena</TableHead>
+                    <TableHead className="w-[100px] text-right">Količina</TableHead>
+                    <TableHead className="w-[120px] text-right">Vrednost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {issuedMaterials.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                        Nema istrebovanog materijala po proknjiženim trebovanjima.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    issuedMaterials.map((row) => (
+                      <TableRow key={row.article_code}>
+                        <TableCell className="font-mono text-xs">{row.article_code}</TableCell>
+                        <TableCell>{row.article_name}</TableCell>
+                        <TableCell>{row.unit}</TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatNumber(row.avg_price, { minimumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {formatNumber(row.total_qty, { minimumFractionDigits: 3 })}
+                        </TableCell>
+                        <TableCell className="text-right font-mono font-semibold">
+                          {formatNumber(row.total_value, { minimumFractionDigits: 2 })}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableScrollContainer>
           </TabsContent>
 
           {/* Requisitions - placeholder */}
