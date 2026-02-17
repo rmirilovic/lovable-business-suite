@@ -287,7 +287,7 @@ export default function WorkOrderEdit() {
 
   return (
     <MainLayout title={`Radni nalog ${order.order_number}`}>
-      <div className="flex flex-col gap-4 pb-4">
+      <div className="flex flex-col gap-4 h-full min-h-0">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -389,7 +389,7 @@ export default function WorkOrderEdit() {
               </Button>
             </div>
           )}
-          <TableScrollContainer className="max-h-[200px] overflow-auto">
+          <TableScrollContainer className="max-h-[250px]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -506,7 +506,7 @@ export default function WorkOrderEdit() {
                 Zbir vrednosti: <strong>{formatNumber(totalMaterialValue, { minimumFractionDigits: 2 })}</strong>
               </span>
             </div>
-            <TableScrollContainer className="max-h-[400px] overflow-auto">
+            <TableScrollContainer>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -589,7 +589,7 @@ export default function WorkOrderEdit() {
                 </div>
               )}
             </div>
-            <TableScrollContainer className="max-h-[400px] overflow-auto">
+            <TableScrollContainer>
               <Table>
                 <TableHeader>
                   <TableRow>
