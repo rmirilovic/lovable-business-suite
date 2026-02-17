@@ -78,6 +78,14 @@ export default function WorkOrderEdit() {
     }
   }, [order]);
 
+  // Restore material warehouse from saved materials
+  useEffect(() => {
+    if (materials.length > 0 && !materialWarehouseId) {
+      const savedWh = materials.find((m) => m.warehouse_id)?.warehouse_id;
+      if (savedWh) setMaterialWarehouseId(savedWh);
+    }
+  }, [materials]);
+
   const isDraft = order?.status === "draft";
   const isLaunched = order?.status === "launched";
 
