@@ -163,14 +163,12 @@ export function useMaterialRequisitions() {
 
   const postRequisition = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await (supabase as any)
-        .from("material_requisitions")
-        .update({ status: "posted", posted_at: new Date().toISOString(), posted_by: user?.id })
-        .eq("id", id)
-        .select(SELECT_QUERY)
-        .single();
+      const { data, error } = await (supabase as any).rpc("post_material_requisition", {
+        _requisition_id: id,
+        _user_id: user?.id,
+      });
       if (error) throw error;
-      return data as MaterialRequisition;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-requisitions"] });
@@ -182,14 +180,12 @@ export function useMaterialRequisitions() {
 
   const unpostRequisition = useMutation({
     mutationFn: async (id: string) => {
-      const { data, error } = await (supabase as any)
-        .from("material_requisitions")
-        .update({ status: "draft", posted_at: null, posted_by: null })
-        .eq("id", id)
-        .select(SELECT_QUERY)
-        .single();
+      const { data, error } = await (supabase as any).rpc("unpost_material_requisition", {
+        _requisition_id: id,
+        _user_id: user?.id,
+      });
       if (error) throw error;
-      return data as MaterialRequisition;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["material-requisitions"] });
