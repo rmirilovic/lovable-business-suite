@@ -13,9 +13,12 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SortableHeader } from "@/components/ui/sortable-header";
-import { Plus, Search, Trash2, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { Plus, Search, Trash2, FileSpreadsheet, FileText, Printer, MoreHorizontal, Eye, BookCheck, Undo2 } from "lucide-react";
 import {
   useMaterialRequisitions, REQ_STATUS_LABELS, REQ_STATUS_COLORS, MaterialRequisition,
 } from "@/hooks/useMaterialRequisitions";
@@ -120,22 +123,19 @@ export default function Trebovanja() {
     navigate(`/proizvodnja/trebovanja/${result.id}`);
   };
 
-  const handleDelete = async (e: React.MouseEvent, r: MaterialRequisition) => {
-    e.stopPropagation();
+  const handleDelete = async (r: MaterialRequisition) => {
     if (confirm(`Obrisati trebovanje ${r.requisition_number}?`)) {
       await deleteRequisition.mutateAsync(r.id);
     }
   };
 
-  const handlePost = async (e: React.MouseEvent, r: MaterialRequisition) => {
-    e.stopPropagation();
+  const handlePost = async (r: MaterialRequisition) => {
     if (confirm(`Proknjižiti trebovanje ${r.requisition_number}?`)) {
       await postRequisition.mutateAsync(r.id);
     }
   };
 
-  const handleUnpost = async (e: React.MouseEvent, r: MaterialRequisition) => {
-    e.stopPropagation();
+  const handleUnpost = async (r: MaterialRequisition) => {
     if (confirm(`Poništiti knjiženje trebovanja ${r.requisition_number}?`)) {
       await unpostRequisition.mutateAsync(r.id);
     }
@@ -192,7 +192,7 @@ export default function Trebovanja() {
                 <TableHead><SortableHeader column="issued_by" label="Izdao" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[120px] text-right"><SortableHeader column="value" label="Vrednost" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[100px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                <TableHead className="w-[120px]">Akcije</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -213,24 +213,34 @@ export default function Trebovanja() {
                   <TableCell>{r.issued_by || "-"}</TableCell>
                   <TableCell className="text-right font-mono">{formatNumber(totalValue)}</TableCell>
                   <TableCell><Badge className={cn("text-xs", REQ_STATUS_COLORS[r.status])}>{REQ_STATUS_LABELS[r.status]}</Badge></TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                      {r.status === "draft" && (
-                        <>
-                          <Button variant="ghost" size="icon" title="Proknjiži" onClick={(e) => handlePost(e, r)}>
-                            <FileText className="w-4 h-4 text-green-600" />
-                          </Button>
-                          <Button variant="ghost" size="icon" title="Obriši" onClick={(e) => handleDelete(e, r)}>
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </>
-                      )}
-                      {r.status === "posted" && (
-                        <Button variant="ghost" size="icon" title="Poništi knjiženje" onClick={(e) => handleUnpost(e, r)}>
-                          <FileText className="w-4 h-4 text-yellow-600" />
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => persistAndNavigate(r.id)}>
+                          <Eye className="h-4 w-4 mr-2" /> Prikaži
+                        </DropdownMenuItem>
+                        {r.status === "draft" && (
+                          <DropdownMenuItem onClick={() => handlePost(r)}>
+                            <BookCheck className="h-4 w-4 mr-2" /> Proknjiži
+                          </DropdownMenuItem>
+                        )}
+                        {r.status === "posted" && (
+                          <DropdownMenuItem onClick={() => handleUnpost(r)}>
+                            <Undo2 className="h-4 w-4 mr-2" /> Poništi knjiženje
+                          </DropdownMenuItem>
+                        )}
+                        {r.status === "draft" && (
+                          <DropdownMenuItem onClick={() => handleDelete(r)} className="text-destructive">
+                            <Trash2 className="h-4 w-4 mr-2" /> Obriši
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               );
