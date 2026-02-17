@@ -2295,6 +2295,159 @@ export type Database = {
           },
         ]
       }
+      material_requisition_items: {
+        Row: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at: string
+          id: string
+          item_order: number
+          item_value: number
+          quantity: number
+          requisition_id: string
+          unit: string
+          unit_price: number
+        }
+        Insert: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          quantity?: number
+          requisition_id: string
+          unit?: string
+          unit_price?: number
+        }
+        Update: {
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          quantity?: number
+          requisition_id?: string
+          unit?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_requisition_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_requisition_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_requisition_items_requisition_id_fkey"
+            columns: ["requisition_id"]
+            isOneToOne: false
+            referencedRelation: "material_requisitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_requisitions: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          id: string
+          issued_by: string
+          note: string | null
+          posted_at: string | null
+          posted_by: string | null
+          received_by: string
+          requisition_date: string
+          requisition_number: string
+          status: string
+          updated_at: string
+          warehouse_id: string
+          work_order_id: string | null
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          issued_by?: string
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          received_by?: string
+          requisition_date?: string
+          requisition_number: string
+          status?: string
+          updated_at?: string
+          warehouse_id: string
+          work_order_id?: string | null
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          issued_by?: string
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          received_by?: string
+          requisition_date?: string
+          requisition_number?: string
+          status?: string
+          updated_at?: string
+          warehouse_id?: string
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_requisitions_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_requisitions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_requisitions_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_requisitions_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       modules: {
         Row: {
           code: string
