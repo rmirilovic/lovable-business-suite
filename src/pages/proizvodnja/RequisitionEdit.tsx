@@ -128,7 +128,11 @@ export default function RequisitionEdit() {
     if (!article) return;
 
     const nextOrder = items.length > 0 ? Math.max(...items.map((i) => i.item_order)) + 1 : 1;
-    const unitPrice = article.purchase_price ?? 0;
+    // Use warehouse stock price (WAC) if available, fallback to article purchase_price
+    const stockRow = stockData?.find((s) => s.article_id === newArticleId);
+    const unitPrice = (stockRow && stockRow.balance_qty > 0)
+      ? Math.round((stockRow.balance_value / stockRow.balance_qty) * 1000000) / 1000000
+      : (article.purchase_price ?? 0);
 
     const { error } = await (supabase as any).from("material_requisition_items").insert({
       requisition_id: id,
