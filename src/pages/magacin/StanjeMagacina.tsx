@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,17 +31,46 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { exportStockToExcel, exportStockToPdf, printStock } from "@/lib/warehouseExportUtils";
 import { toast } from "sonner";
 
+const STORAGE_KEY = "stanje_magacina_view_state";
+
+interface ViewState {
+  warehouseId: string;
+  dateFrom: string;
+  dateTo: string;
+  search: string;
+  sortColumn: string;
+  sortDirection: string;
+  scrollTop: number;
+}
+
+function loadState(): Partial<ViewState> {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveState(state: Partial<ViewState>) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch { /* ignore */ }
+}
+
 export default function StanjeMagacina() {
   const { selectedCompany } = useAuth();
   const companyId = selectedCompany?.id;
 
   const { warehouses, isLoading: whLoading } = useWarehouses(companyId);
 
-  const [warehouseId, setWarehouseId] = useState<string>("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [search, setSearch] = useState("");
+  const saved = useRef(loadState()).current;
+
+  const [warehouseId, setWarehouseId] = useState<string>(saved.warehouseId || "");
+  const [dateFrom, setDateFrom] = useState(saved.dateFrom || "");
+  const [dateTo, setDateTo] = useState(saved.dateTo || "");
+  const [search, setSearch] = useState(saved.search || "");
   const [exporting, setExporting] = useState(false);
+  const scrollRestoredRef = useRef(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const {
     data: stockData,
@@ -68,7 +97,10 @@ export default function StanjeMagacina() {
   }, [stockData, search]);
 
   // Sorting
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
+    (saved.sortColumn as any) || "article_code",
+    (saved.sortDirection as any) || "asc"
+  );
 
   const sortedData = useMemo(() => {
     return sortItems(filteredStock, (item, column) => {
@@ -86,6 +118,44 @@ export default function StanjeMagacina() {
       }
     });
   }, [filteredStock, sortItems]);
+
+  // Persist state on changes
+  const persistState = useCallback(() => {
+    saveState({
+      warehouseId,
+      dateFrom,
+      dateTo,
+      search,
+      sortColumn,
+      sortDirection,
+      scrollTop: scrollContainerRef.current?.scrollTop ?? 0,
+    });
+  }, [warehouseId, dateFrom, dateTo, search, sortColumn, sortDirection]);
+
+  useEffect(() => {
+    persistState();
+  }, [persistState]);
+
+  // Save scroll position on unmount
+  useEffect(() => {
+    return () => {
+      const el = scrollContainerRef.current;
+      if (el) {
+        const prev = loadState();
+        saveState({ ...prev, scrollTop: el.scrollTop });
+      }
+    };
+  }, []);
+
+  // Restore scroll position after data loads
+  useEffect(() => {
+    if (!stockLoading && sortedData.length > 0 && !scrollRestoredRef.current && saved.scrollTop) {
+      scrollRestoredRef.current = true;
+      requestAnimationFrame(() => {
+        scrollContainerRef.current?.scrollTo({ top: saved.scrollTop });
+      });
+    }
+  }, [stockLoading, sortedData.length, saved.scrollTop]);
 
   // Footer totals
   const totals = useMemo(() => {
@@ -130,7 +200,7 @@ export default function StanjeMagacina() {
 
   return (
     <MainLayout title="Stanje magacina">
-      <div className="space-y-4">
+      <div className="flex flex-col h-full min-h-0 gap-4">
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 flex-wrap items-end">
           <Select value={warehouseId} onValueChange={setWarehouseId}>
@@ -168,6 +238,7 @@ export default function StanjeMagacina() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
+              autoComplete="off"
             />
           </div>
 
@@ -200,7 +271,7 @@ export default function StanjeMagacina() {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <TableScrollContainer>
+          <TableScrollContainer ref={scrollContainerRef} className="flex-1">
             <Table>
               <TableHeader>
                 <TableRow>
