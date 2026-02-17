@@ -353,27 +353,6 @@ export default function WorkOrderEdit() {
           </div>
         </div>
 
-        {/* Notes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label className="text-xs">Napomene za proizvodnju</Label>
-            <Textarea
-              rows={2}
-              value={headerForm.production_note}
-              onChange={(e) => updateHeaderField("production_note", e.target.value)}
-              disabled={!isDraft}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Napomena za pogon</Label>
-            <Textarea
-              rows={2}
-              value={headerForm.plant_note}
-              onChange={(e) => updateHeaderField("plant_note", e.target.value)}
-              disabled={!isDraft}
-            />
-          </div>
-        </div>
 
         {/* Items table */}
         <div className="border rounded-lg flex flex-col">
@@ -485,6 +464,12 @@ export default function WorkOrderEdit() {
             <TabsTrigger value="deliveries" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
               Pregled predajnica
             </TabsTrigger>
+            <TabsTrigger value="production_note" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Napomena - proizvodnja
+            </TabsTrigger>
+            <TabsTrigger value="plant_note" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
+              Napomena - pogon
+            </TabsTrigger>
           </TabsList>
 
           {/* Materials tab */}
@@ -589,6 +574,28 @@ export default function WorkOrderEdit() {
           {/* Deliveries - placeholder */}
           <TabsContent value="deliveries" className="p-6 text-center text-muted-foreground">
             Pregled predajnica - biće implementirano uz predajnice.
+          </TabsContent>
+
+          {/* Production note tab */}
+          <TabsContent value="production_note" className="p-4">
+            <Textarea
+              rows={4}
+              placeholder="Napomene za proizvodnju..."
+              value={headerForm.production_note}
+              onChange={(e) => updateHeaderField("production_note", e.target.value)}
+              disabled={!isDraft}
+            />
+          </TabsContent>
+
+          {/* Plant note tab */}
+          <TabsContent value="plant_note" className="p-4">
+            <Textarea
+              rows={4}
+              placeholder="Napomena za pogon..."
+              value={headerForm.plant_note}
+              onChange={(e) => updateHeaderField("plant_note", e.target.value)}
+              disabled={!isDraft}
+            />
           </TabsContent>
         </Tabs>
       </div>
