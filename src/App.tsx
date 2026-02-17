@@ -54,6 +54,8 @@ import Normativi from "./pages/proizvodnja/Normativi";
 import NormativEdit from "./pages/proizvodnja/NormativEdit";
 import RadniNalozi from "./pages/proizvodnja/RadniNalozi";
 import WorkOrderEdit from "./pages/proizvodnja/WorkOrderEdit";
+import Trebovanja from "./pages/proizvodnja/Trebovanja";
+import RequisitionEdit from "./pages/proizvodnja/RequisitionEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -297,6 +299,16 @@ const App = () => (
               <Route path="/proizvodnja/nalozi/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <WorkOrderEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/proizvodnja/trebovanja" element={
+                <ProtectedRoute>
+                  <Trebovanja />
+                </ProtectedRoute>
+              } />
+              <Route path="/proizvodnja/trebovanja/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <RequisitionEdit />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
