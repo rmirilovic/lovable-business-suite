@@ -42,7 +42,11 @@ export default function RequisitionEdit() {
 
   const rmArticles = useMemo(() => articles.filter((a) => a.svk === "2" && a.is_active), [articles]);
   const rmWarehouses = useMemo(() => warehouses.filter((w) => w.warehouse_type === "2" && w.is_active), [warehouses]);
-  const launchedOrders = useMemo(() => orders.filter((o) => o.status === "launched" || o.id === requisition?.work_order_id), [orders, requisition]);
+  const launchedOrders = useMemo(() => orders.filter((o) => o.status === "launched"), [orders]);
+
+  // Check if selected work order is still launched
+  const selectedWO = useMemo(() => orders.find((o) => o.id === requisition?.work_order_id), [orders, requisition]);
+  const woNotLaunched = !!selectedWO && selectedWO.status !== "launched";
 
   // Warehouse stock for checking availability
   const { data: stockData } = useWarehouseStock(companyId, requisition?.warehouse_id);
@@ -177,9 +181,15 @@ export default function RequisitionEdit() {
   };
 
   // Post
+  const cannotPost = hasStockWarning || woNotLaunched;
+
   const handlePost = async () => {
     if (hasStockWarning) {
       toast.error("Nije moguće proknjižiti - postoje stavke sa nedovoljnom količinom u magacinu!");
+      return;
+    }
+    if (woNotLaunched) {
+      toast.error("Nije moguće proknjižiti - radni nalog nije u statusu 'Lansiran'!");
       return;
     }
     if (confirm("Proknjižiti trebovanje?")) {
@@ -214,9 +224,14 @@ export default function RequisitionEdit() {
               </Button>
             )}
             {isDraft && (
-              <Button variant="outline" onClick={handlePost} disabled={hasStockWarning}>
+              <Button variant="outline" onClick={handlePost} disabled={cannotPost}>
                 <FileText className="w-4 h-4 mr-2" /> Proknjiži
               </Button>
+            )}
+            {isDraft && woNotLaunched && (
+              <span className="text-xs text-destructive flex items-center gap-1">
+                <AlertTriangle className="w-4 h-4" /> RN nije lansiran
+              </span>
             )}
             {requisition.status === "posted" && (
               <Button variant="outline" onClick={() => {
@@ -247,6 +262,9 @@ export default function RequisitionEdit() {
             <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50" value={headerForm.work_order_id} onChange={(e) => updateHeaderField("work_order_id", e.target.value)} disabled={!isDraft}>
               <option value="">-- Bez naloga --</option>
               {launchedOrders.map((o) => <option key={o.id} value={o.id}>{o.order_number}</option>)}
+              {selectedWO && selectedWO.status !== "launched" && (
+                <option key={selectedWO.id} value={selectedWO.id} disabled>{selectedWO.order_number} (nije lansiran)</option>
+              )}
             </select>
           </div>
           <div className="col-span-2 space-y-1">
