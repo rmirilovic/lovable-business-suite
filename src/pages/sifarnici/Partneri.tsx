@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Search,
@@ -58,6 +58,15 @@ type StatusFilter = "all" | "active" | "inactive";
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
+const PARTNERI_STORAGE_KEY = "partneri_view_state";
+
+function loadPartneriState() {
+  try {
+    const raw = sessionStorage.getItem(PARTNERI_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
 export default function Partneri() {
   const { partners, isLoading, updatePartner, deletePartner } = usePartners();
   const { groups } = usePartnerGroups();
@@ -67,17 +76,19 @@ export default function Partneri() {
   // Check if user has write access to partners module
   const canEdit = hasAccess("sifarnici.partneri", "write");
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("active");
-  const [groupFilter, setGroupFilter] = useState<string>("all");
-  const [cityFilter, setCityFilter] = useState<string>("all");
-  const [pibFilter, setPibFilter] = useState<string>("");
-  const [mbFilter, setMbFilter] = useState<string>("");
-  const [legalStatusFilter, setLegalStatusFilter] = useState<string>("all");
-  const [addressFilter, setAddressFilter] = useState<string>("");
-  const [countryFilter, setCountryFilter] = useState<string>("all");
-  const [pdvFilter, setPdvFilter] = useState<string>("all");
+  const saved = loadPartneriState();
+
+  const [searchTerm, setSearchTerm] = useState(saved.searchTerm ?? "");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>(saved.typeFilter ?? "all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(saved.statusFilter ?? "active");
+  const [groupFilter, setGroupFilter] = useState<string>(saved.groupFilter ?? "all");
+  const [cityFilter, setCityFilter] = useState<string>(saved.cityFilter ?? "all");
+  const [pibFilter, setPibFilter] = useState<string>(saved.pibFilter ?? "");
+  const [mbFilter, setMbFilter] = useState<string>(saved.mbFilter ?? "");
+  const [legalStatusFilter, setLegalStatusFilter] = useState<string>(saved.legalStatusFilter ?? "all");
+  const [addressFilter, setAddressFilter] = useState<string>(saved.addressFilter ?? "");
+  const [countryFilter, setCountryFilter] = useState<string>(saved.countryFilter ?? "all");
+  const [pdvFilter, setPdvFilter] = useState<string>(saved.pdvFilter ?? "all");
 
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [detailsMode, setDetailsMode] = useState<"create" | "edit">("create");
@@ -87,8 +98,8 @@ export default function Partneri() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(saved.currentPage ?? 1);
+  const [itemsPerPage, setItemsPerPage] = useState(saved.itemsPerPage ?? 25);
   const [goToPageInput, setGoToPageInput] = useState("");
 
   // Persist itemsPerPage in localStorage per company
@@ -134,7 +145,49 @@ export default function Partneri() {
   }, [partners]);
 
   // Sorting
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
+    saved.sortColumn ?? null, saved.sortDirection ?? "asc"
+  );
+
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const restoredScrollRef = useRef(false);
+
+  // Persist view state
+  useEffect(() => {
+    const scrollTop = tableScrollRef.current?.scrollTop ?? 0;
+    sessionStorage.setItem(PARTNERI_STORAGE_KEY, JSON.stringify({
+      searchTerm, typeFilter, statusFilter, groupFilter, cityFilter,
+      pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
+      sortColumn, sortDirection, currentPage, itemsPerPage, scrollTop,
+    }));
+  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter,
+      pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
+      sortColumn, sortDirection, currentPage, itemsPerPage]);
+
+  // Restore scroll
+  useEffect(() => {
+    if (!isLoading && !restoredScrollRef.current && tableScrollRef.current && saved.scrollTop) {
+      restoredScrollRef.current = true;
+      requestAnimationFrame(() => {
+        if (tableScrollRef.current) tableScrollRef.current.scrollTop = saved.scrollTop;
+      });
+    }
+  }, [isLoading]);
+
+  // Save scroll on scroll
+  useEffect(() => {
+    const el = tableScrollRef.current;
+    if (!el) return;
+    const h = () => {
+      const scrollTop = el.scrollTop;
+      try {
+        const cur = JSON.parse(sessionStorage.getItem(PARTNERI_STORAGE_KEY) || "{}");
+        sessionStorage.setItem(PARTNERI_STORAGE_KEY, JSON.stringify({ ...cur, scrollTop }));
+      } catch {}
+    };
+    el.addEventListener("scroll", h, { passive: true });
+    return () => el.removeEventListener("scroll", h);
+  }, []);
 
   const filteredPartners = useMemo(() => {
     return partners.filter((partner) => {
@@ -471,7 +524,7 @@ export default function Partneri() {
 
       {/* Partners Table */}
       <div className="erp-card flex-1 min-h-0 flex flex-col">
-        <TableScrollContainer>
+        <TableScrollContainer ref={tableScrollRef}>
           <Table>
             <TableHeader>
               <TableRow>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,13 +74,43 @@ export default function KontniPlan() {
   // Check if user has write access to chart of accounts module
   const canEdit = hasAccess("racunovodstvo.kontni_plan", "write");
 
-  const [search, setSearch] = useState("");
+  const KONTNI_KEY = "kontni_plan_view_state";
+  const savedKp = (() => { try { const r = sessionStorage.getItem(KONTNI_KEY); return r ? JSON.parse(r) : {}; } catch { return {}; } })();
+
+  const [search, setSearch] = useState(savedKp.search ?? "");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [editingAccount, setEditingAccount] = useState<ChartOfAccountsRow | null>(null);
   const [formData, setFormData] = useState<AccountFormData>(initialFormData);
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]));
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(() => {
+    if (savedKp.expandedNodes) return new Set(savedKp.expandedNodes);
+    return new Set(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
+  });
+
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const restoredScrollRef = useRef(false);
+
+  useEffect(() => {
+    sessionStorage.setItem(KONTNI_KEY, JSON.stringify({
+      search, expandedNodes: Array.from(expandedNodes), scrollTop: tableScrollRef.current?.scrollTop ?? 0,
+    }));
+  }, [search, expandedNodes]);
+
+  useEffect(() => {
+    if (!isLoading && !restoredScrollRef.current && tableScrollRef.current && savedKp.scrollTop) {
+      restoredScrollRef.current = true;
+      requestAnimationFrame(() => { if (tableScrollRef.current) tableScrollRef.current.scrollTop = savedKp.scrollTop; });
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    const el = tableScrollRef.current;
+    if (!el) return;
+    const h = () => { try { const c = JSON.parse(sessionStorage.getItem(KONTNI_KEY) || "{}"); sessionStorage.setItem(KONTNI_KEY, JSON.stringify({ ...c, scrollTop: el.scrollTop })); } catch {} };
+    el.addEventListener("scroll", h, { passive: true });
+    return () => el.removeEventListener("scroll", h);
+  }, []);
 
   // Build tree structure
   const accountTree = useMemo(() => {
@@ -344,7 +374,7 @@ export default function KontniPlan() {
 
         {/* Table */}
         <div className="rounded-md border flex-1 min-h-0 flex flex-col">
-          <TableScrollContainer>
+          <TableScrollContainer ref={tableScrollRef}>
             <Table>
               <TableHeader>
                 <TableRow>

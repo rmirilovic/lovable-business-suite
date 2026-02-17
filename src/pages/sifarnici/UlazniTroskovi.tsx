@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,10 @@ export default function UlazniTroskovi() {
   // Check if user has write access to input costs module
   const canEdit = hasAccess("sifarnici.ulazni_troskovi", "write");
 
-  const [search, setSearch] = useState("");
+  const TROSKOVI_KEY = "ulazni_troskovi_view_state";
+  const savedTr = (() => { try { const r = sessionStorage.getItem(TROSKOVI_KEY); return r ? JSON.parse(r) : {}; } catch { return {}; } })();
+
+  const [search, setSearch] = useState(savedTr.search ?? "");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCost, setEditingCost] = useState<InputCost | null>(null);
   const [formData, setFormData] = useState<InputCostFormData>({
@@ -65,7 +68,31 @@ export default function UlazniTroskovi() {
   const postingAccounts = accounts.filter((a) => a.is_posting_allowed && a.is_active);
 
   // Sorting
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(savedTr.sortColumn ?? null, savedTr.sortDirection ?? "asc");
+
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const restoredScrollRef = useRef(false);
+
+  useEffect(() => {
+    sessionStorage.setItem(TROSKOVI_KEY, JSON.stringify({
+      search, sortColumn, sortDirection, scrollTop: tableScrollRef.current?.scrollTop ?? 0,
+    }));
+  }, [search, sortColumn, sortDirection]);
+
+  useEffect(() => {
+    if (!isLoading && !restoredScrollRef.current && tableScrollRef.current && savedTr.scrollTop) {
+      restoredScrollRef.current = true;
+      requestAnimationFrame(() => { if (tableScrollRef.current) tableScrollRef.current.scrollTop = savedTr.scrollTop; });
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    const el = tableScrollRef.current;
+    if (!el) return;
+    const h = () => { try { const c = JSON.parse(sessionStorage.getItem(TROSKOVI_KEY) || "{}"); sessionStorage.setItem(TROSKOVI_KEY, JSON.stringify({ ...c, scrollTop: el.scrollTop })); } catch {} };
+    el.addEventListener("scroll", h, { passive: true });
+    return () => el.removeEventListener("scroll", h);
+  }, []);
 
   const filteredCosts = useMemo(() => {
     return costs.filter(
@@ -193,7 +220,7 @@ export default function UlazniTroskovi() {
 
         {/* Table */}
         <div className="border rounded-lg flex-1 min-h-0 flex flex-col">
-          <TableScrollContainer>
+          <TableScrollContainer ref={tableScrollRef}>
             <Table>
               <TableHeader>
                 <TableRow>
