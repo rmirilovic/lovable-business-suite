@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,7 @@ import { SortableHeader } from "@/components/ui/sortable-header";
 import { Plus, Search, Trash2, Rocket, Lock, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { exportWorkOrdersToExcel, exportWorkOrdersToPdf, printWorkOrders } from "@/lib/workOrderExportUtils";
 import { useWorkOrders, STATUS_LABELS, STATUS_COLORS, WorkOrder } from "@/hooks/useWorkOrders";
+import { supabase } from "@/integrations/supabase/client";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useTableSort } from "@/hooks/useTableSort";
 import { format, startOfYear } from "date-fns";
@@ -38,7 +39,7 @@ function saveFilters(data: any) {
 
 export default function RadniNalozi() {
   const navigate = useNavigate();
-  const { selectedCompany, selectedYear } = useAuth();
+  const { selectedCompany, selectedYear, user } = useAuth();
   const companyId = selectedCompany?.id;
   const { orders, isLoading, createOrder, deleteOrder, launchOrder, closeOrder } = useWorkOrders();
   const { warehouses } = useWarehouses(companyId);
@@ -66,12 +67,36 @@ export default function RadniNalozi() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [showNewDialog, setShowNewDialog] = useState(false);
+  const [operatorName, setOperatorName] = useState("");
   const [newForm, setNewForm] = useState({
     order_date: format(new Date(), "yyyy-MM-dd"),
     deadline_date: "",
     warehouse_id: "",
     issued_by: "",
   });
+
+  // Fetch operator name from profile
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single()
+      .then(({ data }) => {
+        if (data) {
+          const name = [data.first_name, data.last_name].filter(Boolean).join(" ");
+          setOperatorName(name);
+        }
+      });
+  }, [user?.id]);
+
+  // Auto-fill issued_by when dialog opens
+  const handleOpenNewDialog = useCallback(() => {
+    setNewForm({
+      order_date: format(new Date(), "yyyy-MM-dd"),
+      deadline_date: "",
+      warehouse_id: "",
+      issued_by: operatorName,
+    });
+    setShowNewDialog(true);
+  }, [operatorName]);
 
   const filteredOrders = orders.filter((o) => {
     const matchSearch =
@@ -186,7 +211,7 @@ export default function RadniNalozi() {
               <Button variant="outline" size="sm" onClick={() => printWorkOrders(sorted, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
                 <Printer className="w-4 h-4 mr-2" /> Štampa
               </Button>
-              <Button onClick={() => setShowNewDialog(true)}>
+              <Button onClick={handleOpenNewDialog}>
                 <Plus className="w-4 h-4 mr-2" />
                 Novi radni nalog
               </Button>
