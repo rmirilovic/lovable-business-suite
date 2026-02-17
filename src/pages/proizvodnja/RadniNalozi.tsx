@@ -15,7 +15,8 @@ import { Label } from "@/components/ui/label";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SortableHeader } from "@/components/ui/sortable-header";
-import { Plus, Search, Trash2, Rocket, Lock } from "lucide-react";
+import { Plus, Search, Trash2, Rocket, Lock, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { exportWorkOrdersToExcel, exportWorkOrdersToPdf, printWorkOrders } from "@/lib/workOrderExportUtils";
 import { useWorkOrders, STATUS_LABELS, STATUS_COLORS, WorkOrder } from "@/hooks/useWorkOrders";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -175,10 +176,21 @@ export default function RadniNalozi() {
                 ))}
               </div>
             </div>
-            <Button onClick={() => setShowNewDialog(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novi radni nalog
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => exportWorkOrdersToExcel(sorted, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportWorkOrdersToPdf(sorted, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+                <FileText className="w-4 h-4 mr-2" /> PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => printWorkOrders(sorted, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+                <Printer className="w-4 h-4 mr-2" /> Štampa
+              </Button>
+              <Button onClick={() => setShowNewDialog(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Novi radni nalog
+              </Button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-1">
