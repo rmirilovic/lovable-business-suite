@@ -461,7 +461,7 @@ export default function WorkOrderEdit() {
         </div>
 
         {/* Bottom tabs */}
-        <Tabs defaultValue="materials" className="border rounded-lg flex-1 flex flex-col min-h-0">
+        <Tabs defaultValue="materials" className="border rounded-lg">
           <TabsList className="w-full justify-start border-b rounded-none bg-muted/30 h-auto p-0">
             <TabsTrigger value="materials" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
               Potreban materijal
@@ -484,7 +484,7 @@ export default function WorkOrderEdit() {
           </TabsList>
 
           {/* Materials tab */}
-          <TabsContent value="materials" className="p-0 m-0 flex-1 flex flex-col min-h-0">
+          <TabsContent value="materials" className="p-0 m-0">
             <div className="flex items-center gap-3 p-3 border-b bg-muted/20">
               <Label className="text-xs whitespace-nowrap">Magacin materijala:</Label>
               <select
@@ -573,7 +573,7 @@ export default function WorkOrderEdit() {
           </TabsContent>
 
           {/* Issued materials tab */}
-          <TabsContent value="issued" className="p-0 m-0 flex-1 flex flex-col min-h-0">
+          <TabsContent value="issued" className="p-0 m-0">
             <div className="flex items-center justify-between p-3 border-b bg-muted/20">
               <span className="text-sm text-muted-foreground">
                 Zbir vrednosti: <strong>{formatNumber(issuedMaterials.reduce((s, r) => s + r.total_value, 0), { minimumFractionDigits: 2 })}</strong>
