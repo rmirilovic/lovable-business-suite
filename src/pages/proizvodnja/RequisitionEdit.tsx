@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Save, FileText, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, FileText, AlertTriangle, Printer, FileDown } from "lucide-react";
 import {
   useMaterialRequisition, useMaterialRequisitionItems, useMaterialRequisitions,
   REQ_STATUS_LABELS, REQ_STATUS_COLORS,
@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
+import { exportRequisitionPdf, printRequisition } from "@/lib/requisitionPdfGenerator";
 
 export default function RequisitionEdit() {
   const { id } = useParams<{ id: string }>();
@@ -244,6 +245,12 @@ export default function RequisitionEdit() {
                 Poništi knjiženje
               </Button>
             )}
+            <Button variant="outline" size="sm" onClick={() => exportRequisitionPdf(requisition, items, selectedCompany as any)}>
+              <FileDown className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printRequisition(requisition, items, selectedCompany as any)}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
             <Button variant="ghost" onClick={() => navigate("/proizvodnja/trebovanja")}>Zatvori</Button>
           </div>
         </div>
