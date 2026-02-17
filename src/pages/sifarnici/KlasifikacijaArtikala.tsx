@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Plus,
@@ -90,8 +90,14 @@ export default function KlasifikacijaArtikala() {
     refetch,
   } = useClassifications(selectedCompany?.id);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const KLASIF_KEY = "klasifikacija_view_state";
+  const savedKl = (() => { try { const r = sessionStorage.getItem(KLASIF_KEY); return r ? JSON.parse(r) : {}; } catch { return {}; } })();
+
+  const [searchTerm, setSearchTerm] = useState(savedKl.searchTerm ?? "");
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(() => {
+    if (savedKl.expandedNodes) return new Set(savedKl.expandedNodes);
+    return new Set();
+  });
   
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -104,6 +110,30 @@ export default function KlasifikacijaArtikala() {
   const [importing, setImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportRow[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const restoredScrollRef = useRef(false);
+
+  useEffect(() => {
+    sessionStorage.setItem(KLASIF_KEY, JSON.stringify({
+      searchTerm, expandedNodes: Array.from(expandedNodes), scrollTop: tableScrollRef.current?.scrollTop ?? 0,
+    }));
+  }, [searchTerm, expandedNodes]);
+
+  useEffect(() => {
+    if (!loading && !restoredScrollRef.current && tableScrollRef.current && savedKl.scrollTop) {
+      restoredScrollRef.current = true;
+      requestAnimationFrame(() => { if (tableScrollRef.current) tableScrollRef.current.scrollTop = savedKl.scrollTop; });
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    const el = tableScrollRef.current;
+    if (!el) return;
+    const h = () => { try { const c = JSON.parse(sessionStorage.getItem(KLASIF_KEY) || "{}"); sessionStorage.setItem(KLASIF_KEY, JSON.stringify({ ...c, scrollTop: el.scrollTop })); } catch {} };
+    el.addEventListener("scroll", h, { passive: true });
+    return () => el.removeEventListener("scroll", h);
+  }, []);
 
   // Build tree structure
   const tree = useMemo(() => buildTree(classifications), [classifications]);
@@ -542,7 +572,7 @@ export default function KlasifikacijaArtikala() {
             </p>
           </div>
         ) : (
-          <TableScrollContainer>
+          <TableScrollContainer ref={tableScrollRef}>
             <div className="divide-y divide-border">
               {/* Sticky header */}
               <div className="sticky top-0 z-20 grid grid-cols-12 gap-4 px-4 py-3 bg-table-header text-sm font-medium text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))]">

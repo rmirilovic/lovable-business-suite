@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -86,10 +86,13 @@ export default function Magacini() {
     isDeleting,
   } = useWarehouses(companyId);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [addressFilter, setAddressFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("active");
+  const MAGACINI_KEY = "magacini_view_state";
+  const savedMag = (() => { try { const r = sessionStorage.getItem(MAGACINI_KEY); return r ? JSON.parse(r) : {}; } catch { return {}; } })();
+
+  const [searchTerm, setSearchTerm] = useState(savedMag.searchTerm ?? "");
+  const [typeFilter, setTypeFilter] = useState<string>(savedMag.typeFilter ?? "all");
+  const [addressFilter, setAddressFilter] = useState<string>(savedMag.addressFilter ?? "all");
+  const [statusFilter, setStatusFilter] = useState<string>(savedMag.statusFilter ?? "active");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -101,7 +104,32 @@ export default function Magacini() {
   ).sort() as string[];
 
   // Sorting
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(savedMag.sortColumn ?? null, savedMag.sortDirection ?? "asc");
+
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const restoredScrollRef = useRef(false);
+
+  useEffect(() => {
+    sessionStorage.setItem(MAGACINI_KEY, JSON.stringify({
+      searchTerm, typeFilter, addressFilter, statusFilter, sortColumn, sortDirection,
+      scrollTop: tableScrollRef.current?.scrollTop ?? 0,
+    }));
+  }, [searchTerm, typeFilter, addressFilter, statusFilter, sortColumn, sortDirection]);
+
+  useEffect(() => {
+    if (!isLoading && !restoredScrollRef.current && tableScrollRef.current && savedMag.scrollTop) {
+      restoredScrollRef.current = true;
+      requestAnimationFrame(() => { if (tableScrollRef.current) tableScrollRef.current.scrollTop = savedMag.scrollTop; });
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    const el = tableScrollRef.current;
+    if (!el) return;
+    const h = () => { try { const c = JSON.parse(sessionStorage.getItem(MAGACINI_KEY) || "{}"); sessionStorage.setItem(MAGACINI_KEY, JSON.stringify({ ...c, scrollTop: el.scrollTop })); } catch {} };
+    el.addEventListener("scroll", h, { passive: true });
+    return () => el.removeEventListener("scroll", h);
+  }, []);
 
   const filteredWarehouses = useMemo(() => {
     return warehouses.filter((w) => {
@@ -271,7 +299,7 @@ export default function Magacini() {
         </div>
 
         <div className="border rounded-lg flex-1 min-h-0 flex flex-col">
-          <TableScrollContainer>
+          <TableScrollContainer ref={tableScrollRef}>
             <Table>
               <TableHeader>
                 <TableRow>

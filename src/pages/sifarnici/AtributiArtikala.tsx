@@ -1,4 +1,4 @@
-import { useState, useMemo, Fragment, useEffect } from "react";
+import { useState, useMemo, Fragment, useEffect, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Plus,
@@ -110,8 +110,14 @@ export default function AtributiArtikala() {
     refetch,
   } = useArticleAttributes(selectedCompany?.id);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [expandedAttributes, setExpandedAttributes] = useState<Set<string>>(new Set());
+  const ATRIBUTI_KEY = "atributi_artikala_view_state";
+  const savedAt = (() => { try { const r = sessionStorage.getItem(ATRIBUTI_KEY); return r ? JSON.parse(r) : {}; } catch { return {}; } })();
+
+  const [searchTerm, setSearchTerm] = useState(savedAt.searchTerm ?? "");
+  const [expandedAttributes, setExpandedAttributes] = useState<Set<string>>(() => {
+    if (savedAt.expandedAttributes) return new Set(savedAt.expandedAttributes);
+    return new Set();
+  });
 
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -160,7 +166,32 @@ export default function AtributiArtikala() {
   const canSave = !hasPredefinedWarning || !isNewAttribute;
 
   // Sorting
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(savedAt.sortColumn ?? null, savedAt.sortDirection ?? "asc");
+
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const restoredScrollRef = useRef(false);
+
+  useEffect(() => {
+    sessionStorage.setItem(ATRIBUTI_KEY, JSON.stringify({
+      searchTerm, expandedAttributes: Array.from(expandedAttributes), sortColumn, sortDirection,
+      scrollTop: tableScrollRef.current?.scrollTop ?? 0,
+    }));
+  }, [searchTerm, expandedAttributes, sortColumn, sortDirection]);
+
+  useEffect(() => {
+    if (!loading && !restoredScrollRef.current && tableScrollRef.current && savedAt.scrollTop) {
+      restoredScrollRef.current = true;
+      requestAnimationFrame(() => { if (tableScrollRef.current) tableScrollRef.current.scrollTop = savedAt.scrollTop; });
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    const el = tableScrollRef.current;
+    if (!el) return;
+    const h = () => { try { const c = JSON.parse(sessionStorage.getItem(ATRIBUTI_KEY) || "{}"); sessionStorage.setItem(ATRIBUTI_KEY, JSON.stringify({ ...c, scrollTop: el.scrollTop })); } catch {} };
+    el.addEventListener("scroll", h, { passive: true });
+    return () => el.removeEventListener("scroll", h);
+  }, []);
 
   // Filter attributes
   const filteredAttributes = useMemo(() => {
@@ -394,7 +425,7 @@ export default function AtributiArtikala() {
                 : "Nema definisanih atributa"}
             </div>
           ) : (
-            <TableScrollContainer>
+            <TableScrollContainer ref={tableScrollRef}>
               <Table>
                 <TableHeader>
                   <TableRow>
