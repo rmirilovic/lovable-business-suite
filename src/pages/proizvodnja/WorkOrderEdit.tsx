@@ -276,7 +276,7 @@ export default function WorkOrderEdit() {
 
   return (
     <MainLayout title={`Radni nalog ${order.order_number}`}>
-      <div className="flex flex-col gap-4 h-[calc(100vh-theme(spacing.20))]">
+      <div className="flex flex-col gap-4 pb-4">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -376,7 +376,7 @@ export default function WorkOrderEdit() {
         </div>
 
         {/* Items table */}
-        <div className="border rounded-lg flex-1 flex flex-col min-h-0">
+        <div className="border rounded-lg flex flex-col">
           <div className="flex items-center justify-between p-3 border-b">
             <h3 className="font-semibold text-sm">Stavke - Gotovi proizvodi</h3>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -399,7 +399,7 @@ export default function WorkOrderEdit() {
               </Button>
             </div>
           )}
-          <TableScrollContainer className="flex-1">
+          <TableScrollContainer className="max-h-[200px] overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -471,7 +471,7 @@ export default function WorkOrderEdit() {
         </div>
 
         {/* Bottom tabs */}
-        <Tabs defaultValue="materials" className="border rounded-lg">
+        <Tabs defaultValue="materials" className="border rounded-lg flex-1 flex flex-col min-h-0">
           <TabsList className="w-full justify-start border-b rounded-none bg-muted/30 h-auto p-0">
             <TabsTrigger value="materials" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
               Potreban materijal
@@ -488,7 +488,7 @@ export default function WorkOrderEdit() {
           </TabsList>
 
           {/* Materials tab */}
-          <TabsContent value="materials" className="p-0 m-0">
+          <TabsContent value="materials" className="p-0 m-0 flex-1 flex flex-col min-h-0">
             <div className="flex items-center gap-3 p-3 border-b bg-muted/20">
               <Label className="text-xs whitespace-nowrap">Magacin materijala:</Label>
               <select
@@ -510,7 +510,7 @@ export default function WorkOrderEdit() {
                 Zbir vrednosti: <strong>{formatNumber(totalMaterialValue, { minimumFractionDigits: 2 })}</strong>
               </span>
             </div>
-            <TableScrollContainer className="max-h-[300px]">
+            <TableScrollContainer className="max-h-[400px] overflow-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
