@@ -84,11 +84,25 @@ export function useMaterialRequisitions() {
     }) => {
       if (!companyId || !yearId || !user?.id) throw new Error("Nedostaju podaci");
 
-      const { data: reqNumber, error: numErr } = await supabase.rpc(
-        "get_next_requisition_number" as any,
-        { _company_id: companyId, _year_id: yearId }
-      );
-      if (numErr) throw numErr;
+      // Generate requisition number client-side to avoid schema cache issues
+      const { data: yearData } = await (supabase as any)
+        .from("business_years").select("year").eq("id", yearId).single();
+      const prefix = String(yearData?.year ?? 2026).slice(-2);
+
+      const { data: existing } = await (supabase as any)
+        .from("material_requisitions")
+        .select("requisition_number")
+        .eq("company_id", companyId)
+        .eq("business_year_id", yearId)
+        .order("requisition_number", { ascending: false })
+        .limit(1);
+
+      let nextNum = 1;
+      if (existing && existing.length > 0) {
+        const last = existing[0].requisition_number as string;
+        nextNum = parseInt(last.slice(-4), 10) + 1;
+      }
+      const reqNumber = prefix + String(nextNum).padStart(4, "0");
 
       const { data, error } = await (supabase as any)
         .from("material_requisitions")
