@@ -27,6 +27,7 @@ import {
 } from "@/lib/requisitionExportUtils";
 import { format, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
+import { formatNumber } from "@/lib/formatting";
 
 const STORAGE_KEY = "trebovanja_filters";
 function loadFilters() {
@@ -83,9 +84,11 @@ export default function Trebovanja() {
     switch (col) {
       case "requisition_number": return item.requisition_number;
       case "requisition_date": return item.requisition_date;
-      case "warehouse": return item.warehouse?.name ?? "";
+      case "warehouse": return `${item.warehouse?.code ?? ""} ${item.warehouse?.name ?? ""}`;
       case "work_order": return item.work_order?.order_number ?? "";
+      case "gp_codes": return item.work_order?.work_order_items?.map(i => i.article_code).join(", ") ?? "";
       case "issued_by": return item.issued_by;
+      case "value": return item.items?.reduce((s, i) => s + (i.item_value || 0), 0) ?? 0;
       case "status": return item.status;
       default: return "";
     }
@@ -185,23 +188,30 @@ export default function Trebovanja() {
                 <TableHead className="w-[100px]"><SortableHeader column="requisition_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="warehouse" label="Magacin" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[120px]"><SortableHeader column="work_order" label="Radni nalog" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="gp_codes" label="Gotovi proizvodi" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="issued_by" label="Izdao" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[120px] text-right"><SortableHeader column="value" label="Vrednost" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[100px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[120px]">Akcije</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={7} className="text-center py-8">Učitavanje...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8">Učitavanje...</TableCell></TableRow>
               ) : sorted.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nema trebovanja.</TableCell></TableRow>
-              ) : sorted.map((r) => (
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Nema trebovanja.</TableCell></TableRow>
+              ) : sorted.map((r) => {
+                const gpCodes = r.work_order?.work_order_items?.map(i => i.article_code).join(", ") || "-";
+                const totalValue = r.items?.reduce((s, i) => s + (i.item_value || 0), 0) ?? 0;
+                return (
                 <TableRow key={r.id} data-req-id={r.id} className="cursor-pointer hover:bg-muted/50" onClick={() => persistAndNavigate(r.id)}>
                   <TableCell className="font-medium">{r.requisition_number}</TableCell>
                   <TableCell>{format(new Date(r.requisition_date), "dd.MM.yyyy")}</TableCell>
-                  <TableCell>{r.warehouse?.name || "-"}</TableCell>
+                  <TableCell>{r.warehouse ? `${r.warehouse.code} - ${r.warehouse.name}` : "-"}</TableCell>
                   <TableCell>{r.work_order?.order_number || "-"}</TableCell>
+                  <TableCell className="text-xs">{gpCodes}</TableCell>
                   <TableCell>{r.issued_by || "-"}</TableCell>
+                  <TableCell className="text-right font-mono">{formatNumber(totalValue)}</TableCell>
                   <TableCell><Badge className={cn("text-xs", REQ_STATUS_COLORS[r.status])}>{REQ_STATUS_LABELS[r.status]}</Badge></TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -223,7 +233,8 @@ export default function Trebovanja() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+              })}
             </TableBody>
           </Table>
         </TableScrollContainer>

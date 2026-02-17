@@ -21,7 +21,8 @@ export interface MaterialRequisition {
   created_at: string;
   updated_at: string;
   warehouse?: { id: string; code: string; name: string };
-  work_order?: { id: string; order_number: string } | null;
+  work_order?: { id: string; order_number: string; work_order_items?: { article_code: string }[] } | null;
+  items?: { item_value: number }[];
 }
 
 export interface MaterialRequisitionItem {
@@ -49,7 +50,7 @@ export const REQ_STATUS_COLORS: Record<string, string> = {
   posted: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
 };
 
-const SELECT_QUERY = `*, warehouse:warehouses(id, code, name), work_order:work_orders(id, order_number)`;
+const SELECT_QUERY = `*, warehouse:warehouses(id, code, name), work_order:work_orders(id, order_number, work_order_items(article_code)), items:material_requisition_items(item_value)`;
 
 export function useMaterialRequisitions() {
   const { selectedCompany, selectedYear, user } = useAuth();
