@@ -3892,6 +3892,263 @@ export type Database = {
           },
         ]
       }
+      work_order_items: {
+        Row: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at: string
+          id: string
+          item_order: number
+          kg_per_unit: number
+          launched_kg: number
+          launched_m: number
+          launched_pcs: number
+          launched_qty: number
+          launched_value: number
+          unit: string
+          unit_price: number
+          variant_id: string | null
+          variant_name: string | null
+          work_order_id: string
+        }
+        Insert: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          kg_per_unit?: number
+          launched_kg?: number
+          launched_m?: number
+          launched_pcs?: number
+          launched_qty?: number
+          launched_value?: number
+          unit?: string
+          unit_price?: number
+          variant_id?: string | null
+          variant_name?: string | null
+          work_order_id: string
+        }
+        Update: {
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          kg_per_unit?: number
+          launched_kg?: number
+          launched_m?: number
+          launched_pcs?: number
+          launched_qty?: number
+          launched_value?: number
+          unit?: string
+          unit_price?: number
+          variant_id?: string | null
+          variant_name?: string | null
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "material_norm_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_items_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_order_materials: {
+        Row: {
+          approved_qty: number
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at: string
+          id: string
+          item_order: number
+          material_value: number
+          norm_qty: number
+          unit: string
+          unit_price: number
+          warehouse_id: string | null
+          work_order_id: string
+        }
+        Insert: {
+          approved_qty?: number
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          material_value?: number
+          norm_qty?: number
+          unit?: string
+          unit_price?: number
+          warehouse_id?: string | null
+          work_order_id: string
+        }
+        Update: {
+          approved_qty?: number
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          material_value?: number
+          norm_qty?: number
+          unit?: string
+          unit_price?: number
+          warehouse_id?: string | null
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_materials_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_materials_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_materials_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_order_materials_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_orders: {
+        Row: {
+          business_year_id: string
+          closed_at: string | null
+          closed_by: string | null
+          company_id: string
+          created_at: string
+          created_by: string
+          deadline_date: string | null
+          id: string
+          issued_by: string
+          launched_at: string | null
+          launched_by: string | null
+          order_date: string
+          order_number: string
+          plant_note: string | null
+          production_note: string | null
+          status: string
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          business_year_id: string
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id: string
+          created_at?: string
+          created_by: string
+          deadline_date?: string | null
+          id?: string
+          issued_by?: string
+          launched_at?: string | null
+          launched_by?: string | null
+          order_date?: string
+          order_number: string
+          plant_note?: string | null
+          production_note?: string | null
+          status?: string
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          business_year_id?: string
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          deadline_date?: string | null
+          id?: string
+          issued_by?: string
+          launched_at?: string | null
+          launched_by?: string | null
+          order_date?: string
+          order_number?: string
+          plant_note?: string | null
+          production_note?: string | null
+          status?: string
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -3982,6 +4239,10 @@ export type Database = {
         Returns: string
       }
       get_next_transfer_number: {
+        Args: { _company_id: string; _year_id: string }
+        Returns: string
+      }
+      get_next_work_order_number: {
         Args: { _company_id: string; _year_id: string }
         Returns: string
       }
