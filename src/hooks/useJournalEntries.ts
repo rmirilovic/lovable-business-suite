@@ -38,6 +38,7 @@ export interface JournalEntryItem {
   credit_amount: number;
   partner_id: string | null;
   partner_code?: string | null;
+  account_name?: string | null;
   cost_center_code: string | null;
   created_at: string;
   document_date: string | null;
@@ -78,9 +79,24 @@ export function useJournalEntryItems(entryId: string | null) {
         .order("item_order");
 
       if (error) throw error;
+
+      // Fetch account names for all unique account codes
+      const accountCodes = [...new Set((data || []).map((item: any) => item.account_code))];
+      let accountMap: Record<string, string> = {};
+      if (accountCodes.length > 0) {
+        const { data: accounts } = await supabase
+          .from("chart_of_accounts")
+          .select("code, name")
+          .in("code", accountCodes);
+        if (accounts) {
+          accountMap = Object.fromEntries(accounts.map(a => [a.code, a.name]));
+        }
+      }
+
       return (data || []).map((item: any) => ({
         ...item,
         partner_code: item.partners?.code || null,
+        account_name: accountMap[item.account_code] || null,
       })) as JournalEntryItem[];
     },
     enabled: !!entryId,

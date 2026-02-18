@@ -257,6 +257,7 @@ export default function JournalEntryEdit() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">Konto</TableHead>
+                <TableHead className="w-[200px]">Naziv konta</TableHead>
                 <TableHead>Opis</TableHead>
                 <TableHead className="w-[100px]">Analitika</TableHead>
                 <TableHead className="w-[100px]">Valuta</TableHead>
@@ -268,13 +269,13 @@ export default function JournalEntryEdit() {
             <TableBody>
               {itemsLoading ? (
                 <TableRow>
-                   <TableCell colSpan={isDraft ? 7 : 6} className="text-center py-8">
+                   <TableCell colSpan={isDraft ? 8 : 7} className="text-center py-8">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isDraft ? 7 : 6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={isDraft ? 8 : 7} className="text-center py-8 text-muted-foreground">
                     Nema stavki. Dodajte prvu stavku.
                   </TableCell>
                 </TableRow>
@@ -282,6 +283,7 @@ export default function JournalEntryEdit() {
                 items.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-mono">{item.account_code}</TableCell>
+                    <TableCell className="text-sm">{item.account_name || "-"}</TableCell>
                     <TableCell>{item.description || "-"}</TableCell>
                     <TableCell className="font-mono text-xs">{item.cost_center_code || item.partner_code || "-"}</TableCell>
                     <TableCell className="text-xs">{item.document_date ? formatDate(item.document_date) : "-"}</TableCell>
@@ -313,7 +315,7 @@ export default function JournalEntryEdit() {
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={isDraft ? 4 : 4} className="text-right font-medium">
+                <TableCell colSpan={isDraft ? 5 : 5} className="text-right font-medium">
                   Ukupno:
                 </TableCell>
                 <TableCell className="text-right font-mono font-bold">
