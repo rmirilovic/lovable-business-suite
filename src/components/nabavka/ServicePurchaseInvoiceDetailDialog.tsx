@@ -169,7 +169,10 @@ export function ServicePurchaseInvoiceDetailDialog({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div className="col-span-2">
             <div className="text-muted-foreground">Dobavljač</div>
-            <div className="font-medium">{invoice.supplier_name || invoice.partner?.name}</div>
+            <div className="font-medium">
+              {invoice.partner?.code && <span className="text-muted-foreground mr-1">[{invoice.partner.code}]</span>}
+              {invoice.supplier_name || invoice.partner?.name}
+            </div>
             <div className="text-xs text-muted-foreground">
               {invoice.supplier_address}, {invoice.supplier_postal_code} {invoice.supplier_city}
             </div>
