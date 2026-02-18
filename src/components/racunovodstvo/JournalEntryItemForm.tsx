@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ interface JournalEntryItemFormData {
   credit_amount: number;
   partner_id: string | null;
   cost_center_code: string | null;
+  document_date: string | null;
   item_order: number;
 }
 
@@ -41,6 +43,7 @@ interface JournalEntryItemFormProps {
     credit_amount: number;
     partner_id: string | null;
     cost_center_code: string | null;
+    document_date: string | null;
     item_order: number;
   };
   open: boolean;
@@ -65,6 +68,7 @@ export function JournalEntryItemForm({
     credit_amount: "0,00",
     partner_id: "",
     cost_center_code: "",
+    document_date: "",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -80,6 +84,7 @@ export function JournalEntryItemForm({
           credit_amount: item.credit_amount.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           partner_id: item.partner_id || "",
           cost_center_code: item.cost_center_code || "",
+          document_date: item.document_date || "",
         });
       } else {
         setForm({
@@ -89,6 +94,7 @@ export function JournalEntryItemForm({
           credit_amount: "0,00",
           partner_id: "",
           cost_center_code: "",
+          document_date: "",
         });
       }
     }
@@ -106,6 +112,7 @@ export function JournalEntryItemForm({
         credit_amount: parseLocaleNumber(form.credit_amount),
         partner_id: form.partner_id || null,
         cost_center_code: form.cost_center_code || null,
+        document_date: form.document_date || null,
         item_order: item?.item_order ?? 0,
       });
       onOpenChange(false);
@@ -195,6 +202,14 @@ export function JournalEntryItemForm({
               value={form.cost_center_code}
               onChange={(e) => setForm({ ...form, cost_center_code: e.target.value })}
               placeholder="Šifra mesta troška"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Datum valute</Label>
+            <LocaleDateInput
+              value={form.document_date}
+              onChange={(v) => setForm({ ...form, document_date: v })}
             />
           </div>
         </div>
