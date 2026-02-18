@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw,
+  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw, History,
 } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   InterWarehouseTransfer, useInterWarehouseTransferItems, useInterWarehouseTransfers,
 } from "@/hooks/useInterWarehouseTransfers";
@@ -42,6 +43,7 @@ export default function TransferEdit() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const { items, isLoading: itemsLoading } = useInterWarehouseTransferItems(id || null);
   const { updateTransfer, postTransfer, unpostTransfer } = useInterWarehouseTransfers();
@@ -146,6 +148,9 @@ export default function TransferEdit() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
             <Button variant="ghost" size="sm" onClick={fetchTransfer} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
@@ -306,6 +311,9 @@ export default function TransferEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {transfer && (
+        <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={transfer.id} documentName={transfer.transfer_number} documentType="inter_warehouse_transfer" />
+      )}
     </MainLayout>
   );
 }

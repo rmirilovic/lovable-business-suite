@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft, RefreshCw,
+  Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft, RefreshCw, History,
 } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { InventoryCount, useInventoryCountItems, useInventoryCounts } from "@/hooks/useInventoryCounts";
 import { InventoryCountItemsEditor } from "@/components/magacin/InventoryCountItemsEditor";
 import { InventoryCountDialog } from "@/components/magacin/InventoryCountDialog";
@@ -49,6 +50,7 @@ export default function InventoryCountEdit() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const { items, isLoading: itemsLoading } = useInventoryCountItems(id || null);
   const { updateCount, postCount, unpostCount } = useInventoryCounts();
@@ -158,9 +160,14 @@ export default function InventoryCountEdit() {
               <Badge variant="outline">Nacrt</Badge>
             )}
           </div>
-          <Button variant="ghost" size="sm" onClick={fetchCount} title="Osveži">
-            <RefreshCw className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={fetchCount} title="Osveži">
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
@@ -358,6 +365,16 @@ export default function InventoryCountEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {countDoc && (
+        <DocumentHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          documentId={countDoc.id}
+          documentName={countDoc.count_number}
+          documentType="inventory_count"
+        />
+      )}
     </MainLayout>
   );
 }

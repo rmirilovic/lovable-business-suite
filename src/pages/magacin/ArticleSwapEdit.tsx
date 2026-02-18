@@ -14,8 +14,9 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Loader2, BookCheck, Undo2, ArrowLeft, RefreshCw, Save,
+  Loader2, BookCheck, Undo2, ArrowLeft, RefreshCw, Save, History,
 } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { ArticleSwap, useArticleSwaps, ArticleSwapFormData } from "@/hooks/useArticleSwaps";
 import { useArticles } from "@/hooks/useArticles";
 import { useWarehouses } from "@/hooks/useWarehouses";
@@ -42,6 +43,7 @@ export default function ArticleSwapEdit() {
 
   const isNew = id === "new";
   const [swap, setSwap] = useState<ArticleSwap | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
@@ -338,9 +340,14 @@ export default function ArticleSwapEdit() {
             )}
           </div>
           {!isNew && (
-            <Button variant="ghost" size="sm" onClick={fetchSwap} title="Osveži">
-              <RefreshCw className="w-4 h-4" />
-            </Button>
+            <>
+              <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+                <History className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={fetchSwap} title="Osveži">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            </>
           )}
         </div>
 
@@ -548,6 +555,9 @@ export default function ArticleSwapEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {swap && (
+        <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={swap.id} documentName={swap.swap_number} documentType="article_swap" />
+      )}
     </MainLayout>
   );
 }

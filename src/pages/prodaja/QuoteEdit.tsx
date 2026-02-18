@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, ThumbsUp, ArrowLeft, RefreshCw } from "lucide-react";
+import { Loader2, Pencil, ThumbsUp, ArrowLeft, RefreshCw, History } from "lucide-react";
 import { Quote, useQuotes } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "@/components/prodaja/QuoteItemsEditor";
 import { QuoteDialog } from "@/components/prodaja/QuoteDialog";
@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
 import { toast } from "sonner";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,7 @@ export default function QuoteEdit() {
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [localTotals, setLocalTotals] = useState({ subtotal: 0, vat_amount: 0, total_amount: 0 });
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const { approveQuote, updateQuote } = useQuotes();
   
@@ -147,6 +149,9 @@ export default function QuoteEdit() {
             <Badge variant={status.variant}>{status.label}</Badge>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
             <Button variant="ghost" size="sm" onClick={fetchQuote} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
@@ -249,6 +254,16 @@ export default function QuoteEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {quote && (
+        <DocumentHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          documentId={quote.id}
+          documentName={quote.quote_number}
+          documentType="quote"
+        />
+      )}
     </MainLayout>
   );
 }

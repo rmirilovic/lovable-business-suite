@@ -1,10 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2, Unlink, FileText, Trash2, FileDown, Printer } from "lucide-react";
+import { ArrowLeft, RefreshCw, Loader2, CheckCircle, Undo2, Unlink, FileText, Trash2, FileDown, Printer, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +51,7 @@ export default function CalculationEdit() {
   const { linkedUfu, availableUfu, linkUfu, unlinkUfu } = useCalculationUfuLinks(id ?? null);
 
   const isEditable = calculation?.status === "draft";
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const handlePost = async () => {
     if (!id) return;
@@ -239,6 +241,9 @@ export default function CalculationEdit() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
             <Button variant="outline" onClick={() => navigate("/magacin/kalkulacije")}>
               Zatvori
             </Button>
@@ -513,6 +518,16 @@ export default function CalculationEdit() {
           onUpdateSellingPrice={handleUpdateSellingPrice}
         />
       </div>
+
+      {calculation && (
+        <DocumentHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          documentId={calculation.id}
+          documentName={calculation.calculation_number}
+          documentType="calculation"
+        />
+      )}
     </MainLayout>
   );
 }

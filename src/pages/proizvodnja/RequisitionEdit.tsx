@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Save, FileText, AlertTriangle, Printer, FileDown } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, FileText, AlertTriangle, Printer, FileDown, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useMaterialRequisition, useMaterialRequisitionItems, useMaterialRequisitions,
   REQ_STATUS_LABELS, REQ_STATUS_COLORS,
