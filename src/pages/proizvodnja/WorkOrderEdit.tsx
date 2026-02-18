@@ -177,6 +177,9 @@ export default function WorkOrderEdit() {
       updates.launched_pcs = value;
       updates.launched_value = value * item.unit_price;
     }
+    if (field === "unit_price") {
+      updates.launched_value = item.launched_qty * value;
+    }
 
     const { error } = await supabase
       .from("work_order_items")
@@ -442,7 +445,16 @@ export default function WorkOrderEdit() {
                         {formatNumber(item.launched_kg, { minimumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell className="text-right font-mono">
-                        {formatNumber(item.unit_price, { minimumFractionDigits: 2 })}
+                        {isDraft ? (
+                          <Input
+                            type="number"
+                            className="w-24 text-right h-8 text-sm ml-auto"
+                            value={item.unit_price || ""}
+                            onChange={(e) => handleUpdateItem(item, "unit_price", parseFloat(e.target.value) || 0)}
+                          />
+                        ) : (
+                          formatNumber(item.unit_price, { minimumFractionDigits: 2 })
+                        )}
                       </TableCell>
                       <TableCell className="text-right font-mono font-semibold">
                         {formatNumber(item.launched_value, { minimumFractionDigits: 2 })}
