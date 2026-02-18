@@ -201,7 +201,7 @@ export default function ProductionDeliveryNoteEdit() {
               </Button>
             )}
             {!isDraft && (
-              <Button variant="outline" onClick={() => {
+              <Button variant="destructive" onClick={() => {
                 if (confirm("Poništiti knjiženje predajnice?")) unpostNote.mutateAsync(note.id);
               }}>
                 <Undo2 className="w-4 h-4 mr-2" /> Poništi knjiženje
