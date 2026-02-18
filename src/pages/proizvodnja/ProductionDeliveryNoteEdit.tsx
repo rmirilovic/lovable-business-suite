@@ -130,8 +130,23 @@ export default function ProductionDeliveryNoteEdit() {
     updates.qty_total = total;
 
     const kgPerUnit = field === "kg_per_unit" ? value : item.kg_per_unit;
-    updates.delivered_kg = total * kgPerUnit;
-    updates.delivered_pcs = total;
+    const unitLower = item.unit.toLowerCase();
+
+    // Distribute delivered qty based on unit of measure
+    if (unitLower === "kg") {
+      updates.delivered_kg = total;
+      updates.delivered_m = 0;
+      updates.delivered_pcs = 0;
+    } else if (unitLower === "m") {
+      updates.delivered_m = total;
+      updates.delivered_kg = kgPerUnit > 0 ? total * kgPerUnit : 0;
+      updates.delivered_pcs = 0;
+    } else {
+      // kom or any other unit
+      updates.delivered_pcs = total;
+      updates.delivered_kg = kgPerUnit > 0 ? total * kgPerUnit : 0;
+      updates.delivered_m = 0;
+    }
 
     const price = field === "unit_price" ? value : item.unit_price;
     updates.item_value = total * price;
