@@ -336,20 +336,20 @@ export default function ProductionDeliveryNoteEdit() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[50px]">R.br.</TableHead>
-                  <TableHead className="w-[80px]">Šifra</TableHead>
-                  <TableHead>Naziv</TableHead>
-                  <TableHead className="w-[50px]">JM</TableHead>
-                  <TableHead className="w-[80px] text-right">kg/JM</TableHead>
-                  <TableHead className="w-[90px] text-right">Lans. kol.</TableHead>
-                  <TableHead className="w-[90px] text-right">I smena</TableHead>
-                  <TableHead className="w-[90px] text-right">II smena</TableHead>
-                  <TableHead className="w-[90px] text-right">III smena</TableHead>
-                  <TableHead className="w-[90px] text-right">Ukupno</TableHead>
-                  <TableHead className="w-[90px] text-right">Pred. kg</TableHead>
-                  <TableHead className="w-[90px] text-right">Pred. m</TableHead>
-                  <TableHead className="w-[90px] text-right">Pred. kom</TableHead>
-                  <TableHead className="w-[80px] text-right">Škart</TableHead>
+                  <TableHead className="w-[40px]">R.br.</TableHead>
+                  <TableHead className="w-[70px]">Šifra</TableHead>
+                  <TableHead className="min-w-[120px]">Naziv</TableHead>
+                  <TableHead className="w-[40px]">JM</TableHead>
+                  <TableHead className="w-[85px] text-right">kg/JM</TableHead>
+                  <TableHead className="w-[95px] text-right">Lans. kol.</TableHead>
+                  <TableHead className="w-[95px] text-right">I smena</TableHead>
+                  <TableHead className="w-[95px] text-right">II smena</TableHead>
+                  <TableHead className="w-[95px] text-right">III smena</TableHead>
+                  <TableHead className="w-[95px] text-right">Ukupno</TableHead>
+                  <TableHead className="w-[95px] text-right">Pred. kg</TableHead>
+                  <TableHead className="w-[95px] text-right">Pred. m</TableHead>
+                  <TableHead className="w-[95px] text-right">Pred. kom</TableHead>
+                  <TableHead className="w-[85px] text-right">Škart</TableHead>
                   <TableHead className="w-[100px] text-right">Cena</TableHead>
                    <TableHead className="w-[110px] text-right">Vrednost</TableHead>
                 </TableRow>
@@ -401,7 +401,7 @@ function ItemRow({
   const numCell = (field: string, value: number, decimalPlaces = 3, minDecimals?: number) => {
     const min = minDecimals ?? decimalPlaces;
     if (!isDraft) {
-      return <span className="font-mono">{formatNumber(value, { minimumFractionDigits: min, maximumFractionDigits: decimalPlaces })}</span>;
+      return <span className="font-mono text-xs">{formatNumber(value, { minimumFractionDigits: min, maximumFractionDigits: decimalPlaces })}</span>;
     }
     return (
       <LocaleNumberInput
@@ -409,26 +409,26 @@ function ItemRow({
         onChange={() => {}}
         onBlur={(e) => handleNumberBlur(field, e.currentTarget.value)}
         decimalPlaces={decimalPlaces}
-        className="h-7 text-sm w-full text-right"
+        className="h-7 text-xs w-full text-right"
       />
     );
   };
 
   return (
     <TableRow>
-      <TableCell>{idx + 1}</TableCell>
-      <TableCell className="font-mono text-xs">{item.article_code}</TableCell>
-      <TableCell>{item.article_name}</TableCell>
-      <TableCell>{item.unit}</TableCell>
+      <TableCell className="text-xs">{idx + 1}</TableCell>
+      <TableCell className="font-mono text-[11px]">{item.article_code}</TableCell>
+      <TableCell className="text-xs truncate max-w-[120px]" title={item.article_name}>{item.article_name}</TableCell>
+      <TableCell className="text-xs">{item.unit}</TableCell>
       <TableCell className="text-right">{numCell("kg_per_unit", item.kg_per_unit, 3, 0)}</TableCell>
       <TableCell className="text-right">
-        <span className="font-mono">{formatNumber(item.launched_qty, { minimumFractionDigits: 0, maximumFractionDigits: 3 })}</span>
+        <span className="font-mono text-xs">{formatNumber(item.launched_qty, { minimumFractionDigits: 0, maximumFractionDigits: 3 })}</span>
       </TableCell>
       <TableCell className="text-right">{numCell("qty_shift_1", item.qty_shift_1, 3, 0)}</TableCell>
       <TableCell className="text-right">{numCell("qty_shift_2", item.qty_shift_2, 3, 0)}</TableCell>
       <TableCell className="text-right">{numCell("qty_shift_3", item.qty_shift_3, 3, 0)}</TableCell>
       <TableCell className="text-right">
-        <span className="font-mono font-semibold">{formatNumber(item.qty_total, { minimumFractionDigits: 0, maximumFractionDigits: 3 })}</span>
+        <span className="font-mono text-xs font-semibold">{formatNumber(item.qty_total, { minimumFractionDigits: 0, maximumFractionDigits: 3 })}</span>
       </TableCell>
       <TableCell className="text-right">{numCell("delivered_kg", item.delivered_kg, 2, 0)}</TableCell>
       <TableCell className="text-right">{numCell("delivered_m", item.delivered_m, 2, 0)}</TableCell>
@@ -436,7 +436,7 @@ function ItemRow({
       <TableCell className="text-right">{numCell("scrap_qty", item.scrap_qty, 3, 0)}</TableCell>
       <TableCell className="text-right">{numCell("unit_price", item.unit_price, 2)}</TableCell>
       <TableCell className="text-right">
-        <span className="font-mono font-semibold">{formatPrice(item.item_value)}</span>
+        <span className="font-mono text-xs font-semibold">{formatPrice(item.item_value)}</span>
       </TableCell>
     </TableRow>
   );
