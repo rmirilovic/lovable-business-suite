@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,13 +19,15 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Plus, Search, Trash2, Rocket, Lock, FileSpreadsheet, FileText, Printer, MoreHorizontal, Eye, Undo2 } from "lucide-react";
-import { exportWorkOrdersToExcel, exportWorkOrdersToPdf, printWorkOrders } from "@/lib/workOrderExportUtils";
+import { exportWorkOrdersToExcel, exportWorkOrdersToPdf, printWorkOrders, EnrichedWorkOrder } from "@/lib/workOrderExportUtils";
 import { useWorkOrders, STATUS_LABELS, STATUS_COLORS, WorkOrder } from "@/hooks/useWorkOrders";
 import { supabase } from "@/integrations/supabase/client";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useTableSort } from "@/hooks/useTableSort";
+import { useQuery } from "@tanstack/react-query";
 import { format, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
+import { formatPrice } from "@/lib/formatting";
 
 const STORAGE_KEY = "radni_nalozi_filters";
 
@@ -44,6 +46,7 @@ export default function RadniNalozi() {
   const navigate = useNavigate();
   const { selectedCompany, selectedYear, user } = useAuth();
   const companyId = selectedCompany?.id;
+  const yearId = selectedYear?.id;
   const { orders, isLoading, createOrder, deleteOrder, launchOrder, closeOrder, reopenOrder, unlaunchOrder } = useWorkOrders();
   const { warehouses } = useWarehouses(companyId);
   const gpWarehouses = warehouses.filter((w) => w.warehouse_type === "9" && w.is_active);
@@ -55,6 +58,7 @@ export default function RadniNalozi() {
   const today = format(new Date(), "yyyy-MM-dd");
 
   const [search, setSearch] = useState(saved?.search ?? "");
+  const [productCodeFilter, setProductCodeFilter] = useState(saved?.productCodeFilter ?? "");
   const [statusFilter, setStatusFilter] = useState(saved?.statusFilter ?? "all");
   const [dateFrom, setDateFrom] = useState(saved?.dateFrom ?? yearStart);
   const [dateTo, setDateTo] = useState(saved?.dateTo ?? today);
@@ -90,6 +94,70 @@ export default function RadniNalozi() {
       });
   }, [user?.id]);
 
+  // Fetch first product and launched value per order
+  const orderIds = useMemo(() => orders.map(o => o.id), [orders]);
+  
+  const { data: itemsData } = useQuery({
+    queryKey: ["work-order-items-summary", companyId, yearId],
+    queryFn: async () => {
+      if (!orderIds.length) return {};
+      const { data, error } = await supabase
+        .from("work_order_items")
+        .select("work_order_id, article_code, article_name, launched_value, item_order")
+        .in("work_order_id", orderIds)
+        .order("item_order");
+      if (error) throw error;
+      
+      const map: Record<string, { firstCode: string; firstName: string; totalValue: number }> = {};
+      for (const item of data || []) {
+        if (!map[item.work_order_id]) {
+          map[item.work_order_id] = {
+            firstCode: item.article_code,
+            firstName: item.article_name,
+            totalValue: 0,
+          };
+        }
+        map[item.work_order_id].totalValue += Number(item.launched_value || 0);
+      }
+      return map;
+    },
+    enabled: orderIds.length > 0,
+  });
+
+  // Fetch issued (delivered) value per order from posted requisitions
+  const { data: issuedData } = useQuery({
+    queryKey: ["work-order-issued-summary", companyId, yearId],
+    queryFn: async () => {
+      if (!orderIds.length) return {};
+      // Get posted requisitions for these orders
+      const { data: reqs, error: reqErr } = await supabase
+        .from("material_requisitions")
+        .select("id, work_order_id")
+        .in("work_order_id", orderIds)
+        .not("posted_at", "is", null);
+      if (reqErr) throw reqErr;
+      if (!reqs?.length) return {};
+      
+      const reqIds = reqs.map(r => r.id);
+      const reqToOrder: Record<string, string> = {};
+      reqs.forEach(r => { reqToOrder[r.id] = r.work_order_id!; });
+      
+      const { data: items, error: itemErr } = await supabase
+        .from("material_requisition_items")
+        .select("requisition_id, item_value")
+        .in("requisition_id", reqIds);
+      if (itemErr) throw itemErr;
+      
+      const map: Record<string, number> = {};
+      for (const item of items || []) {
+        const orderId = reqToOrder[item.requisition_id];
+        map[orderId] = (map[orderId] || 0) + Number(item.item_value || 0);
+      }
+      return map;
+    },
+    enabled: orderIds.length > 0,
+  });
+
   // Auto-fill issued_by when dialog opens
   const handleOpenNewDialog = useCallback(() => {
     setNewForm({
@@ -101,17 +169,31 @@ export default function RadniNalozi() {
     setShowNewDialog(true);
   }, [operatorName]);
 
-  const filteredOrders = orders.filter((o) => {
+  // Enrich orders
+  const enrichedOrders: EnrichedWorkOrder[] = useMemo(() => {
+    return orders.map(o => ({
+      ...o,
+      firstProductCode: itemsData?.[o.id]?.firstCode ?? "",
+      firstProductName: itemsData?.[o.id]?.firstName ?? "",
+      launchedValue: itemsData?.[o.id]?.totalValue ?? 0,
+      issuedValue: issuedData?.[o.id] ?? 0,
+    }));
+  }, [orders, itemsData, issuedData]);
+
+  const filteredOrders = enrichedOrders.filter((o) => {
     const matchSearch =
       !search ||
       o.order_number.includes(search) ||
       o.issued_by.toLowerCase().includes(search.toLowerCase());
+    const matchProductCode =
+      !productCodeFilter ||
+      o.firstProductCode.toLowerCase().includes(productCodeFilter.toLowerCase());
     const matchStatus = statusFilter === "all" || o.status === statusFilter;
     const matchDateFrom = !dateFrom || o.order_date >= dateFrom;
     const matchDateTo = !dateTo || o.order_date <= dateTo;
     const matchDeadlineFrom = !deadlineFrom || (o.deadline_date && o.deadline_date >= deadlineFrom);
     const matchDeadlineTo = !deadlineTo || (o.deadline_date && o.deadline_date <= deadlineTo);
-    return matchSearch && matchStatus && matchDateFrom && matchDateTo && matchDeadlineFrom && matchDeadlineTo;
+    return matchSearch && matchProductCode && matchStatus && matchDateFrom && matchDateTo && matchDeadlineFrom && matchDeadlineTo;
   });
 
   const sorted = sortItems(filteredOrders, (item, col) => {
@@ -119,8 +201,12 @@ export default function RadniNalozi() {
       case "order_number": return item.order_number;
       case "order_date": return item.order_date;
       case "deadline_date": return item.deadline_date ?? "";
-      case "warehouse": return item.warehouse?.name ?? "";
-      case "issued_by": return item.issued_by;
+      case "product": return item.firstProductCode;
+      case "warehouse": return item.warehouse?.code ?? "";
+      case "launched_at": return item.launched_at ?? "";
+      case "closed_at": return item.closed_at ?? "";
+      case "launched_value": return item.launchedValue;
+      case "issued_value": return item.issuedValue;
       case "status": return item.status;
       default: return "";
     }
@@ -137,7 +223,7 @@ export default function RadniNalozi() {
   }, [isLoading, sorted.length, lastEditedId]);
 
   const persistAndNavigate = (id: string) => {
-    saveFilters({ search, statusFilter, dateFrom, dateTo, deadlineFrom, deadlineTo, sortColumn, sortDirection, lastEditedId: id });
+    saveFilters({ search, productCodeFilter, statusFilter, dateFrom, dateTo, deadlineFrom, deadlineTo, sortColumn, sortDirection, lastEditedId: id });
     navigate(`/proizvodnja/nalozi/${id}`);
   };
 
@@ -183,6 +269,10 @@ export default function RadniNalozi() {
     }
   };
 
+  const fmtDate = (d: string | null) => d ? format(new Date(d), "dd.MM.yyyy") : "-";
+
+  const exportMeta = { companyName: selectedCompany?.name ?? "", dateFrom, dateTo };
+
   return (
     <MainLayout title="Radni nalozi">
       <div className="flex flex-col h-full min-h-0">
@@ -190,12 +280,22 @@ export default function RadniNalozi() {
         <div className="flex flex-col gap-3 mb-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <div className="flex gap-4 flex-1 items-end">
-              <div className="relative flex-1 max-w-md">
+              <div className="relative flex-1 max-w-xs">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Pretraži po broju ili izdavaocu..."
+                  placeholder="Broj ili izdavalac..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                  autoComplete="off"
+                />
+              </div>
+              <div className="relative max-w-[160px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Šifra proizvoda..."
+                  value={productCodeFilter}
+                  onChange={(e) => setProductCodeFilter(e.target.value)}
                   className="pl-10"
                   autoComplete="off"
                 />
@@ -214,13 +314,13 @@ export default function RadniNalozi() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => exportWorkOrdersToExcel(sorted, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <Button variant="outline" size="sm" onClick={() => exportWorkOrdersToExcel(sorted, exportMeta)}>
                 <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
               </Button>
-              <Button variant="outline" size="sm" onClick={() => exportWorkOrdersToPdf(sorted, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <Button variant="outline" size="sm" onClick={() => exportWorkOrdersToPdf(sorted, exportMeta)}>
                 <FileText className="w-4 h-4 mr-2" /> PDF
               </Button>
-              <Button variant="outline" size="sm" onClick={() => printWorkOrders(sorted, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <Button variant="outline" size="sm" onClick={() => printWorkOrders(sorted, exportMeta)}>
                 <Printer className="w-4 h-4 mr-2" /> Štampa
               </Button>
               <Button onClick={handleOpenNewDialog}>
@@ -254,20 +354,32 @@ export default function RadniNalozi() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">
+                <TableHead className="w-[90px]">
                   <SortableHeader column="order_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead className="w-[100px]">
+                <TableHead className="w-[90px]">
                   <SortableHeader column="order_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead className="w-[100px]">
+                <TableHead className="w-[90px]">
                   <SortableHeader column="deadline_date" label="Rok" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
                 <TableHead>
-                  <SortableHeader column="warehouse" label="Magacin GP" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  <SortableHeader column="product" label="Proizvod" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead>
-                  <SortableHeader column="issued_by" label="Nalog izdao" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                <TableHead className="w-[80px]">
+                  <SortableHeader column="warehouse" label="Magacin" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[90px]">
+                  <SortableHeader column="launched_at" label="Lansirano" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[90px]">
+                  <SortableHeader column="closed_at" label="Zaključeno" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[110px] text-right">
+                  <SortableHeader column="launched_value" label="Vr. lansiranja" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                </TableHead>
+                <TableHead className="w-[110px] text-right">
+                  <SortableHeader column="issued_value" label="Vr. predaje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
                 </TableHead>
                 <TableHead className="w-[100px]">
                   <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
@@ -278,11 +390,11 @@ export default function RadniNalozi() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">Učitavanje...</TableCell>
+                  <TableCell colSpan={11} className="text-center py-8">Učitavanje...</TableCell>
                 </TableRow>
               ) : sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                     Nema radnih naloga.
                   </TableCell>
                 </TableRow>
@@ -295,12 +407,16 @@ export default function RadniNalozi() {
                     onClick={() => persistAndNavigate(order.id)}
                   >
                     <TableCell className="font-medium">{order.order_number}</TableCell>
-                    <TableCell>{format(new Date(order.order_date), "dd.MM.yyyy")}</TableCell>
-                    <TableCell>
-                      {order.deadline_date ? format(new Date(order.deadline_date), "dd.MM.yyyy") : "-"}
+                    <TableCell>{fmtDate(order.order_date)}</TableCell>
+                    <TableCell>{fmtDate(order.deadline_date)}</TableCell>
+                    <TableCell className="truncate max-w-[250px]" title={order.firstProductCode ? `${order.firstProductCode} - ${order.firstProductName}` : ""}>
+                      {order.firstProductCode ? `${order.firstProductCode} - ${order.firstProductName}` : "-"}
                     </TableCell>
-                    <TableCell>{order.warehouse?.name || "-"}</TableCell>
-                    <TableCell>{order.issued_by || "-"}</TableCell>
+                    <TableCell>{order.warehouse?.code || "-"}</TableCell>
+                    <TableCell>{fmtDate(order.launched_at)}</TableCell>
+                    <TableCell>{fmtDate(order.closed_at)}</TableCell>
+                    <TableCell className="text-right">{order.launchedValue ? formatPrice(order.launchedValue) : "-"}</TableCell>
+                    <TableCell className="text-right">{order.issuedValue ? formatPrice(order.issuedValue) : "-"}</TableCell>
                     <TableCell>
                       <Badge className={cn("text-xs", STATUS_COLORS[order.status])}>
                         {STATUS_LABELS[order.status]}
