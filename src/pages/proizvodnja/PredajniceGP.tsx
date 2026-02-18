@@ -18,7 +18,8 @@ import { SortableHeader } from "@/components/ui/sortable-header";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Trash2, Lock, MoreHorizontal, Eye } from "lucide-react";
+import { Plus, Search, Trash2, Lock, FileSpreadsheet, FileText, Printer, MoreHorizontal, Eye } from "lucide-react";
+import { exportPredajniceToExcel, exportPredajniceToPdf, printPredajnice, PredajnicaExportRow } from "@/lib/predajniceExportUtils";
 import {
   useProductionDeliveryNotes,
   PDN_STATUS_LABELS, PDN_STATUS_COLORS,
@@ -206,6 +207,14 @@ export default function PredajniceGP() {
 
   const fmtDate = (d: string | null) => d ? format(new Date(d), "dd.MM.yyyy") : "-";
 
+  const exportMeta = { companyName: selectedCompany?.name ?? "", dateFrom, dateTo };
+  const exportRows: PredajnicaExportRow[] = sorted.map((n) => ({
+    ...n,
+    firstArticle: itemSummary?.[n.id]?.firstArticle ?? "",
+    totalKg: itemSummary?.[n.id]?.totalKg ?? 0,
+    totalValue: itemSummary?.[n.id]?.totalValue ?? 0,
+  }));
+
   return (
     <MainLayout title="Predajnice GP iz proizvodnje">
       <div className="flex flex-col h-full min-h-0">
@@ -237,6 +246,15 @@ export default function PredajniceGP() {
               </div>
             </div>
             <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => exportPredajniceToExcel(exportRows, exportMeta)}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportPredajniceToPdf(exportRows, exportMeta)}>
+                <FileText className="w-4 h-4 mr-2" /> PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => printPredajnice(exportRows, exportMeta)}>
+                <Printer className="w-4 h-4 mr-2" /> Štampa
+              </Button>
               <Button onClick={handleOpenNewDialog}>
                 <Plus className="w-4 h-4 mr-2" />
                 Nova predajnica
