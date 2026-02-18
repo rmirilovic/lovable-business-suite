@@ -398,13 +398,14 @@ function ItemRow({
     onUpdate(item, field, num);
   };
 
-  const numCell = (field: string, value: number, decimalPlaces = 3) => {
+  const numCell = (field: string, value: number, decimalPlaces = 3, minDecimals?: number) => {
+    const min = minDecimals ?? decimalPlaces;
     if (!isDraft) {
-      return <span className="font-mono">{formatNumber(value, { minimumFractionDigits: decimalPlaces, maximumFractionDigits: decimalPlaces })}</span>;
+      return <span className="font-mono">{formatNumber(value, { minimumFractionDigits: min, maximumFractionDigits: decimalPlaces })}</span>;
     }
     return (
       <LocaleNumberInput
-        value={formatNumber(value, { minimumFractionDigits: decimalPlaces, maximumFractionDigits: decimalPlaces }).replace(/\s/g, '')}
+        value={formatNumber(value, { minimumFractionDigits: min, maximumFractionDigits: decimalPlaces }).replace(/\s/g, '')}
         onChange={() => {}}
         onBlur={(e) => handleNumberBlur(field, e.currentTarget.value)}
         decimalPlaces={decimalPlaces}
@@ -419,20 +420,20 @@ function ItemRow({
       <TableCell className="font-mono text-xs">{item.article_code}</TableCell>
       <TableCell>{item.article_name}</TableCell>
       <TableCell>{item.unit}</TableCell>
-      <TableCell className="text-right">{numCell("kg_per_unit", item.kg_per_unit, 3)}</TableCell>
+      <TableCell className="text-right">{numCell("kg_per_unit", item.kg_per_unit, 3, 0)}</TableCell>
       <TableCell className="text-right">
-        <span className="font-mono">{formatNumber(item.launched_qty, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</span>
+        <span className="font-mono">{formatNumber(item.launched_qty, { minimumFractionDigits: 0, maximumFractionDigits: 3 })}</span>
       </TableCell>
-      <TableCell className="text-right">{numCell("qty_shift_1", item.qty_shift_1, 3)}</TableCell>
-      <TableCell className="text-right">{numCell("qty_shift_2", item.qty_shift_2, 3)}</TableCell>
-      <TableCell className="text-right">{numCell("qty_shift_3", item.qty_shift_3, 3)}</TableCell>
+      <TableCell className="text-right">{numCell("qty_shift_1", item.qty_shift_1, 3, 0)}</TableCell>
+      <TableCell className="text-right">{numCell("qty_shift_2", item.qty_shift_2, 3, 0)}</TableCell>
+      <TableCell className="text-right">{numCell("qty_shift_3", item.qty_shift_3, 3, 0)}</TableCell>
       <TableCell className="text-right">
-        <span className="font-mono font-semibold">{formatNumber(item.qty_total, { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</span>
+        <span className="font-mono font-semibold">{formatNumber(item.qty_total, { minimumFractionDigits: 0, maximumFractionDigits: 3 })}</span>
       </TableCell>
-      <TableCell className="text-right">{numCell("delivered_kg", item.delivered_kg, 2)}</TableCell>
-      <TableCell className="text-right">{numCell("delivered_m", item.delivered_m, 2)}</TableCell>
-      <TableCell className="text-right">{numCell("delivered_pcs", item.delivered_pcs, 3)}</TableCell>
-      <TableCell className="text-right">{numCell("scrap_qty", item.scrap_qty, 3)}</TableCell>
+      <TableCell className="text-right">{numCell("delivered_kg", item.delivered_kg, 2, 0)}</TableCell>
+      <TableCell className="text-right">{numCell("delivered_m", item.delivered_m, 2, 0)}</TableCell>
+      <TableCell className="text-right">{numCell("delivered_pcs", item.delivered_pcs, 3, 0)}</TableCell>
+      <TableCell className="text-right">{numCell("scrap_qty", item.scrap_qty, 3, 0)}</TableCell>
       <TableCell className="text-right">{numCell("unit_price", item.unit_price, 2)}</TableCell>
       <TableCell className="text-right">
         <span className="font-mono font-semibold">{formatPrice(item.item_value)}</span>
