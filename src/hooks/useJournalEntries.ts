@@ -37,6 +37,7 @@ export interface JournalEntryItem {
   debit_amount: number;
   credit_amount: number;
   partner_id: string | null;
+  partner_code?: string | null;
   cost_center_code: string | null;
   created_at: string;
   document_date: string | null;
@@ -72,12 +73,15 @@ export function useJournalEntryItems(entryId: string | null) {
 
       const { data, error } = await supabase
         .from("journal_entry_items")
-        .select("*")
+        .select("*, partners(code)")
         .eq("journal_entry_id", entryId)
         .order("item_order");
 
       if (error) throw error;
-      return data as JournalEntryItem[];
+      return (data || []).map((item: any) => ({
+        ...item,
+        partner_code: item.partners?.code || null,
+      })) as JournalEntryItem[];
     },
     enabled: !!entryId,
   });
