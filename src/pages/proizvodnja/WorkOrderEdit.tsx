@@ -155,7 +155,7 @@ export default function WorkOrderEdit() {
       launched_kg: 0,
       launched_m: 0,
       launched_pcs: 0,
-      unit_price: article.selling_price ?? 0,
+      unit_price: article.purchase_price ?? 0,
       launched_value: 0,
       item_order: nextOrder,
     });
