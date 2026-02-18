@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet } from "lucide-react";
 import {
   useWorkOrder, useWorkOrderItems, useWorkOrderMaterials,
   useWorkOrders, WorkOrderItem, WorkOrderMaterial,
@@ -33,6 +33,10 @@ import { useIssuedMaterials } from "@/hooks/useIssuedMaterials";
 import { exportIssuedMaterialsPdf, printIssuedMaterials } from "@/lib/issuedMaterialsPdfGenerator";
 import { useWorkOrderRequisitions } from "@/hooks/useWorkOrderRequisitions";
 import { useWorkOrderDeliveryNotes } from "@/hooks/useWorkOrderDeliveryNotes";
+import {
+  exportRequisitionsToExcel, exportRequisitionsToPdf, printRequisitions,
+  exportDeliveryNotesToExcel, exportDeliveryNotesToPdf, printDeliveryNotes,
+} from "@/lib/workOrderTabsExportUtils";
 
 export default function WorkOrderEdit() {
   const { id } = useParams<{ id: string }>();
@@ -649,7 +653,20 @@ export default function WorkOrderEdit() {
 
           {/* Requisitions tab */}
           <TabsContent value="requisitions" className="p-0 m-0">
-            <div className="flex items-center justify-end p-3 border-b bg-muted/20">
+            <div className="flex items-center justify-between p-3 border-b bg-muted/20">
+              {requisitions.length > 0 && order ? (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => exportRequisitionsToExcel(requisitions, { companyName: selectedCompany?.name || "", orderNumber: order.order_number })}>
+                    <FileSpreadsheet className="w-4 h-4 mr-1" /> Excel
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => exportRequisitionsToPdf(requisitions, { companyName: selectedCompany?.name || "", orderNumber: order.order_number })}>
+                    <FileDown className="w-4 h-4 mr-1" /> PDF
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => printRequisitions(requisitions, { companyName: selectedCompany?.name || "", orderNumber: order.order_number })}>
+                    <Printer className="w-4 h-4 mr-1" /> Štampa
+                  </Button>
+                </div>
+              ) : <div />}
               <span className="text-sm text-muted-foreground">
                 Zbir vrednosti: <strong>{formatNumber(requisitions.reduce((s, r) => s + r.total_value, 0), { minimumFractionDigits: 2 })}</strong>
               </span>
@@ -690,7 +707,20 @@ export default function WorkOrderEdit() {
 
           {/* Deliveries tab */}
           <TabsContent value="deliveries" className="p-0 m-0">
-            <div className="flex items-center justify-end p-3 border-b bg-muted/20">
+            <div className="flex items-center justify-between p-3 border-b bg-muted/20">
+              {deliveryNotes.length > 0 && order ? (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToExcel(deliveryNotes, { companyName: selectedCompany?.name || "", orderNumber: order.order_number })}>
+                    <FileSpreadsheet className="w-4 h-4 mr-1" /> Excel
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToPdf(deliveryNotes, { companyName: selectedCompany?.name || "", orderNumber: order.order_number })}>
+                    <FileDown className="w-4 h-4 mr-1" /> PDF
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => printDeliveryNotes(deliveryNotes, { companyName: selectedCompany?.name || "", orderNumber: order.order_number })}>
+                    <Printer className="w-4 h-4 mr-1" /> Štampa
+                  </Button>
+                </div>
+              ) : <div />}
               <div className="flex gap-4 text-sm text-muted-foreground">
                 <span>Ukupno po JM: <strong>{formatNumber(deliveryNotes.reduce((s, d) => s + d.items.reduce((si, it) => si + it.qty_total, 0), 0), { minimumFractionDigits: 2 })}</strong></span>
                 <span>Ukupno kg: <strong>{formatNumber(deliveryNotes.reduce((s, d) => s + d.items.reduce((si, it) => si + it.delivered_kg, 0), 0), { minimumFractionDigits: 2 })}</strong></span>
