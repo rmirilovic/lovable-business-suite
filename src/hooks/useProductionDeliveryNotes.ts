@@ -128,6 +128,34 @@ export function useProductionDeliveryNotes() {
         .select(`*, warehouse:warehouses(id, code, name), work_order:work_orders(id, order_number)`)
         .single();
       if (error) throw error;
+
+      // Auto-insert items from work order
+      if (formData.work_order_id) {
+        const { data: woItems } = await supabase
+          .from("work_order_items")
+          .select("*")
+          .eq("work_order_id", formData.work_order_id)
+          .order("item_order");
+
+        if (woItems && woItems.length > 0) {
+          const itemsToInsert = woItems.map((wi: any, idx: number) => ({
+            delivery_note_id: data.id,
+            company_id: companyId,
+            article_id: wi.article_id,
+            article_code: wi.article_code,
+            article_name: wi.article_name,
+            unit: wi.unit,
+            kg_per_unit: wi.kg_per_unit ?? 0,
+            launched_qty: Number(wi.launched_qty ?? 0),
+            unit_price: Number(wi.unit_price ?? 0),
+            item_order: idx + 1,
+          }));
+          await (supabase as any)
+            .from("production_delivery_note_items")
+            .insert(itemsToInsert);
+        }
+      }
+
       return data as ProductionDeliveryNote;
     },
     onSuccess: () => {

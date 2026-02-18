@@ -12,8 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Lock, Save } from "lucide-react";
+import { ArrowLeft, Lock, Save } from "lucide-react";
 import {
   useProductionDeliveryNote,
   useProductionDeliveryNoteItems,
@@ -21,7 +20,7 @@ import {
   ProductionDeliveryNoteItem,
   PDN_STATUS_LABELS, PDN_STATUS_COLORS,
 } from "@/hooks/useProductionDeliveryNotes";
-import { useArticles } from "@/hooks/useArticles";
+
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWorkOrders } from "@/hooks/useWorkOrders";
 import { useShiftManagers } from "@/hooks/useShiftManagers";
@@ -41,12 +40,12 @@ export default function ProductionDeliveryNoteEdit() {
   const { data: note, isLoading: noteLoading } = useProductionDeliveryNote(id);
   const { items, isLoading: itemsLoading, invalidate: invalidateItems } = useProductionDeliveryNoteItems(id);
   const { postNote } = useProductionDeliveryNotes();
-  const { articles } = useArticles(companyId);
+  
   const { warehouses } = useWarehouses(companyId);
   const { orders } = useWorkOrders();
   const { managers } = useShiftManagers();
 
-  const gpArticles = useMemo(() => articles.filter((a) => a.svk === "9" && a.is_active), [articles]);
+  
   const gpWarehouses = useMemo(() => warehouses.filter((w) => w.warehouse_type === "9" && w.is_active), [warehouses]);
   const activeOrders = useMemo(
     () => orders.filter((o) => o.status === "launched" || o.status === "closed"),
@@ -66,9 +65,6 @@ export default function ProductionDeliveryNoteEdit() {
     responsible_person: "",
   });
   const [headerDirty, setHeaderDirty] = useState(false);
-
-  // Item being added
-  const [newArticleId, setNewArticleId] = useState("");
 
   useEffect(() => {
     if (note) {
@@ -118,49 +114,6 @@ export default function ProductionDeliveryNoteEdit() {
     setHeaderDirty(true);
   };
 
-  // Add item
-  const handleAddItem = async () => {
-    if (!newArticleId || !id || !companyId) return;
-    const article = gpArticles.find((a) => a.id === newArticleId);
-    if (!article) return;
-
-    // Get launched qty from work order if linked
-    let launchedQty = 0;
-    if (note?.work_order_id) {
-      const { data: woItems } = await supabase
-        .from("work_order_items")
-        .select("launched_qty")
-        .eq("work_order_id", note.work_order_id)
-        .eq("article_id", newArticleId)
-        .limit(1);
-      if (woItems && woItems.length > 0) {
-        launchedQty = Number(woItems[0].launched_qty || 0);
-      }
-    }
-
-    const nextOrder = items.length > 0 ? Math.max(...items.map((i) => i.item_order)) + 1 : 1;
-
-    const { error } = await (supabase as any).from("production_delivery_note_items").insert({
-      delivery_note_id: id,
-      company_id: companyId,
-      article_id: newArticleId,
-      article_code: article.code,
-      article_name: article.name,
-      unit: article.unit,
-      kg_per_unit: article.kg_po_jm ?? 0,
-      launched_qty: launchedQty,
-      unit_price: article.purchase_price ?? 0,
-      item_order: nextOrder,
-    });
-
-    if (error) {
-      toast.error("Greška pri dodavanju stavke");
-      return;
-    }
-    setNewArticleId("");
-    invalidateItems();
-  };
-
   // Update item
   const handleUpdateItem = async (
     item: ProductionDeliveryNoteItem,
@@ -188,16 +141,6 @@ export default function ProductionDeliveryNoteEdit() {
       .update(updates)
       .eq("id", item.id);
     if (error) toast.error("Greška pri ažuriranju stavke");
-    invalidateItems();
-  };
-
-  // Delete item
-  const handleDeleteItem = async (itemId: string) => {
-    const { error } = await (supabase as any)
-      .from("production_delivery_note_items")
-      .delete()
-      .eq("id", itemId);
-    if (error) toast.error("Greška pri brisanju stavke");
     invalidateItems();
   };
 
@@ -374,21 +317,6 @@ export default function ProductionDeliveryNoteEdit() {
               <span>Ukupna vrednost: <strong>{formatNumber(totalValue, { minimumFractionDigits: 2 })}</strong></span>
             </div>
           </div>
-          {isDraft && (
-            <div className="flex items-center gap-2 p-3 border-b bg-muted/30">
-              <div className="flex-1 max-w-md">
-                <SearchableArticleSelect
-                  articles={gpArticles}
-                  value={newArticleId}
-                  onValueChange={(id) => setNewArticleId(id)}
-                  placeholder="Izaberite gotov proizvod..."
-                />
-              </div>
-              <Button size="sm" onClick={handleAddItem} disabled={!newArticleId}>
-                <Plus className="w-4 h-4 mr-1" /> Dodaj
-              </Button>
-            </div>
-          )}
           <TableScrollContainer className="flex-1">
             <Table>
               <TableHeader>
@@ -408,15 +336,14 @@ export default function ProductionDeliveryNoteEdit() {
                   <TableHead className="w-[90px] text-right">Pred. kom</TableHead>
                   <TableHead className="w-[80px] text-right">Škart</TableHead>
                   <TableHead className="w-[100px] text-right">Cena</TableHead>
-                  <TableHead className="w-[110px] text-right">Vrednost</TableHead>
-                  {isDraft && <TableHead className="w-[50px]" />}
+                   <TableHead className="w-[110px] text-right">Vrednost</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 17 : 16} className="text-center py-6 text-muted-foreground">
-                      Nema stavki. Dodajte gotove proizvode.
+                    <TableCell colSpan={16} className="text-center py-6 text-muted-foreground">
+                      Nema stavki.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -427,7 +354,6 @@ export default function ProductionDeliveryNoteEdit() {
                       idx={idx}
                       isDraft={isDraft}
                       onUpdate={handleUpdateItem}
-                      onDelete={handleDeleteItem}
                     />
                   ))
                 )}
@@ -446,13 +372,11 @@ function ItemRow({
   idx,
   isDraft,
   onUpdate,
-  onDelete,
 }: {
   item: ProductionDeliveryNoteItem;
   idx: number;
   isDraft: boolean;
   onUpdate: (item: ProductionDeliveryNoteItem, field: string, value: number) => Promise<void>;
-  onDelete: (id: string) => Promise<void>;
 }) {
   const handleNumberBlur = (field: string, rawValue: string) => {
     const num = parseLocaleNumber(rawValue);
@@ -498,13 +422,6 @@ function ItemRow({
       <TableCell className="text-right">
         <span className="font-mono font-semibold">{formatPrice(item.item_value)}</span>
       </TableCell>
-      {isDraft && (
-        <TableCell>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(item.id)}>
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </Button>
-        </TableCell>
-      )}
     </TableRow>
   );
 }
