@@ -44,6 +44,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { BookCheck, Undo2 } from "lucide-react";
 
+const SOURCE_DOCUMENT_LABELS: Record<string, string> = {
+  goods_purchase_invoice: "Ulazna faktura za robu",
+  service_purchase_invoice: "Ulazna faktura za usluge",
+  purchase_price_calculation: "Kalkulacija nabavne cene",
+  inventory_count: "Popis",
+  inter_warehouse_transfer: "Međumagacinski prenos",
+  material_requisition: "Trebovanje",
+  production_delivery_note: "Predajnica gotovih proizvoda",
+  invoice: "Izlazna faktura",
+  delivery_note: "Otpremnica",
+};
+
 export default function JournalEntryEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -222,7 +234,7 @@ export default function JournalEntryEdit() {
 
         {entry.source_document_type && (
           <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-md">
-            Ovaj nalog je kreiran iz drugog dokumenta ({entry.source_document_type}). 
+            Ovaj nalog je kreiran iz dokumenta: {SOURCE_DOCUMENT_LABELS[entry.source_document_type] || entry.source_document_type}. 
             Knjiženje se može poništiti samo kroz originalni dokument.
           </div>
         )}
