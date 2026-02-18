@@ -48,6 +48,7 @@ const navigation: NavItem[] = [
       { label: "Organizacione jedinice", href: "/sifarnici/org-jedinice", moduleCode: "sifarnici.org_jedinice" },
       { label: "Kontni plan", href: "/sifarnici/kontni-plan", moduleCode: "racunovodstvo.kontni_plan" },
       { label: "Ulazni troškovi", href: "/sifarnici/ulazni-troskovi", moduleCode: "sifarnici.ulazni_troskovi" },
+      { label: "Šefovi smena", href: "/sifarnici/sefovi-smena", moduleCode: "sifarnici.ulazni_troskovi" },
     ],
   },
   {
