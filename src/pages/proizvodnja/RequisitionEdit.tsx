@@ -80,6 +80,7 @@ export default function RequisitionEdit() {
   });
   const [headerDirty, setHeaderDirty] = useState(false);
   const [newArticleId, setNewArticleId] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     if (requisition) {
@@ -252,6 +253,9 @@ export default function RequisitionEdit() {
             <Button variant="outline" size="sm" onClick={() => printRequisition(requisition, items, selectedCompany as any)}>
               <Printer className="w-4 h-4 mr-2" /> Štampa
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+              <History className="w-4 h-4 mr-2" /> Istorija
+            </Button>
             <Button variant="ghost" onClick={() => navigate("/proizvodnja/trebovanja")}>Zatvori</Button>
           </div>
         </div>
@@ -413,6 +417,7 @@ export default function RequisitionEdit() {
           </div>
         </div>
       </div>
+      <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={requisition.id} documentName={requisition.requisition_number} documentType="material_requisition" />
     </MainLayout>
   );
 }

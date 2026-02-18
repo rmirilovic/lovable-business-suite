@@ -71,6 +71,7 @@ export default function ProductionDeliveryNoteEdit() {
     responsible_person: "",
   });
   const [headerDirty, setHeaderDirty] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     if (note) {
@@ -249,6 +250,9 @@ export default function ProductionDeliveryNoteEdit() {
                 <Undo2 className="w-4 h-4 mr-2" /> Poništi knjiženje
               </Button>
             )}
+            <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+              <History className="w-4 h-4 mr-2" /> Istorija
+            </Button>
           </div>
         </div>
 
@@ -426,6 +430,7 @@ export default function ProductionDeliveryNoteEdit() {
           </TableScrollContainer>
         </div>
       </div>
+      <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={note.id} documentName={note.delivery_number} documentType="production_delivery_note" />
     </MainLayout>
   );
 }
