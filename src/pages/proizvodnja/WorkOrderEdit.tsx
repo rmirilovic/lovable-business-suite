@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { useIssuedMaterials } from "@/hooks/useIssuedMaterials";
 import { exportIssuedMaterialsPdf, printIssuedMaterials } from "@/lib/issuedMaterialsPdfGenerator";
 import { useWorkOrderRequisitions } from "@/hooks/useWorkOrderRequisitions";
+import { useWorkOrderDeliveryNotes } from "@/hooks/useWorkOrderDeliveryNotes";
 
 export default function WorkOrderEdit() {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +45,7 @@ export default function WorkOrderEdit() {
   const { materials, isLoading: materialsLoading, invalidate: invalidateMaterials } = useWorkOrderMaterials(id);
   const { data: issuedMaterials = [], isLoading: issuedLoading } = useIssuedMaterials(id);
   const { data: requisitions = [] } = useWorkOrderRequisitions(id);
+  const { data: deliveryNotes = [], isLoading: deliveriesLoading } = useWorkOrderDeliveryNotes(id);
   const { updateOrder, launchOrder, closeOrder } = useWorkOrders();
   const { articles } = useArticles(companyId);
   const { warehouses } = useWarehouses(companyId);
@@ -686,9 +688,67 @@ export default function WorkOrderEdit() {
             </TableScrollContainer>
           </TabsContent>
 
-          {/* Deliveries - placeholder */}
-          <TabsContent value="deliveries" className="p-6 text-center text-muted-foreground">
-            Pregled predajnica - biće implementirano uz predajnice.
+          {/* Deliveries tab */}
+          <TabsContent value="deliveries" className="p-0 m-0">
+            <div className="flex items-center justify-end p-3 border-b bg-muted/20">
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                <span>Ukupno po JM: <strong>{formatNumber(deliveryNotes.reduce((s, d) => s + d.items.reduce((si, it) => si + it.qty_total, 0), 0), { minimumFractionDigits: 2 })}</strong></span>
+                <span>Ukupno kg: <strong>{formatNumber(deliveryNotes.reduce((s, d) => s + d.items.reduce((si, it) => si + it.delivered_kg, 0), 0), { minimumFractionDigits: 2 })}</strong></span>
+                <span>Vrednost: <strong>{formatNumber(deliveryNotes.reduce((s, d) => s + d.items.reduce((si, it) => si + it.item_value, 0), 0), { minimumFractionDigits: 2 })}</strong></span>
+              </div>
+            </div>
+            <TableScrollContainer>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">Datum</TableHead>
+                    <TableHead className="w-[100px]">Broj</TableHead>
+                    <TableHead className="w-[80px]">Šifra</TableHead>
+                    <TableHead className="w-[60px]">Linija</TableHead>
+                    <TableHead className="w-[80px] text-right">I smena</TableHead>
+                    <TableHead className="w-[80px] text-right">II smena</TableHead>
+                    <TableHead className="w-[80px] text-right">III smena</TableHead>
+                    <TableHead className="w-[100px] text-right">Predato JM</TableHead>
+                    <TableHead className="w-[100px] text-right">Predato kg</TableHead>
+                    <TableHead className="w-[100px] text-right">Cena</TableHead>
+                    <TableHead className="w-[120px] text-right">Vrednost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {deliveryNotes.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={11} className="text-center py-6 text-muted-foreground">
+                        Nema predajnica za ovaj radni nalog.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    deliveryNotes.flatMap((dn) =>
+                      dn.items.map((item, idx) => (
+                        <TableRow key={`${dn.id}-${item.id}`}>
+                          {idx === 0 ? (
+                            <>
+                              <TableCell rowSpan={dn.items.length} className="align-top">{new Date(dn.delivery_date).toLocaleDateString("sr-Latn-RS")}</TableCell>
+                              <TableCell rowSpan={dn.items.length} className="align-top font-mono text-xs">{dn.delivery_number}</TableCell>
+                            </>
+                          ) : null}
+                          <TableCell className="font-mono text-xs">{item.article_code}</TableCell>
+                          {idx === 0 ? (
+                            <TableCell rowSpan={dn.items.length} className="align-top text-center">{dn.production_line}</TableCell>
+                          ) : null}
+                          <TableCell className="text-right font-mono">{formatNumber(item.qty_shift_1, { minimumFractionDigits: 0 })}</TableCell>
+                          <TableCell className="text-right font-mono">{formatNumber(item.qty_shift_2, { minimumFractionDigits: 0 })}</TableCell>
+                          <TableCell className="text-right font-mono">{formatNumber(item.qty_shift_3, { minimumFractionDigits: 0 })}</TableCell>
+                          <TableCell className="text-right font-mono">{formatNumber(item.qty_total, { minimumFractionDigits: 2 })}</TableCell>
+                          <TableCell className="text-right font-mono">{formatNumber(item.delivered_kg, { minimumFractionDigits: 2 })}</TableCell>
+                          <TableCell className="text-right font-mono">{formatNumber(item.unit_price, { minimumFractionDigits: 2 })}</TableCell>
+                          <TableCell className="text-right font-mono font-semibold">{formatNumber(item.item_value, { minimumFractionDigits: 2 })}</TableCell>
+                        </TableRow>
+                      ))
+                    )
+                  )}
+                </TableBody>
+              </Table>
+            </TableScrollContainer>
           </TabsContent>
 
           {/* Production note tab */}
