@@ -51,6 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [localAdminCompanyIds, setLocalAdminCompanyIds] = useState<string[]>([]);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const intentionalSignOutRef = useRef(false);
+  const mountTimeRef = useRef(Date.now());
 
   const isSuperAdmin = userRole === "super_admin";
   const isLocalAdmin = localAdminCompanyIds.length > 0;
@@ -208,10 +210,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (event === "SIGNED_OUT") {
-        // If we never completed initial load, this SIGNED_OUT is likely caused by
-        // a revoked refresh token in a newly opened tab. Try handoff before giving up.
-        if (!initialLoadDone && !awaitingHandoff) {
-          console.log("[AuthContext] SIGNED_OUT before initial load - attempting handoff rescue");
+        // If this is NOT an intentional sign-out and we're within 15s of mount,
+        // this is likely a revoked refresh token in a newly opened tab.
+        // Try handoff before giving up.
+        const timeSinceMount = Date.now() - mountTimeRef.current;
+        if (!intentionalSignOutRef.current && timeSinceMount < 15000 && !awaitingHandoff) {
+          console.log("[AuthContext] SIGNED_OUT likely from revoked token - attempting handoff rescue, timeSinceMount:", timeSinceMount);
           awaitingHandoff = true;
           setLoading(true);
           bc?.postMessage({ type: "REQUEST_SESSION" });
@@ -235,6 +239,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 4000);
           return;
         }
+        intentionalSignOutRef.current = false;
         setCompanies([]);
         setBusinessYears([]);
         setSelectedCompany(null);
@@ -390,6 +395,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    intentionalSignOutRef.current = true;
     await supabase.auth.signOut();
     setSelectedCompany(null);
     setSelectedYear(null);
