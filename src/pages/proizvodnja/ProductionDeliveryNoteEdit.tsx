@@ -12,7 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { ArrowLeft, Lock, Save } from "lucide-react";
+import { ArrowLeft, Lock, Save, Undo2 } from "lucide-react";
 import {
   useProductionDeliveryNote,
   useProductionDeliveryNoteItems,
@@ -39,7 +39,7 @@ export default function ProductionDeliveryNoteEdit() {
 
   const { data: note, isLoading: noteLoading } = useProductionDeliveryNote(id);
   const { items, isLoading: itemsLoading, invalidate: invalidateItems } = useProductionDeliveryNoteItems(id);
-  const { postNote } = useProductionDeliveryNotes();
+  const { postNote, unpostNote } = useProductionDeliveryNotes();
   
   const { warehouses } = useWarehouses(companyId);
   const { orders } = useWorkOrders();
@@ -198,6 +198,13 @@ export default function ProductionDeliveryNoteEdit() {
                 if (confirm("Proknjižiti predajnicu?")) postNote.mutateAsync(note.id);
               }}>
                 <Lock className="w-4 h-4 mr-2" /> Proknjiži
+              </Button>
+            )}
+            {!isDraft && (
+              <Button variant="outline" onClick={() => {
+                if (confirm("Poništiti knjiženje predajnice?")) unpostNote.mutateAsync(note.id);
+              }}>
+                <Undo2 className="w-4 h-4 mr-2" /> Poništi knjiženje
               </Button>
             )}
           </div>

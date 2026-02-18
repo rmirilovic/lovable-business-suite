@@ -3045,6 +3045,7 @@ export type Database = {
           delivery_date: string
           delivery_number: string
           id: string
+          journal_entry_id: string | null
           note: string | null
           posted_at: string | null
           posted_by: string | null
@@ -3068,6 +3069,7 @@ export type Database = {
           delivery_date?: string
           delivery_number: string
           id?: string
+          journal_entry_id?: string | null
           note?: string | null
           posted_at?: string | null
           posted_by?: string | null
@@ -3091,6 +3093,7 @@ export type Database = {
           delivery_date?: string
           delivery_number?: string
           id?: string
+          journal_entry_id?: string | null
           note?: string | null
           posted_at?: string | null
           posted_by?: string | null
@@ -3119,6 +3122,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_delivery_notes_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
             referencedColumns: ["id"]
           },
           {
@@ -4790,6 +4800,10 @@ export type Database = {
         Args: { _adjustment_id: string; _user_id: string }
         Returns: undefined
       }
+      post_production_delivery_note: {
+        Args: { _note_id: string; _user_id: string }
+        Returns: string
+      }
       post_purchase_price_calculation:
         | { Args: { _calculation_id: string }; Returns: undefined }
         | {
@@ -4831,6 +4845,10 @@ export type Database = {
       unpost_price_adjustment: {
         Args: { _adjustment_id: string; _user_id: string }
         Returns: undefined
+      }
+      unpost_production_delivery_note: {
+        Args: { _note_id: string; _user_id: string }
+        Returns: boolean
       }
       unpost_purchase_price_calculation: {
         Args: { _calculation_id: string; _user_id: string }
