@@ -12,7 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { ArrowLeft, Lock, Save, Undo2 } from "lucide-react";
+import { ArrowLeft, Lock, Save, Undo2, FileDown, FileSpreadsheet, Printer } from "lucide-react";
 import {
   useProductionDeliveryNote,
   useProductionDeliveryNoteItems,
@@ -29,6 +29,11 @@ import { toast } from "sonner";
 import { formatNumber, formatPrice, parseLocaleNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  exportProductionDeliveryNoteToExcel,
+  exportProductionDeliveryNoteToPdf,
+  printProductionDeliveryNote,
+} from "@/lib/productionDeliveryNotePdfGenerator";
 
 export default function ProductionDeliveryNoteEdit() {
   const { id } = useParams<{ id: string }>();
@@ -170,6 +175,33 @@ export default function ProductionDeliveryNoteEdit() {
     return [m.first_name, m.last_name].filter(Boolean).join(" ");
   };
 
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
+
+  const getExportContext = () => ({
+    note,
+    items,
+    companyName: selectedCompany?.name || "",
+    shiftManagers: {
+      sm1: headerForm.shift_manager_1_id ? getManagerName(headerForm.shift_manager_1_id) : undefined,
+      sm2: headerForm.shift_manager_2_id ? getManagerName(headerForm.shift_manager_2_id) : undefined,
+      sm3: headerForm.shift_manager_3_id ? getManagerName(headerForm.shift_manager_3_id) : undefined,
+    },
+  });
+
+  const handleExportExcel = () => {
+    exportProductionDeliveryNoteToExcel(getExportContext());
+  };
+
+  const handleExportPdf = async () => {
+    setIsPdfLoading(true);
+    try { await exportProductionDeliveryNoteToPdf(getExportContext()); } finally { setIsPdfLoading(false); }
+  };
+
+  const handlePrint = async () => {
+    setIsPdfLoading(true);
+    try { await printProductionDeliveryNote(getExportContext()); } finally { setIsPdfLoading(false); }
+  };
+
   if (noteLoading) return <MainLayout title="Predajnica GP"><p>Učitavanje...</p></MainLayout>;
   if (!note) return <MainLayout title="Predajnica GP"><p>Predajnica nije pronađena.</p></MainLayout>;
 
@@ -188,6 +220,15 @@ export default function ProductionDeliveryNoteEdit() {
             </Badge>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExportExcel} title="Excel">
+              <FileSpreadsheet className="w-4 h-4 mr-1" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPdf} disabled={isPdfLoading} title="PDF">
+              <FileDown className="w-4 h-4 mr-1" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPdfLoading} title="Štampaj">
+              <Printer className="w-4 h-4 mr-1" /> Štampaj
+            </Button>
             {isDraft && headerDirty && (
               <Button onClick={handleSaveHeader}>
                 <Save className="w-4 h-4 mr-2" /> Sačuvaj
