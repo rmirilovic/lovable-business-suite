@@ -144,10 +144,11 @@ export default function PredajniceGP() {
   };
 
   const filtered = notes.filter((n) => {
+    const s = search.toLowerCase();
     const matchSearch = !search ||
       n.delivery_number.includes(search) ||
-      n.responsible_person.toLowerCase().includes(search.toLowerCase()) ||
-      n.work_order?.order_number?.includes(search);
+      n.work_order?.order_number?.includes(search) ||
+      (itemSummary?.[n.id]?.firstArticle ?? "").toLowerCase().includes(s);
     const matchStatus = statusFilter === "all" || n.status === statusFilter;
     const matchDateFrom = !dateFrom || n.delivery_date >= dateFrom;
     const matchDateTo = !dateTo || n.delivery_date <= dateTo;
@@ -215,7 +216,7 @@ export default function PredajniceGP() {
               <div className="relative flex-1 max-w-xs">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Broj, RN ili odgovorno lice..."
+                  placeholder="Broj, RN ili gotov proizvod..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
