@@ -95,6 +95,7 @@ const navigation: NavItem[] = [
       { label: "Normativi", href: "/proizvodnja/normativi", moduleCode: "proizvodnja.sastavnice" },
       { label: "Radni nalozi", href: "/proizvodnja/nalozi", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Trebovanja", href: "/proizvodnja/trebovanja", moduleCode: "proizvodnja.trebovanja" },
+      { label: "Predajnice GP", href: "/proizvodnja/predajnice", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Recepture", href: "/proizvodnja/recepture", moduleCode: "proizvodnja.sastavnice" },
     ],
   },

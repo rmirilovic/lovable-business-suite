@@ -2942,6 +2942,222 @@ export type Database = {
           },
         ]
       }
+      production_delivery_note_items: {
+        Row: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at: string
+          delivered_kg: number
+          delivered_m: number
+          delivered_pcs: number
+          delivery_note_id: string
+          id: string
+          item_order: number
+          item_value: number
+          kg_per_unit: number
+          launched_qty: number
+          qty_shift_1: number
+          qty_shift_2: number
+          qty_shift_3: number
+          qty_total: number
+          scrap_qty: number
+          unit: string
+          unit_price: number
+        }
+        Insert: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at?: string
+          delivered_kg?: number
+          delivered_m?: number
+          delivered_pcs?: number
+          delivery_note_id: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          kg_per_unit?: number
+          launched_qty?: number
+          qty_shift_1?: number
+          qty_shift_2?: number
+          qty_shift_3?: number
+          qty_total?: number
+          scrap_qty?: number
+          unit?: string
+          unit_price?: number
+        }
+        Update: {
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          company_id?: string
+          created_at?: string
+          delivered_kg?: number
+          delivered_m?: number
+          delivered_pcs?: number
+          delivery_note_id?: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          kg_per_unit?: number
+          launched_qty?: number
+          qty_shift_1?: number
+          qty_shift_2?: number
+          qty_shift_3?: number
+          qty_total?: number
+          scrap_qty?: number
+          unit?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_delivery_note_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_delivery_note_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_delivery_note_items_delivery_note_id_fkey"
+            columns: ["delivery_note_id"]
+            isOneToOne: false
+            referencedRelation: "production_delivery_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_delivery_notes: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          delivery_date: string
+          delivery_number: string
+          id: string
+          note: string | null
+          posted_at: string | null
+          posted_by: string | null
+          production_line: number
+          responsible_person: string
+          shift_manager_1_id: string | null
+          shift_manager_2_id: string | null
+          shift_manager_3_id: string | null
+          status: string
+          total_kg: number
+          total_value: number
+          updated_at: string
+          warehouse_id: string
+          work_order_id: string | null
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          delivery_date?: string
+          delivery_number: string
+          id?: string
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          production_line?: number
+          responsible_person?: string
+          shift_manager_1_id?: string | null
+          shift_manager_2_id?: string | null
+          shift_manager_3_id?: string | null
+          status?: string
+          total_kg?: number
+          total_value?: number
+          updated_at?: string
+          warehouse_id: string
+          work_order_id?: string | null
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          delivery_date?: string
+          delivery_number?: string
+          id?: string
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          production_line?: number
+          responsible_person?: string
+          shift_manager_1_id?: string | null
+          shift_manager_2_id?: string | null
+          shift_manager_3_id?: string | null
+          status?: string
+          total_kg?: number
+          total_value?: number
+          updated_at?: string
+          warehouse_id?: string
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_delivery_notes_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_delivery_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_delivery_notes_shift_manager_1_id_fkey"
+            columns: ["shift_manager_1_id"]
+            isOneToOne: false
+            referencedRelation: "shift_managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_delivery_notes_shift_manager_2_id_fkey"
+            columns: ["shift_manager_2_id"]
+            isOneToOne: false
+            referencedRelation: "shift_managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_delivery_notes_shift_manager_3_id_fkey"
+            columns: ["shift_manager_3_id"]
+            isOneToOne: false
+            referencedRelation: "shift_managers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_delivery_notes_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_delivery_notes_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
