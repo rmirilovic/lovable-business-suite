@@ -60,6 +60,9 @@ export default function WorkOrderEdit() {
   const gpWarehouses = useMemo(() => warehouses.filter((w) => w.warehouse_type === "9" && w.is_active), [warehouses]);
   const rmWarehouses = useMemo(() => warehouses.filter((w) => w.warehouse_type === "2" && w.is_active), [warehouses]);
 
+  // Active tab persistence
+  const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem("wo_edit_tab") || "materials");
+
   // Header form state
   const [headerForm, setHeaderForm] = useState({
     order_date: "",
@@ -482,7 +485,7 @@ export default function WorkOrderEdit() {
         </div>
 
         {/* Bottom tabs */}
-        <Tabs defaultValue="materials" className="border rounded-lg">
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); sessionStorage.setItem("wo_edit_tab", v); }} className="border rounded-lg">
           <TabsList className="w-full justify-start border-b rounded-none bg-muted/30 h-auto p-0">
             <TabsTrigger value="materials" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary">
               Potreban materijal
