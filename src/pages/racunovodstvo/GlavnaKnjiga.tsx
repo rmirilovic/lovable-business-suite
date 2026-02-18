@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
@@ -28,10 +28,33 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
-import { useTableSort } from "@/hooks/useTableSort";
+import { useTableSort, SortDirection } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { format } from "date-fns";
 import { formatNumber } from "@/lib/formatting";
+
+const GL_STORAGE_KEY = "glavna_knjiga_view_state";
+
+interface GLViewState {
+  selectedAccount: string;
+  dateFrom: string;
+  dateTo: string;
+  analyticsFilter: string;
+  docTypeFilter: string;
+  sortColumn: string | null;
+  sortDirection: SortDirection;
+}
+
+function loadGLState(): Partial<GLViewState> {
+  try {
+    const raw = sessionStorage.getItem(GL_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveGLState(state: GLViewState) {
+  sessionStorage.setItem(GL_STORAGE_KEY, JSON.stringify(state));
+}
 
 interface LedgerEntry {
   id: string;
@@ -59,14 +82,31 @@ export default function GlavnaKnjiga() {
   const { data: accounts = [] } = useChartOfAccounts();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const saved = loadGLState();
 
-  const [selectedAccount, setSelectedAccount] = useState<string>(searchParams.get("account") || "");
-  const [dateFrom, setDateFrom] = useState<string>(searchParams.get("from") || "");
-  const [dateTo, setDateTo] = useState<string>(searchParams.get("to") || "");
-  const [analyticsFilter, setAnalyticsFilter] = useState<string>("");
-  const [docTypeFilter, setDocTypeFilter] = useState<string>("");
+  const [selectedAccount, setSelectedAccount] = useState<string>(searchParams.get("account") || saved.selectedAccount || "");
+  const [dateFrom, setDateFrom] = useState<string>(searchParams.get("from") || saved.dateFrom || "");
+  const [dateTo, setDateTo] = useState<string>(searchParams.get("to") || saved.dateTo || "");
+  const [analyticsFilter, setAnalyticsFilter] = useState<string>(saved.analyticsFilter || "");
+  const [docTypeFilter, setDocTypeFilter] = useState<string>(saved.docTypeFilter || "");
 
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("entry_date", "asc");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
+    saved.sortColumn ?? "entry_date",
+    saved.sortDirection ?? "asc"
+  );
+
+  // Persist state to sessionStorage
+  useEffect(() => {
+    saveGLState({
+      selectedAccount,
+      dateFrom,
+      dateTo,
+      analyticsFilter,
+      docTypeFilter,
+      sortColumn,
+      sortDirection,
+    });
+  }, [selectedAccount, dateFrom, dateTo, analyticsFilter, docTypeFilter, sortColumn, sortDirection]);
 
   const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
 
