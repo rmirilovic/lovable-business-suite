@@ -28,6 +28,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber } from "@/lib/formatting";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useIssuedMaterials } from "@/hooks/useIssuedMaterials";
 import { exportIssuedMaterialsPdf, printIssuedMaterials, exportIssuedMaterialsExcel } from "@/lib/issuedMaterialsPdfGenerator";
@@ -694,7 +695,7 @@ export default function WorkOrderEdit() {
                   ) : (
                     requisitions.map((req) => (
                       <TableRow key={req.id}>
-                        <TableCell>{new Date(req.requisition_date).toLocaleDateString("sr-Latn-RS")}</TableCell>
+                        <TableCell>{format(new Date(req.requisition_date), "dd.MM.yyyy")}</TableCell>
                         <TableCell className="font-mono text-xs">{req.requisition_number}</TableCell>
                         <TableCell>{req.warehouse_code} - {req.warehouse_name}</TableCell>
                         <TableCell className="text-right font-mono font-semibold">
@@ -760,7 +761,7 @@ export default function WorkOrderEdit() {
                         <TableRow key={`${dn.id}-${item.id}`}>
                           {idx === 0 ? (
                             <>
-                              <TableCell rowSpan={dn.items.length} className="align-top">{new Date(dn.delivery_date).toLocaleDateString("sr-Latn-RS")}</TableCell>
+                              <TableCell rowSpan={dn.items.length} className="align-top">{format(new Date(dn.delivery_date), "dd.MM.yyyy")}</TableCell>
                               <TableCell rowSpan={dn.items.length} className="align-top font-mono text-xs">{dn.delivery_number}</TableCell>
                             </>
                           ) : null}
