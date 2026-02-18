@@ -258,8 +258,8 @@ export default function JournalEntryEdit() {
               <TableRow>
                 <TableHead className="w-[100px]">Konto</TableHead>
                 <TableHead className="w-[200px]">Naziv konta</TableHead>
-                <TableHead>Opis</TableHead>
                 <TableHead className="w-[100px]">Analitika</TableHead>
+                <TableHead>Opis</TableHead>
                 <TableHead className="w-[100px]">Valuta</TableHead>
                 <TableHead className="w-[160px] text-right">Duguje</TableHead>
                 <TableHead className="w-[160px] text-right">Potražuje</TableHead>
@@ -284,8 +284,8 @@ export default function JournalEntryEdit() {
                   <TableRow key={item.id}>
                     <TableCell className="font-mono">{item.account_code}</TableCell>
                     <TableCell className="text-sm">{item.account_name || "-"}</TableCell>
-                    <TableCell>{item.description || "-"}</TableCell>
                     <TableCell className="font-mono text-xs">{item.cost_center_code || item.partner_code || "-"}</TableCell>
+                    <TableCell>{item.description || "-"}</TableCell>
                     <TableCell className="text-xs">{item.document_date ? formatDate(item.document_date) : "-"}</TableCell>
                     <TableCell className="text-right font-mono">
                       {Number(item.debit_amount) > 0 
