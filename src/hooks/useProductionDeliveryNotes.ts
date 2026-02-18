@@ -182,16 +182,36 @@ export function useProductionDeliveryNotes() {
 
   const postNote = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
-        .from("production_delivery_notes")
-        .update({ status: "posted", posted_at: new Date().toISOString(), posted_by: user?.id })
-        .eq("id", id);
+      const { data, error } = await (supabase as any).rpc("post_production_delivery_note", {
+        _note_id: id,
+        _user_id: user?.id,
+      });
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["production-delivery-notes"] });
       queryClient.invalidateQueries({ queryKey: ["production-delivery-note"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
       toast.success("Predajnica proknjižena");
+    },
+    onError: (e: any) => toast.error(`Greška: ${e.message}`),
+  });
+
+  const unpostNote = useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await (supabase as any).rpc("unpost_production_delivery_note", {
+        _note_id: id,
+        _user_id: user?.id,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["production-delivery-notes"] });
+      queryClient.invalidateQueries({ queryKey: ["production-delivery-note"] });
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      toast.success("Knjiženje predajnice poništeno");
     },
     onError: (e: any) => toast.error(`Greška: ${e.message}`),
   });
@@ -202,6 +222,7 @@ export function useProductionDeliveryNotes() {
     createNote,
     deleteNote,
     postNote,
+    unpostNote,
   };
 }
 

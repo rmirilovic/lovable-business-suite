@@ -18,7 +18,7 @@ import { SortableHeader } from "@/components/ui/sortable-header";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Trash2, Lock, FileSpreadsheet, FileText, Printer, MoreHorizontal, Eye } from "lucide-react";
+import { Plus, Search, Trash2, Lock, Unlock, FileSpreadsheet, FileText, Printer, MoreHorizontal, Eye } from "lucide-react";
 import { exportPredajniceToExcel, exportPredajniceToPdf, printPredajnice, PredajnicaExportRow } from "@/lib/predajniceExportUtils";
 import {
   useProductionDeliveryNotes,
@@ -51,7 +51,7 @@ export default function PredajniceGP() {
   const navigate = useNavigate();
   const { selectedCompany, selectedYear, user } = useAuth();
   const companyId = selectedCompany?.id;
-  const { notes, isLoading, createNote, deleteNote } = useProductionDeliveryNotes();
+  const { notes, isLoading, createNote, deleteNote, postNote, unpostNote } = useProductionDeliveryNotes();
   const { warehouses } = useWarehouses(companyId);
   const { orders } = useWorkOrders();
   const gpWarehouses = warehouses.filter((w) => w.warehouse_type === "9" && w.is_active);
@@ -353,6 +353,20 @@ export default function PredajniceGP() {
                           <DropdownMenuItem onClick={() => persistAndNavigate(note.id)}>
                             <Eye className="w-4 h-4 mr-2" /> Otvori
                           </DropdownMenuItem>
+                          {note.status === "draft" && (
+                            <DropdownMenuItem onClick={() => {
+                              if (confirm(`Proknjižiti predajnicu ${note.delivery_number}?`)) postNote.mutateAsync(note.id);
+                            }}>
+                              <Lock className="w-4 h-4 mr-2" /> Proknjiži
+                            </DropdownMenuItem>
+                          )}
+                          {note.status === "posted" && (
+                            <DropdownMenuItem onClick={() => {
+                              if (confirm(`Poništiti knjiženje predajnice ${note.delivery_number}?`)) unpostNote.mutateAsync(note.id);
+                            }}>
+                              <Unlock className="w-4 h-4 mr-2" /> Poništi knjiženje
+                            </DropdownMenuItem>
+                          )}
                           {note.status === "draft" && (
                             <DropdownMenuItem onClick={() => handleDelete(note)} className="text-destructive">
                               <Trash2 className="w-4 h-4 mr-2" /> Obriši
