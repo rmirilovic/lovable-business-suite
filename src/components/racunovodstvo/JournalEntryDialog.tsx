@@ -86,6 +86,7 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
       item_order: items.length,
       partner_id: null,
       cost_center_code: null,
+      document_date: null,
     });
 
     setNewItem({

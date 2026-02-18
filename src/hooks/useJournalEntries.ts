@@ -39,6 +39,7 @@ export interface JournalEntryItem {
   partner_id: string | null;
   cost_center_code: string | null;
   created_at: string;
+  document_date: string | null;
 }
 
 export function useJournalEntries() {

@@ -247,6 +247,7 @@ export default function JournalEntryEdit() {
                 <TableHead className="w-[100px]">Konto</TableHead>
                 <TableHead>Opis</TableHead>
                 <TableHead className="w-[100px]">Analitika</TableHead>
+                <TableHead className="w-[100px]">Valuta</TableHead>
                 <TableHead className="w-[130px] text-right">Duguje</TableHead>
                 <TableHead className="w-[130px] text-right">Potražuje</TableHead>
                 {isDraft && <TableHead className="w-[80px]"></TableHead>}
@@ -255,13 +256,13 @@ export default function JournalEntryEdit() {
             <TableBody>
               {itemsLoading ? (
                 <TableRow>
-                  <TableCell colSpan={isDraft ? 6 : 5} className="text-center py-8">
+                   <TableCell colSpan={isDraft ? 7 : 6} className="text-center py-8">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isDraft ? 6 : 5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={isDraft ? 7 : 6} className="text-center py-8 text-muted-foreground">
                     Nema stavki. Dodajte prvu stavku.
                   </TableCell>
                 </TableRow>
@@ -271,6 +272,7 @@ export default function JournalEntryEdit() {
                     <TableCell className="font-mono">{item.account_code}</TableCell>
                     <TableCell>{item.description || "-"}</TableCell>
                     <TableCell className="font-mono text-xs">{item.cost_center_code || "-"}</TableCell>
+                    <TableCell className="text-xs">{item.document_date ? formatDate(item.document_date) : "-"}</TableCell>
                     <TableCell className="text-right font-mono">
                       {Number(item.debit_amount) > 0 
                         ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -299,7 +301,7 @@ export default function JournalEntryEdit() {
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={isDraft ? 3 : 3} className="text-right font-medium">
+                <TableCell colSpan={isDraft ? 4 : 4} className="text-right font-medium">
                   Ukupno:
                 </TableCell>
                 <TableCell className="text-right font-mono font-bold">
