@@ -361,7 +361,7 @@ export default function PredajniceGP() {
                             </DropdownMenuItem>
                           )}
                           {note.status === "posted" && (
-                            <DropdownMenuItem onClick={() => {
+                            <DropdownMenuItem className="text-destructive" onClick={() => {
                               if (confirm(`Poništiti knjiženje predajnice ${note.delivery_number}?`)) unpostNote.mutateAsync(note.id);
                             }}>
                               <Unlock className="w-4 h-4 mr-2" /> Poništi knjiženje
