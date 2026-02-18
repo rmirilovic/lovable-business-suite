@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { useIssuedMaterials } from "@/hooks/useIssuedMaterials";
-import { exportIssuedMaterialsPdf, printIssuedMaterials } from "@/lib/issuedMaterialsPdfGenerator";
+import { exportIssuedMaterialsPdf, printIssuedMaterials, exportIssuedMaterialsExcel } from "@/lib/issuedMaterialsPdfGenerator";
 import { useWorkOrderRequisitions } from "@/hooks/useWorkOrderRequisitions";
 import { useWorkOrderDeliveryNotes } from "@/hooks/useWorkOrderDeliveryNotes";
 import {
@@ -597,11 +597,14 @@ export default function WorkOrderEdit() {
             <div className="flex items-center justify-between p-3 border-b bg-muted/20">
               {issuedMaterials.length > 0 && order ? (
                 <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => exportIssuedMaterialsExcel(order, issuedMaterials)}>
+                    <FileSpreadsheet className="w-4 h-4 mr-1" /> Excel
+                  </Button>
                   <Button variant="outline" size="sm" onClick={() => exportIssuedMaterialsPdf(order, issuedMaterials, selectedCompany?.name || "")}>
-                    <FileDown className="w-4 h-4 mr-2" /> PDF
+                    <FileDown className="w-4 h-4 mr-1" /> PDF
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => printIssuedMaterials(order, issuedMaterials, selectedCompany?.name || "")}>
-                    <Printer className="w-4 h-4 mr-2" /> Štampa
+                    <Printer className="w-4 h-4 mr-1" /> Štampa
                   </Button>
                 </div>
               ) : <div />}

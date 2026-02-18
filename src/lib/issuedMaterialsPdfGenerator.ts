@@ -1,8 +1,9 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 import { IssuedMaterialRow } from "@/hooks/useIssuedMaterials";
 import { WorkOrder } from "@/hooks/useWorkOrders";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, formatPrice } from "@/lib/formatting";
 import { format } from "date-fns";
 import { initializePdfFonts, configurePdfFonts } from "@/lib/pdfFonts";
 import { printPdfBlob } from "@/lib/printPdf";
@@ -98,4 +99,26 @@ export async function printIssuedMaterials(
 ) {
   const doc = await buildPdf(order, rows, companyName);
   printPdfBlob(doc.output("blob"));
+}
+
+export function exportIssuedMaterialsExcel(
+  order: WorkOrder,
+  rows: IssuedMaterialRow[],
+) {
+  const fmtNum = (v: number) => (v ? formatPrice(v) : "-");
+  const data = rows.map((r) => ({
+    "Šifra": r.article_code,
+    "Naziv materijala": r.article_name,
+    "JM": r.unit,
+    "Prosečna cena": fmtNum(r.avg_price),
+    "Količina": formatNumber(r.total_qty, { minimumFractionDigits: 3 }),
+    "Vrednost": fmtNum(r.total_value),
+  }));
+  const total = rows.reduce((s, r) => s + r.total_value, 0);
+  data.push({ "Šifra": "", "Naziv materijala": "", "JM": "", "Prosečna cena": "", "Količina": "UKUPNO:", "Vrednost": fmtNum(total) });
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws["!cols"] = [{ wch: 12 }, { wch: 35 }, { wch: 6 }, { wch: 14 }, { wch: 14 }, { wch: 14 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Istrebovani materijal");
+  XLSX.writeFile(wb, `istrebovani_materijal_RN_${order.order_number}.xlsx`);
 }
