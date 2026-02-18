@@ -4,7 +4,8 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft, RefreshCw } from "lucide-react";
+import { Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft, RefreshCw, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { GoodsPurchaseInvoice, useGoodsPurchaseInvoiceItems, useGoodsPurchaseInvoices } from "@/hooks/useGoodsPurchaseInvoices";
 import { GoodsPurchaseInvoiceItemsEditor } from "@/components/nabavka/GoodsPurchaseInvoiceItemsEditor";
 import { GoodsPurchaseInvoiceHeaderDialog } from "@/components/nabavka/GoodsPurchaseInvoiceHeaderDialog";
@@ -48,6 +49,7 @@ export default function GoodsPurchaseInvoiceEdit() {
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [userAccessLevel, setUserAccessLevel] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const { items, isLoading: itemsLoading, addItem, updateItem, deleteItem } = useGoodsPurchaseInvoiceItems(id || null);
   const { updateTotals, postInvoice, unpostInvoice } = useGoodsPurchaseInvoices();
@@ -205,6 +207,9 @@ export default function GoodsPurchaseInvoiceEdit() {
             </Badge>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
             <Button variant="ghost" size="sm" onClick={fetchInvoice} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
@@ -405,6 +410,9 @@ export default function GoodsPurchaseInvoiceEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {invoice && (
+        <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={invoice.id} documentName={invoice.internal_number} documentType="goods_purchase_invoice" />
+      )}
     </MainLayout>
   );
 }

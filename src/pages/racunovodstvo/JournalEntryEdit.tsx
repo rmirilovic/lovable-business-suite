@@ -4,7 +4,8 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, ArrowLeft, RefreshCw, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, ArrowLeft, RefreshCw, Plus, Trash2, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { JournalEntry, useJournalEntryItems, useJournalEntryMutations, useJournalEntryItemMutations, STATUS_LABELS, STATUS_COLORS, JournalEntryItem } from "@/hooks/useJournalEntries";
 import { JournalEntryItemForm } from "@/components/racunovodstvo/JournalEntryItemForm";
 import { formatDate } from "@/lib/formatting";
@@ -65,6 +66,7 @@ export default function JournalEntryEdit() {
   const [isLoading, setIsLoading] = useState(true);
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [addItemDialogOpen, setAddItemDialogOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<JournalEntryItem | null>(null);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
@@ -206,6 +208,9 @@ export default function JournalEntryEdit() {
             </Badge>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
             <Button variant="ghost" size="sm" onClick={fetchEntry} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
@@ -474,6 +479,9 @@ export default function JournalEntryEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {entry && (
+        <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={entry.id} documentName={entry.entry_number} documentType="journal_entry" />
+      )}
     </MainLayout>
   );
 }

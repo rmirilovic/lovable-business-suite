@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft,
-  RefreshCw, Calculator, ExternalLink,
+  RefreshCw, Calculator, ExternalLink, History,
 } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   GoodsReceipt, useGoodsReceiptItems, useGoodsReceipts,
 } from "@/hooks/useGoodsReceipts";
@@ -47,6 +48,7 @@ export default function GoodsReceiptEdit() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const { items, isLoading: itemsLoading } = useGoodsReceiptItems(id || null);
   const { updateReceipt, postReceipt, unpostReceipt } = useGoodsReceipts();
@@ -175,6 +177,9 @@ export default function GoodsReceiptEdit() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
             <Button variant="ghost" size="sm" onClick={fetchReceipt} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
@@ -396,6 +401,16 @@ export default function GoodsReceiptEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {receipt && (
+        <DocumentHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          documentId={receipt.id}
+          documentName={receipt.receipt_number}
+          documentType="goods_receipt"
+        />
+      )}
     </MainLayout>
   );
 }

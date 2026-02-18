@@ -974,6 +974,45 @@ export type Database = {
           },
         ]
       }
+      document_history: {
+        Row: {
+          change_type: string
+          changed_at: string
+          changed_by: string
+          company_id: string
+          document_id: string
+          document_type: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+        }
+        Insert: {
+          change_type: string
+          changed_at?: string
+          changed_by?: string
+          company_id: string
+          document_id: string
+          document_type: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+        }
+        Update: {
+          change_type?: string
+          changed_at?: string
+          changed_by?: string
+          company_id?: string
+          document_id?: string
+          document_type?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+        }
+        Relationships: []
+      }
       goods_purchase_invoice_items: {
         Row: {
           article_id: string | null

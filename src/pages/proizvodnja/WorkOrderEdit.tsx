@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useWorkOrder, useWorkOrderItems, useWorkOrderMaterials,
   useWorkOrders, WorkOrderItem, WorkOrderMaterial,
@@ -62,6 +63,7 @@ export default function WorkOrderEdit() {
 
   // Active tab persistence
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem("wo_edit_tab") || "materials");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Header form state
   const [headerForm, setHeaderForm] = useState({
@@ -315,6 +317,9 @@ export default function WorkOrderEdit() {
             </Badge>
           </div>
           <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
             {isDraft && headerDirty && (
               <Button onClick={handleSaveHeader} disabled={updateOrder.isPending}>
                 <Save className="w-4 h-4 mr-2" /> Sačuvaj
@@ -811,6 +816,9 @@ export default function WorkOrderEdit() {
           </TabsContent>
         </Tabs>
       </div>
+      {order && (
+        <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={order.id} documentName={order.order_number} documentType="work_order" />
+      )}
     </MainLayout>
   );
 }

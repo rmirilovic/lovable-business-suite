@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw,
+  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw, History,
 } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { PriceAdjustment, usePriceAdjustmentItems, usePriceAdjustments } from "@/hooks/usePriceAdjustments";
 import { PriceAdjustmentItemsEditor } from "@/components/magacin/PriceAdjustmentItemsEditor";
 import { PriceAdjustmentDialog } from "@/components/magacin/PriceAdjustmentDialog";
@@ -39,6 +40,7 @@ export default function PriceAdjustmentEdit() {
   const [isLoading, setIsLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
 
   const { items, isLoading: itemsLoading } = usePriceAdjustmentItems(id || null);
@@ -143,9 +145,14 @@ export default function PriceAdjustmentEdit() {
               <Badge variant="outline">Nacrt</Badge>
             )}
           </div>
-          <Button variant="ghost" size="sm" onClick={fetchDoc} title="Osveži">
-            <RefreshCw className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={fetchDoc} title="Osveži">
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
@@ -309,6 +316,9 @@ export default function PriceAdjustmentEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {doc && (
+        <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={doc.id} documentName={doc.adjustment_number} documentType="price_adjustment" />
+      )}
     </MainLayout>
   );
 }
