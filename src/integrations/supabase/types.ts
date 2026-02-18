@@ -3830,6 +3830,44 @@ export type Database = {
           },
         ]
       }
+      shift_managers: {
+        Row: {
+          company_id: string
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          slot_number: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          slot_number: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          slot_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_managers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_companies: {
         Row: {
           company_id: string

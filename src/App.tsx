@@ -18,6 +18,7 @@ import AtributiArtikala from "./pages/sifarnici/AtributiArtikala";
 import Magacini from "./pages/sifarnici/Magacini";
 import OrganizacioneJedinice from "./pages/sifarnici/OrganizacioneJedinice";
 import UlazniTroskovi from "./pages/sifarnici/UlazniTroskovi";
+import SefoviSmena from "./pages/sifarnici/SefoviSmena";
 import AdminPanel from "./pages/admin/AdminPanel";
 import KontniPlan from "./pages/racunovodstvo/KontniPlan";
 import NaloziZaKnjizenje from "./pages/racunovodstvo/NaloziZaKnjizenje";
@@ -124,6 +125,11 @@ const App = () => (
               <Route path="/sifarnici/ulazni-troskovi" element={
                 <ProtectedRoute>
                   <UlazniTroskovi />
+                </ProtectedRoute>
+              } />
+              <Route path="/sifarnici/sefovi-smena" element={
+                <ProtectedRoute>
+                  <SefoviSmena />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
