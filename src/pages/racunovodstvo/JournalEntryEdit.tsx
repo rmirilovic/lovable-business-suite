@@ -260,8 +260,8 @@ export default function JournalEntryEdit() {
                 <TableHead>Opis</TableHead>
                 <TableHead className="w-[100px]">Analitika</TableHead>
                 <TableHead className="w-[100px]">Valuta</TableHead>
-                <TableHead className="w-[130px] text-right">Duguje</TableHead>
-                <TableHead className="w-[130px] text-right">Potražuje</TableHead>
+                <TableHead className="w-[160px] text-right">Duguje</TableHead>
+                <TableHead className="w-[160px] text-right">Potražuje</TableHead>
                 {isDraft && <TableHead className="w-[80px]"></TableHead>}
               </TableRow>
             </TableHeader>
