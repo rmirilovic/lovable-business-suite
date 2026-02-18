@@ -208,6 +208,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (event === "SIGNED_OUT") {
+        // If we never completed initial load, this SIGNED_OUT is likely caused by
+        // a revoked refresh token in a newly opened tab. Try handoff before giving up.
+        if (!initialLoadDone && !awaitingHandoff) {
+          console.log("[AuthContext] SIGNED_OUT before initial load - attempting handoff rescue");
+          awaitingHandoff = true;
+          setLoading(true);
+          bc?.postMessage({ type: "REQUEST_SESSION" });
+          if (window.opener) {
+            try {
+              window.opener.postMessage({ type: "REQUEST_SESSION" }, origin);
+            } catch { /* ignore */ }
+          }
+          handoffTimeout = window.setTimeout(() => {
+            awaitingHandoff = false;
+            if (!isMounted) return;
+            console.log("[AuthContext] Handoff rescue timeout - signing out");
+            setCompanies([]);
+            setBusinessYears([]);
+            setSelectedCompany(null);
+            setSelectedYear(null);
+            setUserRole(null);
+            setLocalAdminCompanyIds([]);
+            setInitialLoadDone(false);
+            setLoading(false);
+          }, 4000);
+          return;
+        }
         setCompanies([]);
         setBusinessYears([]);
         setSelectedCompany(null);
