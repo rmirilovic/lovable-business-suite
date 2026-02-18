@@ -110,14 +110,22 @@ export default function PredajniceGP() {
       if (!noteIds.length) return {};
       const { data, error } = await (supabase as any)
         .from("production_delivery_note_items")
-        .select("delivery_note_id, item_value, delivered_kg")
+        .select("delivery_note_id, item_value, delivered_kg, article_code, article_name, item_order")
         .in("delivery_note_id", noteIds);
       if (error) throw error;
-      const map: Record<string, { totalValue: number; totalKg: number }> = {};
+      const map: Record<string, { totalValue: number; totalKg: number; firstArticle: string }> = {};
       for (const item of data || []) {
-        if (!map[item.delivery_note_id]) map[item.delivery_note_id] = { totalValue: 0, totalKg: 0 };
+        if (!map[item.delivery_note_id]) {
+          map[item.delivery_note_id] = { totalValue: 0, totalKg: 0, firstArticle: "" };
+        }
         map[item.delivery_note_id].totalValue += Number(item.item_value || 0);
         map[item.delivery_note_id].totalKg += Number(item.delivered_kg || 0);
+      }
+      // Find first article by item_order for each note
+      for (const item of (data || []).sort((a: any, b: any) => (a.item_order ?? 0) - (b.item_order ?? 0))) {
+        if (map[item.delivery_note_id] && !map[item.delivery_note_id].firstArticle) {
+          map[item.delivery_note_id].firstArticle = `${item.article_code} - ${item.article_name}`;
+        }
       }
       return map;
     },
@@ -152,6 +160,7 @@ export default function PredajniceGP() {
       case "delivery_date": return item.delivery_date;
       case "work_order": return item.work_order?.order_number ?? "";
       case "warehouse": return item.warehouse?.code ?? "";
+      case "article": return itemSummary?.[item.id]?.firstArticle ?? "";
       case "line": return item.production_line;
       case "total_value": return itemSummary?.[item.id]?.totalValue ?? 0;
       case "total_kg": return itemSummary?.[item.id]?.totalKg ?? 0;
@@ -265,6 +274,9 @@ export default function PredajniceGP() {
                 <TableHead className="w-[60px]">
                   <SortableHeader column="line" label="Linija" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
+                <TableHead className="min-w-[180px]">
+                  <SortableHeader column="article" label="Gotov proizvod" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 <TableHead className="w-[110px] text-right">
                   <SortableHeader column="total_kg" label="Ukupno kg" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
                 </TableHead>
@@ -280,11 +292,11 @@ export default function PredajniceGP() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">Učitavanje...</TableCell>
+                  <TableCell colSpan={10} className="text-center py-8">Učitavanje...</TableCell>
                 </TableRow>
               ) : sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                     Nema predajnica.
                   </TableCell>
                 </TableRow>
@@ -301,6 +313,9 @@ export default function PredajniceGP() {
                     <TableCell className="font-mono text-xs">{note.work_order?.order_number ?? "-"}</TableCell>
                     <TableCell>{note.warehouse?.code ?? "-"}</TableCell>
                     <TableCell className="text-center">{note.production_line}</TableCell>
+                    <TableCell className="text-xs truncate max-w-[220px]" title={itemSummary?.[note.id]?.firstArticle ?? ""}>
+                      {itemSummary?.[note.id]?.firstArticle ?? "-"}
+                    </TableCell>
                     <TableCell className="text-right font-mono">{formatPrice(itemSummary?.[note.id]?.totalKg ?? 0)}</TableCell>
                     <TableCell className="text-right font-mono">{formatPrice(itemSummary?.[note.id]?.totalValue ?? 0)}</TableCell>
                     <TableCell>
