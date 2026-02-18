@@ -270,7 +270,7 @@ export default function ProductionDeliveryNoteEdit() {
             </select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Magacin GP</Label>
+            <Label className="text-xs">Magacin</Label>
             <select
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
               value={headerForm.warehouse_id}
