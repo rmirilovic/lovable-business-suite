@@ -12,13 +12,14 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Trash2, Rocket, Lock, MoreHorizontal, Eye, Undo2 } from "lucide-react";
+import { Plus, Search, Trash2, Rocket, Lock, MoreHorizontal, Eye, Undo2, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useReprocessingWorkOrders, RWO_STATUS_LABELS, RWO_STATUS_COLORS, ReprocessingWorkOrder } from "@/hooks/useReprocessingWorkOrders";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useTableSort } from "@/hooks/useTableSort";
 import { format, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/formatting";
+import { exportRWOToExcel, exportRWOToPdf, printRWO, EnrichedRWO } from "@/lib/reprocessingWorkOrderExportUtils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -115,6 +116,12 @@ export default function ReprocessingWorkOrders() {
 
   const fmtDate = (d: string | null) => d ? format(new Date(d), "dd.MM.yyyy") : "-";
 
+  const getEnrichedOrders = (): EnrichedRWO[] => sorted.map((o) => ({
+    ...o,
+    firstProduct: outputSummary?.[o.id]?.firstProduct ?? "",
+    totalValue: outputSummary?.[o.id]?.totalValue ?? 0,
+  }));
+
   return (
     <MainLayout title="RN za preradu i doradu">
       <div className="flex flex-col h-full min-h-0">
@@ -133,9 +140,14 @@ export default function ReprocessingWorkOrders() {
                 ))}
               </div>
             </div>
-            <Button onClick={() => { setNewForm({ order_date: format(new Date(), "yyyy-MM-dd"), deadline_date: "", warehouse_id: gpWarehouses.length === 1 ? gpWarehouses[0].id : "" }); setShowNewDialog(true); }}>
-              <Plus className="w-4 h-4 mr-2" /> Novi RN za preradu
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => { const enriched = getEnrichedOrders(); const meta = { companyName: selectedCompany?.name ?? "", dateFrom, dateTo }; exportRWOToExcel(enriched, meta); }}><FileSpreadsheet className="w-4 h-4 mr-1" /> Excel</Button>
+              <Button variant="outline" size="sm" onClick={() => { const enriched = getEnrichedOrders(); const meta = { companyName: selectedCompany?.name ?? "", dateFrom, dateTo }; exportRWOToPdf(enriched, meta); }}><FileText className="w-4 h-4 mr-1" /> PDF</Button>
+              <Button variant="outline" size="sm" onClick={() => { const enriched = getEnrichedOrders(); const meta = { companyName: selectedCompany?.name ?? "", dateFrom, dateTo }; printRWO(enriched, meta); }}><Printer className="w-4 h-4 mr-1" /> Štampa</Button>
+              <Button onClick={() => { setNewForm({ order_date: format(new Date(), "yyyy-MM-dd"), deadline_date: "", warehouse_id: gpWarehouses.length === 1 ? gpWarehouses[0].id : "" }); setShowNewDialog(true); }}>
+                <Plus className="w-4 h-4 mr-2" /> Novi RN za preradu
+              </Button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-1"><Label className="text-xs text-muted-foreground">Datum od</Label><LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[140px]" /></div>
