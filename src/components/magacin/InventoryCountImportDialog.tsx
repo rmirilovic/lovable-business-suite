@@ -94,8 +94,20 @@ interface Props {
   countDate: string;
   yearId: string;
   yearStart: string;
+  warehouseType: string;
   items: InventoryCountItem[];
   articles: Article[];
+}
+
+function getAllowedSvkForWarehouseType(warehouseType: string): string[] {
+  switch (warehouseType) {
+    case "1": return ["1"];
+    case "2": return ["2"];
+    case "6": return ["6"];
+    case "9": return ["9"];
+    case "12": return ["1", "2"];
+    default: return ["0", "1", "2", "6", "8", "9"];
+  }
 }
 
 interface StockRow {
@@ -104,13 +116,13 @@ interface StockRow {
   balance_value: number;
 }
 
-export function InventoryCountImportDialog({ open, onOpenChange, countId, companyId, warehouseId, countDate, yearId, yearStart, items, articles }: Props) {
+export function InventoryCountImportDialog({ open, onOpenChange, countId, companyId, warehouseId, countDate, yearId, yearStart, warehouseType, items, articles }: Props) {
   const [step, setStep] = useState<"upload" | "mapping" | "preview" | "importing" | "complete">("upload");
   const [excelHeaders, setExcelHeaders] = useState<string[]>([]);
   const [rawRows, setRawRows] = useState<Record<string, any>[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState(0);
-  const [importResult, setImportResult] = useState<{ inserted: number; updated: number; skipped: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ inserted: number; updated: number; skipped: number; svkSkipped: number } | null>(null);
   const [stockByArticleId, setStockByArticleId] = useState<Map<string, StockRow>>(new Map());
 
   // Templates
@@ -216,6 +228,8 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
   };
 
   // Preview data based on mapping
+  const allowedSvk = useMemo(() => getAllowedSvkForWarehouseType(warehouseType), [warehouseType]);
+
   const previewRows = useMemo(() => {
     const codeCol = fieldToExcelCol["code"];
     if (!codeCol) return [];
@@ -227,10 +241,11 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
       const bookQtyCol = fieldToExcelCol["book_quantity"];
       const article = articleByCode.get(code);
 
+      const svkMismatch = article ? !allowedSvk.includes(article.svk || "1") : false;
+
       const countedQty = qtyCol ? Number(row[qtyCol]) || 0 : 0;
       const excelPrice = priceCol ? Number(row[priceCol]) || undefined : undefined;
 
-      // Book qty: from Excel if mapped, else from warehouse stock
       let bookQty = bookQtyCol ? Number(row[bookQtyCol]) || 0 : 0;
       if (!bookQtyCol && article) {
         const stock = stockByArticleId.get(article.id);
@@ -247,9 +262,10 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
         deficit_qty: diff < 0 ? -diff : 0,
         price: excelPrice,
         found: !!article,
+        svkMismatch,
       };
     });
-  }, [rawRows, fieldToExcelCol, articles, stockByArticleId]);
+  }, [rawRows, fieldToExcelCol, articles, stockByArticleId, allowedSvk]);
 
   const handleContinueToPreview = () => {
     if (!Object.values(columnMapping).includes("code")) {
@@ -281,6 +297,7 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
       const newInserts: Omit<InventoryCountItem, "id" | "created_at">[] = [];
       const updates: { id: string; book_quantity?: number; counted_quantity: number; surplus_qty: number; deficit_qty: number; price?: number; surplus_value: number; deficit_value: number }[] = [];
       let skipped = 0;
+      let svkSkipped = 0;
       let nextOrder = items.length > 0 ? Math.max(...items.map(i => i.item_order)) + 1 : 1;
 
       for (const row of rawRows) {
@@ -289,6 +306,9 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
 
         const article = articleByCode.get(code);
         if (!article) { skipped++; continue; }
+
+        // SVK check - skip articles that don't belong to this warehouse type
+        if (!allowedSvk.includes(article.svk || "1")) { svkSkipped++; continue; }
 
         const countedQty = qtyCol ? Number(row[qtyCol]) || 0 : 0;
         const price = priceCol ? Number(row[priceCol]) || undefined : undefined;
@@ -375,7 +395,7 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
         setProgress(total > 0 ? Math.round((done / total) * 100) : 100);
       }
 
-      setImportResult({ inserted: newInserts.length, updated: updates.length, skipped });
+      setImportResult({ inserted: newInserts.length, updated: updates.length, skipped, svkSkipped });
       setStep("complete");
     } catch (err: any) {
       toast.error(`Greška pri uvozu: ${err.message}`);
@@ -553,7 +573,7 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
                 </TableHeader>
                 <TableBody>
                   {previewRows.map((r, i) => (
-                    <TableRow key={i}>
+                    <TableRow key={i} className={r.svkMismatch ? "opacity-50" : ""}>
                       <TableCell>{r.code}</TableCell>
                       <TableCell className="max-w-[150px] truncate">{r.name}</TableCell>
                       <TableCell className="text-right text-muted-foreground">{formatDecimal(r.book_quantity, 3)}</TableCell>
@@ -562,7 +582,9 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
                       <TableCell className="text-right">{r.deficit_qty > 0 ? <span className="text-destructive">{formatDecimal(r.deficit_qty, 3)}</span> : ""}</TableCell>
                       <TableCell className="text-right">{r.price != null ? formatDecimal(r.price, 2) : "—"}</TableCell>
                       <TableCell>
-                        {r.found ? (
+                        {r.svkMismatch ? (
+                          <Badge variant="outline" className="text-orange-600 border-orange-400">SVK</Badge>
+                        ) : r.found ? (
                           <Badge variant="secondary" className="text-green-600">OK</Badge>
                         ) : (
                           <Badge variant="destructive">?</Badge>
@@ -597,7 +619,8 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
             <div className="space-y-1 text-sm">
               <p>Novih stavki: <strong>{importResult.inserted}</strong></p>
               <p>Ažuriranih: <strong>{importResult.updated}</strong></p>
-              <p>Preskočenih: <strong>{importResult.skipped}</strong></p>
+              {importResult.svkSkipped > 0 && <p className="text-orange-600">Preskočeno (SVK): <strong>{importResult.svkSkipped}</strong></p>}
+              <p>Preskočenih (nenađenih): <strong>{importResult.skipped}</strong></p>
             </div>
             <Button onClick={() => { handleClose(); window.location.reload(); }}>Zatvori</Button>
           </div>
