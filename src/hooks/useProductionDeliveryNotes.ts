@@ -94,23 +94,32 @@ export function useProductionDeliveryNotes() {
       responsible_person: string;
     }) => {
       if (!companyId || !yearId || !user?.id) throw new Error("Nedostaju podaci");
+      if (!formData.work_order_id) throw new Error("Radni nalog je obavezan");
 
-      // Generate next number client-side
-      const yearStr = String(selectedYear?.year ?? new Date().getFullYear()).slice(-2);
+      // Get work order number
+      const { data: woData, error: woError } = await supabase
+        .from("work_orders")
+        .select("order_number")
+        .eq("id", formData.work_order_id)
+        .single();
+      if (woError || !woData) throw new Error("Radni nalog nije pronađen");
+
+      // Find existing delivery notes for this work order to determine suffix
       const { data: existing } = await (supabase as any)
         .from("production_delivery_notes")
         .select("delivery_number")
         .eq("company_id", companyId)
-        .eq("business_year_id", yearId)
+        .eq("work_order_id", formData.work_order_id)
         .order("delivery_number", { ascending: false })
         .limit(1);
 
-      let nextNum = 1;
+      let nextSuffix = 1;
       if (existing && existing.length > 0) {
-        const lastNum = parseInt(existing[0].delivery_number.slice(2), 10);
-        if (!isNaN(lastNum)) nextNum = lastNum + 1;
+        const lastNum = existing[0].delivery_number as string;
+        const suffixMatch = lastNum.match(/-(\d+)$/);
+        if (suffixMatch) nextSuffix = parseInt(suffixMatch[1], 10) + 1;
       }
-      const deliveryNumber = `${yearStr}${String(nextNum).padStart(4, "0")}`;
+      const deliveryNumber = `${woData.order_number}-${String(nextSuffix).padStart(2, "0")}`;
 
       const { data, error } = await (supabase as any)
         .from("production_delivery_notes")
