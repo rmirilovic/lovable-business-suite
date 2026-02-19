@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -13,12 +13,19 @@ import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InventoryCountImportDialog } from "./InventoryCountImportDialog";
+import { SortableHeader } from "@/components/ui/sortable-header";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { SortDirection } from "@/hooks/useTableSort";
 
 interface Props {
   countId: string;
   warehouseId: string;
   countDate: string;
   warehouseType: string;
+  search: string;
+  sortColumn: string | null;
+  sortDirection: SortDirection;
+  onSort: (column: string) => void;
 }
 
 function getAllowedSvkForWarehouseType(warehouseType: string): string[] {
@@ -32,7 +39,7 @@ function getAllowedSvkForWarehouseType(warehouseType: string): string[] {
   }
 }
 
-export function InventoryCountItemsEditor({ countId, warehouseId, countDate, warehouseType }: Props) {
+export function InventoryCountItemsEditor({ countId, warehouseId, countDate, warehouseType, search, sortColumn, sortDirection, onSort }: Props) {
   const { selectedCompany, selectedYear } = useAuth();
   const { items, isLoading, addItem, updateItem, deleteItem } = useInventoryCountItems(countId);
   const { articles } = useArticles(selectedCompany?.id);
@@ -157,7 +164,51 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
     });
   };
 
-  const totals = items.reduce(
+  const getItemValue = useCallback((item: InventoryCountItem, column: string) => {
+    switch (column) {
+      case "item_code": return item.item_code || "";
+      case "item_name": return item.item_name;
+      case "unit": return item.unit;
+      case "book_quantity": return item.book_quantity;
+      case "counted_quantity": return item.counted_quantity;
+      case "surplus_qty": return item.surplus_qty;
+      case "deficit_qty": return item.deficit_qty;
+      case "price": return item.price;
+      case "surplus_value": return item.surplus_value;
+      case "deficit_value": return item.deficit_value;
+      default: return "";
+    }
+  }, []);
+
+  const filteredSortedItems = useMemo(() => {
+    let result = items;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      result = result.filter(
+        (i) =>
+          (i.item_code || "").toLowerCase().includes(q) ||
+          i.item_name.toLowerCase().includes(q)
+      );
+    }
+    if (!sortColumn) return result;
+    return [...result].sort((a, b) => {
+      const aVal = getItemValue(a, sortColumn);
+      const bVal = getItemValue(b, sortColumn);
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return sortDirection === "asc" ? -1 : 1;
+      if (bVal == null) return sortDirection === "asc" ? 1 : -1;
+      if (typeof aVal === "string" && typeof bVal === "string") {
+        const cmp = aVal.localeCompare(bVal, "sr");
+        return sortDirection === "asc" ? cmp : -cmp;
+      }
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
+      }
+      return 0;
+    });
+  }, [items, search, sortColumn, sortDirection, getItemValue]);
+
+  const totals = filteredSortedItems.reduce(
     (acc, item) => ({
       surplusValue: acc.surplusValue + item.surplus_value,
       deficitValue: acc.deficitValue + item.deficit_value,
@@ -174,9 +225,9 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Actions */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 mb-2">
         <Button variant="outline" size="sm" onClick={handleLoadFromWarehouse} disabled={isLoadingStock}>
           {isLoadingStock ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
           Učitaj iz magacina
@@ -197,33 +248,33 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
       </div>
 
       {/* Items table */}
-      <div className="border rounded-md overflow-x-auto">
+      <TableScrollContainer>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">#</TableHead>
-              <TableHead className="w-[80px]">Šifra</TableHead>
-              <TableHead className="min-w-[200px]">Naziv</TableHead>
-              <TableHead className="w-[60px]">JM</TableHead>
-              <TableHead className="w-[140px] text-right">Knjižna kol.</TableHead>
-              <TableHead className="w-[160px] text-right">Popisana kol.</TableHead>
-              <TableHead className="w-[120px] text-right">Višak</TableHead>
-              <TableHead className="w-[120px] text-right">Manjak</TableHead>
-              <TableHead className="w-[140px] text-right">Cena</TableHead>
-              <TableHead className="w-[140px] text-right">Vr. viška</TableHead>
-              <TableHead className="w-[140px] text-right">Vr. manjka</TableHead>
+              <TableHead className="w-[80px]"><SortableHeader column="item_code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} /></TableHead>
+              <TableHead className="min-w-[200px]"><SortableHeader column="item_name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} /></TableHead>
+              <TableHead className="w-[60px]"><SortableHeader column="unit" label="JM" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} /></TableHead>
+              <TableHead className="w-[140px] text-right"><SortableHeader column="book_quantity" label="Knjižna kol." sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="justify-end" /></TableHead>
+              <TableHead className="w-[160px] text-right"><SortableHeader column="counted_quantity" label="Popisana kol." sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="justify-end" /></TableHead>
+              <TableHead className="w-[120px] text-right"><SortableHeader column="surplus_qty" label="Višak" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="justify-end" /></TableHead>
+              <TableHead className="w-[120px] text-right"><SortableHeader column="deficit_qty" label="Manjak" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="justify-end" /></TableHead>
+              <TableHead className="w-[140px] text-right"><SortableHeader column="price" label="Cena" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="justify-end" /></TableHead>
+              <TableHead className="w-[140px] text-right"><SortableHeader column="surplus_value" label="Vr. viška" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="justify-end" /></TableHead>
+              <TableHead className="w-[140px] text-right"><SortableHeader column="deficit_value" label="Vr. manjka" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="justify-end" /></TableHead>
               <TableHead className="w-[40px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.length === 0 ? (
+            {filteredSortedItems.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
-                  Nema stavki. Učitajte artikle iz magacina ili dodajte ručno.
+                  {search ? "Nema rezultata pretrage" : "Nema stavki. Učitajte artikle iz magacina ili dodajte ručno."}
                 </TableCell>
               </TableRow>
             ) : (
-              items.map((item, index) => (
+              filteredSortedItems.map((item, index) => (
                 <InventoryCountRow
                   key={item.id}
                   item={item}
@@ -233,7 +284,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
                 />
               ))
             )}
-            {items.length > 0 && (
+            {filteredSortedItems.length > 0 && (
               <TableRow className="bg-muted/50 font-medium">
                 <TableCell colSpan={9} className="text-right">Ukupno:</TableCell>
                 <TableCell className="text-right text-green-600">
@@ -247,7 +298,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
             )}
           </TableBody>
         </Table>
-      </div>
+      </TableScrollContainer>
 
       <InventoryCountImportDialog
         open={importDialogOpen}
@@ -278,7 +329,6 @@ function InventoryCountRow({ item, index, onFieldCommit, onDelete }: RowProps) {
   const [countedQty, setCountedQty] = useState(formatDecimal(item.counted_quantity, 3));
   const [price, setPrice] = useState(formatDecimal(item.price, 2));
 
-  // Sync from external changes (e.g. after mutation settles)
   React.useEffect(() => {
     setCountedQty(formatDecimal(item.counted_quantity, 3));
   }, [item.counted_quantity]);
