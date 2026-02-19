@@ -237,7 +237,7 @@ export default function ProductionDeliveryNoteEdit() {
               </Button>
             )}
             {isDraft && (
-              <Button variant="outline" onClick={() => {
+              <Button onClick={() => {
                 if (confirm("Proknjižiti predajnicu?")) postNote.mutateAsync(note.id);
               }}>
                 <Lock className="w-4 h-4 mr-2" /> Proknjiži
