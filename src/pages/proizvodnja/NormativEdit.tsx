@@ -15,7 +15,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Plus, Trash2, CheckCircle, Undo2, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, CheckCircle, Undo2, FileSpreadsheet, FileText, Printer, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { NormItemsEditor } from "@/components/proizvodnja/NormItemsEditor";
 import { formatDate } from "@/lib/formatting";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,7 @@ export default function NormativEdit() {
   const { classifications } = useClassifications(companyId);
 
   const [activeVariant, setActiveVariant] = useState<string>("");
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [editingName, setEditingName] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
 
@@ -262,6 +264,10 @@ export default function NormativEdit() {
               )}
               {/* Export buttons */}
               <div className="ml-auto flex items-center gap-1">
+                <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+                  <History className="w-3 h-3 mr-1" />
+                  Istorija
+                </Button>
                 <Button variant="outline" size="sm" onClick={handleExcelExport} disabled={activeItems.length === 0}>
                   <FileSpreadsheet className="w-3 h-3 mr-1" />
                   Excel
@@ -289,6 +295,13 @@ export default function NormativEdit() {
           </Tabs>
         </div>
       </div>
+      <DocumentHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        documentId={norm.id}
+        documentName={`${norm.article_code} - ${norm.article_name}`}
+        documentType="material_norm_variant"
+      />
     </MainLayout>
   );
 }
