@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ import {
   STATUS_LABELS,
   STATUS_COLORS,
 } from "@/hooks/useJournalEntries";
-import { useTableSort } from "@/hooks/useTableSort";
+import { useTableSort, SortDirection } from "@/hooks/useTableSort";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { formatNumber } from "@/lib/formatting";
@@ -41,19 +41,92 @@ import { printPdfBlob } from "@/lib/printPdf";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
+const STORAGE_KEY = "nalozi_view_state";
+
+interface ViewState {
+  search: string;
+  statusFilter: string;
+  dateFrom: string;
+  dateTo: string;
+  sortColumn: string | null;
+  sortDirection: SortDirection;
+  scrollTop: number;
+}
+
+function loadViewState(): Partial<ViewState> {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return {};
+}
+
+function saveViewState(state: ViewState) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {}
+}
+
 export default function NaloziZaKnjizenje() {
   const { data: entries = [], isLoading } = useJournalEntries();
   const { createEntry, deleteEntry, postEntry, unpostEntry } = useJournalEntryMutations();
   const { selectedCompany } = useAuth();
   const navigate = useNavigate();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const restoredScroll = useRef(false);
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dateFrom, setDateFrom] = useState<string>("");
-  const [dateTo, setDateTo] = useState<string>("");
+  const saved = useRef(loadViewState()).current;
+
+  const [search, setSearch] = useState(saved.search ?? "");
+  const [statusFilter, setStatusFilter] = useState<string>(saved.statusFilter ?? "all");
+  const [dateFrom, setDateFrom] = useState<string>(saved.dateFrom ?? "");
+  const [dateTo, setDateTo] = useState<string>(saved.dateTo ?? "");
   const [newDialogOpen, setNewDialogOpen] = useState(false);
 
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("entry_number", "desc");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
+    saved.sortColumn ?? "entry_number",
+    saved.sortDirection ?? "desc"
+  );
+
+  // Persist state on changes
+  const persistState = useCallback(() => {
+    saveViewState({
+      search,
+      statusFilter,
+      dateFrom,
+      dateTo,
+      sortColumn,
+      sortDirection,
+      scrollTop: scrollRef.current?.scrollTop ?? 0,
+    });
+  }, [search, statusFilter, dateFrom, dateTo, sortColumn, sortDirection]);
+
+  useEffect(() => {
+    persistState();
+  }, [persistState]);
+
+  // Save scroll position before navigating away
+  useEffect(() => {
+    return () => {
+      if (scrollRef.current) {
+        const current = loadViewState();
+        saveViewState({ ...current, scrollTop: scrollRef.current.scrollTop } as ViewState);
+      }
+    };
+  }, []);
+
+  // Restore scroll position after data loads
+  useEffect(() => {
+    if (!isLoading && entries.length > 0 && !restoredScroll.current && scrollRef.current) {
+      restoredScroll.current = true;
+      const savedState = loadViewState();
+      if (savedState.scrollTop) {
+        requestAnimationFrame(() => {
+          scrollRef.current?.scrollTo(0, savedState.scrollTop!);
+        });
+      }
+    }
+  }, [isLoading, entries.length]);
 
   const [newEntryForm, setNewEntryForm] = useState({
     description: "",
@@ -122,6 +195,11 @@ export default function NaloziZaKnjizenje() {
   };
 
   const handleViewEntry = (entry: JournalEntry) => {
+    // Save scroll before navigating
+    if (scrollRef.current) {
+      const current = loadViewState();
+      saveViewState({ ...current, scrollTop: scrollRef.current.scrollTop } as ViewState);
+    }
     navigate(`/racunovodstvo/nalozi/${entry.id}`);
   };
 
@@ -223,7 +301,7 @@ export default function NaloziZaKnjizenje() {
         </div>
 
         {/* Table */}
-        <TableScrollContainer>
+        <TableScrollContainer ref={scrollRef}>
           <Table>
             <TableHeader>
               <TableRow>
