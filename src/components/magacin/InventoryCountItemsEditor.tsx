@@ -156,7 +156,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
     });
   };
 
-  // Excel import
+  // Excel import – batch mode for large files (20k+ rows)
   const handleExcelImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !selectedCompany?.id) return;
@@ -183,19 +183,26 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
         return;
       }
 
-      let imported = 0;
+      // Build lookup maps
+      const articleByCode = new Map(articles.map((a) => [a.code, a]));
+      const existingByArticleId = new Map(items.map((i) => [i.article_id, i]));
+
+      const newInserts: Omit<InventoryCountItem, "id" | "created_at">[] = [];
+      const updates: { id: string; counted_quantity: number; surplus_qty: number; deficit_qty: number; price?: number; surplus_value: number; deficit_value: number }[] = [];
       let skipped = 0;
+      let nextOrder = items.length > 0 ? Math.max(...items.map((i) => i.item_order)) + 1 : 1;
 
       for (const row of rows) {
         const code = String(row[codeCol] || "").trim();
         if (!code) continue;
 
-        const article = articles.find((a) => a.code === code);
+        const article = articleByCode.get(code);
         if (!article) { skipped++; continue; }
 
-        const existingItem = items.find((i) => i.article_id === article.id);
         const countedQty = qtyCol ? Number(row[qtyCol]) || 0 : 0;
-        const price = priceCol ? Number(row[priceCol]) || 0 : undefined;
+        const price = priceCol ? Number(row[priceCol]) || undefined : undefined;
+
+        const existingItem = existingByArticleId.get(article.id);
 
         if (existingItem) {
           const updated = recalcItem(existingItem, "counted_quantity", countedQty);
@@ -204,7 +211,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
             updated.surplus_value = Math.round(updated.surplus_qty * price * 100) / 100;
             updated.deficit_value = Math.round(updated.deficit_qty * price * 100) / 100;
           }
-          await updateItem.mutateAsync({
+          updates.push({
             id: existingItem.id,
             counted_quantity: countedQty,
             surplus_qty: updated.surplus_qty,
@@ -213,19 +220,17 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
             surplus_value: updated.surplus_value,
             deficit_value: updated.deficit_value,
           });
-          imported++;
         } else {
-          const nextOrder = items.length + imported + 1;
           const bookQty = 0;
           const itemPrice = price ?? article.selling_price ?? article.purchase_price ?? 0;
           const surplusQty = countedQty > bookQty ? countedQty - bookQty : 0;
           const deficitQty = bookQty > countedQty ? bookQty - countedQty : 0;
 
-          await addItem.mutateAsync({
+          newInserts.push({
             inventory_count_id: countId,
             company_id: selectedCompany.id,
             article_id: article.id,
-            item_order: nextOrder,
+            item_order: nextOrder++,
             item_code: article.code,
             item_name: article.name,
             unit: article.unit,
@@ -237,15 +242,40 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
             surplus_value: Math.round(surplusQty * itemPrice * 100) / 100,
             deficit_value: Math.round(deficitQty * itemPrice * 100) / 100,
           });
-          imported++;
+          // Prevent duplicates within the same import
+          existingByArticleId.set(article.id, { id: "pending", article_id: article.id } as any);
         }
       }
 
+      // Batch insert new items (chunks of 500)
+      for (let i = 0; i < newInserts.length; i += 500) {
+        const batch = newInserts.slice(i, i + 500);
+        const { error: insErr } = await supabase.from("inventory_count_items").insert(batch);
+        if (insErr) throw insErr;
+      }
+
+      // Batch update existing items (chunks of 100 via individual updates)
+      for (let i = 0; i < updates.length; i += 100) {
+        const batch = updates.slice(i, i + 100);
+        await Promise.all(
+          batch.map((u) => {
+            const { id, ...rest } = u;
+            return supabase.from("inventory_count_items").update(rest).eq("id", id).then(({ error }) => {
+              if (error) throw error;
+            });
+          })
+        );
+      }
+
+      const imported = newInserts.length + updates.length;
       toast.success(`Uvezeno: ${imported}, preskočeno: ${skipped}`);
+      if (newInserts.length > 0) {
+        window.location.reload();
+      }
     } catch (err: any) {
       toast.error(`Greška pri uvozu: ${err.message}`);
     }
-  }, [items, articles, selectedCompany, countId, addItem, updateItem]);
+  }, [items, articles, selectedCompany, countId, recalcItem]);
 
   const totals = items.reduce(
     (acc, item) => ({
