@@ -3755,6 +3755,514 @@ export type Database = {
           },
         ]
       }
+      reprocessing_delivery_note_items: {
+        Row: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at: string
+          delivered_kg: number
+          delivered_m: number
+          delivered_pcs: number
+          delivery_note_id: string
+          id: string
+          item_order: number
+          item_value: number
+          kg_per_unit: number
+          launched_qty: number
+          qty_shift_1: number
+          qty_shift_2: number
+          qty_shift_3: number
+          qty_total: number
+          scrap_qty: number
+          unit: string
+          unit_price: number
+        }
+        Insert: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at?: string
+          delivered_kg?: number
+          delivered_m?: number
+          delivered_pcs?: number
+          delivery_note_id: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          kg_per_unit?: number
+          launched_qty?: number
+          qty_shift_1?: number
+          qty_shift_2?: number
+          qty_shift_3?: number
+          qty_total?: number
+          scrap_qty?: number
+          unit?: string
+          unit_price?: number
+        }
+        Update: {
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          company_id?: string
+          created_at?: string
+          delivered_kg?: number
+          delivered_m?: number
+          delivered_pcs?: number
+          delivery_note_id?: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          kg_per_unit?: number
+          launched_qty?: number
+          qty_shift_1?: number
+          qty_shift_2?: number
+          qty_shift_3?: number
+          qty_total?: number
+          scrap_qty?: number
+          unit?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reprocessing_delivery_note_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_delivery_note_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_delivery_note_items_delivery_note_id_fkey"
+            columns: ["delivery_note_id"]
+            isOneToOne: false
+            referencedRelation: "reprocessing_delivery_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reprocessing_delivery_notes: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          delivery_date: string
+          delivery_number: string
+          id: string
+          journal_entry_id: string | null
+          note: string | null
+          posted_at: string | null
+          posted_by: string | null
+          production_line: number
+          responsible_person: string
+          shift_manager_1_id: string | null
+          shift_manager_2_id: string | null
+          shift_manager_3_id: string | null
+          status: string
+          total_kg: number
+          total_value: number
+          updated_at: string
+          warehouse_id: string
+          work_order_id: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          delivery_date?: string
+          delivery_number: string
+          id?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          production_line?: number
+          responsible_person?: string
+          shift_manager_1_id?: string | null
+          shift_manager_2_id?: string | null
+          shift_manager_3_id?: string | null
+          status?: string
+          total_kg?: number
+          total_value?: number
+          updated_at?: string
+          warehouse_id: string
+          work_order_id: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          delivery_date?: string
+          delivery_number?: string
+          id?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          production_line?: number
+          responsible_person?: string
+          shift_manager_1_id?: string | null
+          shift_manager_2_id?: string | null
+          shift_manager_3_id?: string | null
+          status?: string
+          total_kg?: number
+          total_value?: number
+          updated_at?: string
+          warehouse_id?: string
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reprocessing_delivery_notes_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_delivery_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_delivery_notes_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_delivery_notes_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_delivery_notes_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "reprocessing_work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reprocessing_wo_input_items: {
+        Row: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at: string
+          id: string
+          item_order: number
+          item_value: number
+          quantity: number
+          unit: string
+          unit_price: number
+          work_order_id: string
+        }
+        Insert: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          work_order_id: string
+        }
+        Update: {
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reprocessing_wo_input_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_wo_input_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_wo_input_items_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "reprocessing_work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reprocessing_wo_materials: {
+        Row: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at: string
+          id: string
+          item_order: number
+          item_value: number
+          quantity: number
+          unit: string
+          unit_price: number
+          warehouse_id: string | null
+          work_order_id: string
+        }
+        Insert: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          warehouse_id?: string | null
+          work_order_id: string
+        }
+        Update: {
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          item_value?: number
+          quantity?: number
+          unit?: string
+          unit_price?: number
+          warehouse_id?: string | null
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reprocessing_wo_materials_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_wo_materials_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_wo_materials_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_wo_materials_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "reprocessing_work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reprocessing_wo_output_items: {
+        Row: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at: string
+          id: string
+          item_order: number
+          kg_per_unit: number
+          launched_qty: number
+          launched_value: number
+          unit: string
+          unit_price: number
+          work_order_id: string
+        }
+        Insert: {
+          article_code: string
+          article_id: string
+          article_name: string
+          company_id: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          kg_per_unit?: number
+          launched_qty?: number
+          launched_value?: number
+          unit?: string
+          unit_price?: number
+          work_order_id: string
+        }
+        Update: {
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          item_order?: number
+          kg_per_unit?: number
+          launched_qty?: number
+          launched_value?: number
+          unit?: string
+          unit_price?: number
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reprocessing_wo_output_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_wo_output_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_wo_output_items_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "reprocessing_work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reprocessing_work_orders: {
+        Row: {
+          business_year_id: string
+          closed_at: string | null
+          closed_by: string | null
+          company_id: string
+          created_at: string
+          created_by: string
+          deadline_date: string | null
+          id: string
+          journal_entry_id: string | null
+          launched_at: string | null
+          launched_by: string | null
+          note: string | null
+          order_date: string
+          order_number: string
+          status: string
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          business_year_id: string
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id: string
+          created_at?: string
+          created_by: string
+          deadline_date?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          launched_at?: string | null
+          launched_by?: string | null
+          note?: string | null
+          order_date?: string
+          order_number: string
+          status?: string
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          business_year_id?: string
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          deadline_date?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          launched_at?: string | null
+          launched_by?: string | null
+          note?: string | null
+          order_date?: string
+          order_number?: string
+          status?: string
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reprocessing_work_orders_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_work_orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_work_orders_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_work_orders_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           access_level: Database["public"]["Enums"]["access_level"]
@@ -4648,6 +5156,10 @@ export type Database = {
         Returns: boolean
       }
       cleanup_orphaned_goods_receipts: { Args: never; Returns: number }
+      close_reprocessing_work_order: {
+        Args: { _order_id: string; _user_id: string }
+        Returns: string
+      }
       get_article_warehouse_card: {
         Args: {
           p_article_id: string
@@ -4698,6 +5210,10 @@ export type Database = {
       }
       get_next_purchase_invoice_number: {
         Args: { _company_id: string; _invoice_type: string; _year_id: string }
+        Returns: string
+      }
+      get_next_reprocessing_wo_number: {
+        Args: { _company_id: string; _year_id: string }
         Returns: string
       }
       get_next_requisition_number: {
@@ -4849,9 +5365,17 @@ export type Database = {
             Args: { _calculation_id: string; _user_id: string }
             Returns: string
           }
+      post_reprocessing_delivery_note: {
+        Args: { _note_id: string; _user_id: string }
+        Returns: string
+      }
       post_service_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: string
+      }
+      reopen_reprocessing_work_order: {
+        Args: { _order_id: string; _user_id: string }
+        Returns: boolean
       }
       unpost_article_swap: {
         Args: { _swap_id: string; _user_id: string }
@@ -4891,6 +5415,10 @@ export type Database = {
       }
       unpost_purchase_price_calculation: {
         Args: { _calculation_id: string; _user_id: string }
+        Returns: boolean
+      }
+      unpost_reprocessing_delivery_note: {
+        Args: { _note_id: string; _user_id: string }
         Returns: boolean
       }
       unpost_service_purchase_invoice: {
