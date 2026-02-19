@@ -254,6 +254,10 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
         onOpenChange={setImportDialogOpen}
         countId={countId}
         companyId={selectedCompany?.id || ""}
+        warehouseId={warehouseId}
+        countDate={countDate}
+        yearId={selectedYear?.id || ""}
+        yearStart={selectedYear ? `${selectedYear.year}-01-01` : ""}
         items={items}
         articles={articles}
       />
