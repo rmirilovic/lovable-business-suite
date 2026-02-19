@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -12,7 +12,7 @@ import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
+import { InventoryCountImportDialog } from "./InventoryCountImportDialog";
 
 interface Props {
   countId: string;
@@ -37,6 +37,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
   const { items, isLoading, addItem, updateItem, deleteItem } = useInventoryCountItems(countId);
   const { articles } = useArticles(selectedCompany?.id);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const handleLoadFromWarehouse = async () => {
     if (!selectedCompany?.id || !selectedYear?.id) return;
@@ -156,127 +157,6 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
     });
   };
 
-  // Excel import – batch mode for large files (20k+ rows)
-  const handleExcelImport = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedCompany?.id) return;
-    e.target.value = "";
-
-    try {
-      const data = await file.arrayBuffer();
-      const wb = XLSX.read(data);
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws);
-
-      if (rows.length === 0) {
-        toast.error("Excel fajl je prazan");
-        return;
-      }
-
-      const headers = Object.keys(rows[0]);
-      const codeCol = headers.find((h) => /šifra|sifra|code/i.test(h));
-      const qtyCol = headers.find((h) => /popisana|količina|kolicina|qty|counted/i.test(h));
-      const priceCol = headers.find((h) => /cena|price/i.test(h));
-
-      if (!codeCol) {
-        toast.error("Nije pronađena kolona za šifru artikla");
-        return;
-      }
-
-      // Build lookup maps
-      const articleByCode = new Map(articles.map((a) => [a.code, a]));
-      const existingByArticleId = new Map(items.map((i) => [i.article_id, i]));
-
-      const newInserts: Omit<InventoryCountItem, "id" | "created_at">[] = [];
-      const updates: { id: string; counted_quantity: number; surplus_qty: number; deficit_qty: number; price?: number; surplus_value: number; deficit_value: number }[] = [];
-      let skipped = 0;
-      let nextOrder = items.length > 0 ? Math.max(...items.map((i) => i.item_order)) + 1 : 1;
-
-      for (const row of rows) {
-        const code = String(row[codeCol] || "").trim();
-        if (!code) continue;
-
-        const article = articleByCode.get(code);
-        if (!article) { skipped++; continue; }
-
-        const countedQty = qtyCol ? Number(row[qtyCol]) || 0 : 0;
-        const price = priceCol ? Number(row[priceCol]) || undefined : undefined;
-
-        const existingItem = existingByArticleId.get(article.id);
-
-        if (existingItem) {
-          const updated = recalcItem(existingItem, "counted_quantity", countedQty);
-          if (price !== undefined) {
-            updated.price = price;
-            updated.surplus_value = Math.round(updated.surplus_qty * price * 100) / 100;
-            updated.deficit_value = Math.round(updated.deficit_qty * price * 100) / 100;
-          }
-          updates.push({
-            id: existingItem.id,
-            counted_quantity: countedQty,
-            surplus_qty: updated.surplus_qty,
-            deficit_qty: updated.deficit_qty,
-            ...(price !== undefined ? { price } : {}),
-            surplus_value: updated.surplus_value,
-            deficit_value: updated.deficit_value,
-          });
-        } else {
-          const bookQty = 0;
-          const itemPrice = price ?? article.selling_price ?? article.purchase_price ?? 0;
-          const surplusQty = countedQty > bookQty ? countedQty - bookQty : 0;
-          const deficitQty = bookQty > countedQty ? bookQty - countedQty : 0;
-
-          newInserts.push({
-            inventory_count_id: countId,
-            company_id: selectedCompany.id,
-            article_id: article.id,
-            item_order: nextOrder++,
-            item_code: article.code,
-            item_name: article.name,
-            unit: article.unit,
-            book_quantity: bookQty,
-            counted_quantity: countedQty,
-            surplus_qty: surplusQty,
-            deficit_qty: deficitQty,
-            price: itemPrice,
-            surplus_value: Math.round(surplusQty * itemPrice * 100) / 100,
-            deficit_value: Math.round(deficitQty * itemPrice * 100) / 100,
-          });
-          // Prevent duplicates within the same import
-          existingByArticleId.set(article.id, { id: "pending", article_id: article.id } as any);
-        }
-      }
-
-      // Batch insert new items (chunks of 500)
-      for (let i = 0; i < newInserts.length; i += 500) {
-        const batch = newInserts.slice(i, i + 500);
-        const { error: insErr } = await supabase.from("inventory_count_items").insert(batch);
-        if (insErr) throw insErr;
-      }
-
-      // Batch update existing items (chunks of 100 via individual updates)
-      for (let i = 0; i < updates.length; i += 100) {
-        const batch = updates.slice(i, i + 100);
-        await Promise.all(
-          batch.map((u) => {
-            const { id, ...rest } = u;
-            return supabase.from("inventory_count_items").update(rest).eq("id", id).then(({ error }) => {
-              if (error) throw error;
-            });
-          })
-        );
-      }
-
-      const imported = newInserts.length + updates.length;
-      toast.success(`Uvezeno: ${imported}, preskočeno: ${skipped}`);
-      if (newInserts.length > 0) {
-        window.location.reload();
-      }
-    } catch (err: any) {
-      toast.error(`Greška pri uvozu: ${err.message}`);
-    }
-  }, [items, articles, selectedCompany, countId, recalcItem]);
-
   const totals = items.reduce(
     (acc, item) => ({
       surplusValue: acc.surplusValue + item.surplus_value,
@@ -301,12 +181,9 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
           {isLoadingStock ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
           Učitaj iz magacina
         </Button>
-        <Button variant="outline" size="sm" asChild>
-          <label className="cursor-pointer">
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            Uvezi iz Excela
-            <input type="file" accept=".xlsx,.xls" className="hidden" onChange={handleExcelImport} />
-          </label>
+        <Button variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
+          <FileSpreadsheet className="h-4 w-4 mr-2" />
+          Uvezi iz Excela
         </Button>
         <div className="flex-1" />
         <div className="flex items-center gap-4 text-sm">
@@ -371,6 +248,15 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
           </TableBody>
         </Table>
       </div>
+
+      <InventoryCountImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        countId={countId}
+        companyId={selectedCompany?.id || ""}
+        items={items}
+        articles={articles}
+      />
     </div>
   );
 }
