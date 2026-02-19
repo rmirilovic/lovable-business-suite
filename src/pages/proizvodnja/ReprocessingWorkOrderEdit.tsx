@@ -247,8 +247,8 @@ export default function ReprocessingWorkOrderEdit() {
                     <TableCell className="font-mono text-xs">{item.article_code}</TableCell>
                     <TableCell>{item.article_name}</TableCell>
                     <TableCell>{item.unit}</TableCell>
-                    <TableCell className="text-right"><LocaleNumberInput value={item.unit_price} onValueChange={(v) => handleUpdateOutput(item, "unit_price", v)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
-                    <TableCell className="text-right"><LocaleNumberInput value={item.launched_qty} onValueChange={(v) => handleUpdateOutput(item, "launched_qty", v)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
+                    <TableCell className="text-right"><LocaleNumberInput value={String(item.unit_price ?? 0)} onChange={(v) => handleUpdateOutput(item, "unit_price", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
+                    <TableCell className="text-right"><LocaleNumberInput value={String(item.launched_qty ?? 0)} onChange={(v) => handleUpdateOutput(item, "launched_qty", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
                     <TableCell className="text-right font-mono">{formatNumber(item.launched_value, { minimumFractionDigits: 2 })}</TableCell>
                     {isDraft && <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteOutput(item.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></TableCell>}
                   </TableRow>
@@ -291,8 +291,8 @@ export default function ReprocessingWorkOrderEdit() {
                     <TableCell className="font-mono text-xs">{item.article_code}</TableCell>
                     <TableCell>{item.article_name}</TableCell>
                     <TableCell>{item.unit}</TableCell>
-                    <TableCell className="text-right"><LocaleNumberInput value={item.quantity} onValueChange={(v) => handleUpdateInput(item, "quantity", v)} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
-                    <TableCell className="text-right"><LocaleNumberInput value={item.unit_price} onValueChange={(v) => handleUpdateInput(item, "unit_price", v)} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
+                    <TableCell className="text-right"><LocaleNumberInput value={String(item.quantity ?? 0)} onChange={(v) => handleUpdateInput(item, "quantity", parseFloat(v.replace(',', '.')) || 0)} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
+                    <TableCell className="text-right"><LocaleNumberInput value={String(item.unit_price ?? 0)} onChange={(v) => handleUpdateInput(item, "unit_price", parseFloat(v.replace(',', '.')) || 0)} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
                     <TableCell className="text-right font-mono">{formatNumber(item.item_value, { minimumFractionDigits: 2 })}</TableCell>
                     {(isDraft || isLaunched) && <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteInput(item.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></TableCell>}
                   </TableRow>
@@ -341,8 +341,8 @@ export default function ReprocessingWorkOrderEdit() {
                     <TableCell className="font-mono text-xs">{mat.article_code}</TableCell>
                     <TableCell>{mat.article_name}</TableCell>
                     <TableCell>{mat.unit}</TableCell>
-                    <TableCell className="text-right"><LocaleNumberInput value={mat.quantity} onValueChange={(v) => handleUpdateMaterial(mat, "quantity", v)} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
-                    <TableCell className="text-right"><LocaleNumberInput value={mat.unit_price} onValueChange={(v) => handleUpdateMaterial(mat, "unit_price", v)} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
+                    <TableCell className="text-right"><LocaleNumberInput value={String(mat.quantity ?? 0)} onChange={(v) => handleUpdateMaterial(mat, "quantity", parseFloat(v.replace(',', '.')) || 0)} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
+                    <TableCell className="text-right"><LocaleNumberInput value={String(mat.unit_price ?? 0)} onChange={(v) => handleUpdateMaterial(mat, "unit_price", parseFloat(v.replace(',', '.')) || 0)} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
                     <TableCell className="text-right font-mono">{formatNumber(mat.item_value, { minimumFractionDigits: 2 })}</TableCell>
                     {(isDraft || isLaunched) && <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteMaterial(mat.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></TableCell>}
                   </TableRow>

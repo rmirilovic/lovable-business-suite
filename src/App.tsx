@@ -59,6 +59,10 @@ import Trebovanja from "./pages/proizvodnja/Trebovanja";
 import RequisitionEdit from "./pages/proizvodnja/RequisitionEdit";
 import PredajniceGP from "./pages/proizvodnja/PredajniceGP";
 import ProductionDeliveryNoteEdit from "./pages/proizvodnja/ProductionDeliveryNoteEdit";
+import ReprocessingWorkOrders from "./pages/proizvodnja/ReprocessingWorkOrders";
+import ReprocessingWorkOrderEdit from "./pages/proizvodnja/ReprocessingWorkOrderEdit";
+import ReprocessingDeliveryNotesList from "./pages/proizvodnja/ReprocessingDeliveryNotesList";
+import ReprocessingDeliveryNoteEdit from "./pages/proizvodnja/ReprocessingDeliveryNoteEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -327,6 +331,26 @@ const App = () => (
               <Route path="/proizvodnja/predajnice/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <ProductionDeliveryNoteEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/proizvodnja/prerada" element={
+                <ProtectedRoute>
+                  <ReprocessingWorkOrders />
+                </ProtectedRoute>
+              } />
+              <Route path="/proizvodnja/prerada/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <ReprocessingWorkOrderEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/proizvodnja/predajnice-prerada" element={
+                <ProtectedRoute>
+                  <ReprocessingDeliveryNotesList />
+                </ProtectedRoute>
+              } />
+              <Route path="/proizvodnja/predajnice-prerada/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <ReprocessingDeliveryNoteEdit />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
