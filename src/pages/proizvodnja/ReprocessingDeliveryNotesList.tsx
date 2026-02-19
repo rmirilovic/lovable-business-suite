@@ -12,7 +12,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Trash2, Lock, Unlock, MoreHorizontal, Eye } from "lucide-react";
+import { Plus, Search, Trash2, Lock, Unlock, MoreHorizontal, Eye, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useReprocessingDeliveryNotes, RDN_STATUS_LABELS, RDN_STATUS_COLORS, ReprocessingDeliveryNote } from "@/hooks/useReprocessingDeliveryNotes";
 import { useReprocessingWorkOrders } from "@/hooks/useReprocessingWorkOrders";
 import { useWarehouses } from "@/hooks/useWarehouses";
@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, startOfYear } from "date-fns";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/formatting";
+import { exportRDNToExcel, exportRDNToPdf, printRDN, EnrichedRDN } from "@/lib/reprocessingDeliveryNoteExportUtils";
 import { useQuery } from "@tanstack/react-query";
 
 const STORAGE_KEY = "reprocessing_dn_filters";
@@ -123,6 +124,13 @@ export default function ReprocessingDeliveryNotesList() {
 
   const fmtDate = (d: string | null) => d ? format(new Date(d), "dd.MM.yyyy") : "-";
 
+  const getEnrichedNotes = (): EnrichedRDN[] => sorted.map((n) => ({
+    ...n,
+    firstArticle: itemSummary?.[n.id]?.firstArticle ?? "",
+    totalKg: itemSummary?.[n.id]?.totalKg ?? 0,
+    totalValue: itemSummary?.[n.id]?.totalValue ?? 0,
+  }));
+
   return (
     <MainLayout title="Predajnice GP po RN za preradu">
       <div className="flex flex-col h-full min-h-0">
@@ -141,7 +149,12 @@ export default function ReprocessingDeliveryNotesList() {
                 ))}
               </div>
             </div>
-            <Button onClick={handleOpenNewDialog}><Plus className="w-4 h-4 mr-2" /> Nova predajnica</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => { const enriched = getEnrichedNotes(); const meta = { companyName: selectedCompany?.name ?? "", dateFrom, dateTo }; exportRDNToExcel(enriched, meta); }}><FileSpreadsheet className="w-4 h-4 mr-1" /> Excel</Button>
+              <Button variant="outline" size="sm" onClick={() => { const enriched = getEnrichedNotes(); const meta = { companyName: selectedCompany?.name ?? "", dateFrom, dateTo }; exportRDNToPdf(enriched, meta); }}><FileText className="w-4 h-4 mr-1" /> PDF</Button>
+              <Button variant="outline" size="sm" onClick={() => { const enriched = getEnrichedNotes(); const meta = { companyName: selectedCompany?.name ?? "", dateFrom, dateTo }; printRDN(enriched, meta); }}><Printer className="w-4 h-4 mr-1" /> Štampa</Button>
+              <Button onClick={handleOpenNewDialog}><Plus className="w-4 h-4 mr-2" /> Nova predajnica</Button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-1"><Label className="text-xs text-muted-foreground">Datum od</Label><LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[140px]" /></div>
