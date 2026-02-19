@@ -13,12 +13,13 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Save, FolderOpen, Trash2 } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle2, Save, FolderOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { InventoryCountItem } from "@/hooks/useInventoryCounts";
 import { Article } from "@/hooks/useArticles";
+import { formatDecimal } from "@/lib/formatting";
 
 /* ── Helpers ── */
 
@@ -33,20 +34,41 @@ const normalizeHeader = (s: string) => {
 
 /* ── Column definitions ── */
 
-type MappableField = "code" | "counted_quantity" | "price";
+type MappableField = "code" | "counted_quantity" | "book_quantity" | "surplus_qty" | "deficit_qty" | "price" | "surplus_value" | "deficit_value";
 
 const MAPPABLE_FIELDS: { key: MappableField; label: string; required: boolean }[] = [
   { key: "code", label: "Šifra artikla", required: true },
   { key: "counted_quantity", label: "Popisana količina", required: false },
+  { key: "book_quantity", label: "Knjižna količina", required: false },
+  { key: "surplus_qty", label: "Višak", required: false },
+  { key: "deficit_qty", label: "Manjak", required: false },
   { key: "price", label: "Cena", required: false },
+  { key: "surplus_value", label: "Vrednost viška", required: false },
+  { key: "deficit_value", label: "Vrednost manjka", required: false },
 ];
 
 const COLUMN_SYNONYMS: Record<string, MappableField> = {
+  // Code
   "sifra": "code", "šifra": "code", "code": "code", "sifra artikla": "code", "šifra artikla": "code",
+  // Counted quantity
   "popisana": "counted_quantity", "popisana kolicina": "counted_quantity", "popisana količina": "counted_quantity",
   "kolicina": "counted_quantity", "količina": "counted_quantity", "qty": "counted_quantity", "counted": "counted_quantity",
-  "counted quantity": "counted_quantity", "counted_quantity": "counted_quantity",
+  "counted quantity": "counted_quantity", "counted_quantity": "counted_quantity", "popisana kol": "counted_quantity",
+  // Book quantity
+  "knjizna kol": "book_quantity", "knjižna kol": "book_quantity", "knjizna kolicina": "book_quantity",
+  "knjižna količina": "book_quantity", "book quantity": "book_quantity", "book_quantity": "book_quantity",
+  "po knjigama": "book_quantity", "kol po knjigama": "book_quantity",
+  // Surplus
+  "visak": "surplus_qty", "višak": "surplus_qty", "surplus": "surplus_qty", "surplus_qty": "surplus_qty",
+  // Deficit
+  "manjak": "deficit_qty", "deficit": "deficit_qty", "deficit_qty": "deficit_qty",
+  // Price
   "cena": "price", "price": "price", "jedinicna cena": "price", "jedinična cena": "price",
+  // Surplus value
+  "vr viska": "surplus_value", "vr viška": "surplus_value", "vrednost viska": "surplus_value",
+  "vrednost viška": "surplus_value", "surplus_value": "surplus_value",
+  // Deficit value
+  "vr manjka": "deficit_value", "vrednost manjka": "deficit_value", "deficit_value": "deficit_value",
 };
 
 const NORMALIZED_SYNONYMS: Record<string, MappableField> = Object.fromEntries(
@@ -68,17 +90,28 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   countId: string;
   companyId: string;
+  warehouseId: string;
+  countDate: string;
+  yearId: string;
+  yearStart: string;
   items: InventoryCountItem[];
   articles: Article[];
 }
 
-export function InventoryCountImportDialog({ open, onOpenChange, countId, companyId, items, articles }: Props) {
+interface StockRow {
+  article_id: string;
+  balance_qty: number;
+  balance_value: number;
+}
+
+export function InventoryCountImportDialog({ open, onOpenChange, countId, companyId, warehouseId, countDate, yearId, yearStart, items, articles }: Props) {
   const [step, setStep] = useState<"upload" | "mapping" | "preview" | "importing" | "complete">("upload");
   const [excelHeaders, setExcelHeaders] = useState<string[]>([]);
   const [rawRows, setRawRows] = useState<Record<string, any>[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState(0);
   const [importResult, setImportResult] = useState<{ inserted: number; updated: number; skipped: number } | null>(null);
+  const [stockByArticleId, setStockByArticleId] = useState<Map<string, StockRow>>(new Map());
 
   // Templates
   const [templates, setTemplates] = useState<MappingTemplate[]>([]);
@@ -86,6 +119,29 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
 
   useEffect(() => { setTemplates(loadTemplates()); }, []);
+
+  // Fetch warehouse stock when dialog opens
+  useEffect(() => {
+    if (!open || !companyId || !warehouseId || !countDate || !yearStart) return;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("get_warehouse_stock", {
+          p_company_id: companyId,
+          p_warehouse_id: warehouseId,
+          p_date_from: yearStart,
+          p_date_to: countDate,
+        });
+        if (error) throw error;
+        const map = new Map<string, StockRow>();
+        for (const row of (data || [])) {
+          map.set(row.article_id, { article_id: row.article_id, balance_qty: row.balance_qty, balance_value: row.balance_value });
+        }
+        setStockByArticleId(map);
+      } catch {
+        // silently fail - stock lookup is optional
+      }
+    })();
+  }, [open, companyId, warehouseId, countDate, yearStart]);
 
   const resetState = useCallback(() => {
     setStep("upload");
@@ -128,7 +184,6 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
       const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: "" });
       if (rows.length === 0) { toast.error("Excel fajl je prazan"); return; }
 
-      // Add any keys from rows not in headers
       const rowKeys = rows.reduce<string[]>((acc, r) => { Object.keys(r).forEach(k => { if (!acc.includes(k)) acc.push(k); }); return acc; }, []);
       rowKeys.forEach(k => { if (!headers.includes(k)) headers.push(k); });
 
@@ -169,16 +224,32 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
       const code = String(row[codeCol] || "").trim();
       const qtyCol = fieldToExcelCol["counted_quantity"];
       const priceCol = fieldToExcelCol["price"];
+      const bookQtyCol = fieldToExcelCol["book_quantity"];
       const article = articleByCode.get(code);
+
+      const countedQty = qtyCol ? Number(row[qtyCol]) || 0 : 0;
+      const excelPrice = priceCol ? Number(row[priceCol]) || undefined : undefined;
+
+      // Book qty: from Excel if mapped, else from warehouse stock
+      let bookQty = bookQtyCol ? Number(row[bookQtyCol]) || 0 : 0;
+      if (!bookQtyCol && article) {
+        const stock = stockByArticleId.get(article.id);
+        if (stock) bookQty = stock.balance_qty;
+      }
+
+      const diff = countedQty - bookQty;
       return {
         code,
         name: article?.name || "—",
-        counted_quantity: qtyCol ? Number(row[qtyCol]) || 0 : 0,
-        price: priceCol ? Number(row[priceCol]) || undefined : undefined,
+        counted_quantity: countedQty,
+        book_quantity: bookQty,
+        surplus_qty: diff > 0 ? diff : 0,
+        deficit_qty: diff < 0 ? -diff : 0,
+        price: excelPrice,
         found: !!article,
       };
     });
-  }, [rawRows, fieldToExcelCol, articles]);
+  }, [rawRows, fieldToExcelCol, articles, stockByArticleId]);
 
   const handleContinueToPreview = () => {
     if (!Object.values(columnMapping).includes("code")) {
@@ -189,19 +260,6 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
   };
 
   /* ── Step 3: Import ── */
-  const recalcItem = (item: InventoryCountItem, countedQty: number, price?: number) => {
-    const p = price ?? item.price;
-    const diff = countedQty - item.book_quantity;
-    const surplusQty = diff > 0 ? diff : 0;
-    const deficitQty = diff < 0 ? -diff : 0;
-    return {
-      surplus_qty: surplusQty,
-      deficit_qty: deficitQty,
-      surplus_value: Math.round(surplusQty * p * 100) / 100,
-      deficit_value: Math.round(deficitQty * p * 100) / 100,
-    };
-  };
-
   const handleImport = async () => {
     setStep("importing");
     setProgress(0);
@@ -210,13 +268,18 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
       const codeCol = fieldToExcelCol["code"];
       const qtyCol = fieldToExcelCol["counted_quantity"];
       const priceCol = fieldToExcelCol["price"];
+      const bookQtyCol = fieldToExcelCol["book_quantity"];
+      const surplusQtyCol = fieldToExcelCol["surplus_qty"];
+      const deficitQtyCol = fieldToExcelCol["deficit_qty"];
+      const surplusValueCol = fieldToExcelCol["surplus_value"];
+      const deficitValueCol = fieldToExcelCol["deficit_value"];
       if (!codeCol) throw new Error("Šifra nije mapirana");
 
       const articleByCode = new Map(articles.map(a => [a.code, a]));
       const existingByArticleId = new Map(items.map(i => [i.article_id, i]));
 
       const newInserts: Omit<InventoryCountItem, "id" | "created_at">[] = [];
-      const updates: { id: string; counted_quantity: number; surplus_qty: number; deficit_qty: number; price?: number; surplus_value: number; deficit_value: number }[] = [];
+      const updates: { id: string; book_quantity?: number; counted_quantity: number; surplus_qty: number; deficit_qty: number; price?: number; surplus_value: number; deficit_value: number }[] = [];
       let skipped = 0;
       let nextOrder = items.length > 0 ? Math.max(...items.map(i => i.item_order)) + 1 : 1;
 
@@ -230,21 +293,44 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
         const countedQty = qtyCol ? Number(row[qtyCol]) || 0 : 0;
         const price = priceCol ? Number(row[priceCol]) || undefined : undefined;
 
+        // Book quantity: from Excel column, or from warehouse stock, or 0
+        let bookQty: number | undefined;
+        if (bookQtyCol) {
+          bookQty = Number(row[bookQtyCol]) || 0;
+        } else {
+          const stock = stockByArticleId.get(article.id);
+          if (stock) bookQty = stock.balance_qty;
+        }
+
         const existingItem = existingByArticleId.get(article.id);
 
         if (existingItem) {
-          const calc = recalcItem(existingItem, countedQty, price);
+          const effectiveBookQty = bookQty ?? existingItem.book_quantity;
+          const effectivePrice = price ?? existingItem.price;
+          const diff = countedQty - effectiveBookQty;
+          const surplusQty = surplusQtyCol ? (Number(row[surplusQtyCol]) || 0) : (diff > 0 ? diff : 0);
+          const deficitQty = deficitQtyCol ? (Number(row[deficitQtyCol]) || 0) : (diff < 0 ? -diff : 0);
+          const surplusValue = surplusValueCol ? (Number(row[surplusValueCol]) || 0) : Math.round(surplusQty * effectivePrice * 100) / 100;
+          const deficitValue = deficitValueCol ? (Number(row[deficitValueCol]) || 0) : Math.round(deficitQty * effectivePrice * 100) / 100;
+
           updates.push({
             id: existingItem.id,
+            ...(bookQty !== undefined ? { book_quantity: effectiveBookQty } : {}),
             counted_quantity: countedQty,
             ...(price !== undefined ? { price } : {}),
-            ...calc,
+            surplus_qty: surplusQty,
+            deficit_qty: deficitQty,
+            surplus_value: surplusValue,
+            deficit_value: deficitValue,
           });
         } else {
-          const bookQty = 0;
+          const effectiveBookQty = bookQty ?? 0;
           const itemPrice = price ?? article.selling_price ?? article.purchase_price ?? 0;
-          const surplusQty = countedQty > bookQty ? countedQty - bookQty : 0;
-          const deficitQty = bookQty > countedQty ? bookQty - countedQty : 0;
+          const diff = countedQty - effectiveBookQty;
+          const surplusQty = surplusQtyCol ? (Number(row[surplusQtyCol]) || 0) : (diff > 0 ? diff : 0);
+          const deficitQty = deficitQtyCol ? (Number(row[deficitQtyCol]) || 0) : (diff < 0 ? -diff : 0);
+          const surplusValue = surplusValueCol ? (Number(row[surplusValueCol]) || 0) : Math.round(surplusQty * itemPrice * 100) / 100;
+          const deficitValue = deficitValueCol ? (Number(row[deficitValueCol]) || 0) : Math.round(deficitQty * itemPrice * 100) / 100;
 
           newInserts.push({
             inventory_count_id: countId,
@@ -254,13 +340,13 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
             item_code: article.code,
             item_name: article.name,
             unit: article.unit,
-            book_quantity: bookQty,
+            book_quantity: effectiveBookQty,
             counted_quantity: countedQty,
             surplus_qty: surplusQty,
             deficit_qty: deficitQty,
             price: itemPrice,
-            surplus_value: Math.round(surplusQty * itemPrice * 100) / 100,
-            deficit_value: Math.round(deficitQty * itemPrice * 100) / 100,
+            surplus_value: surplusValue,
+            deficit_value: deficitValue,
           });
           existingByArticleId.set(article.id, { id: "pending", article_id: article.id } as any);
         }
@@ -324,7 +410,7 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Uvoz popisne liste iz Excela</DialogTitle>
           <DialogDescription>
@@ -342,7 +428,8 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
             <FileSpreadsheet className="h-16 w-16 text-muted-foreground" />
             <p className="text-sm text-muted-foreground text-center">
               Excel fajl treba da sadrži kolonu sa šifrom artikla.<br />
-              Opciono: kolone za popisanu količinu i cenu.
+              Opciono: popisana količina, knjižna količina, višak, manjak, cena, vrednosti.<br />
+              <span className="text-xs">Knjižna količina se automatski preuzima iz magacina ako nije u fajlu.</span>
             </p>
             <Button variant="outline" asChild>
               <label className="cursor-pointer">
@@ -385,7 +472,7 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
             <div className="space-y-3">
               {MAPPABLE_FIELDS.map(({ key, label, required }) => (
                 <div key={key} className="flex items-center gap-3">
-                  <div className="w-40 text-sm font-medium">
+                  <div className="w-44 text-sm font-medium">
                     {label}{required && <span className="text-destructive ml-1">*</span>}
                   </div>
                   <Select
@@ -403,11 +490,16 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
                     </SelectContent>
                   </Select>
                   {fieldToExcelCol[key] && (
-                    <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                    <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
                   )}
                 </div>
               ))}
             </div>
+
+            <p className="text-xs text-muted-foreground">
+              💡 Ako ne mapirate „Knjižna količina", automatski se preuzima stanje iz magacina na dan popisa.
+              Višak, manjak i vrednosti se preračunavaju ako nisu mapirane.
+            </p>
 
             {/* Save template */}
             <div className="flex items-center gap-2 pt-2">
@@ -445,13 +537,16 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
             <p className="text-sm text-muted-foreground">
               Prikazano prvih {Math.min(10, previewRows.length)} od {rawRows.length} redova
             </p>
-            <ScrollArea className="max-h-[300px]">
+            <ScrollArea className="max-h-[350px]">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Šifra</TableHead>
                     <TableHead>Naziv</TableHead>
-                    <TableHead className="text-right">Pop. kol.</TableHead>
+                    <TableHead className="text-right">Knjižna</TableHead>
+                    <TableHead className="text-right">Popisana</TableHead>
+                    <TableHead className="text-right">Višak</TableHead>
+                    <TableHead className="text-right">Manjak</TableHead>
                     <TableHead className="text-right">Cena</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
@@ -460,14 +555,17 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
                   {previewRows.map((r, i) => (
                     <TableRow key={i}>
                       <TableCell>{r.code}</TableCell>
-                      <TableCell>{r.name}</TableCell>
-                      <TableCell className="text-right">{r.counted_quantity}</TableCell>
-                      <TableCell className="text-right">{r.price ?? "—"}</TableCell>
+                      <TableCell className="max-w-[150px] truncate">{r.name}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{formatDecimal(r.book_quantity, 3)}</TableCell>
+                      <TableCell className="text-right">{formatDecimal(r.counted_quantity, 3)}</TableCell>
+                      <TableCell className="text-right">{r.surplus_qty > 0 ? <span className="text-green-600">{formatDecimal(r.surplus_qty, 3)}</span> : ""}</TableCell>
+                      <TableCell className="text-right">{r.deficit_qty > 0 ? <span className="text-destructive">{formatDecimal(r.deficit_qty, 3)}</span> : ""}</TableCell>
+                      <TableCell className="text-right">{r.price != null ? formatDecimal(r.price, 2) : "—"}</TableCell>
                       <TableCell>
                         {r.found ? (
-                          <Badge variant="secondary" className="text-green-600">Pronađen</Badge>
+                          <Badge variant="secondary" className="text-green-600">OK</Badge>
                         ) : (
-                          <Badge variant="destructive">Nije pronađen</Badge>
+                          <Badge variant="destructive">?</Badge>
                         )}
                       </TableCell>
                     </TableRow>
@@ -495,7 +593,7 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
         {/* Step 5: Complete */}
         {step === "complete" && importResult && (
           <div className="py-8 space-y-4 text-center">
-            <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
+            <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto" />
             <div className="space-y-1 text-sm">
               <p>Novih stavki: <strong>{importResult.inserted}</strong></p>
               <p>Ažuriranih: <strong>{importResult.updated}</strong></p>
