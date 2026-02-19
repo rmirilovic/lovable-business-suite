@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, Filter, CreditCard } from "lucide-react";
+import { FileText, Download, Filter, CreditCard, Printer } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,7 +31,11 @@ import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { useTableSort, SortDirection } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { format } from "date-fns";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, formatPrice } from "@/lib/formatting";
+import { generateGlavnaKnjigaPdf } from "@/lib/glavnaKnjigaPdfGenerator";
+import { printPdfBlob } from "@/lib/printPdf";
+import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 const GL_STORAGE_KEY = "glavna_knjiga_view_state";
 
@@ -256,6 +260,51 @@ export default function GlavnaKnjiga() {
     return account?.name || code;
   };
 
+  const handleExportExcel = () => {
+    const data = filteredData.map((e) => ({
+      "Datum": format(new Date(e.entry_date), "dd.MM.yyyy"),
+      "Valuta": e.item_document_date ? format(new Date(e.item_document_date), "dd.MM.yyyy") : (e.document_date ? format(new Date(e.document_date), "dd.MM.yyyy") : ""),
+      "Nalog": e.entry_number,
+      "Konto": e.account_code,
+      "Analitika": e.analytics || "",
+      "Opis": e.item_description ? `${e.description} - ${e.item_description}` : e.description,
+      "Duguje": e.debit_amount,
+      "Potražuje": e.credit_amount,
+      "Saldo": e.balance,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Glavna knjiga");
+    ws["!cols"] = [
+      { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 10 },
+      { wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
+    ];
+    const date = new Date().toISOString().split("T")[0];
+    XLSX.writeFile(wb, `glavna_knjiga_${date}.xlsx`);
+    toast.success(`Izvezeno ${filteredData.length} stavki`);
+  };
+
+  const getPdfOptions = () => ({
+    rows: filteredData,
+    companyName: selectedCompany?.name,
+    accountCode: selectedAccount || undefined,
+    accountName: selectedAccount ? getAccountName(selectedAccount) : undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+  });
+
+  const handlePdf = async () => {
+    const doc = await generateGlavnaKnjigaPdf(getPdfOptions());
+    doc.save(`glavna_knjiga_${new Date().toISOString().split("T")[0]}.pdf`);
+  };
+
+  const handlePrint = async () => {
+    const doc = await generateGlavnaKnjigaPdf(getPdfOptions());
+    const blob = doc.output("blob");
+    printPdfBlob(blob);
+  };
+
   return (
     <MainLayout title="Glavna knjiga">
       <div className="flex flex-col gap-4 h-full min-h-0">
@@ -367,9 +416,14 @@ export default function GlavnaKnjiga() {
                       </Button>
                     );
                   })()}
-                <Button variant="outline">
-                  <Download className="w-4 h-4 mr-2" />
-                  Izvezi
+                <Button variant="outline" size="sm" onClick={handleExportExcel} title="Izvezi u Excel">
+                  <Download className="w-4 h-4 mr-2" /> Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={handlePdf} title="Izvezi u PDF">
+                  <FileText className="w-4 h-4 mr-2" /> PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={handlePrint} title="Štampaj">
+                  <Printer className="w-4 h-4 mr-2" /> Štampa
                 </Button>
               </div>
             </div>
