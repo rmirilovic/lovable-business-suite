@@ -309,6 +309,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
         countDate={countDate}
         yearId={selectedYear?.id || ""}
         yearStart={selectedYear ? `${selectedYear.year}-01-01` : ""}
+        warehouseType={warehouseType}
         items={items}
         articles={articles}
       />
