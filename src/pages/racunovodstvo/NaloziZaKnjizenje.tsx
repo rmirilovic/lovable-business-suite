@@ -12,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { SortableHeader } from "@/components/ui/sortable-header";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Eye, Pencil, Trash2, BookCheck, Undo2 } from "lucide-react";
+import { Plus, Search, Eye, Pencil, Trash2, BookCheck, Undo2, Download, FileText, Printer } from "lucide-react";
 import {
   useJournalEntries,
   useJournalEntryMutations,
@@ -29,13 +31,20 @@ import {
   STATUS_LABELS,
   STATUS_COLORS,
 } from "@/hooks/useJournalEntries";
+import { useTableSort } from "@/hooks/useTableSort";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
+import { generateJournalEntriesListPdf } from "@/lib/journalEntriesListPdfGenerator";
+import { printPdfBlob } from "@/lib/printPdf";
+import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 export default function NaloziZaKnjizenje() {
   const { data: entries = [], isLoading } = useJournalEntries();
   const { createEntry, deleteEntry, postEntry, unpostEntry } = useJournalEntryMutations();
+  const { selectedCompany } = useAuth();
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
@@ -43,6 +52,8 @@ export default function NaloziZaKnjizenje() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [newDialogOpen, setNewDialogOpen] = useState(false);
+
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("entry_number", "desc");
 
   const [newEntryForm, setNewEntryForm] = useState({
     description: "",
@@ -62,6 +73,19 @@ export default function NaloziZaKnjizenje() {
     const matchesDateTo = !dateTo || entry.entry_date <= dateTo;
 
     return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
+  });
+
+  const sortedEntries = sortItems(filteredEntries, (item: JournalEntry, column: string) => {
+    switch (column) {
+      case "entry_number": return item.entry_number;
+      case "entry_date": return item.entry_date;
+      case "description": return item.description;
+      case "document_number": return item.document_number || "";
+      case "total_debit": return item.total_debit;
+      case "total_credit": return item.total_credit;
+      case "status": return STATUS_LABELS[item.status] || item.status;
+      default: return null;
+    }
   });
 
   const handleCreateEntry = async () => {
@@ -101,12 +125,48 @@ export default function NaloziZaKnjizenje() {
     navigate(`/racunovodstvo/nalozi/${entry.id}`);
   };
 
+  const handleExportExcel = () => {
+    const data = sortedEntries.map((e) => ({
+      "Broj": e.entry_number,
+      "Datum": format(new Date(e.entry_date), "dd.MM.yyyy"),
+      "Opis": e.description,
+      "Dokument": e.document_number || "",
+      "Duguje": e.total_debit,
+      "Potražuje": e.total_credit,
+      "Status": STATUS_LABELS[e.status] || e.status,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Nalozi");
+
+    ws["!cols"] = [
+      { wch: 12 }, { wch: 12 }, { wch: 40 }, { wch: 15 },
+      { wch: 15 }, { wch: 15 }, { wch: 12 },
+    ];
+
+    const date = new Date().toISOString().split("T")[0];
+    XLSX.writeFile(wb, `nalozi_za_knjizenje_${date}.xlsx`);
+    toast.success(`Izvezeno ${sortedEntries.length} naloga`);
+  };
+
+  const handlePdf = async () => {
+    const doc = await generateJournalEntriesListPdf(sortedEntries, selectedCompany?.name);
+    doc.save(`nalozi_za_knjizenje_${new Date().toISOString().split("T")[0]}.pdf`);
+  };
+
+  const handlePrint = async () => {
+    const doc = await generateJournalEntriesListPdf(sortedEntries, selectedCompany?.name);
+    const blob = doc.output("blob");
+    printPdfBlob(blob);
+  };
+
   return (
     <MainLayout title="Nalozi za knjiženje">
-      <div className="space-y-4">
+      <div className="flex flex-col h-full min-h-0 gap-4">
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="flex gap-4 flex-1">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between flex-shrink-0">
+          <div className="flex gap-4 flex-1 flex-wrap">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -145,24 +205,49 @@ export default function NaloziZaKnjizenje() {
               />
             </div>
           </div>
-          <Button onClick={() => setNewDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novi nalog
-          </Button>
+          <div className="flex gap-2 items-start">
+            <Button variant="outline" size="sm" onClick={handleExportExcel} title="Izvezi u Excel">
+              <Download className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePdf} title="Izvezi u PDF">
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} title="Štampaj">
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
+            <Button onClick={() => setNewDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novi nalog
+            </Button>
+          </div>
         </div>
 
         {/* Table */}
-        <div className="rounded-md border">
+        <TableScrollContainer>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px]">Broj</TableHead>
-                <TableHead className="w-[100px]">Datum</TableHead>
-                <TableHead>Opis</TableHead>
-                <TableHead className="w-[120px]">Dokument</TableHead>
-                <TableHead className="w-[120px] text-right">Duguje</TableHead>
-                <TableHead className="w-[120px] text-right">Potražuje</TableHead>
-                <TableHead className="w-[100px]">Status</TableHead>
+                <TableHead className="w-[80px]">
+                  <SortableHeader column="entry_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader column="entry_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="description" label="Opis" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[120px]">
+                  <SortableHeader column="document_number" label="Dokument" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[120px] text-right">
+                  <SortableHeader column="total_debit" label="Duguje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                </TableHead>
+                <TableHead className="w-[120px] text-right">
+                  <SortableHeader column="total_credit" label="Potražuje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                </TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 <TableHead className="w-[140px]">Akcije</TableHead>
               </TableRow>
             </TableHeader>
@@ -173,14 +258,14 @@ export default function NaloziZaKnjizenje() {
                     Učitavanje...
                   </TableCell>
                 </TableRow>
-              ) : filteredEntries.length === 0 ? (
+              ) : sortedEntries.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nema naloga za prikaz.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredEntries.map((entry) => (
+                sortedEntries.map((entry) => (
                   <TableRow key={entry.id} className="relative cursor-pointer hover:bg-muted/50">
                     <TableCell className="font-medium">
                       <a
@@ -259,7 +344,7 @@ export default function NaloziZaKnjizenje() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
 
       {/* New Entry Dialog */}
