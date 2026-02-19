@@ -123,6 +123,7 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState(0);
   const [importResult, setImportResult] = useState<{ inserted: number; updated: number; skipped: number; svkSkipped: number } | null>(null);
+  const [importStarted, setImportStarted] = useState(false);
   const [stockByArticleId, setStockByArticleId] = useState<Map<string, StockRow>>(new Map());
 
   // Templates
@@ -164,6 +165,7 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
     setImportResult(null);
     setNewTemplateName("");
     setShowSaveTemplate(false);
+    setImportStarted(false);
   }, []);
 
   const handleClose = () => { resetState(); onOpenChange(false); };
@@ -276,7 +278,10 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
   };
 
   /* ── Step 3: Import ── */
+
   const handleImport = async () => {
+    if (importStarted) return; // Prevent double-import
+    setImportStarted(true);
     setStep("importing");
     setProgress(0);
 
