@@ -324,6 +324,12 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
 
         const existingItem = existingByArticleId.get(article.id);
 
+        // Skip duplicates from within the Excel file (already queued for insert)
+        if (existingItem && existingItem.id === "__pending__") {
+          skipped++;
+          continue;
+        }
+
         if (existingItem) {
           const effectiveBookQty = bookQty ?? existingItem.book_quantity;
           const effectivePrice = price ?? existingItem.price;
@@ -368,7 +374,7 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
             surplus_value: surplusValue,
             deficit_value: deficitValue,
           });
-          existingByArticleId.set(article.id, { id: "pending", article_id: article.id } as any);
+          existingByArticleId.set(article.id, { id: "__pending__", article_id: article.id } as any);
         }
       }
 
