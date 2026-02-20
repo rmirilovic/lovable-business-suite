@@ -352,8 +352,8 @@ export default function ReprocessingWorkOrderEdit() {
             </select>
           </div>
           <div className="space-y-1"><Label className="text-xs">Napomena</Label><Input value={headerForm.note} onChange={(e) => updateHeaderField("note", e.target.value)} disabled={isClosed} /></div>
-          {order.launched_at && <div className="space-y-1"><Label className="text-xs">Datum lansiranja</Label><Input value={new Date(order.launched_at).toLocaleDateString("sr-Latn")} disabled /></div>}
-          {order.closed_at && <div className="space-y-1"><Label className="text-xs">Datum zaključenja</Label><Input value={new Date(order.closed_at).toLocaleDateString("sr-Latn")} disabled /></div>}
+          {order.launched_at && <div className="space-y-1"><Label className="text-xs">Datum lansiranja</Label><Input value={format(new Date(order.launched_at), "dd.MM.yyyy")} disabled /></div>}
+          {order.closed_at && <div className="space-y-1"><Label className="text-xs">Datum zaključenja</Label><Input value={format(new Date(order.closed_at), "dd.MM.yyyy")} disabled /></div>}
         </div>
 
         {/* Table 1: Output GP */}
