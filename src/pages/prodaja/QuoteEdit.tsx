@@ -4,16 +4,20 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, ThumbsUp, ArrowLeft, RefreshCw, History } from "lucide-react";
-import { Quote, useQuotes } from "@/hooks/useQuotes";
+import { Loader2, Pencil, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, ArrowRightLeft, Truck } from "lucide-react";
+import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "@/components/prodaja/QuoteItemsEditor";
+import { QuotePartnerEditor } from "@/components/prodaja/QuotePartnerEditor";
 import { QuoteDialog } from "@/components/prodaja/QuoteDialog";
+import { CreateDeliveryNoteFromQuoteDialog } from "@/components/prodaja/CreateDeliveryNoteFromQuoteDialog";
 import { formatDate, formatPrice } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
 import { toast } from "sonner";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { generateQuotePdf } from "@/lib/quotePdfGenerator";
+import { useCreateInvoiceFromQuote } from "@/hooks/useInvoices";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,7 +39,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
 export default function QuoteEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { selectedCompany, selectedYear } = useAuth();
+  const { selectedCompany, selectedYear, user } = useAuth();
   
   const [quote, setQuote] = useState<Quote | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,8 +47,13 @@ export default function QuoteEdit() {
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [localTotals, setLocalTotals] = useState({ subtotal: 0, vat_amount: 0, total_amount: 0 });
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+  const [deliveryNoteDialogOpen, setDeliveryNoteDialogOpen] = useState(false);
 
-  const { approveQuote, updateQuote } = useQuotes();
+  const { approveQuote, updateQuote, copyQuote } = useQuotes();
+  const { items } = useQuoteItems(quote?.id || null);
+  const createFromQuote = useCreateInvoiceFromQuote();
   
   // Optimistic locking
   const { checkLock, updateLockTimestamp } = useDocumentLock({
@@ -74,7 +83,18 @@ export default function QuoteEdit() {
       return;
     }
 
-    setQuote(data as Quote);
+    // Fetch approver if exists
+    let approver = null;
+    if (data.approved_by) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("id", data.approved_by)
+        .single();
+      approver = profile;
+    }
+
+    setQuote({ ...data, approver } as Quote);
     updateLockTimestamp(data.updated_at);
     setLocalTotals({
       subtotal: data.subtotal,
@@ -108,6 +128,93 @@ export default function QuoteEdit() {
     fetchQuote();
   };
 
+  const handlePrint = async () => {
+    if (!quote || !selectedCompany) return;
+
+    setIsPrinting(true);
+    try {
+      const { data: companyData, error: companyError } = await supabase
+        .from("companies")
+        .select("*")
+        .eq("id", selectedCompany.id)
+        .single();
+
+      if (companyError) throw companyError;
+
+      let approverName: string | null = null;
+      if (quote.approver) {
+        approverName = `${quote.approver.first_name || ""} ${quote.approver.last_name || ""}`.trim() || null;
+      }
+
+      // Fetch fresh totals + notes
+      const { data: freshQuote, error: freshQuoteError } = await supabase
+        .from("quotes")
+        .select("subtotal, vat_amount, total_amount, note, internal_note, header_note, partner_name, partner_address, partner_city, partner_postal_code, partner_pib, partner_mb")
+        .eq("id", quote.id)
+        .single();
+
+      if (freshQuoteError) throw freshQuoteError;
+
+      const quoteForPdf: Quote = { ...quote, ...freshQuote };
+
+      const partnerForPdf = {
+        name: quoteForPdf.partner_name || quoteForPdf.partner?.name || "",
+        code: quoteForPdf.partner?.code || "",
+        address: quoteForPdf.partner_address || quoteForPdf.partner?.address || null,
+        city: quoteForPdf.partner_city || quoteForPdf.partner?.city || null,
+        postal_code: quoteForPdf.partner_postal_code || quoteForPdf.partner?.postal_code || null,
+        pib: quoteForPdf.partner_pib || quoteForPdf.partner?.pib || null,
+        mb: quoteForPdf.partner_mb || quoteForPdf.partner?.mb || null,
+      };
+
+      await generateQuotePdf(
+        quoteForPdf,
+        items,
+        {
+          name: companyData.name,
+          address: companyData.address,
+          city: companyData.city,
+          postal_code: companyData.postal_code,
+          pib: companyData.pib,
+          mb: companyData.mb,
+          phone: companyData.phone,
+          email: companyData.email,
+          quote_note_1: companyData.quote_note_1,
+          quote_note_2: companyData.quote_note_2,
+        },
+        partnerForPdf,
+        approverName
+      );
+
+      toast.success("PDF ponuda je generisana");
+    } catch (error: any) {
+      toast.error(`Greška pri generisanju PDF-a: ${error.message}`);
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!quote) return;
+    setIsCopying(true);
+    try {
+      const newQuote = await copyQuote.mutateAsync(quote);
+      navigate(`/prodaja/ponude/${newQuote.id}`);
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const handleConvertToInvoice = async () => {
+    if (!quote) return;
+    try {
+      const invoice = await createFromQuote.mutateAsync(quote.id);
+      navigate(`/prodaja/fakture/${invoice.id}`);
+    } catch (error: any) {
+      toast.error(`Greška pri konverziji: ${error.message}`);
+    }
+  };
+
   if (isLoading || !selectedCompany || !selectedYear) {
     return (
       <MainLayout title="Učitavanje...">
@@ -133,6 +240,7 @@ export default function QuoteEdit() {
   }
 
   const isDraft = quote.status === "draft";
+  const isApproved = quote.status === "approved";
   const status = STATUS_BADGES[quote.status] || STATUS_BADGES.draft;
 
   return (
@@ -155,6 +263,10 @@ export default function QuoteEdit() {
             <Button variant="ghost" size="sm" onClick={fetchQuote} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPrinting}>
+              <Printer className="w-4 h-4 mr-2" />
+              {isPrinting ? "Generisanje..." : "Štampaj PDF"}
+            </Button>
             {isDraft && (
               <>
                 <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
@@ -163,6 +275,29 @@ export default function QuoteEdit() {
                 <Button size="sm" onClick={() => setApproveDialogOpen(true)}>
                   <ThumbsUp className="h-4 w-4 mr-2" />Odobri
                 </Button>
+              </>
+            )}
+            {isApproved && (
+              <>
+                <Button variant="outline" size="sm" onClick={handleCopy} disabled={isCopying}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  {isCopying ? "Kopiranje..." : "Kopiraj"}
+                </Button>
+                {!quote.converted_to_invoice_id && (
+                  <>
+                    <Button variant="outline" size="sm" onClick={() => setDeliveryNoteDialogOpen(true)}>
+                      <Truck className="w-4 h-4 mr-2" />
+                      U otpremnicu
+                    </Button>
+                    <Button size="sm" onClick={handleConvertToInvoice}>
+                      <ArrowRightLeft className="w-4 h-4 mr-2" />
+                      U fakturu
+                    </Button>
+                  </>
+                )}
+                {quote.converted_to_invoice_id && (
+                  <Badge variant="outline">Konvertovana u fakturu</Badge>
+                )}
               </>
             )}
           </div>
@@ -179,11 +314,33 @@ export default function QuoteEdit() {
             <div className="font-medium">{quote.valid_until ? formatDate(quote.valid_until) : "-"}</div>
           </div>
           <div className="col-span-2">
-            <div className="text-muted-foreground">Kupac</div>
-            <div className="font-medium">{quote.partner_name ?? quote.partner?.name}</div>
-            <div className="text-xs text-muted-foreground">{quote.partner?.code}</div>
+            <QuotePartnerEditor quote={quote} isEditable={isDraft} />
           </div>
         </div>
+
+        {quote.approver && (
+          <div className="text-sm text-muted-foreground">
+            Odobrio/la: <span className="font-medium text-foreground">{quote.approver.first_name} {quote.approver.last_name}</span>
+          </div>
+        )}
+
+        {/* Notes */}
+        {(quote.note || quote.internal_note) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            {quote.note && (
+              <div>
+                <div className="text-muted-foreground mb-1">Napomena za kupca</div>
+                <div className="bg-muted p-3 rounded-md">{quote.note}</div>
+              </div>
+            )}
+            {quote.internal_note && (
+              <div>
+                <div className="text-muted-foreground mb-1">Interna napomena</div>
+                <div className="bg-muted p-3 rounded-md">{quote.internal_note}</div>
+              </div>
+            )}
+          </div>
+        )}
 
         <Separator />
 
@@ -254,6 +411,12 @@ export default function QuoteEdit() {
           documentType="quote"
         />
       )}
+
+      <CreateDeliveryNoteFromQuoteDialog
+        open={deliveryNoteDialogOpen}
+        onOpenChange={setDeliveryNoteDialogOpen}
+        onSuccess={(deliveryNoteId) => navigate(`/prodaja/otpremnice`)}
+      />
     </MainLayout>
   );
 }
