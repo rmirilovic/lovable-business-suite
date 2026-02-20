@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye, ArrowRightLeft } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuotes, Quote, QuoteFormData } from "@/hooks/useQuotes";
 import { QuoteDialog } from "@/components/prodaja/QuoteDialog";
-import { QuoteDetailDialog } from "@/components/prodaja/QuoteDetailDialog";
 import { formatDecimal } from "@/lib/formatting";
 import { format } from "date-fns";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
@@ -22,29 +22,12 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
 };
 
 export default function Ponude() {
-  const { quotes, isLoading, createQuote, updateQuote, deleteQuote } = useQuotes();
+  const navigate = useNavigate();
+  const { quotes, isLoading, createQuote, deleteQuote } = useQuotes();
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
-
-  // Keep the opened quote in sync with latest query data (e.g. after approve)
-  // Only depend on quotes array, compare by serialized value to avoid loops
-  useEffect(() => {
-    if (!selectedQuote) return;
-    const updated = quotes.find((q) => q.id === selectedQuote.id);
-    if (!updated) return;
-    // Only update if status or approver changed (avoid infinite loop from reference changes)
-    if (
-      updated.status !== selectedQuote.status ||
-      updated.approved_by !== selectedQuote.approved_by ||
-      updated.approved_at !== selectedQuote.approved_at
-    ) {
-      setSelectedQuote(updated);
-    }
-  }, [quotes, selectedQuote?.id, selectedQuote?.status, selectedQuote?.approved_by, selectedQuote?.approved_at]);
 
   const filteredQuotes = quotes.filter((quote) => {
     const searchLower = searchTerm.toLowerCase();
@@ -58,18 +41,12 @@ export default function Ponude() {
   });
 
   const handleCreate = () => {
-    setSelectedQuote(null);
     setDialogOpen(true);
   };
 
-  const handleEdit = (quote: Quote) => {
-    setSelectedQuote(quote);
-    setDialogOpen(true);
-  };
-
-  const handleView = (quote: Quote) => {
-    setSelectedQuote(quote);
-    setDetailDialogOpen(true);
+  const handleNavigate = (quote: Quote, e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    navigate(`/prodaja/ponude/${quote.id}`);
   };
 
   const handleDelete = async (quote: Quote) => {
@@ -79,28 +56,11 @@ export default function Ponude() {
   };
 
   const handleSave = async (data: QuoteFormData) => {
-    if (selectedQuote) {
-      await updateQuote.mutateAsync({ id: selectedQuote.id, ...data });
-    } else {
-      const newQuote = await createQuote.mutateAsync(data);
-      // Open detail dialog for the new quote
-      if (newQuote) {
-        setDialogOpen(false);
-        setSelectedQuote(newQuote);
-        setDetailDialogOpen(true);
-      }
-    }
+    const newQuote = await createQuote.mutateAsync(data);
     setDialogOpen(false);
-  };
-
-  const handleConvertToInvoice = () => {
-    // TODO: Implement conversion to invoice
-    console.log("Convert to invoice:", selectedQuote?.id);
-  };
-
-  const handleConvertToDeliveryNote = () => {
-    // TODO: Implement conversion to delivery note
-    console.log("Convert to delivery note:", selectedQuote?.id);
+    if (newQuote) {
+      navigate(`/prodaja/ponude/${newQuote.id}`);
+    }
   };
 
   return (
@@ -172,34 +132,42 @@ export default function Ponude() {
                   return (
                     <TableRow
                       key={quote.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleView(quote)}
+                      className="cursor-pointer hover:bg-muted/50 relative"
                     >
-                      <TableCell>
+                      {/* Overlay link for right-click open in new tab */}
+                      <td className="absolute inset-0 p-0" style={{ display: "contents" }}>
+                        <a
+                          href={`/prodaja/ponude/${quote.id}`}
+                          onClick={(e) => handleNavigate(quote, e)}
+                          className="absolute inset-0 z-0"
+                          aria-label={`Otvori ponudu ${quote.quote_number}`}
+                        />
+                      </td>
+                      <TableCell className="relative z-[1] pointer-events-none">
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-muted-foreground" />
                           <span className="font-medium">{quote.quote_number}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="relative z-[1] pointer-events-none">
                         {format(new Date(quote.quote_date), "dd.MM.yyyy")}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="relative z-[1] pointer-events-none">
                         <div>
                           <div className="font-medium">{quote.partner_name ?? quote.partner?.name}</div>
                           <div className="text-xs text-muted-foreground">{quote.partner?.code}</div>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="relative z-[1] pointer-events-none">
                         {quote.valid_until ? format(new Date(quote.valid_until), "dd.MM.yyyy") : "-"}
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-medium relative z-[1] pointer-events-none">
                         {formatDecimal(quote.total_amount)} RSD
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="relative z-[1] pointer-events-none">
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <TableCell className="relative z-[2] pointer-events-auto" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -207,24 +175,18 @@ export default function Ponude() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleView(quote)}>
+                            <DropdownMenuItem onClick={() => handleNavigate(quote)}>
                               <Eye className="w-4 h-4 mr-2" />
                               Prikaži
                             </DropdownMenuItem>
                             {quote.status === "draft" && (
-                              <>
-                                <DropdownMenuItem onClick={() => handleEdit(quote)}>
-                                  <Pencil className="w-4 h-4 mr-2" />
-                                  Uredi
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleDelete(quote)}
-                                  className="text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Obriši
-                                </DropdownMenuItem>
-                              </>
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(quote)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Obriši
+                              </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -237,25 +199,13 @@ export default function Ponude() {
           </Table>
         </div>
 
-        {/* Dialogs */}
+        {/* Create dialog */}
         <QuoteDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
-          quote={selectedQuote}
+          quote={null}
           onSave={handleSave}
-          isLoading={createQuote.isPending || updateQuote.isPending}
-        />
-
-        <QuoteDetailDialog
-          open={detailDialogOpen}
-          onOpenChange={setDetailDialogOpen}
-          quote={selectedQuote}
-          onEdit={() => {
-            setDetailDialogOpen(false);
-            handleEdit(selectedQuote!);
-          }}
-          onConvertToInvoice={handleConvertToInvoice}
-          onConvertToDeliveryNote={handleConvertToDeliveryNote}
+          isLoading={createQuote.isPending}
         />
       </div>
     </MainLayout>
