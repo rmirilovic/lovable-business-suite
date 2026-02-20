@@ -293,12 +293,12 @@ export default function JournalEntryEdit() {
                     <TableCell>{item.description || "-"}</TableCell>
                     <TableCell className="text-xs">{item.document_date ? formatDate(item.document_date) : "-"}</TableCell>
                     <TableCell className="text-right font-mono">
-                      {Number(item.debit_amount) > 0 
+                      {Number(item.debit_amount) !== 0 
                         ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         : ""}
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {Number(item.credit_amount) > 0 
+                      {Number(item.credit_amount) !== 0 
                         ? formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         : ""}
                     </TableCell>
