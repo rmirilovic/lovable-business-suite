@@ -5305,10 +5305,9 @@ export type Database = {
       get_warehouse_turnover: {
         Args: { p_company_id: string; p_date_from?: string; p_date_to?: string }
         Returns: {
-          balance_value: number
-          credit_value: number
-          debit_value: number
-          document_type: string
+          balance: number
+          total_credit: number
+          total_debit: number
           warehouse_code: string
           warehouse_id: string
           warehouse_name: string
