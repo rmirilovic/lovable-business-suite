@@ -357,7 +357,7 @@ export default function ReprocessingWorkOrderEdit() {
                   {gpWarehouses.map((w) => <option key={w.id} value={w.id}>{w.code} - {w.name}</option>)}
                 </select>
               </div>
-              <div className="flex-1 max-w-md"><SearchableArticleSelect articles={gpArticles} value={newInputArticleId} onValueChange={setNewInputArticleId} placeholder="Izaberite GP za preradu..." /></div>
+              <div className="flex-1 max-w-md"><SearchableArticleSelect articles={gpArticles} value={newInputArticleId} onValueChange={setNewInputArticleId} placeholder="Izaberite GP za preradu..." priceField="purchase_price" /></div>
               <Button size="sm" onClick={handleAddInput} disabled={!newInputArticleId}><Plus className="w-4 h-4 mr-1" /> Dodaj</Button>
             </div>
           )}
@@ -407,7 +407,7 @@ export default function ReprocessingWorkOrderEdit() {
                   {rmWarehouses.map((w) => <option key={w.id} value={w.id}>{w.code} - {w.name}</option>)}
                 </select>
               </div>
-              <div className="flex-1 max-w-md"><SearchableArticleSelect articles={rmArticles} value={newMaterialArticleId} onValueChange={setNewMaterialArticleId} placeholder="Izaberite materijal..." /></div>
+              <div className="flex-1 max-w-md"><SearchableArticleSelect articles={rmArticles} value={newMaterialArticleId} onValueChange={setNewMaterialArticleId} placeholder="Izaberite materijal..." priceField="purchase_price" /></div>
               <Button size="sm" onClick={handleAddMaterial} disabled={!newMaterialArticleId}><Plus className="w-4 h-4 mr-1" /> Dodaj</Button>
             </div>
           )}

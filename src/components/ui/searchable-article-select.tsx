@@ -23,6 +23,7 @@ export interface Article {
   article_group?: string | null;
   unit: string;
   selling_price?: number | null;
+  purchase_price?: number | null;
   is_active?: boolean | null;
 }
 
@@ -32,6 +33,7 @@ interface SearchableArticleSelectProps {
   onValueChange: (articleId: string, article: Article) => void;
   placeholder?: string;
   disabled?: boolean;
+  priceField?: "selling_price" | "purchase_price";
 }
 
 export function SearchableArticleSelect({
@@ -40,6 +42,7 @@ export function SearchableArticleSelect({
   onValueChange,
   placeholder = "Izaberite artikal...",
   disabled = false,
+  priceField = "selling_price",
 }: SearchableArticleSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -119,8 +122,8 @@ export function SearchableArticleSelect({
                     </span>
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>{article.unit}</span>
-                      {article.selling_price != null && (
-                        <span>{formatDecimal(article.selling_price)} RSD</span>
+                      {article[priceField] != null && (
+                        <span>{formatDecimal(article[priceField]!)} RSD</span>
                       )}
                     </div>
                   </div>
