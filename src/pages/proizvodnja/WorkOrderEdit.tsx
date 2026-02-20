@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet, History, Download } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet, History, Download, Undo2, RefreshCw } from "lucide-react";
 import { DateActionDialog } from "@/components/shared/DateActionDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
@@ -54,7 +54,7 @@ export default function WorkOrderEdit() {
   const { data: issuedMaterials = [], isLoading: issuedLoading } = useIssuedMaterials(id);
   const { data: requisitions = [] } = useWorkOrderRequisitions(id);
   const { data: deliveryNotes = [], isLoading: deliveriesLoading } = useWorkOrderDeliveryNotes(id);
-  const { updateOrder, launchOrder, closeOrder } = useWorkOrders();
+  const { updateOrder, launchOrder, closeOrder, reopenOrder, unlaunchOrder } = useWorkOrders();
   const { articles } = useArticles(companyId);
   const { warehouses } = useWarehouses(companyId);
   const { norms } = useMaterialNorms(companyId);
@@ -68,6 +68,7 @@ export default function WorkOrderEdit() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [showLaunchDialog, setShowLaunchDialog] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const isClosed = order?.status === "closed";
 
   // Header form state
   const [headerForm, setHeaderForm] = useState({
@@ -348,8 +349,18 @@ export default function WorkOrderEdit() {
               </Button>
             )}
             {isLaunched && (
-              <Button variant="outline" onClick={() => setShowCloseDialog(true)}>
-                <Lock className="w-4 h-4 mr-2" /> Zaključi
+              <>
+                <Button variant="outline" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => unlaunchOrder.mutate(order!.id)}>
+                  <Undo2 className="w-4 h-4 mr-2" /> Vrati u Nacrt
+                </Button>
+                <Button variant="outline" onClick={() => setShowCloseDialog(true)}>
+                  <Lock className="w-4 h-4 mr-2" /> Zaključi
+                </Button>
+              </>
+            )}
+            {isClosed && (
+              <Button variant="outline" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => reopenOrder.mutate(order!.id)}>
+                <Undo2 className="w-4 h-4 mr-2" /> Vrati u Lansiran
               </Button>
             )}
           </div>
