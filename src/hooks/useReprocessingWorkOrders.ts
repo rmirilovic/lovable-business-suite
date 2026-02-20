@@ -177,10 +177,10 @@ export function useReprocessingWorkOrders() {
   });
 
   const launchOrder = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, launched_at }: { id: string; launched_at?: string }) => {
       const { data, error } = await (supabase as any)
         .from("reprocessing_work_orders")
-        .update({ status: "launched", launched_at: new Date().toISOString(), launched_by: user?.id })
+        .update({ status: "launched", launched_at: launched_at || new Date().toISOString(), launched_by: user?.id })
         .eq("id", id)
         .select(`*, warehouse:warehouses(id, code, name)`)
         .single();
@@ -196,12 +196,16 @@ export function useReprocessingWorkOrders() {
   });
 
   const closeOrder = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, closed_at }: { id: string; closed_at?: string }) => {
       const { data, error } = await (supabase as any).rpc("close_reprocessing_work_order", {
         _order_id: id,
         _user_id: user?.id,
       });
       if (error) throw error;
+      // Update closed_at with provided date if different from now
+      if (closed_at) {
+        await (supabase as any).from("reprocessing_work_orders").update({ closed_at }).eq("id", id);
+      }
       return data;
     },
     onSuccess: () => {
