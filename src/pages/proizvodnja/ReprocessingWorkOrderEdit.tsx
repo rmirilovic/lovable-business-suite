@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, Undo2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, Undo2, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useReprocessingWorkOrder, useRWOOutputItems, useRWOInputItems, useRWOMaterials,
   useReprocessingWorkOrders, RWOOutputItem, RWOInputItem, RWOMaterial,
@@ -53,6 +54,7 @@ export default function ReprocessingWorkOrderEdit() {
   const [inputWarehouseId, setInputWarehouseId] = useState("");
   const [newMaterialArticleId, setNewMaterialArticleId] = useState("");
   const [materialWarehouseId, setMaterialWarehouseId] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Fetch WAC prices for input warehouse GP articles
   const [inputWacPrices, setInputWacPrices] = useState<Record<string, number>>({});
@@ -311,6 +313,7 @@ export default function ReprocessingWorkOrderEdit() {
             <Badge className={cn("text-xs", RWO_STATUS_COLORS[order.status])}>{RWO_STATUS_LABELS[order.status]}</Badge>
           </div>
           <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
             {isDraft && headerDirty && <Button onClick={handleSaveHeader} disabled={updateOrder.isPending}><Save className="w-4 h-4 mr-2" /> Sačuvaj</Button>}
             {isDraft && <Button variant="outline" onClick={() => { if (confirm("Lansirati RN?")) launchOrder.mutateAsync(order.id); }}><Rocket className="w-4 h-4 mr-2" /> Lansiraj</Button>}
             {isLaunched && <Button variant="outline" onClick={() => { if (confirm("Zaključiti RN? Ovo će proknjižiti istrebovane GP i materijal.")) closeOrder.mutateAsync(order.id); }}><Lock className="w-4 h-4 mr-2" /> Zaključi</Button>}
@@ -490,6 +493,7 @@ export default function ReprocessingWorkOrderEdit() {
           </div>
         </div>
       </div>
+      <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={order.id} documentName={order.order_number} documentType="reprocessing_work_order" />
     </MainLayout>
   );
 }
