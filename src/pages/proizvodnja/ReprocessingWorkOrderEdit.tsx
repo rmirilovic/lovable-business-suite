@@ -121,10 +121,26 @@ export default function ReprocessingWorkOrderEdit() {
     const article = gpArticles.find((a) => a.id === newInputArticleId);
     if (!article) return;
     const nextOrder = inputItems.length > 0 ? Math.max(...inputItems.map((i) => i.item_order)) + 1 : 1;
+
+    // Fetch WAC price from warehouse stock
+    let unitPrice = article.purchase_price ?? 0;
+    const whId = inputWarehouseId || order?.warehouse_id;
+    if (whId) {
+      try {
+        const { data: stockData } = await supabase.rpc("get_warehouse_stock", {
+          p_company_id: companyId, p_warehouse_id: whId, p_date_from: null, p_date_to: null,
+        });
+        const stockRow = (stockData as unknown as WarehouseStockRow[])?.find(r => r.article_id === newInputArticleId);
+        if (stockRow && stockRow.balance_qty > 0) {
+          unitPrice = stockRow.balance_value / stockRow.balance_qty;
+        }
+      } catch (e) { /* fallback to purchase_price */ }
+    }
+
     await (supabase as any).from("reprocessing_wo_input_items").insert({
       work_order_id: id, company_id: companyId, article_id: newInputArticleId,
       article_code: article.code, article_name: article.name, unit: article.unit,
-      unit_price: article.purchase_price ?? 0, item_order: nextOrder,
+      unit_price: unitPrice, item_order: nextOrder,
       warehouse_id: inputWarehouseId || null,
     });
     setNewInputArticleId("");
@@ -166,10 +182,26 @@ export default function ReprocessingWorkOrderEdit() {
     const article = rmArticles.find((a) => a.id === newMaterialArticleId) || articles.find((a) => a.id === newMaterialArticleId);
     if (!article) return;
     const nextOrder = materials.length > 0 ? Math.max(...materials.map((m) => m.item_order)) + 1 : 1;
+
+    // Fetch WAC price from warehouse stock
+    let unitPrice = article.purchase_price ?? 0;
+    const whId = materialWarehouseId || order?.warehouse_id;
+    if (whId) {
+      try {
+        const { data: stockData } = await supabase.rpc("get_warehouse_stock", {
+          p_company_id: companyId, p_warehouse_id: whId, p_date_from: null, p_date_to: null,
+        });
+        const stockRow = (stockData as unknown as WarehouseStockRow[])?.find(r => r.article_id === newMaterialArticleId);
+        if (stockRow && stockRow.balance_qty > 0) {
+          unitPrice = stockRow.balance_value / stockRow.balance_qty;
+        }
+      } catch (e) { /* fallback to purchase_price */ }
+    }
+
     await (supabase as any).from("reprocessing_wo_materials").insert({
       work_order_id: id, company_id: companyId, article_id: newMaterialArticleId,
       article_code: article.code, article_name: article.name, unit: article.unit,
-      unit_price: article.purchase_price ?? 0, warehouse_id: materialWarehouseId || null, item_order: nextOrder,
+      unit_price: unitPrice, warehouse_id: materialWarehouseId || null, item_order: nextOrder,
     });
     setNewMaterialArticleId("");
     invalidateMaterials();
