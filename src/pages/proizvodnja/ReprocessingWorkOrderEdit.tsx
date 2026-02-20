@@ -42,7 +42,7 @@ export default function ReprocessingWorkOrderEdit() {
   const { warehouses } = useWarehouses(companyId);
 
   const gpArticles = useMemo(() => articles.filter((a) => a.svk === "9" && a.is_active), [articles]);
-  const rmArticles = useMemo(() => articles.filter((a) => (a.svk === "2" || a.svk === "6") && a.is_active), [articles]);
+  const rmArticlesBase = useMemo(() => articles.filter((a) => (a.svk === "2" || a.svk === "6") && a.is_active), [articles]);
   const gpWarehouses = useMemo(() => warehouses.filter((w) => w.warehouse_type === "9" && w.is_active), [warehouses]);
   const rmWarehouses = useMemo(() => warehouses.filter((w) => (w.warehouse_type === "2" || w.warehouse_type === "6") && w.is_active), [warehouses]);
 
@@ -53,6 +53,44 @@ export default function ReprocessingWorkOrderEdit() {
   const [inputWarehouseId, setInputWarehouseId] = useState("");
   const [newMaterialArticleId, setNewMaterialArticleId] = useState("");
   const [materialWarehouseId, setMaterialWarehouseId] = useState("");
+
+  // Fetch WAC prices for input warehouse GP articles
+  const [inputWacPrices, setInputWacPrices] = useState<Record<string, number>>({});
+  const [materialWacPrices, setMaterialWacPrices] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const whId = inputWarehouseId || order?.warehouse_id;
+    if (!whId || !companyId) { setInputWacPrices({}); return; }
+    supabase.rpc("get_warehouse_stock", { p_company_id: companyId, p_warehouse_id: whId, p_date_from: null, p_date_to: null })
+      .then(({ data }) => {
+        const prices: Record<string, number> = {};
+        (data as unknown as WarehouseStockRow[])?.forEach(r => {
+          if (r.balance_qty > 0) prices[r.article_id] = r.balance_value / r.balance_qty;
+        });
+        setInputWacPrices(prices);
+      });
+  }, [inputWarehouseId, order?.warehouse_id, companyId]);
+
+  useEffect(() => {
+    const whId = materialWarehouseId || order?.warehouse_id;
+    if (!whId || !companyId) { setMaterialWacPrices({}); return; }
+    supabase.rpc("get_warehouse_stock", { p_company_id: companyId, p_warehouse_id: whId, p_date_from: null, p_date_to: null })
+      .then(({ data }) => {
+        const prices: Record<string, number> = {};
+        (data as unknown as WarehouseStockRow[])?.forEach(r => {
+          if (r.balance_qty > 0) prices[r.article_id] = r.balance_value / r.balance_qty;
+        });
+        setMaterialWacPrices(prices);
+      });
+  }, [materialWarehouseId, order?.warehouse_id, companyId]);
+
+  const gpArticlesWithWac = useMemo(() => gpArticles.map(a => ({
+    ...a, purchase_price: inputWacPrices[a.id] ?? a.purchase_price,
+  })), [gpArticles, inputWacPrices]);
+
+  const rmArticles = useMemo(() => rmArticlesBase.map(a => ({
+    ...a, purchase_price: materialWacPrices[a.id] ?? a.purchase_price,
+  })), [rmArticlesBase, materialWacPrices]);
 
   useEffect(() => {
     if (order) {
@@ -357,7 +395,7 @@ export default function ReprocessingWorkOrderEdit() {
                   {gpWarehouses.map((w) => <option key={w.id} value={w.id}>{w.code} - {w.name}</option>)}
                 </select>
               </div>
-              <div className="flex-1 max-w-md"><SearchableArticleSelect articles={gpArticles} value={newInputArticleId} onValueChange={setNewInputArticleId} placeholder="Izaberite GP za preradu..." priceField="purchase_price" /></div>
+              <div className="flex-1 max-w-md"><SearchableArticleSelect articles={gpArticlesWithWac} value={newInputArticleId} onValueChange={setNewInputArticleId} placeholder="Izaberite GP za preradu..." priceField="purchase_price" /></div>
               <Button size="sm" onClick={handleAddInput} disabled={!newInputArticleId}><Plus className="w-4 h-4 mr-1" /> Dodaj</Button>
             </div>
           )}
