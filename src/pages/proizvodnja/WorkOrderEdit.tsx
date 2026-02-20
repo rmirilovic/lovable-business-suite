@@ -395,6 +395,18 @@ export default function WorkOrderEdit() {
               disabled={!isDraft}
             />
           </div>
+          {order.launched_at && (
+            <div className="space-y-1">
+              <Label className="text-xs">Datum lansiranja</Label>
+              <Input value={format(new Date(order.launched_at), "dd.MM.yyyy")} disabled />
+            </div>
+          )}
+          {order.closed_at && (
+            <div className="space-y-1">
+              <Label className="text-xs">Datum zaključenja</Label>
+              <Input value={format(new Date(order.closed_at), "dd.MM.yyyy")} disabled />
+            </div>
+          )}
         </div>
 
 
@@ -837,6 +849,7 @@ export default function WorkOrderEdit() {
         onOpenChange={setShowLaunchDialog}
         title={`Lansirati RN ${order.order_number}?`}
         label="Datum lansiranja"
+        defaultDate={order.launched_at ? format(new Date(order.launched_at), "yyyy-MM-dd") : undefined}
         onConfirm={(date) => launchOrder.mutateAsync({ id: order.id, launched_at: new Date(date).toISOString() })}
         isPending={launchOrder.isPending}
       />
@@ -845,6 +858,7 @@ export default function WorkOrderEdit() {
         onOpenChange={setShowCloseDialog}
         title={`Zaključiti RN ${order.order_number}?`}
         label="Datum zaključenja"
+        defaultDate={order.closed_at ? format(new Date(order.closed_at), "yyyy-MM-dd") : undefined}
         minDate={order.launched_at ? format(new Date(order.launched_at), "yyyy-MM-dd") : undefined}
         minDateMessage="Datum zaključenja ne može biti pre datuma lansiranja."
         onConfirm={(date) => closeOrder.mutateAsync({ id: order.id, closed_at: new Date(date).toISOString() })}
