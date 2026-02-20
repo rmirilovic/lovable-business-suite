@@ -10,7 +10,8 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { ArrowLeft, Lock, Save, Undo2 } from "lucide-react";
+import { ArrowLeft, Lock, Save, Undo2, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useReprocessingDeliveryNote, useReprocessingDeliveryNoteItems, useReprocessingDeliveryNotes,
   ReprocessingDeliveryNoteItem, RDN_STATUS_LABELS, RDN_STATUS_COLORS,
@@ -65,6 +66,7 @@ export default function ReprocessingDeliveryNoteEdit() {
 
   const [headerForm, setHeaderForm] = useState({ delivery_date: "", warehouse_id: "", work_order_id: "", production_line: 1, shift_manager_1_id: "", shift_manager_2_id: "", shift_manager_3_id: "", note: "", responsible_person: "" });
   const [headerDirty, setHeaderDirty] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     if (note) {
@@ -130,9 +132,10 @@ export default function ReprocessingDeliveryNoteEdit() {
             <Badge className={cn("text-xs", RDN_STATUS_COLORS[note.status])}>{RDN_STATUS_LABELS[note.status] ?? note.status}</Badge>
           </div>
           <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
             {isDraft && headerDirty && <Button onClick={handleSaveHeader}><Save className="w-4 h-4 mr-2" /> Sačuvaj</Button>}
             {isDraft && <Button onClick={() => { if (confirm("Proknjižiti predajnicu?")) postNote.mutateAsync(note.id); }}><Lock className="w-4 h-4 mr-2" /> Proknjiži</Button>}
-            {!isDraft && <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10" onClick={() => { if (confirm("Poništiti knjiženje?")) unpostNote.mutateAsync(note.id); }}><Undo2 className="w-4 h-4 mr-2" /> Poništi knjiženje</Button>}
+            {!isDraft && <Button variant="outline" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => { if (confirm("Poništiti knjiženje?")) unpostNote.mutateAsync(note.id); }}><Undo2 className="w-4 h-4 mr-2" /> Poništi knjiženje</Button>}
           </div>
         </div>
 
@@ -206,6 +209,9 @@ export default function ReprocessingDeliveryNoteEdit() {
           </TableScrollContainer>
         </div>
       </div>
+      {note && (
+        <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={note.id} documentName={note.delivery_number} documentType="reprocessing_delivery_note" />
+      )}
     </MainLayout>
   );
 }
