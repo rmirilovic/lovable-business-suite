@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
+import { WarehouseStockRow } from "@/hooks/useWarehouseStock";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function ReprocessingWorkOrderEdit() {
@@ -133,10 +134,19 @@ export default function ReprocessingWorkOrderEdit() {
   const handleUpdateInput = async (item: RWOInputItem, field: string, value: number) => {
     const updates: any = { [field]: value };
     if (field === "quantity") {
-      // Validate against stock
-      const article = articles.find(a => a.id === item.article_id);
-      if (article && value > (article.stock ?? 0)) {
-        toast.warning(`Upozorenje: Količina ${value} premašuje raspoloživu zalihu (${article.stock ?? 0})`);
+      // Validate against warehouse-specific stock
+      const whId = item.warehouse_id || inputWarehouseId;
+      if (whId && companyId) {
+        try {
+          const { data: stockData } = await supabase.rpc("get_warehouse_stock", {
+            p_company_id: companyId, p_warehouse_id: whId, p_date_from: null, p_date_to: null,
+          });
+          const stockRow = (stockData as unknown as WarehouseStockRow[])?.find(r => r.article_id === item.article_id);
+          const available = stockRow?.balance_qty ?? 0;
+          if (value > available) {
+            toast.warning(`Upozorenje: Količina ${value} premašuje raspoloživu zalihu u magacinu (${available})`);
+          }
+        } catch (e) { /* ignore stock check errors */ }
       }
       updates.item_value = value * item.unit_price;
     }
@@ -167,7 +177,23 @@ export default function ReprocessingWorkOrderEdit() {
 
   const handleUpdateMaterial = async (mat: RWOMaterial, field: string, value: number) => {
     const updates: any = { [field]: value };
-    if (field === "quantity") updates.item_value = value * mat.unit_price;
+    if (field === "quantity") {
+      // Validate against warehouse-specific stock
+      const whId = mat.warehouse_id || materialWarehouseId;
+      if (whId && companyId) {
+        try {
+          const { data: stockData } = await supabase.rpc("get_warehouse_stock", {
+            p_company_id: companyId, p_warehouse_id: whId, p_date_from: null, p_date_to: null,
+          });
+          const stockRow = (stockData as unknown as WarehouseStockRow[])?.find(r => r.article_id === mat.article_id);
+          const available = stockRow?.balance_qty ?? 0;
+          if (value > available) {
+            toast.warning(`Upozorenje: Količina ${value} premašuje raspoloživu zalihu u magacinu (${available})`);
+          }
+        } catch (e) { /* ignore stock check errors */ }
+      }
+      updates.item_value = value * mat.unit_price;
+    }
     if (field === "unit_price") updates.item_value = mat.quantity * value;
     await (supabase as any).from("reprocessing_wo_materials").update(updates).eq("id", mat.id);
     invalidateMaterials();
