@@ -213,6 +213,21 @@ export default function GoodsPurchaseInvoiceEdit() {
             <Button variant="ghost" size="sm" onClick={fetchInvoice} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
+            {isDraft && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+                </Button>
+                <Button size="sm" onClick={() => setPostDialogOpen(true)}>
+                  <BookCheck className="h-4 w-4 mr-2" />Proknjiži
+                </Button>
+              </>
+            )}
+            {isPosted && canUnpost && (
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
+                <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
+              </Button>
+            )}
           </div>
         </div>
 
@@ -333,32 +348,6 @@ export default function GoodsPurchaseInvoiceEdit() {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-between pt-4 border-t">
-          <Button variant="outline" onClick={() => navigate("/nabavka/ulazne-fakture-roba")}>
-            Zatvori
-          </Button>
-          <div className="flex gap-2">
-            {isDraft && (
-              <>
-                <Button variant="outline" onClick={() => setHeaderDialogOpen(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Uredi zaglavlje
-                </Button>
-                <Button onClick={() => setPostDialogOpen(true)}>
-                  <BookCheck className="h-4 w-4 mr-2" />
-                  Proknjiži
-                </Button>
-              </>
-            )}
-            {isPosted && canUnpost && (
-              <Button variant="destructive" onClick={() => setUnpostDialogOpen(true)}>
-                <Undo2 className="h-4 w-4 mr-2" />
-                Poništi knjiženje
-              </Button>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Dialogs */}
