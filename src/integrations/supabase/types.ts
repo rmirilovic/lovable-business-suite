@@ -5274,11 +5274,11 @@ export type Database = {
           article_code: string
           article_id: string
           article_name: string
-          closing_qty: number
-          in_qty: number
-          opening_qty: number
-          out_qty: number
-          turnover_qty: number
+          closing: number
+          opening: number
+          period_in: number
+          period_out: number
+          turnover: number
           unit: string
         }[]
       }
@@ -5307,7 +5307,7 @@ export type Database = {
         Returns: {
           credit_value: number
           debit_value: number
-          document_type: string
+          doc_type: string
           warehouse_code: string
           warehouse_id: string
           warehouse_name: string
