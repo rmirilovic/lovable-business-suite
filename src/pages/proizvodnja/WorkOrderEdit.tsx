@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet, History } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet, History, Download } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useWorkOrder, useWorkOrderItems, useWorkOrderMaterials,
@@ -39,6 +39,7 @@ import {
   exportRequisitionsToExcel, exportRequisitionsToPdf, printRequisitions,
   exportDeliveryNotesToExcel, exportDeliveryNotesToPdf, printDeliveryNotes,
 } from "@/lib/workOrderTabsExportUtils";
+import { exportWOToExcel, exportWOToPdf, printWO } from "@/lib/workOrderDocExport";
 
 export default function WorkOrderEdit() {
   const { id } = useParams<{ id: string }>();
@@ -320,6 +321,19 @@ export default function WorkOrderEdit() {
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
               <History className="w-4 h-4" />
             </Button>
+            {items.length > 0 && order && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => exportWOToExcel({ companyName: selectedCompany?.name || "", order, items })}>
+                  <FileSpreadsheet className="w-4 h-4 mr-1" /> Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => exportWOToPdf({ companyName: selectedCompany?.name || "", order, items })}>
+                  <FileDown className="w-4 h-4 mr-1" /> PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => printWO({ companyName: selectedCompany?.name || "", order, items })}>
+                  <Printer className="w-4 h-4 mr-1" /> Štampa
+                </Button>
+              </>
+            )}
             {isDraft && headerDirty && (
               <Button onClick={handleSaveHeader} disabled={updateOrder.isPending}>
                 <Save className="w-4 h-4 mr-2" /> Sačuvaj
