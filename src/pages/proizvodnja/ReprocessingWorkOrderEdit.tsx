@@ -204,6 +204,25 @@ export default function ReprocessingWorkOrderEdit() {
     invalidateMaterials();
   };
 
+  // ── Delivered quantities from posted delivery notes ──
+  const [deliveredQtyMap, setDeliveredQtyMap] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("reprocessing_delivery_note_items")
+        .select("article_id, delivered_kg, delivery_note_id, reprocessing_delivery_notes!inner(work_order_id, status)")
+        .eq("reprocessing_delivery_notes.work_order_id", id)
+        .eq("reprocessing_delivery_notes.status", "posted");
+      if (!data) return;
+      const map: Record<string, number> = {};
+      for (const row of data) {
+        map[row.article_id] = (map[row.article_id] || 0) + (row.delivered_kg || 0);
+      }
+      setDeliveredQtyMap(map);
+    })();
+  }, [id, outputItems]);
+
   const totalOutputValue = outputItems.reduce((s, i) => s + (i.launched_value || 0), 0);
   const totalInputValue = inputItems.reduce((s, i) => s + (i.item_value || 0), 0);
   const totalMaterialValue = materials.reduce((s, m) => s + (m.item_value || 0), 0);
@@ -266,13 +285,14 @@ export default function ReprocessingWorkOrderEdit() {
                 <TableHead>Naziv</TableHead>
                 <TableHead className="w-[50px]">JM</TableHead>
                 <TableHead className="w-[100px] text-right">Cena</TableHead>
-                <TableHead className="w-[100px] text-right">Lans. kol.</TableHead>
-                <TableHead className="w-[120px] text-right">Vrednost</TableHead>
-                {isDraft && <TableHead className="w-[40px]" />}
+                 <TableHead className="w-[100px] text-right">Lans. kol.</TableHead>
+                 <TableHead className="w-[100px] text-right">Predata kol.</TableHead>
+                 <TableHead className="w-[120px] text-right">Vrednost</TableHead>
+                 {isDraft && <TableHead className="w-[40px]" />}
               </TableRow></TableHeader>
               <TableBody>
                 {outputItems.length === 0 ? (
-                  <TableRow><TableCell colSpan={isDraft ? 8 : 7} className="text-center py-4 text-muted-foreground">Nema stavki.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={isDraft ? 9 : 8} className="text-center py-4 text-muted-foreground">Nema stavki.</TableCell></TableRow>
                 ) : outputItems.map((item, idx) => (
                   <TableRow key={item.id}>
                     <TableCell>{idx + 1}</TableCell>
@@ -280,8 +300,9 @@ export default function ReprocessingWorkOrderEdit() {
                     <TableCell>{item.article_name}</TableCell>
                     <TableCell>{item.unit}</TableCell>
                     <TableCell className="text-right"><LocaleNumberInput value={String(item.unit_price ?? 0)} onChange={(v) => handleUpdateOutput(item, "unit_price", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
-                    <TableCell className="text-right"><LocaleNumberInput value={String(item.launched_qty ?? 0)} onChange={(v) => handleUpdateOutput(item, "launched_qty", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
-                    <TableCell className="text-right font-mono">{formatNumber(item.launched_value, { minimumFractionDigits: 2 })}</TableCell>
+                     <TableCell className="text-right"><LocaleNumberInput value={String(item.launched_qty ?? 0)} onChange={(v) => handleUpdateOutput(item, "launched_qty", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
+                     <TableCell className="text-right font-mono">{formatNumber(deliveredQtyMap[item.article_id] || 0, { minimumFractionDigits: 2 })}</TableCell>
+                     <TableCell className="text-right font-mono">{formatNumber(item.launched_value, { minimumFractionDigits: 2 })}</TableCell>
                     {isDraft && <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteOutput(item.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></TableCell>}
                   </TableRow>
                 ))}
