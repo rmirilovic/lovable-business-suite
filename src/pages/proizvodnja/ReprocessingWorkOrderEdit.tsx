@@ -517,6 +517,7 @@ export default function ReprocessingWorkOrderEdit() {
         onOpenChange={setShowLaunchDialog}
         title={`Lansirati RN ${order.order_number}?`}
         label="Datum lansiranja"
+        defaultDate={order.launched_at ? format(new Date(order.launched_at), "yyyy-MM-dd") : undefined}
         onConfirm={(date) => launchOrder.mutateAsync({ id: order.id, launched_at: new Date(date).toISOString() })}
         isPending={launchOrder.isPending}
       />
@@ -525,6 +526,7 @@ export default function ReprocessingWorkOrderEdit() {
         onOpenChange={setShowCloseDialog}
         title={`Zaključiti RN ${order.order_number}? Ovo će proknjižiti istrebovane GP i materijal.`}
         label="Datum zaključenja"
+        defaultDate={order.closed_at ? format(new Date(order.closed_at), "yyyy-MM-dd") : undefined}
         minDate={order.launched_at ? format(new Date(order.launched_at), "yyyy-MM-dd") : undefined}
         minDateMessage="Datum zaključenja ne može biti pre datuma lansiranja."
         onConfirm={(date) => closeOrder.mutateAsync({ id: order.id, closed_at: new Date(date).toISOString() })}
