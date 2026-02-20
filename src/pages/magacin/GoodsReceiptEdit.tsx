@@ -183,6 +183,37 @@ export default function GoodsReceiptEdit() {
             <Button variant="ghost" size="sm" onClick={fetchReceipt} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
+            {isEditable && canEdit && (
+              <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+              </Button>
+            )}
+            {items.length > 0 && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => exportGoodsReceiptPdf(receipt, items, selectedCompany)}>
+                  <FileDown className="h-4 w-4 mr-2" />PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => printGoodsReceipt(receipt, items, selectedCompany)}>
+                  <Printer className="h-4 w-4 mr-2" />Štampa
+                </Button>
+              </>
+            )}
+            {isPosted && receipt.source_invoice_id && (
+              <Button variant="outline" size="sm" onClick={handleCalculation} disabled={createFromReceipt.isPending || calcCheckLoading}>
+                {createFromReceipt.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Calculator className="h-4 w-4 mr-2" />}
+                {existingCalc ? "Otvori kalkulaciju" : "Kreiraj kalkulaciju"}
+              </Button>
+            )}
+            {isEditable && canPost && (
+              <Button size="sm" onClick={() => setPostDialogOpen(true)}>
+                <BookCheck className="h-4 w-4 mr-2" />Proknjiži
+              </Button>
+            )}
+            {isPosted && canPost && !receipt.source_invoice_id && (
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
+                <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
+              </Button>
+            )}
           </div>
         </div>
 
@@ -289,68 +320,6 @@ export default function GoodsReceiptEdit() {
         )}
 
         <Separator />
-
-        {/* Actions */}
-        <div className="flex justify-between pt-4 border-t">
-          <Button variant="outline" onClick={() => navigate("/magacin/prijemnice")}>
-            Zatvori
-          </Button>
-          <div className="flex gap-2">
-            {isEditable && canEdit && (
-              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Uredi zaglavlje
-              </Button>
-            )}
-            {items.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => exportGoodsReceiptPdf(receipt, items, selectedCompany)}
-                >
-                  <FileDown className="h-4 w-4 mr-2" />
-                  PDF
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => printGoodsReceipt(receipt, items, selectedCompany)}
-                >
-                  <Printer className="h-4 w-4 mr-2" />
-                  Štampa
-                </Button>
-              </>
-            )}
-            {isPosted && receipt.source_invoice_id && (
-              <Button variant="outline" onClick={handleCalculation}
-                disabled={createFromReceipt.isPending || calcCheckLoading}
-              >
-                {createFromReceipt.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Calculator className="h-4 w-4 mr-2" />
-                )}
-                {existingCalc ? "Otvori kalkulaciju" : "Kreiraj kalkulaciju"}
-              </Button>
-            )}
-            {isPosted && !receipt.source_invoice_id && (
-              <Badge variant="outline" className="text-muted-foreground text-xs py-1 self-center">
-                Kalkulacija zahteva povezan UFR
-              </Badge>
-            )}
-            {isEditable && canPost && (
-              <Button onClick={() => setPostDialogOpen(true)}>
-                <BookCheck className="h-4 w-4 mr-2" />
-                Proknjiži
-              </Button>
-            )}
-            {isPosted && canPost && !receipt.source_invoice_id && (
-              <Button variant="destructive" onClick={() => setUnpostDialogOpen(true)}>
-                <Undo2 className="h-4 w-4 mr-2" />
-                Poništi knjiženje
-              </Button>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Edit header dialog */}

@@ -339,16 +339,35 @@ export default function ArticleSwapEdit() {
               )
             )}
           </div>
-          {!isNew && (
-            <>
-              <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
-                <History className="w-4 h-4" />
+          <div className="flex items-center gap-2">
+            {!isNew && (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+                  <History className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={fetchSwap} title="Osveži">
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </>
+            )}
+            {isEditable && (
+              <Button size="sm" onClick={handleSave} disabled={isSaving || !warehouseId || !article1Id || !article2Id}>
+                {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <Save className="h-4 w-4 mr-2" />
+                {isNew ? "Kreiraj" : "Sačuvaj"}
               </Button>
-              <Button variant="ghost" size="sm" onClick={fetchSwap} title="Osveži">
-                <RefreshCw className="w-4 h-4" />
+            )}
+            {!isNew && isDraft && canPost && (
+              <Button size="sm" onClick={() => setPostDialogOpen(true)} disabled={swap?.quantity_1 === 0}>
+                <BookCheck className="h-4 w-4 mr-2" />Proknjiži
               </Button>
-            </>
-          )}
+            )}
+            {isPosted && canPost && (
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
+                <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Form */}
@@ -497,29 +516,6 @@ export default function ArticleSwapEdit() {
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-between pt-4 border-t">
-          <Button variant="outline" onClick={() => navigate("/magacin/zamene")}>Zatvori</Button>
-          <div className="flex gap-2">
-            {isEditable && (
-              <Button onClick={handleSave} disabled={isSaving || !warehouseId || !article1Id || !article2Id}>
-                {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                <Save className="h-4 w-4 mr-2" />
-                {isNew ? "Kreiraj" : "Sačuvaj"}
-              </Button>
-            )}
-            {!isNew && isDraft && canPost && (
-              <Button onClick={() => setPostDialogOpen(true)} disabled={swap?.quantity_1 === 0}>
-                <BookCheck className="h-4 w-4 mr-2" />Proknjiži
-              </Button>
-            )}
-            {isPosted && canPost && (
-              <Button variant="destructive" onClick={() => setUnpostDialogOpen(true)}>
-                <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
-              </Button>
-            )}
-          </div>
-        </div>
       </div>
 
       <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
