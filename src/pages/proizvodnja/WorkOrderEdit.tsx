@@ -15,6 +15,7 @@ import {
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet, History, Download } from "lucide-react";
+import { DateActionDialog } from "@/components/shared/DateActionDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useWorkOrder, useWorkOrderItems, useWorkOrderMaterials,
@@ -65,6 +66,8 @@ export default function WorkOrderEdit() {
   // Active tab persistence
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem("wo_edit_tab") || "materials");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [showLaunchDialog, setShowLaunchDialog] = useState(false);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   // Header form state
   const [headerForm, setHeaderForm] = useState({
@@ -340,16 +343,12 @@ export default function WorkOrderEdit() {
               </Button>
             )}
             {isDraft && (
-              <Button variant="outline" onClick={() => {
-                if (confirm("Lansirati radni nalog?")) launchOrder.mutateAsync(order.id);
-              }}>
+              <Button variant="outline" onClick={() => setShowLaunchDialog(true)}>
                 <Rocket className="w-4 h-4 mr-2" /> Lansiraj
               </Button>
             )}
             {isLaunched && (
-              <Button variant="outline" onClick={() => {
-                if (confirm("Zaključiti radni nalog?")) closeOrder.mutateAsync(order.id);
-              }}>
+              <Button variant="outline" onClick={() => setShowCloseDialog(true)}>
                 <Lock className="w-4 h-4 mr-2" /> Zaključi
               </Button>
             )}
@@ -833,6 +832,24 @@ export default function WorkOrderEdit() {
       {order && (
         <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={order.id} documentName={order.order_number} documentType="work_order" />
       )}
+      <DateActionDialog
+        open={showLaunchDialog}
+        onOpenChange={setShowLaunchDialog}
+        title={`Lansirati RN ${order.order_number}?`}
+        label="Datum lansiranja"
+        onConfirm={(date) => launchOrder.mutateAsync({ id: order.id, launched_at: new Date(date).toISOString() })}
+        isPending={launchOrder.isPending}
+      />
+      <DateActionDialog
+        open={showCloseDialog}
+        onOpenChange={setShowCloseDialog}
+        title={`Zaključiti RN ${order.order_number}?`}
+        label="Datum zaključenja"
+        minDate={order.launched_at ? format(new Date(order.launched_at), "yyyy-MM-dd") : undefined}
+        minDateMessage="Datum zaključenja ne može biti pre datuma lansiranja."
+        onConfirm={(date) => closeOrder.mutateAsync({ id: order.id, closed_at: new Date(date).toISOString() })}
+        isPending={closeOrder.isPending}
+      />
     </MainLayout>
   );
 }

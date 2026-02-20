@@ -12,6 +12,7 @@ import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, Undo2, History, FileSpreadsheet, FileDown, Printer } from "lucide-react";
+import { DateActionDialog } from "@/components/shared/DateActionDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useReprocessingWorkOrder, useRWOOutputItems, useRWOInputItems, useRWOMaterials,
@@ -23,6 +24,7 @@ import { useWarehouses } from "@/hooks/useWarehouses";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber } from "@/lib/formatting";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { WarehouseStockRow } from "@/hooks/useWarehouseStock";
 import { useQueryClient } from "@tanstack/react-query";
@@ -56,6 +58,8 @@ export default function ReprocessingWorkOrderEdit() {
   const [newMaterialArticleId, setNewMaterialArticleId] = useState("");
   const [materialWarehouseId, setMaterialWarehouseId] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [showLaunchDialog, setShowLaunchDialog] = useState(false);
+  const [showCloseDialog, setShowCloseDialog] = useState(false);
 
   // Fetch WAC prices for input warehouse GP articles
   const [inputWacPrices, setInputWacPrices] = useState<Record<string, number>>({});
@@ -329,8 +333,8 @@ export default function ReprocessingWorkOrderEdit() {
               </>
             )}
             {isDraft && headerDirty && <Button onClick={handleSaveHeader} disabled={updateOrder.isPending}><Save className="w-4 h-4 mr-2" /> Sačuvaj</Button>}
-            {isDraft && <Button variant="outline" onClick={() => { if (confirm("Lansirati RN?")) launchOrder.mutateAsync(order.id); }}><Rocket className="w-4 h-4 mr-2" /> Lansiraj</Button>}
-            {isLaunched && <Button variant="outline" onClick={() => { if (confirm("Zaključiti RN? Ovo će proknjižiti istrebovane GP i materijal.")) closeOrder.mutateAsync(order.id); }}><Lock className="w-4 h-4 mr-2" /> Zaključi</Button>}
+            {isDraft && <Button variant="outline" onClick={() => setShowLaunchDialog(true)}><Rocket className="w-4 h-4 mr-2" /> Lansiraj</Button>}
+            {isLaunched && <Button variant="outline" onClick={() => setShowCloseDialog(true)}><Lock className="w-4 h-4 mr-2" /> Zaključi</Button>}
             {isClosed && <Button variant="outline" className="text-destructive border-destructive" onClick={() => { if (confirm("Vratiti RN u Lansiran? Ovo će poništiti knjiženje.")) reopenOrder.mutateAsync(order.id); }}><Undo2 className="w-4 h-4 mr-2" /> Vrati u Lansiran</Button>}
             {isLaunched && <Button variant="outline" className="text-destructive border-destructive" onClick={() => { if (confirm("Vratiti u Nacrt?")) unlaunchOrder.mutateAsync(order.id); }}><Undo2 className="w-4 h-4 mr-2" /> Vrati u Nacrt</Button>}
           </div>
@@ -508,6 +512,24 @@ export default function ReprocessingWorkOrderEdit() {
         </div>
       </div>
       <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={order.id} documentName={order.order_number} documentType="reprocessing_work_order" />
+      <DateActionDialog
+        open={showLaunchDialog}
+        onOpenChange={setShowLaunchDialog}
+        title={`Lansirati RN ${order.order_number}?`}
+        label="Datum lansiranja"
+        onConfirm={(date) => launchOrder.mutateAsync({ id: order.id, launched_at: new Date(date).toISOString() })}
+        isPending={launchOrder.isPending}
+      />
+      <DateActionDialog
+        open={showCloseDialog}
+        onOpenChange={setShowCloseDialog}
+        title={`Zaključiti RN ${order.order_number}? Ovo će proknjižiti istrebovane GP i materijal.`}
+        label="Datum zaključenja"
+        minDate={order.launched_at ? format(new Date(order.launched_at), "yyyy-MM-dd") : undefined}
+        minDateMessage="Datum zaključenja ne može biti pre datuma lansiranja."
+        onConfirm={(date) => closeOrder.mutateAsync({ id: order.id, closed_at: new Date(date).toISOString() })}
+        isPending={closeOrder.isPending}
+      />
     </MainLayout>
   );
 }

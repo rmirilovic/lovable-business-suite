@@ -172,10 +172,10 @@ export function useWorkOrders() {
   });
 
   const launchOrder = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, launched_at }: { id: string; launched_at?: string }) => {
       const { data, error } = await supabase
         .from("work_orders")
-        .update({ status: "launched", launched_at: new Date().toISOString(), launched_by: user?.id })
+        .update({ status: "launched", launched_at: launched_at || new Date().toISOString(), launched_by: user?.id })
         .eq("id", id)
         .select(`*, warehouse:warehouses(id, code, name)`)
         .single();
@@ -191,10 +191,10 @@ export function useWorkOrders() {
   });
 
   const closeOrder = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, closed_at }: { id: string; closed_at?: string }) => {
       const { data, error } = await supabase
         .from("work_orders")
-        .update({ status: "closed", closed_at: new Date().toISOString(), closed_by: user?.id })
+        .update({ status: "closed", closed_at: closed_at || new Date().toISOString(), closed_by: user?.id })
         .eq("id", id)
         .select(`*, warehouse:warehouses(id, code, name)`)
         .single();

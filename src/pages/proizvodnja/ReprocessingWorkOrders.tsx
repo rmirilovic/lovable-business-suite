@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { DateActionDialog } from "@/components/shared/DateActionDialog";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,6 +50,8 @@ export default function ReprocessingWorkOrders() {
 
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [newForm, setNewForm] = useState({ order_date: format(new Date(), "yyyy-MM-dd"), deadline_date: "", warehouse_id: "" });
+  const [launchTarget, setLaunchTarget] = useState<ReprocessingWorkOrder | null>(null);
+  const [closeTarget, setCloseTarget] = useState<ReprocessingWorkOrder | null>(null);
 
   // Fetch output items summary
   const orderIds = useMemo(() => orders.map(o => o.id), [orders]);
@@ -89,6 +92,8 @@ export default function ReprocessingWorkOrders() {
       case "deadline_date": return item.deadline_date ?? "";
       case "product": return outputSummary?.[item.id]?.firstProduct ?? "";
       case "warehouse": return item.warehouse?.code ?? "";
+      case "launched_at": return item.launched_at ?? "";
+      case "closed_at": return item.closed_at ?? "";
       case "launched_value": return outputSummary?.[item.id]?.totalValue ?? 0;
       case "status": return item.status;
       default: return "";
@@ -164,6 +169,8 @@ export default function ReprocessingWorkOrders() {
                 <TableHead className="w-[90px]"><SortableHeader column="deadline_date" label="Rok" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="product" label="Proizvod" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[80px]"><SortableHeader column="warehouse" label="Magacin" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[90px]"><SortableHeader column="launched_at" label="Lansirano" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[90px]"><SortableHeader column="closed_at" label="Zaključeno" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[120px] text-right"><SortableHeader column="launched_value" label="Vrednost" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
                 <TableHead className="w-[100px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[50px]"></TableHead>
@@ -171,9 +178,9 @@ export default function ReprocessingWorkOrders() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8">Učitavanje...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={10} className="text-center py-8">Učitavanje...</TableCell></TableRow>
               ) : sorted.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nema radnih naloga za preradu.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Nema radnih naloga za preradu.</TableCell></TableRow>
               ) : sorted.map((order) => (
                 <TableRow key={order.id} data-order-id={order.id} className="cursor-pointer hover:bg-muted/50" onClick={() => persistAndNavigate(order.id)}>
                   <TableCell className="font-medium">{order.order_number}</TableCell>
@@ -181,6 +188,8 @@ export default function ReprocessingWorkOrders() {
                   <TableCell>{fmtDate(order.deadline_date)}</TableCell>
                   <TableCell className="text-xs truncate max-w-[220px]">{outputSummary?.[order.id]?.firstProduct ?? "-"}</TableCell>
                   <TableCell>{order.warehouse?.code ?? "-"}</TableCell>
+                  <TableCell>{fmtDate(order.launched_at)}</TableCell>
+                  <TableCell>{fmtDate(order.closed_at)}</TableCell>
                   <TableCell className="text-right font-mono">{formatPrice(outputSummary?.[order.id]?.totalValue ?? 0)}</TableCell>
                   <TableCell><Badge className={cn("text-xs", RWO_STATUS_COLORS[order.status])}>{RWO_STATUS_LABELS[order.status]}</Badge></TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
@@ -188,8 +197,8 @@ export default function ReprocessingWorkOrders() {
                       <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="w-4 h-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => persistAndNavigate(order.id)}><Eye className="w-4 h-4 mr-2" /> Otvori</DropdownMenuItem>
-                        {order.status === "draft" && <DropdownMenuItem onClick={() => { if (confirm(`Lansirati RN ${order.order_number}?`)) launchOrder.mutateAsync(order.id); }}><Rocket className="w-4 h-4 mr-2" /> Lansiraj</DropdownMenuItem>}
-                        {order.status === "launched" && <DropdownMenuItem onClick={() => { if (confirm(`Zaključiti RN ${order.order_number}?`)) closeOrder.mutateAsync(order.id); }}><Lock className="w-4 h-4 mr-2" /> Zaključi</DropdownMenuItem>}
+                        {order.status === "draft" && <DropdownMenuItem onClick={() => setLaunchTarget(order)}><Rocket className="w-4 h-4 mr-2" /> Lansiraj</DropdownMenuItem>}
+                        {order.status === "launched" && <DropdownMenuItem onClick={() => setCloseTarget(order)}><Lock className="w-4 h-4 mr-2" /> Zaključi</DropdownMenuItem>}
                         {order.status === "closed" && <DropdownMenuItem className="text-destructive" onClick={() => { if (confirm(`Vratiti RN ${order.order_number} u Lansiran?`)) reopenOrder.mutateAsync(order.id); }}><Undo2 className="w-4 h-4 mr-2" /> Vrati u Lansiran</DropdownMenuItem>}
                         {order.status === "launched" && <DropdownMenuItem className="text-destructive" onClick={() => { if (confirm(`Vratiti RN ${order.order_number} u Nacrt?`)) unlaunchOrder.mutateAsync(order.id); }}><Undo2 className="w-4 h-4 mr-2" /> Vrati u Nacrt</DropdownMenuItem>}
                         {order.status === "draft" && <DropdownMenuItem onClick={() => { if (confirm(`Obrisati RN ${order.order_number}?`)) deleteOrder.mutateAsync(order.id); }} className="text-destructive"><Trash2 className="w-4 h-4 mr-2" /> Obriši</DropdownMenuItem>}
@@ -223,6 +232,26 @@ export default function ReprocessingWorkOrders() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DateActionDialog
+        open={!!launchTarget}
+        onOpenChange={(v) => { if (!v) setLaunchTarget(null); }}
+        title={`Lansirati RN ${launchTarget?.order_number || ""}?`}
+        label="Datum lansiranja"
+        onConfirm={(date) => { if (launchTarget) launchOrder.mutateAsync({ id: launchTarget.id, launched_at: new Date(date).toISOString() }); setLaunchTarget(null); }}
+        isPending={launchOrder.isPending}
+      />
+
+      <DateActionDialog
+        open={!!closeTarget}
+        onOpenChange={(v) => { if (!v) setCloseTarget(null); }}
+        title={`Zaključiti RN ${closeTarget?.order_number || ""}?`}
+        label="Datum zaključenja"
+        minDate={closeTarget?.launched_at ? format(new Date(closeTarget.launched_at), "yyyy-MM-dd") : undefined}
+        minDateMessage="Datum zaključenja ne može biti pre datuma lansiranja."
+        onConfirm={(date) => { if (closeTarget) closeOrder.mutateAsync({ id: closeTarget.id, closed_at: new Date(date).toISOString() }); setCloseTarget(null); }}
+        isPending={closeOrder.isPending}
+      />
     </MainLayout>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { DateActionDialog } from "@/components/shared/DateActionDialog";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -245,17 +246,11 @@ export default function RadniNalozi() {
     }
   };
 
-  const handleLaunch = async (order: WorkOrder) => {
-    if (confirm(`Lansirati radni nalog ${order.order_number}?`)) {
-      await launchOrder.mutateAsync(order.id);
-    }
-  };
+  const [launchTarget, setLaunchTarget] = useState<WorkOrder | null>(null);
+  const [closeTarget, setCloseTarget] = useState<WorkOrder | null>(null);
 
-  const handleClose = async (order: WorkOrder) => {
-    if (confirm(`Zaključiti radni nalog ${order.order_number}?`)) {
-      await closeOrder.mutateAsync(order.id);
-    }
-  };
+  const handleLaunch = (order: WorkOrder) => setLaunchTarget(order);
+  const handleClose = (order: WorkOrder) => setCloseTarget(order);
 
   const handleReopen = async (order: WorkOrder) => {
     if (confirm(`Vratiti radni nalog ${order.order_number} u status Lansiran?`)) {
@@ -524,6 +519,28 @@ export default function RadniNalozi() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Launch date dialog */}
+      <DateActionDialog
+        open={!!launchTarget}
+        onOpenChange={(v) => { if (!v) setLaunchTarget(null); }}
+        title={`Lansirati RN ${launchTarget?.order_number || ""}?`}
+        label="Datum lansiranja"
+        onConfirm={(date) => { if (launchTarget) launchOrder.mutateAsync({ id: launchTarget.id, launched_at: new Date(date).toISOString() }); setLaunchTarget(null); }}
+        isPending={launchOrder.isPending}
+      />
+
+      {/* Close date dialog */}
+      <DateActionDialog
+        open={!!closeTarget}
+        onOpenChange={(v) => { if (!v) setCloseTarget(null); }}
+        title={`Zaključiti RN ${closeTarget?.order_number || ""}?`}
+        label="Datum zaključenja"
+        minDate={closeTarget?.launched_at ? format(new Date(closeTarget.launched_at), "yyyy-MM-dd") : undefined}
+        minDateMessage="Datum zaključenja ne može biti pre datuma lansiranja."
+        onConfirm={(date) => { if (closeTarget) closeOrder.mutateAsync({ id: closeTarget.id, closed_at: new Date(date).toISOString() }); setCloseTarget(null); }}
+        isPending={closeOrder.isPending}
+      />
     </MainLayout>
   );
 }
