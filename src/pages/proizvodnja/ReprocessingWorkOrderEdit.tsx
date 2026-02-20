@@ -49,6 +49,7 @@ export default function ReprocessingWorkOrderEdit() {
   const [headerDirty, setHeaderDirty] = useState(false);
   const [newOutputArticleId, setNewOutputArticleId] = useState("");
   const [newInputArticleId, setNewInputArticleId] = useState("");
+  const [inputWarehouseId, setInputWarehouseId] = useState("");
   const [newMaterialArticleId, setNewMaterialArticleId] = useState("");
   const [materialWarehouseId, setMaterialWarehouseId] = useState("");
 
@@ -63,7 +64,11 @@ export default function ReprocessingWorkOrderEdit() {
       const wh = materials.find((m) => m.warehouse_id)?.warehouse_id;
       if (wh) setMaterialWarehouseId(wh);
     }
-  }, [materials]);
+    if (inputItems.length > 0 && !inputWarehouseId) {
+      const wh = inputItems.find((i) => i.warehouse_id)?.warehouse_id;
+      if (wh) setInputWarehouseId(wh);
+    }
+  }, [materials, inputItems]);
 
   const isDraft = order?.status === "draft";
   const isLaunched = order?.status === "launched";
@@ -119,6 +124,7 @@ export default function ReprocessingWorkOrderEdit() {
       work_order_id: id, company_id: companyId, article_id: newInputArticleId,
       article_code: article.code, article_name: article.name, unit: article.unit,
       unit_price: article.purchase_price ?? 0, item_order: nextOrder,
+      warehouse_id: inputWarehouseId || null,
     });
     setNewInputArticleId("");
     invalidateInput();
@@ -266,6 +272,12 @@ export default function ReprocessingWorkOrderEdit() {
           </div>
           {(isDraft || isLaunched) && (
             <div className="flex items-center gap-2 p-3 border-b bg-muted/30">
+              <div className="max-w-[160px]">
+                <select className="flex h-9 w-full rounded-md border border-input bg-background px-2 py-1 text-sm" value={inputWarehouseId} onChange={(e) => setInputWarehouseId(e.target.value)}>
+                  <option value="">-- Magacin --</option>
+                  {gpWarehouses.map((w) => <option key={w.id} value={w.id}>{w.code} - {w.name}</option>)}
+                </select>
+              </div>
               <div className="flex-1 max-w-md"><SearchableArticleSelect articles={gpArticles} value={newInputArticleId} onValueChange={setNewInputArticleId} placeholder="Izaberite GP za preradu..." /></div>
               <Button size="sm" onClick={handleAddInput} disabled={!newInputArticleId}><Plus className="w-4 h-4 mr-1" /> Dodaj</Button>
             </div>

@@ -3973,6 +3973,7 @@ export type Database = {
           quantity: number
           unit: string
           unit_price: number
+          warehouse_id: string | null
           work_order_id: string
         }
         Insert: {
@@ -3987,6 +3988,7 @@ export type Database = {
           quantity?: number
           unit?: string
           unit_price?: number
+          warehouse_id?: string | null
           work_order_id: string
         }
         Update: {
@@ -4001,6 +4003,7 @@ export type Database = {
           quantity?: number
           unit?: string
           unit_price?: number
+          warehouse_id?: string | null
           work_order_id?: string
         }
         Relationships: [
@@ -4016,6 +4019,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reprocessing_wo_input_items_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
           {
