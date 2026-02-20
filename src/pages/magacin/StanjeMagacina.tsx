@@ -71,6 +71,7 @@ export default function StanjeMagacina() {
   const [exporting, setExporting] = useState(false);
   const scrollRestoredRef = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const lastScrollTopRef = useRef(saved.scrollTop ?? 0);
 
   const {
     data: stockData,
@@ -128,7 +129,7 @@ export default function StanjeMagacina() {
       search,
       sortColumn,
       sortDirection,
-      scrollTop: scrollContainerRef.current?.scrollTop ?? 0,
+      scrollTop: lastScrollTopRef.current,
     });
   }, [warehouseId, dateFrom, dateTo, search, sortColumn, sortDirection]);
 
@@ -136,14 +137,20 @@ export default function StanjeMagacina() {
     persistState();
   }, [persistState]);
 
+  // Track scroll position continuously
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const onScroll = () => { lastScrollTopRef.current = el.scrollTop; };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [stockLoading]);
+
   // Save scroll position on unmount
   useEffect(() => {
     return () => {
-      const el = scrollContainerRef.current;
-      if (el) {
-        const prev = loadState();
-        saveState({ ...prev, scrollTop: el.scrollTop });
-      }
+      const prev = loadState();
+      saveState({ ...prev, scrollTop: lastScrollTopRef.current });
     };
   }, []);
 
