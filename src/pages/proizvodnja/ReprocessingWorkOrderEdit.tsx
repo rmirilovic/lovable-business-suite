@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, Undo2, History } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, Undo2, History, FileSpreadsheet, FileDown, Printer } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useReprocessingWorkOrder, useRWOOutputItems, useRWOInputItems, useRWOMaterials,
@@ -26,6 +26,7 @@ import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { WarehouseStockRow } from "@/hooks/useWarehouseStock";
 import { useQueryClient } from "@tanstack/react-query";
+import { exportRWOToExcel, exportRWOToPdf, printRWO } from "@/lib/workOrderDocExport";
 
 export default function ReprocessingWorkOrderEdit() {
   const { id } = useParams<{ id: string }>();
@@ -314,6 +315,19 @@ export default function ReprocessingWorkOrderEdit() {
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" size="icon" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
+            {outputItems.length > 0 && order && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => exportRWOToExcel({ companyName: selectedCompany?.name || "", order, outputItems })}>
+                  <FileSpreadsheet className="w-4 h-4 mr-1" /> Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => exportRWOToPdf({ companyName: selectedCompany?.name || "", order, outputItems })}>
+                  <FileDown className="w-4 h-4 mr-1" /> PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => printRWO({ companyName: selectedCompany?.name || "", order, outputItems })}>
+                  <Printer className="w-4 h-4 mr-1" /> Štampa
+                </Button>
+              </>
+            )}
             {isDraft && headerDirty && <Button onClick={handleSaveHeader} disabled={updateOrder.isPending}><Save className="w-4 h-4 mr-2" /> Sačuvaj</Button>}
             {isDraft && <Button variant="outline" onClick={() => { if (confirm("Lansirati RN?")) launchOrder.mutateAsync(order.id); }}><Rocket className="w-4 h-4 mr-2" /> Lansiraj</Button>}
             {isLaunched && <Button variant="outline" onClick={() => { if (confirm("Zaključiti RN? Ovo će proknjižiti istrebovane GP i materijal.")) closeOrder.mutateAsync(order.id); }}><Lock className="w-4 h-4 mr-2" /> Zaključi</Button>}
