@@ -52,6 +52,7 @@ export interface RWOInputItem {
   unit_price: number;
   item_value: number;
   item_order: number;
+  warehouse_id: string | null;
   created_at: string;
 }
 
