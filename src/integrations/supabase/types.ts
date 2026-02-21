@@ -3630,8 +3630,10 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          approved_by_name: string | null
           business_year_id: string
           company_id: string
+          composed_by: string | null
           converted_at: string | null
           converted_to_invoice_id: string | null
           created_at: string
@@ -3660,8 +3662,10 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          approved_by_name?: string | null
           business_year_id: string
           company_id: string
+          composed_by?: string | null
           converted_at?: string | null
           converted_to_invoice_id?: string | null
           created_at?: string
@@ -3690,8 +3694,10 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          approved_by_name?: string | null
           business_year_id?: string
           company_id?: string
+          composed_by?: string | null
           converted_at?: string | null
           converted_to_invoice_id?: string | null
           created_at?: string

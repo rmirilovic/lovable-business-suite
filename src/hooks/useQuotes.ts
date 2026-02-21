@@ -30,6 +30,8 @@ export interface Quote {
   note: string | null;
   internal_note: string | null;
   header_note: string | null;
+  composed_by: string | null;
+  approved_by_name: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -84,6 +86,8 @@ export interface QuoteFormData {
   partner_postal_code?: string | null;
   partner_pib?: string | null;
   partner_mb?: string | null;
+  composed_by?: string | null;
+  approved_by_name?: string | null;
 }
 
 export interface QuoteItemFormData {
@@ -162,11 +166,22 @@ export function useQuotes() {
       const quoteNumber = await getNextQuoteNumber();
 
       // Fetch partner data for snapshot
-      const { data: partnerData } = await supabase
-        .from("partners")
-        .select("name, address, city, postal_code, pib, mb")
-        .eq("id", formData.partner_id)
-        .single();
+      const [{ data: partnerData }, { data: creatorProfile }] = await Promise.all([
+        supabase
+          .from("partners")
+          .select("name, address, city, postal_code, pib, mb")
+          .eq("id", formData.partner_id)
+          .single(),
+        supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", user.id)
+          .single(),
+      ]);
+
+      const creatorName = creatorProfile
+        ? `${creatorProfile.first_name || ""} ${creatorProfile.last_name || ""}`.trim()
+        : null;
 
       const { data, error } = await supabase
         .from("quotes")
@@ -182,6 +197,8 @@ export function useQuotes() {
           internal_note: formData.internal_note,
           header_note: formData.header_note,
           created_by: user.id,
+          composed_by: creatorName || null,
+          approved_by_name: creatorName || null,
           // Partner snapshot
           partner_name: partnerData?.name || null,
           partner_address: partnerData?.address || null,
@@ -224,6 +241,8 @@ export function useQuotes() {
           ...(formData.partner_postal_code !== undefined && { partner_postal_code: formData.partner_postal_code }),
           ...(formData.partner_pib !== undefined && { partner_pib: formData.partner_pib }),
           ...(formData.partner_mb !== undefined && { partner_mb: formData.partner_mb }),
+          ...(formData.composed_by !== undefined && { composed_by: formData.composed_by }),
+          ...(formData.approved_by_name !== undefined && { approved_by_name: formData.approved_by_name }),
         })
         .eq("id", id)
         .select()
