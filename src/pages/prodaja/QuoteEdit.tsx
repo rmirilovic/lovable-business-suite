@@ -71,6 +71,8 @@ export default function QuoteEdit() {
     partner_postal_code: "",
     partner_pib: "",
     partner_mb: "",
+    composed_by: "",
+    approved_by_name: "",
   });
   const [headerDirty, setHeaderDirty] = useState(false);
 
@@ -144,6 +146,8 @@ export default function QuoteEdit() {
       partner_postal_code: data.partner_postal_code ?? q.partner?.postal_code ?? "",
       partner_pib: data.partner_pib ?? q.partner?.pib ?? "",
       partner_mb: data.partner_mb ?? q.partner?.mb ?? "",
+      composed_by: data.composed_by || "",
+      approved_by_name: data.approved_by_name || "",
     });
     setHeaderDirty(false);
     setIsLoading(false);
@@ -197,6 +201,8 @@ export default function QuoteEdit() {
       partner_postal_code: headerForm.partner_postal_code || null,
       partner_pib: headerForm.partner_pib || null,
       partner_mb: headerForm.partner_mb || null,
+      composed_by: headerForm.composed_by || null,
+      approved_by_name: headerForm.approved_by_name || null,
     });
     setHeaderDirty(false);
     fetchQuote();
@@ -226,27 +232,9 @@ export default function QuoteEdit() {
 
       if (companyError) throw companyError;
 
-      let approverName: string | null = null;
-      if (quote.approver) {
-        approverName = `${quote.approver.first_name || ""} ${quote.approver.last_name || ""}`.trim() || null;
-      }
-
-      // Fetch creator name
-      let creatorName: string | null = null;
-      if (quote.created_by) {
-        const { data: creatorProfile } = await supabase
-          .from("profiles")
-          .select("first_name, last_name")
-          .eq("id", quote.created_by)
-          .single();
-        if (creatorProfile) {
-          creatorName = `${creatorProfile.first_name || ""} ${creatorProfile.last_name || ""}`.trim() || null;
-        }
-      }
-
       const { data: freshQuote, error: freshQuoteError } = await supabase
         .from("quotes")
-        .select("subtotal, vat_amount, total_amount, note, internal_note, header_note, partner_name, partner_address, partner_city, partner_postal_code, partner_pib, partner_mb")
+        .select("subtotal, vat_amount, total_amount, note, internal_note, header_note, partner_name, partner_address, partner_city, partner_postal_code, partner_pib, partner_mb, composed_by, approved_by_name")
         .eq("id", quote.id)
         .single();
 
@@ -280,8 +268,8 @@ export default function QuoteEdit() {
           quote_note_2: companyData.quote_note_2,
         },
         partnerForPdf,
-        approverName,
-        creatorName
+        quoteForPdf.approved_by_name || null,
+        quoteForPdf.composed_by || null
       );
 
       toast.success("PDF ponuda je generisana");
@@ -604,6 +592,36 @@ export default function QuoteEdit() {
               </div>
             )
           )}
+
+          {/* Composed by / Approved by */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t">
+            <div className="space-y-1">
+              <Label className="text-xs">Ponudu sastavio</Label>
+              {isDraft ? (
+                <Input
+                  value={headerForm.composed_by}
+                  onChange={(e) => updateHeaderField("composed_by", e.target.value)}
+                  className="h-9"
+                  autoComplete="off"
+                />
+              ) : (
+                <div className="font-medium text-sm">{quote.composed_by || "-"}</div>
+              )}
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Ponudu odobrio</Label>
+              {isDraft ? (
+                <Input
+                  value={headerForm.approved_by_name}
+                  onChange={(e) => updateHeaderField("approved_by_name", e.target.value)}
+                  className="h-9"
+                  autoComplete="off"
+                />
+              ) : (
+                <div className="font-medium text-sm">{quote.approved_by_name || "-"}</div>
+              )}
+            </div>
+          </div>
         </div>
 
         {quote.approver && (
