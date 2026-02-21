@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft, RefreshCw, History } from "lucide-react";
+import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   ServicePurchaseInvoice,
@@ -15,6 +15,7 @@ import { ServicePurchaseInvoiceItemsEditor } from "@/components/nabavka/ServiceP
 import { ServicePurchaseInvoiceHeaderDialog } from "@/components/nabavka/ServicePurchaseInvoiceHeaderDialog";
 import { formatNumber, formatDate, formatPrice } from "@/lib/formatting";
 import { generateServicePurchaseInvoicePdf } from "@/lib/servicePurchaseInvoicePdfGenerator";
+import { exportServicePurchaseInvoiceToExcel } from "@/lib/servicePurchaseInvoiceExcelExport";
 import { isForeignCurrency } from "@/lib/currencies";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -193,6 +194,11 @@ export default function ServicePurchaseInvoiceEdit() {
     }
   };
 
+  const handleExportExcel = () => {
+    if (!invoice) return;
+    exportServicePurchaseInvoiceToExcel(invoice, items);
+  };
+
   const handlePostConfirm = async () => {
     if (!invoice) return;
     
@@ -265,11 +271,14 @@ export default function ServicePurchaseInvoiceEdit() {
             <Button variant="ghost" size="sm" onClick={fetchInvoice} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
+            <Button variant="outline" size="sm" onClick={handleExportExcel}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />Excel
+            </Button>
             <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={isPdfLoading || !companyData}>
-              <FileDown className="h-4 w-4 mr-2" />PDF
+              <FileText className="h-4 w-4 mr-2" />PDF
             </Button>
             <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPdfLoading || !companyData}>
-              <Printer className="h-4 w-4 mr-2" />Štampaj
+              <Printer className="h-4 w-4 mr-2" />Štampa
             </Button>
             {isDraft && (
               <>
