@@ -31,6 +31,10 @@ const DOCUMENT_TYPES = [
   "MMP - izlaz",
   "Zamena artikla",
   "Otpremnica",
+  "Predajnica GP",
+  "Predajnica prerada",
+  "RN prerada - GP",
+  "RN prerada - mat.",
 ];
 
 export default function PrometMagacina() {
