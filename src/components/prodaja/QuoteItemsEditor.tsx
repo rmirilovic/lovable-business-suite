@@ -260,23 +260,6 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
         </Table>
       </div>
 
-      {/* Totals */}
-      <div className="flex justify-end">
-        <div className="w-72 space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Osnovica:</span>
-            <span>{formatDecimal(items.reduce((s, i) => s + i.line_subtotal, 0))} RSD</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span>PDV:</span>
-            <span>{formatDecimal(items.reduce((s, i) => s + i.line_vat, 0))} RSD</span>
-          </div>
-          <div className="flex justify-between font-semibold text-lg border-t pt-2">
-            <span>Ukupno:</span>
-            <span>{formatDecimal(items.reduce((s, i) => s + i.line_total, 0))} RSD</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
