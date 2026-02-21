@@ -4,12 +4,14 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft, RefreshCw, History } from "lucide-react";
+import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { GoodsPurchaseInvoice, useGoodsPurchaseInvoiceItems, useGoodsPurchaseInvoices } from "@/hooks/useGoodsPurchaseInvoices";
 import { GoodsPurchaseInvoiceItemsEditor } from "@/components/nabavka/GoodsPurchaseInvoiceItemsEditor";
 import { GoodsPurchaseInvoiceHeaderDialog } from "@/components/nabavka/GoodsPurchaseInvoiceHeaderDialog";
 import { formatDate, formatPrice, formatNumber } from "@/lib/formatting";
+import { generateGoodsPurchaseInvoicePdf } from "@/lib/goodsPurchaseInvoicePdfGenerator";
+import { exportGoodsPurchaseInvoiceToExcel } from "@/lib/goodsPurchaseInvoiceExcelExport";
 import { isForeignCurrency } from "@/lib/currencies";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +52,17 @@ export default function GoodsPurchaseInvoiceEdit() {
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [userAccessLevel, setUserAccessLevel] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const [companyData, setCompanyData] = useState<{
+    name: string;
+    address?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    pib?: string | null;
+    mb?: string | null;
+    phone?: string | null;
+    email?: string | null;
+  } | null>(null);
 
   const { items, isLoading: itemsLoading, addItem, updateItem, deleteItem } = useGoodsPurchaseInvoiceItems(id || null);
   const { updateTotals, postInvoice, unpostInvoice } = useGoodsPurchaseInvoices();
@@ -111,6 +124,20 @@ export default function GoodsPurchaseInvoiceEdit() {
     checkAccess();
   }, [user?.id, selectedCompany?.id]);
 
+  // Fetch company data for PDF/Excel
+  useEffect(() => {
+    if (!selectedCompany?.id) return;
+    const fetchCompData = async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("name, address, city, postal_code, pib, mb, phone, email")
+        .eq("id", selectedCompany.id)
+        .single();
+      if (data) setCompanyData(data);
+    };
+    fetchCompData();
+  }, [selectedCompany?.id]);
+
   // Recalculate totals when items change
   useEffect(() => {
     if (!invoice || invoice.status !== "draft") return;
@@ -164,6 +191,31 @@ export default function GoodsPurchaseInvoiceEdit() {
     fetchInvoice();
   };
 
+  const handleDownloadPdf = async () => {
+    if (!invoice || !companyData) return;
+    setIsPdfLoading(true);
+    try {
+      await generateGoodsPurchaseInvoicePdf(invoice, items, companyData);
+    } finally {
+      setIsPdfLoading(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (!invoice || !companyData) return;
+    setIsPdfLoading(true);
+    try {
+      await generateGoodsPurchaseInvoicePdf(invoice, items, companyData, { print: true });
+    } finally {
+      setIsPdfLoading(false);
+    }
+  };
+
+  const handleExportExcel = () => {
+    if (!invoice) return;
+    exportGoodsPurchaseInvoiceToExcel(invoice, items);
+  };
+
   if (isLoading || !selectedCompany || !selectedYear) {
     return (
       <MainLayout title="Učitavanje...">
@@ -212,6 +264,15 @@ export default function GoodsPurchaseInvoiceEdit() {
             </Button>
             <Button variant="ghost" size="sm" onClick={fetchInvoice} title="Osveži">
               <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportExcel}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={isPdfLoading || !companyData}>
+              <FileText className="h-4 w-4 mr-2" />PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPdfLoading || !companyData}>
+              <Printer className="h-4 w-4 mr-2" />Štampa
             </Button>
             {isDraft && (
               <>
