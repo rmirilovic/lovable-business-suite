@@ -65,7 +65,13 @@ import ReprocessingDeliveryNotesList from "./pages/proizvodnja/ReprocessingDeliv
 import ReprocessingDeliveryNoteEdit from "./pages/proizvodnja/ReprocessingDeliveryNoteEdit";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
