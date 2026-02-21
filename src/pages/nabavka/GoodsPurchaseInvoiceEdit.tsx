@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History } from "lucide-react";
+import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History, Eye } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { GoodsPurchaseInvoice, useGoodsPurchaseInvoiceItems, useGoodsPurchaseInvoices } from "@/hooks/useGoodsPurchaseInvoices";
 import { GoodsPurchaseInvoiceItemsEditor } from "@/components/nabavka/GoodsPurchaseInvoiceItemsEditor";
@@ -274,7 +274,7 @@ export default function GoodsPurchaseInvoiceEdit() {
             <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPdfLoading || !companyData}>
               <Printer className="h-4 w-4 mr-2" />Štampa
             </Button>
-            {isDraft && (
+            {isDraft ? (
               <>
                 <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
                   <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
@@ -283,6 +283,10 @@ export default function GoodsPurchaseInvoiceEdit() {
                   <BookCheck className="h-4 w-4 mr-2" />Proknjiži
                 </Button>
               </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                <Eye className="h-4 w-4 mr-2" />Prikaži zaglavlje
+              </Button>
             )}
             {isPosted && canUnpost && (
               <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
@@ -437,6 +441,7 @@ export default function GoodsPurchaseInvoiceEdit() {
         onOpenChange={setHeaderDialogOpen}
         invoice={invoice}
         onSaved={handleHeaderSaved}
+        readOnly={!isDraft}
       />
 
       <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
