@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
+import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye, FileSpreadsheet, Printer } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import { QuoteDialog } from "@/components/prodaja/QuoteDialog";
 import { formatDecimal } from "@/lib/formatting";
 import { format } from "date-fns";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { useAuth } from "@/contexts/AuthContext";
+import { exportQuotesToExcel, exportQuotesToPdf, printQuotes } from "@/lib/quoteListExportUtils";
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
@@ -24,6 +26,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
 export default function Ponude() {
   const navigate = useNavigate();
   const { quotes, isLoading, createQuote, deleteQuote } = useQuotes();
+  const { selectedCompany } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -72,10 +75,21 @@ export default function Ponude() {
             <h1 className="text-2xl font-bold text-foreground">Ponude</h1>
             <p className="text-muted-foreground">Upravljanje ponudama za kupce</p>
           </div>
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nova ponuda
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportQuotesToExcel(filteredQuotes, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportQuotesToPdf(filteredQuotes, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printQuotes(filteredQuotes, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nova ponuda
+            </Button>
+          </div>
         </div>
 
         {/* Search & Date Filters */}
