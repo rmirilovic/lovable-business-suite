@@ -200,8 +200,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         if (nextSession?.user) {
-          // Keep loading=true until user data is fully loaded
-          setLoading(true);
+          // Only show loading spinner on initial load, not on subsequent SIGNED_IN events
+          // (e.g. token refresh on tab focus) to avoid unmounting the current page
+          if (!initialLoadDone) {
+            setLoading(true);
+          }
           loadUserData(nextSession.user.id);
         } else if (initialSessionChecked) {
           setLoading(false);
