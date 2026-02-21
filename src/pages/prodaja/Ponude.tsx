@@ -168,7 +168,7 @@ export default function Ponude() {
                         {quote.valid_until ? format(new Date(quote.valid_until), "dd.MM.yyyy") : "-"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatDecimal(quote.total_amount)} RSD
+                        {formatDecimal(quote.total_amount)}
                       </TableCell>
                       <TableCell>
                         <Badge variant={status.variant}>{status.label}</Badge>
