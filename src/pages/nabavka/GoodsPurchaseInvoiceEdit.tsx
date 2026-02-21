@@ -331,7 +331,7 @@ export default function GoodsPurchaseInvoiceEdit() {
         )}
 
         {/* Supplier info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
           <div className="col-span-2">
             <div className="text-muted-foreground">Dobavljač</div>
             <div className="font-medium">
@@ -345,6 +345,10 @@ export default function GoodsPurchaseInvoiceEdit() {
           <div>
             <div className="text-muted-foreground">PIB</div>
             <div className="font-medium">{invoice.supplier_pib || "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Matični broj</div>
+            <div className="font-medium">{invoice.supplier_mb || "-"}</div>
           </div>
           <div>
             <div className="text-muted-foreground">U sistemu PDV-a</div>
