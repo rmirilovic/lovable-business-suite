@@ -85,7 +85,7 @@ export function TransferDialog({ open, onOpenChange, transfer, onSave }: Transfe
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg" onFocusOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>
             {transfer ? "Izmeni prenos" : "Novi međumagacinski prenos"}
