@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
-import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, ArrowRightLeft, Truck, Save } from "lucide-react";
+import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, ArrowRightLeft, Truck, Save, FileText } from "lucide-react";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "@/components/prodaja/QuoteItemsEditor";
 import { CreateDeliveryNoteFromQuoteDialog } from "@/components/prodaja/CreateDeliveryNoteFromQuoteDialog";
@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
 import { toast } from "sonner";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
-import { generateQuotePdf } from "@/lib/quotePdfGenerator";
+import { generateQuotePdf, printQuotePdf } from "@/lib/quotePdfGenerator";
 import { useCreateInvoiceFromQuote } from "@/hooks/useInvoices";
 import {
   AlertDialog,
@@ -219,30 +219,43 @@ export default function QuoteEdit() {
     fetchQuote();
   };
 
-  const handlePrint = async () => {
-    if (!quote || !selectedCompany) return;
+  const preparePdfData = async () => {
+    if (!quote || !selectedCompany) return null;
 
-    setIsPrinting(true);
-    try {
-      const { data: companyData, error: companyError } = await supabase
-        .from("companies")
-        .select("*")
-        .eq("id", selectedCompany.id)
-        .single();
+    const { data: companyData, error: companyError } = await supabase
+      .from("companies")
+      .select("*")
+      .eq("id", selectedCompany.id)
+      .single();
 
-      if (companyError) throw companyError;
+    if (companyError) throw companyError;
 
-      const { data: freshQuote, error: freshQuoteError } = await supabase
-        .from("quotes")
-        .select("subtotal, vat_amount, total_amount, note, internal_note, header_note, partner_name, partner_address, partner_city, partner_postal_code, partner_pib, partner_mb, composed_by, approved_by_name")
-        .eq("id", quote.id)
-        .single();
+    const { data: freshQuote, error: freshQuoteError } = await supabase
+      .from("quotes")
+      .select("subtotal, vat_amount, total_amount, note, internal_note, header_note, partner_name, partner_address, partner_city, partner_postal_code, partner_pib, partner_mb, composed_by, approved_by_name")
+      .eq("id", quote.id)
+      .single();
 
-      if (freshQuoteError) throw freshQuoteError;
+    if (freshQuoteError) throw freshQuoteError;
 
-      const quoteForPdf: Quote = { ...quote, ...freshQuote };
+    const quoteForPdf: Quote = { ...quote, ...freshQuote };
 
-      const partnerForPdf = {
+    return {
+      quoteForPdf,
+      items,
+      company: {
+        name: companyData.name,
+        address: companyData.address,
+        city: companyData.city,
+        postal_code: companyData.postal_code,
+        pib: companyData.pib,
+        mb: companyData.mb,
+        phone: companyData.phone,
+        email: companyData.email,
+        quote_note_1: companyData.quote_note_1,
+        quote_note_2: companyData.quote_note_2,
+      },
+      partner: {
         name: quoteForPdf.partner_name || quoteForPdf.partner?.name || "",
         code: quoteForPdf.partner?.code || "",
         address: quoteForPdf.partner_address || quoteForPdf.partner?.address || null,
@@ -250,31 +263,34 @@ export default function QuoteEdit() {
         postal_code: quoteForPdf.partner_postal_code || quoteForPdf.partner?.postal_code || null,
         pib: quoteForPdf.partner_pib || quoteForPdf.partner?.pib || null,
         mb: quoteForPdf.partner_mb || quoteForPdf.partner?.mb || null,
-      };
+      },
+      approverName: quoteForPdf.approved_by_name || null,
+      creatorName: quoteForPdf.composed_by || null,
+    };
+  };
 
-      await generateQuotePdf(
-        quoteForPdf,
-        items,
-        {
-          name: companyData.name,
-          address: companyData.address,
-          city: companyData.city,
-          postal_code: companyData.postal_code,
-          pib: companyData.pib,
-          mb: companyData.mb,
-          phone: companyData.phone,
-          email: companyData.email,
-          quote_note_1: companyData.quote_note_1,
-          quote_note_2: companyData.quote_note_2,
-        },
-        partnerForPdf,
-        quoteForPdf.approved_by_name || null,
-        quoteForPdf.composed_by || null
-      );
-
+  const handleDownloadPdf = async () => {
+    setIsPrinting(true);
+    try {
+      const data = await preparePdfData();
+      if (!data) return;
+      await generateQuotePdf(data.quoteForPdf, data.items, data.company, data.partner, data.approverName, data.creatorName);
       toast.success("PDF ponuda je generisana");
     } catch (error: any) {
       toast.error(`Greška pri generisanju PDF-a: ${error.message}`);
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  const handlePrintDirect = async () => {
+    setIsPrinting(true);
+    try {
+      const data = await preparePdfData();
+      if (!data) return;
+      await printQuotePdf(data.quoteForPdf, data.items, data.company, data.partner, data.approverName, data.creatorName);
+    } catch (error: any) {
+      toast.error(`Greška pri štampi: ${error.message}`);
     } finally {
       setIsPrinting(false);
     }
@@ -355,9 +371,13 @@ export default function QuoteEdit() {
             <Button variant="ghost" size="sm" onClick={fetchQuote} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPrinting}>
+            <Button variant="outline" size="sm" onClick={handleDownloadPdf} disabled={isPrinting}>
+              <FileText className="w-4 h-4 mr-2" />
+              PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrintDirect} disabled={isPrinting}>
               <Printer className="w-4 h-4 mr-2" />
-              {isPrinting ? "Generisanje..." : "Štampaj PDF"}
+              Štampa
             </Button>
             {isDraft && (
               <Button size="sm" onClick={() => setApproveDialogOpen(true)}>
