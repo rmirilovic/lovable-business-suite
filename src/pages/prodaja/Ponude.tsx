@@ -133,16 +133,15 @@ export default function Ponude() {
                     <TableRow
                       key={quote.id}
                       className="cursor-pointer hover:bg-muted/50 relative"
+                      onClick={() => handleNavigate(quote)}
                     >
-                      {/* Overlay link for right-click open in new tab */}
-                      <td className="absolute inset-0 p-0" style={{ display: "contents" }}>
-                        <a
-                          href={`/prodaja/ponude/${quote.id}`}
-                          onClick={(e) => handleNavigate(quote, e)}
-                          className="absolute inset-0 z-0"
-                          aria-label={`Otvori ponudu ${quote.quote_number}`}
-                        />
-                      </td>
+                      {/* Hidden link for right-click open in new tab */}
+                      <a
+                        href={`/prodaja/ponude/${quote.id}`}
+                        onClick={(e) => handleNavigate(quote, e)}
+                        className="absolute inset-0 z-0"
+                        aria-label={`Otvori ponudu ${quote.quote_number}`}
+                      />
                       <TableCell className="relative z-[1] pointer-events-none">
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-muted-foreground" />
