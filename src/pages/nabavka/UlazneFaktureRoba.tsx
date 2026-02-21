@@ -17,7 +17,7 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreHorizontal, Trash2, Eye, Package, BookCheck, Undo2, FileDown } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Trash2, Eye, Package, BookCheck, Undo2, FileDown, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useGoodsPurchaseInvoices, GoodsPurchaseInvoice } from "@/hooks/useGoodsPurchaseInvoices";
 import { GoodsPurchaseInvoiceHeaderDialog } from "@/components/nabavka/GoodsPurchaseInvoiceHeaderDialog";
 
@@ -26,6 +26,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { generateGoodsPurchaseInvoicePdf } from "@/lib/goodsPurchaseInvoicePdfGenerator";
 import { toast } from "sonner";
+import {
+  exportGoodsPurchaseInvoicesToExcel,
+  exportGoodsPurchaseInvoicesToPdf,
+  printGoodsPurchaseInvoices,
+} from "@/lib/goodsPurchaseInvoiceListExportUtils";
 
 const statusLabels: Record<string, string> = {
   draft: "Nacrt",
@@ -164,14 +169,25 @@ export default function UlazneFaktureRoba() {
     <MainLayout title="Ulazne fakture za robu">
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
-          <div>
+           <div>
             <h1 className="text-2xl font-bold text-foreground">Ulazne fakture za robu</h1>
             <p className="text-muted-foreground">Fakture za robu, repromaterijal i rezervne delove</p>
           </div>
-          <Button onClick={handleCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova UF za robu
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportGoodsPurchaseInvoicesToExcel(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportGoodsPurchaseInvoicesToPdf(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printGoodsPurchaseInvoices(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
+            <Button onClick={handleCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova UF za robu
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-end gap-4">
