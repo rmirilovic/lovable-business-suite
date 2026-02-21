@@ -2,21 +2,15 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LocaleDateInput } from "@/components/ui/locale-date-input";
-import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
-import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, ArrowRightLeft, Truck, Save, FileText } from "lucide-react";
+import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, ArrowRightLeft, Truck, Pencil, FileText } from "lucide-react";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "@/components/prodaja/QuoteItemsEditor";
+import { QuoteHeaderDialog } from "@/components/prodaja/QuoteHeaderDialog";
 import { CreateDeliveryNoteFromQuoteDialog } from "@/components/prodaja/CreateDeliveryNoteFromQuoteDialog";
 import { formatDate, formatPrice } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
@@ -45,44 +39,22 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
 export default function QuoteEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { selectedCompany, selectedYear, user } = useAuth();
+  const { selectedCompany, selectedYear } = useAuth();
   
   const [quote, setQuote] = useState<Quote | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [localTotals, setLocalTotals] = useState({ subtotal: 0, vat_amount: 0, total_amount: 0 });
   const [historyOpen, setHistoryOpen] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [deliveryNoteDialogOpen, setDeliveryNoteDialogOpen] = useState(false);
 
-  // Header form state
-  const [headerForm, setHeaderForm] = useState({
-    quote_date: "",
-    valid_until: "",
-    partner_id: "",
-    org_unit_id: "",
-    note: "",
-    internal_note: "",
-    header_note: "",
-    partner_name: "",
-    partner_address: "",
-    partner_city: "",
-    partner_postal_code: "",
-    partner_pib: "",
-    partner_mb: "",
-    composed_by: "",
-    approved_by_name: "",
-  });
-  const [headerDirty, setHeaderDirty] = useState(false);
-
-  const { approveQuote, updateQuote, copyQuote } = useQuotes();
+  const { approveQuote, copyQuote } = useQuotes();
   const { items } = useQuoteItems(quote?.id || null);
   const createFromQuote = useCreateInvoiceFromQuote();
-  const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
-
-  const customerPartners = partners.filter(p => p.is_customer && p.is_active);
   
   // Optimistic locking
   const { checkLock, updateLockTimestamp } = useDocumentLock({
@@ -131,25 +103,6 @@ export default function QuoteEdit() {
       vat_amount: data.vat_amount,
       total_amount: data.total_amount,
     });
-    // Initialize header form
-    setHeaderForm({
-      quote_date: data.quote_date,
-      valid_until: data.valid_until || "",
-      partner_id: data.partner_id,
-      org_unit_id: data.org_unit_id || "",
-      note: data.note || "",
-      internal_note: data.internal_note || "",
-      header_note: data.header_note || "",
-      partner_name: data.partner_name ?? q.partner?.name ?? "",
-      partner_address: data.partner_address ?? q.partner?.address ?? "",
-      partner_city: data.partner_city ?? q.partner?.city ?? "",
-      partner_postal_code: data.partner_postal_code ?? q.partner?.postal_code ?? "",
-      partner_pib: data.partner_pib ?? q.partner?.pib ?? "",
-      partner_mb: data.partner_mb ?? q.partner?.mb ?? "",
-      composed_by: data.composed_by || "",
-      approved_by_name: data.approved_by_name || "",
-    });
-    setHeaderDirty(false);
     setIsLoading(false);
   };
 
@@ -160,53 +113,6 @@ export default function QuoteEdit() {
   const handleTotalsChange = useCallback((subtotal: number, vatAmount: number, totalAmount: number) => {
     setLocalTotals({ subtotal, vat_amount: vatAmount, total_amount: totalAmount });
   }, []);
-
-  const updateHeaderField = (field: string, value: string) => {
-    setHeaderForm((prev) => ({ ...prev, [field]: value }));
-    setHeaderDirty(true);
-  };
-
-  const handlePartnerChange = (partnerId: string) => {
-    const p = customerPartners.find((x) => x.id === partnerId);
-    setHeaderForm((prev) => ({
-      ...prev,
-      partner_id: partnerId,
-      partner_name: p?.name ?? "",
-      partner_address: p?.address ?? "",
-      partner_city: p?.city ?? "",
-      partner_postal_code: p?.postal_code ?? "",
-      partner_pib: p?.pib ?? "",
-      partner_mb: p?.mb ?? "",
-    }));
-    setHeaderDirty(true);
-  };
-
-  const handleSaveHeader = async () => {
-    if (!quote || !id) return;
-    const canProceed = await checkLock();
-    if (!canProceed) return;
-
-    await updateQuote.mutateAsync({
-      id,
-      quote_date: headerForm.quote_date,
-      valid_until: headerForm.valid_until || null,
-      partner_id: headerForm.partner_id,
-      org_unit_id: headerForm.org_unit_id || null,
-      note: headerForm.note || null,
-      internal_note: headerForm.internal_note || null,
-      header_note: headerForm.header_note || null,
-      partner_name: headerForm.partner_name || null,
-      partner_address: headerForm.partner_address || null,
-      partner_city: headerForm.partner_city || null,
-      partner_postal_code: headerForm.partner_postal_code || null,
-      partner_pib: headerForm.partner_pib || null,
-      partner_mb: headerForm.partner_mb || null,
-      composed_by: headerForm.composed_by || null,
-      approved_by_name: headerForm.approved_by_name || null,
-    });
-    setHeaderDirty(false);
-    fetchQuote();
-  };
 
   const handleApproveConfirm = async () => {
     if (!quote) return;
@@ -359,12 +265,6 @@ export default function QuoteEdit() {
             <Badge variant={status.variant}>{status.label}</Badge>
           </div>
           <div className="flex items-center gap-2">
-            {isDraft && headerDirty && (
-              <Button size="sm" onClick={handleSaveHeader} disabled={updateQuote.isPending}>
-                <Save className="w-4 h-4 mr-2" />
-                Sačuvaj
-              </Button>
-            )}
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
               <History className="w-4 h-4" />
             </Button>
@@ -380,9 +280,14 @@ export default function QuoteEdit() {
               Štampa
             </Button>
             {isDraft && (
-              <Button size="sm" onClick={() => setApproveDialogOpen(true)}>
-                <ThumbsUp className="h-4 w-4 mr-2" />Odobri
-              </Button>
+              <>
+                <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+                </Button>
+                <Button size="sm" onClick={() => setApproveDialogOpen(true)}>
+                  <ThumbsUp className="h-4 w-4 mr-2" />Odobri
+                </Button>
+              </>
             )}
             {isApproved && (
               <>
@@ -410,239 +315,78 @@ export default function QuoteEdit() {
           </div>
         </div>
 
-        {/* Header fields - inline editable when draft */}
-        <div className="p-4 border rounded-lg bg-card">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <Label className="text-xs">Datum ponude</Label>
-              {isDraft ? (
-                <LocaleDateInput
-                  value={headerForm.quote_date}
-                  onChange={(v) => updateHeaderField("quote_date", v)}
-                />
-              ) : (
-                <div className="font-medium text-sm">{formatDate(quote.quote_date)}</div>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Važi do</Label>
-              {isDraft ? (
-                <LocaleDateInput
-                  value={headerForm.valid_until}
-                  onChange={(v) => updateHeaderField("valid_until", v)}
-                />
-              ) : (
-                <div className="font-medium text-sm">{quote.valid_until ? formatDate(quote.valid_until) : "-"}</div>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Kupac</Label>
-              {isDraft ? (
-                <SearchablePartnerSelect
-                  partners={customerPartners}
-                  value={headerForm.partner_id}
-                  onValueChange={handlePartnerChange}
-                  placeholder="Izaberi kupca..."
-                />
-              ) : (
-                <div className="font-medium text-sm">{quote.partner_name ?? quote.partner?.name}</div>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Org. jedinica</Label>
-              {isDraft ? (
-                <Select
-                  value={headerForm.org_unit_id || "none"}
-                  onValueChange={(v) => updateHeaderField("org_unit_id", v === "none" ? "" : v)}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="--" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">-- Bez org. jedinice --</SelectItem>
-                    {units.filter(u => u.is_active).map((unit) => (
-                      <SelectItem key={unit.id} value={unit.id}>
-                        {unit.code} - {unit.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <div className="font-medium text-sm">
-                  {quote.org_unit_id
-                    ? units.find(u => u.id === quote.org_unit_id)?.name || "-"
-                    : "-"}
-                </div>
-              )}
+        {/* Header info - read-only display */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
+          <div>
+            <div className="text-muted-foreground">Datum ponude</div>
+            <div className="font-medium">{formatDate(quote.quote_date)}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Važi do</div>
+            <div className="font-medium">{quote.valid_until ? formatDate(quote.valid_until) : "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Org. jedinica</div>
+            <div className="font-medium">
+              {quote.org_unit_id
+                ? units.find((u) => u.id === quote.org_unit_id)?.name || "-"
+                : "-"}
             </div>
           </div>
-
-          {/* Partner snapshot details (editable when draft) */}
-          {isDraft ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t">
-              <div className="col-span-2 space-y-1">
-                <Label className="text-xs">Naziv kupca na ponudi</Label>
-                <Input
-                  value={headerForm.partner_name}
-                  onChange={(e) => updateHeaderField("partner_name", e.target.value)}
-                  className="h-9"
-                  autoComplete="off"
-                />
-              </div>
-              <div className="col-span-2 space-y-1">
-                <Label className="text-xs">Adresa</Label>
-                <Input
-                  value={headerForm.partner_address}
-                  onChange={(e) => updateHeaderField("partner_address", e.target.value)}
-                  className="h-9"
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Poštanski broj</Label>
-                <Input
-                  value={headerForm.partner_postal_code}
-                  onChange={(e) => updateHeaderField("partner_postal_code", e.target.value)}
-                  className="h-9"
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Mesto</Label>
-                <Input
-                  value={headerForm.partner_city}
-                  onChange={(e) => updateHeaderField("partner_city", e.target.value)}
-                  className="h-9"
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">PIB</Label>
-                <Input
-                  value={headerForm.partner_pib}
-                  onChange={(e) => updateHeaderField("partner_pib", e.target.value)}
-                  className="h-9"
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Matični broj</Label>
-                <Input
-                  value={headerForm.partner_mb}
-                  onChange={(e) => updateHeaderField("partner_mb", e.target.value)}
-                  className="h-9"
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-          ) : (
-            /* Read-only partner info for non-draft */
-            <div className="mt-4 pt-4 border-t text-sm">
-              <div className="font-medium">{quote.partner?.code} - {quote.partner_name ?? quote.partner?.name}</div>
-              {(quote.partner_address ?? quote.partner?.address) && (
-                <div className="text-muted-foreground">
-                  {quote.partner_address ?? quote.partner?.address}
-                  {(quote.partner_city ?? quote.partner?.city) && `, ${quote.partner_postal_code ?? quote.partner?.postal_code ?? ""} ${quote.partner_city ?? quote.partner?.city}`}
-                </div>
-              )}
-              {(quote.partner_pib ?? quote.partner?.pib) && (
-                <div className="text-muted-foreground">
-                  PIB: {quote.partner_pib ?? quote.partner?.pib}
-                  {(quote.partner_mb ?? quote.partner?.mb) && ` | MB: ${quote.partner_mb ?? quote.partner?.mb}`}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Notes section */}
-          {isDraft ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t">
-              <div className="space-y-1">
-                <Label className="text-xs">Napomena u zaglavlju</Label>
-                <Textarea
-                  value={headerForm.header_note}
-                  onChange={(e) => updateHeaderField("header_note", e.target.value)}
-                  rows={2}
-                  placeholder="Kratka napomena iznad stavki..."
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Napomena za kupca</Label>
-                <Textarea
-                  value={headerForm.note}
-                  onChange={(e) => updateHeaderField("note", e.target.value)}
-                  rows={2}
-                  placeholder="Napomena na ponudi..."
-                  autoComplete="off"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Interna napomena</Label>
-                <Textarea
-                  value={headerForm.internal_note}
-                  onChange={(e) => updateHeaderField("internal_note", e.target.value)}
-                  rows={2}
-                  placeholder="Interna napomena..."
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-          ) : (
-            (quote.note || quote.internal_note || quote.header_note) && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t text-sm">
-                {quote.header_note && (
-                  <div>
-                    <div className="text-muted-foreground mb-1">Napomena u zaglavlju</div>
-                    <div className="bg-muted p-2 rounded-md">{quote.header_note}</div>
-                  </div>
-                )}
-                {quote.note && (
-                  <div>
-                    <div className="text-muted-foreground mb-1">Napomena za kupca</div>
-                    <div className="bg-muted p-2 rounded-md">{quote.note}</div>
-                  </div>
-                )}
-                {quote.internal_note && (
-                  <div>
-                    <div className="text-muted-foreground mb-1">Interna napomena</div>
-                    <div className="bg-muted p-2 rounded-md">{quote.internal_note}</div>
-                  </div>
-                )}
-              </div>
-            )
-          )}
-
-          {/* Composed by / Approved by */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t">
-            <div className="space-y-1">
-              <Label className="text-xs">Ponudu sastavio</Label>
-              {isDraft ? (
-                <Input
-                  value={headerForm.composed_by}
-                  onChange={(e) => updateHeaderField("composed_by", e.target.value)}
-                  className="h-9"
-                  autoComplete="off"
-                />
-              ) : (
-                <div className="font-medium text-sm">{quote.composed_by || "-"}</div>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Ponudu odobrio</Label>
-              {isDraft ? (
-                <Input
-                  value={headerForm.approved_by_name}
-                  onChange={(e) => updateHeaderField("approved_by_name", e.target.value)}
-                  className="h-9"
-                  autoComplete="off"
-                />
-              ) : (
-                <div className="font-medium text-sm">{quote.approved_by_name || "-"}</div>
-              )}
-            </div>
+          <div>
+            <div className="text-muted-foreground">Ponudu sastavio</div>
+            <div className="font-medium">{quote.composed_by || "-"}</div>
           </div>
         </div>
+
+        {/* Partner info */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="col-span-2">
+            <div className="text-muted-foreground">Kupac</div>
+            <div className="font-medium">
+              {quote.partner?.code && <span className="text-muted-foreground mr-1">[{quote.partner.code}]</span>}
+              {quote.partner_name ?? quote.partner?.name}
+            </div>
+            {(quote.partner_address ?? quote.partner?.address) && (
+              <div className="text-xs text-muted-foreground">
+                {quote.partner_address ?? quote.partner?.address}
+                {(quote.partner_city ?? quote.partner?.city) && `, ${quote.partner_postal_code ?? quote.partner?.postal_code ?? ""} ${quote.partner_city ?? quote.partner?.city}`}
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="text-muted-foreground">PIB</div>
+            <div className="font-medium">{quote.partner_pib ?? quote.partner?.pib ?? "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Ponudu odobrio</div>
+            <div className="font-medium">{quote.approved_by_name || "-"}</div>
+          </div>
+        </div>
+
+        {/* Notes display */}
+        {(quote.note || quote.internal_note || quote.header_note) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            {quote.header_note && (
+              <div>
+                <div className="text-muted-foreground mb-1">Napomena u zaglavlju</div>
+                <div className="bg-muted p-2 rounded-md">{quote.header_note}</div>
+              </div>
+            )}
+            {quote.note && (
+              <div>
+                <div className="text-muted-foreground mb-1">Napomena za kupca</div>
+                <div className="bg-muted p-2 rounded-md">{quote.note}</div>
+              </div>
+            )}
+            {quote.internal_note && (
+              <div>
+                <div className="text-muted-foreground mb-1">Interna napomena</div>
+                <div className="bg-muted p-2 rounded-md">{quote.internal_note}</div>
+              </div>
+            )}
+          </div>
+        )}
 
         {quote.approver && (
           <div className="text-sm text-muted-foreground">
@@ -683,6 +427,13 @@ export default function QuoteEdit() {
       </div>
 
       {/* Dialogs */}
+      <QuoteHeaderDialog
+        open={headerDialogOpen}
+        onOpenChange={setHeaderDialogOpen}
+        quote={quote}
+        onSaved={fetchQuote}
+      />
+
       <AlertDialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
