@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { printPdfBlob } from "@/lib/printPdf";
 import { Quote, QuoteItem } from "@/hooks/useQuotes";
 import { formatDecimal } from "@/lib/formatting";
 import { format } from "date-fns";
@@ -29,14 +30,14 @@ interface PartnerData {
   mb?: string | null;
 }
 
-export async function generateQuotePdf(
+async function buildQuotePdf(
   quote: Quote,
   items: QuoteItem[],
   company: CompanyData,
   partner: PartnerData,
   approverName?: string | null,
   creatorName?: string | null
-) {
+): Promise<jsPDF> {
   // Initialize fonts with UTF-8 support for Serbian characters
   await initializePdfFonts();
   
@@ -309,6 +310,30 @@ export async function generateQuotePdf(
   doc.text(approverName || "________________", sigRightX, totalsY + 8);
   doc.line(sigRightX - 10, totalsY + 12, sigRightX + 50, totalsY + 12);
 
-  // Save
+  return doc;
+}
+
+export async function generateQuotePdf(
+  quote: Quote,
+  items: QuoteItem[],
+  company: CompanyData,
+  partner: PartnerData,
+  approverName?: string | null,
+  creatorName?: string | null
+) {
+  const doc = await buildQuotePdf(quote, items, company, partner, approverName, creatorName);
   doc.save(`Ponuda_${quote.quote_number.replace(/\//g, "-")}.pdf`);
+}
+
+export async function printQuotePdf(
+  quote: Quote,
+  items: QuoteItem[],
+  company: CompanyData,
+  partner: PartnerData,
+  approverName?: string | null,
+  creatorName?: string | null
+) {
+  const doc = await buildQuotePdf(quote, items, company, partner, approverName, creatorName);
+  const blob = doc.output("blob");
+  printPdfBlob(blob);
 }
