@@ -5280,11 +5280,11 @@ export type Database = {
           article_code: string
           article_id: string
           article_name: string
-          closing: number
-          opening: number
-          period_in: number
-          period_out: number
-          turnover: number
+          closing_qty: number
+          in_qty: number
+          opening_qty: number
+          out_qty: number
+          turnover_qty: number
           unit: string
         }[]
       }
