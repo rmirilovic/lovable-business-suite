@@ -65,7 +65,7 @@ export function PriceAdjustmentDialog({ open, onOpenChange, adjustment, onSave }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg" onFocusOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{adjustment ? "Izmeni nivelaciju" : "Nova nivelacija cena"}</DialogTitle>
         </DialogHeader>
