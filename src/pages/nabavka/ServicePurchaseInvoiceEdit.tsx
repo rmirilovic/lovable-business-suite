@@ -159,11 +159,15 @@ export default function ServicePurchaseInvoiceEdit() {
       !approxEqual(vatAmount, invoice.vat_amount) ||
       !approxEqual(totalAmount, invoice.total_amount)
     ) {
-      updateTotals.mutate({
+      updateTotals.mutateAsync({
         invoiceId: invoice.id,
         subtotal,
         vat_amount: vatAmount,
         total_amount: totalAmount,
+      }).then((result) => {
+        if (result?.updated_at) {
+          updateLockTimestamp(result.updated_at);
+        }
       });
       // Update local state
       setInvoice(prev => prev ? {

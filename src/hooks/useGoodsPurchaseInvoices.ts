@@ -341,12 +341,15 @@ export function useGoodsPurchaseInvoices() {
       vat_amount: number;
       total_amount: number;
     }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("goods_purchase_invoices")
         .update({ subtotal, vat_amount, total_amount })
-        .eq("id", invoiceId);
+        .eq("id", invoiceId)
+        .select("updated_at")
+        .single();
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goods-purchase-invoices"] });
