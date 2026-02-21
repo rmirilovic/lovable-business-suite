@@ -90,7 +90,8 @@ export default function ServicePurchaseInvoiceEdit() {
       .from("service_purchase_invoices")
       .select(`
         *,
-        partner:partners(id, name, code, pib, mb, is_in_pdv, address, city, postal_code)
+        partner:partners(id, name, code, pib, mb, is_in_pdv, address, city, postal_code),
+        org_unit:organizational_units(id, code, name)
       `)
       .eq("id", id)
       .single();
@@ -373,9 +374,27 @@ export default function ServicePurchaseInvoiceEdit() {
               {invoice.has_internal_vat_calculation ? "Da" : "Ne"}
             </Badge>
           </div>
+          {invoice.org_unit && (
+            <div>
+              <div className="text-muted-foreground">Organizaciona jedinica</div>
+              <div className="font-medium">{invoice.org_unit.code} - {invoice.org_unit.name}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Payment info */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm bg-muted/10 p-3 rounded-lg border border-dashed">
           <div>
-            <div className="text-muted-foreground">Tekući račun</div>
-            <div className="font-medium text-xs">{invoice.supplier_bank_account || "-"}</div>
+            <div className="text-muted-foreground">Valuta plaćanja</div>
+            <div className="font-medium">{invoice.due_date ? formatDate(invoice.due_date) : "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Tekući račun za uplatu</div>
+            <div className="font-medium">{invoice.supplier_bank_account || "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Poziv na broj</div>
+            <div className="font-medium">{invoice.payment_reference || "-"}</div>
           </div>
         </div>
 

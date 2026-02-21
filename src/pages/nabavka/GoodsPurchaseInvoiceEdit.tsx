@@ -354,6 +354,22 @@ export default function GoodsPurchaseInvoiceEdit() {
           </div>
         </div>
 
+        {/* Payment info */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm bg-muted/10 p-3 rounded-lg border border-dashed">
+          <div>
+            <div className="text-muted-foreground">Valuta plaćanja</div>
+            <div className="font-medium">{invoice.due_date ? formatDate(invoice.due_date) : "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Tekući račun za uplatu</div>
+            <div className="font-medium">{invoice.supplier_bank_account || "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Poziv na broj</div>
+            <div className="font-medium">{invoice.payment_reference || "-"}</div>
+          </div>
+        </div>
+
         <Separator />
 
         {/* Items editor */}

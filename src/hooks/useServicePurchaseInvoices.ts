@@ -35,6 +35,7 @@ export interface ServicePurchaseInvoice {
   journal_entry_id: string | null;
   currency: string;
   exchange_rate: number;
+  org_unit_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -49,6 +50,11 @@ export interface ServicePurchaseInvoice {
     city: string | null;
     postal_code: string | null;
   };
+  org_unit?: {
+    id: string;
+    code: string;
+    name: string;
+  } | null;
 }
 
 export interface ServicePurchaseInvoiceItem {
@@ -136,7 +142,8 @@ export function useServicePurchaseInvoices() {
         .from("service_purchase_invoices")
         .select(`
           *,
-          partner:partners(id, name, code, pib, mb, is_in_pdv, address, city, postal_code)
+          partner:partners(id, name, code, pib, mb, is_in_pdv, address, city, postal_code),
+          org_unit:organizational_units(id, code, name)
         `)
         .eq("company_id", selectedCompany.id)
         .eq("business_year_id", selectedYear.id)
