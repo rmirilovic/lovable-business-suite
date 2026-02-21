@@ -174,6 +174,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.addEventListener("message", messageHandler);
 
     const loadUserData = async (userId: string) => {
+      // If data is already loaded (e.g. tab refocus triggering SIGNED_IN),
+      // skip re-fetching to avoid resetting selectedCompany/selectedYear
+      // which would unmount dialogs depending on companyId
+      if (initialLoadDone) return;
+
       await Promise.all([
         fetchUserCompanies(userId),
         fetchUserRole(userId),
