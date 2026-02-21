@@ -19,13 +19,18 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreHorizontal, Trash2, Eye, FileText, BookCheck, Undo2, FileDown } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Trash2, Eye, FileText, BookCheck, Undo2, FileDown, FileSpreadsheet, Printer } from "lucide-react";
 import { useServicePurchaseInvoices, ServicePurchaseInvoice } from "@/hooks/useServicePurchaseInvoices";
 import { ServicePurchaseInvoiceHeaderDialog } from "@/components/nabavka/ServicePurchaseInvoiceHeaderDialog";
 import { ServicePurchaseInvoiceDetailDialog } from "@/components/nabavka/ServicePurchaseInvoiceDetailDialog";
 import { formatNumber, formatDate } from "@/lib/formatting";
 import { generateServicePurchaseInvoicePdf } from "@/lib/servicePurchaseInvoicePdfGenerator";
 import { toast } from "sonner";
+import {
+  exportServicePurchaseInvoicesToExcel,
+  exportServicePurchaseInvoicesToPdf,
+  printServicePurchaseInvoices,
+} from "@/lib/servicePurchaseInvoiceListExportUtils";
 
 const statusLabels: Record<string, string> = {
   draft: "Nacrt",
@@ -187,10 +192,21 @@ export default function UlazneFaktureUsluge() {
             <h1 className="text-2xl font-bold text-foreground">Ulazne fakture za usluge</h1>
             <p className="text-muted-foreground">Fakture za usluge i troškove od dobavljača</p>
           </div>
-          <Button onClick={handleCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova UF za usluge
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportServicePurchaseInvoicesToExcel(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportServicePurchaseInvoicesToPdf(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printServicePurchaseInvoices(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
+            <Button onClick={handleCreate}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova UF za usluge
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-end gap-4">
