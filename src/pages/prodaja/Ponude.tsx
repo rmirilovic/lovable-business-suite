@@ -132,41 +132,34 @@ export default function Ponude() {
                   return (
                     <TableRow
                       key={quote.id}
-                      className="cursor-pointer hover:bg-muted/50 relative"
+                      className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleNavigate(quote)}
                     >
-                      {/* Hidden link for right-click open in new tab */}
-                      <a
-                        href={`/prodaja/ponude/${quote.id}`}
-                        onClick={(e) => handleNavigate(quote, e)}
-                        className="absolute inset-0 z-0"
-                        aria-label={`Otvori ponudu ${quote.quote_number}`}
-                      />
-                      <TableCell className="relative z-[1] pointer-events-none">
+                      <TableCell>
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-muted-foreground" />
                           <span className="font-medium">{quote.quote_number}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="relative z-[1] pointer-events-none">
+                      <TableCell>
                         {format(new Date(quote.quote_date), "dd.MM.yyyy")}
                       </TableCell>
-                      <TableCell className="relative z-[1] pointer-events-none">
+                      <TableCell>
                         <div>
                           <div className="font-medium">{quote.partner_name ?? quote.partner?.name}</div>
                           <div className="text-xs text-muted-foreground">{quote.partner?.code}</div>
                         </div>
                       </TableCell>
-                      <TableCell className="relative z-[1] pointer-events-none">
+                      <TableCell>
                         {quote.valid_until ? format(new Date(quote.valid_until), "dd.MM.yyyy") : "-"}
                       </TableCell>
-                      <TableCell className="text-right font-medium relative z-[1] pointer-events-none">
+                      <TableCell className="text-right font-medium">
                         {formatDecimal(quote.total_amount)} RSD
                       </TableCell>
-                      <TableCell className="relative z-[1] pointer-events-none">
+                      <TableCell>
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>
-                      <TableCell className="relative z-[2] pointer-events-auto" onClick={(e) => e.stopPropagation()}>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
