@@ -267,27 +267,9 @@ export default function InventoryCountEdit() {
           </div>
         )}
 
-        {/* Action bar with post/unpost, export, print, filter */}
+        {/* Action bar with search left, post/unpost right */}
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          {isDraft && canEdit && (
-            <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
-              <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
-            </Button>
-          )}
-          {isDraft && canPost && (
-            <Button size="sm" onClick={() => setPostDialogOpen(true)}>
-              <BookCheck className="h-4 w-4 mr-2" />Proknjiži
-            </Button>
-          )}
-          {isPosted && canPost && (
-            <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
-              <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
-            </Button>
-          )}
-
-          <div className="flex-1" />
-
-          {/* Filter */}
+          {/* Search - far left */}
           <div className="relative w-56">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -297,6 +279,14 @@ export default function InventoryCountEdit() {
               className="pl-8 h-9 text-sm"
             />
           </div>
+
+          {isDraft && canEdit && (
+            <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
+              <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+            </Button>
+          )}
+
+          <div className="flex-1" />
 
           {items.length > 0 && (
             <>
@@ -346,6 +336,18 @@ export default function InventoryCountEdit() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
+          )}
+
+          {/* Post/Unpost - far right after Štampa */}
+          {isDraft && canPost && (
+            <Button size="sm" onClick={() => setPostDialogOpen(true)}>
+              <BookCheck className="h-4 w-4 mr-2" />Proknjiži
+            </Button>
+          )}
+          {isPosted && canPost && (
+            <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
+              <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
+            </Button>
           )}
         </div>
 
