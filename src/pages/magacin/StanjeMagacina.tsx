@@ -370,22 +370,20 @@ export default function StanjeMagacina() {
         )}
       </div>
 
-      {/* Article Warehouse Card Dialog */}
-      {selectedArticle && warehouseId && companyId && (
-        <ArticleWarehouseCardDialog
-          open={!!selectedArticle}
-          onOpenChange={() => setSelectedArticle(null)}
-          companyId={companyId}
-          warehouseId={warehouseId}
-          warehouseName={warehouseName}
-          articleId={selectedArticle.article_id}
-          articleCode={selectedArticle.article_code}
-          articleName={selectedArticle.article_name}
-          unit={selectedArticle.unit}
-          dateFrom={dateFrom || undefined}
-          dateTo={dateTo || undefined}
-        />
-      )}
+      {/* Article Warehouse Card Dialog - always rendered to prevent unmount on tab switch */}
+      <ArticleWarehouseCardDialog
+        open={!!selectedArticle && !!warehouseId && !!companyId}
+        onOpenChange={(open) => { if (!open) setSelectedArticle(null); }}
+        companyId={companyId || ""}
+        warehouseId={warehouseId}
+        warehouseName={warehouseName}
+        articleId={selectedArticle?.article_id || ""}
+        articleCode={selectedArticle?.article_code || ""}
+        articleName={selectedArticle?.article_name || ""}
+        unit={selectedArticle?.unit || ""}
+        dateFrom={dateFrom || undefined}
+        dateTo={dateTo || undefined}
+      />
     </MainLayout>
   );
 }
