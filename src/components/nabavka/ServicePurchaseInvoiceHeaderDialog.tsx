@@ -35,6 +35,7 @@ interface ServicePurchaseInvoiceHeaderDialogProps {
   onOpenChange: (open: boolean) => void;
   invoice: ServicePurchaseInvoice | null;
   onSaved?: (invoice: ServicePurchaseInvoice) => void;
+  readOnly?: boolean;
 }
 
 export function ServicePurchaseInvoiceHeaderDialog({
@@ -42,6 +43,7 @@ export function ServicePurchaseInvoiceHeaderDialog({
   onOpenChange,
   invoice,
   onSaved,
+  readOnly = false,
 }: ServicePurchaseInvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
   const { partners } = usePartners();
@@ -175,13 +177,16 @@ export function ServicePurchaseInvoiceHeaderDialog({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {invoice
+            {readOnly
+              ? `Zaglavlje: ${invoice?.internal_number || ""}`
+              : invoice
               ? `Uredi zaglavlje: ${invoice.internal_number}`
               : "Nova ulazna faktura za usluge"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <fieldset disabled={readOnly} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="supplier_invoice_number">Broj fakture dobavljača *</Label>
@@ -411,25 +416,35 @@ export function ServicePurchaseInvoiceHeaderDialog({
             </div>
           </div>
 
+          </fieldset>
+
           <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Otkaži
-            </Button>
-            <Button
-              type="submit"
-              disabled={
-                !formData.partner_id ||
-                !formData.supplier_invoice_number ||
-                createInvoice.isPending ||
-                updateInvoice.isPending
-              }
-            >
-              {createInvoice.isPending || updateInvoice.isPending
-                ? "Čuvanje..."
-                : invoice
-                ? "Sačuvaj"
-                : "Kreiraj"}
-            </Button>
+            {readOnly ? (
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Zatvori
+              </Button>
+            ) : (
+              <>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Otkaži
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    !formData.partner_id ||
+                    !formData.supplier_invoice_number ||
+                    createInvoice.isPending ||
+                    updateInvoice.isPending
+                  }
+                >
+                  {createInvoice.isPending || updateInvoice.isPending
+                    ? "Čuvanje..."
+                    : invoice
+                    ? "Sačuvaj"
+                    : "Kreiraj"}
+                </Button>
+              </>
+            )}
           </div>
         </form>
       </DialogContent>
