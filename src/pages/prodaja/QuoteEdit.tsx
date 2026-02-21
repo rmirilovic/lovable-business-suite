@@ -231,6 +231,19 @@ export default function QuoteEdit() {
         approverName = `${quote.approver.first_name || ""} ${quote.approver.last_name || ""}`.trim() || null;
       }
 
+      // Fetch creator name
+      let creatorName: string | null = null;
+      if (quote.created_by) {
+        const { data: creatorProfile } = await supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", quote.created_by)
+          .single();
+        if (creatorProfile) {
+          creatorName = `${creatorProfile.first_name || ""} ${creatorProfile.last_name || ""}`.trim() || null;
+        }
+      }
+
       const { data: freshQuote, error: freshQuoteError } = await supabase
         .from("quotes")
         .select("subtotal, vat_amount, total_amount, note, internal_note, header_note, partner_name, partner_address, partner_city, partner_postal_code, partner_pib, partner_mb")
@@ -267,7 +280,8 @@ export default function QuoteEdit() {
           quote_note_2: companyData.quote_note_2,
         },
         partnerForPdf,
-        approverName
+        approverName,
+        creatorName
       );
 
       toast.success("PDF ponuda je generisana");

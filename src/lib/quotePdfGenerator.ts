@@ -34,7 +34,8 @@ export async function generateQuotePdf(
   items: QuoteItem[],
   company: CompanyData,
   partner: PartnerData,
-  approverName?: string | null
+  approverName?: string | null,
+  creatorName?: string | null
 ) {
   // Initialize fonts with UTF-8 support for Serbian characters
   await initializePdfFonts();
@@ -286,24 +287,27 @@ export async function generateQuotePdf(
     totalsY += splitNote2.length * 3;
   }
 
-  // Signature section
-  if (approverName) {
-    totalsY += 20;
-    doc.setFontSize(10);
-    doc.setFont("Roboto", "normal");
-    
-    const signatureX = pageWidth - 60;
-    doc.text("Potpis:", signatureX, totalsY);
-    totalsY += 6;
-    
-    doc.setFont("Roboto", "bold");
-    doc.text(approverName, signatureX, totalsY);
-    
-    // Draw signature line
-    totalsY += 5;
-    doc.setDrawColor(0, 0, 0);
-    doc.line(signatureX - 10, totalsY, signatureX + 50, totalsY);
-  }
+  // Signature section - two columns: "Ponudu sastavio" (left) and "Ponudu odobrio" (right)
+  totalsY += 20;
+  doc.setFontSize(10);
+  doc.setFont("Roboto", "normal");
+
+  const sigLeftX = 14;
+  const sigRightX = pageWidth - 60;
+
+  // Left: Ponudu sastavio
+  doc.text("Ponudu sastavio:", sigLeftX, totalsY);
+  doc.setFont("Roboto", "bold");
+  doc.text(creatorName || "________________", sigLeftX, totalsY + 8);
+  doc.setDrawColor(0, 0, 0);
+  doc.line(sigLeftX, totalsY + 12, sigLeftX + 60, totalsY + 12);
+
+  // Right: Ponudu odobrio
+  doc.setFont("Roboto", "normal");
+  doc.text("Ponudu odobrio:", sigRightX, totalsY);
+  doc.setFont("Roboto", "bold");
+  doc.text(approverName || "________________", sigRightX, totalsY + 8);
+  doc.line(sigRightX - 10, totalsY + 12, sigRightX + 50, totalsY + 12);
 
   // Save
   doc.save(`Ponuda_${quote.quote_number.replace(/\//g, "-")}.pdf`);
