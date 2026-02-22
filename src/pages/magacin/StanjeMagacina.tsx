@@ -82,7 +82,7 @@ export default function StanjeMagacina() {
   const {
     data: stockData,
     isLoading: stockLoading,
-  } = useWarehouseStock(companyId, warehouseId || undefined, dateFrom || undefined, dateTo || undefined);
+  } = useWarehouseStock(companyId, warehouseId || undefined, undefined, dateTo || undefined);
 
   // Selected article for card dialog
   const [selectedArticle, setSelectedArticle] = useState<WarehouseStockRow | null>(null);
