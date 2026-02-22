@@ -189,10 +189,12 @@ export function ArticleWarehouseCardDialog({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((row, idx) => (
-                  <TableRow key={idx}>
+                {rows.map((row, idx) => {
+                  const isDonos = row.document_type === 'Donos';
+                  return (
+                  <TableRow key={idx} className={isDonos ? "bg-muted/50 font-semibold" : ""}>
                     <TableCell>{formatDate(row.movement_date)}</TableCell>
-                    <TableCell className="font-medium">{row.document_type} {row.document_number}</TableCell>
+                    <TableCell className="font-medium">{isDonos ? 'Donos' : `${row.document_type} ${row.document_number}`}</TableCell>
                     <TableCell className="max-w-[150px] truncate">{row.partner_name}</TableCell>
                     <TableCell className="text-right">
                       {row.in_quantity !== 0 ? formatDecimal(row.in_quantity) : ""}
@@ -214,7 +216,8 @@ export function ArticleWarehouseCardDialog({
                       {formatPrice(row.running_value)}
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
               <TableFooter>
                 <TableRow>
