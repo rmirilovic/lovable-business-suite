@@ -4832,6 +4832,114 @@ export type Database = {
         }
         Relationships: []
       }
+      warehouse_reservations: {
+        Row: {
+          article_code: string
+          article_id: string
+          article_name: string
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          created_by_name: string
+          document_id: string | null
+          document_number: string
+          document_type: string
+          id: string
+          note: string | null
+          partner_code: string | null
+          partner_id: string | null
+          partner_name: string | null
+          quantity: number
+          reservation_date: string
+          unit: string
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          article_code: string
+          article_id: string
+          article_name: string
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          created_by_name: string
+          document_id?: string | null
+          document_number: string
+          document_type: string
+          id?: string
+          note?: string | null
+          partner_code?: string | null
+          partner_id?: string | null
+          partner_name?: string | null
+          quantity?: number
+          reservation_date?: string
+          unit?: string
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          article_code?: string
+          article_id?: string
+          article_name?: string
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          created_by_name?: string
+          document_id?: string | null
+          document_number?: string
+          document_type?: string
+          id?: string
+          note?: string | null
+          partner_code?: string | null
+          partner_id?: string | null
+          partner_name?: string | null
+          quantity?: number
+          reservation_date?: string
+          unit?: string
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_reservations_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_reservations_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_reservations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_reservations_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warehouse_reservations_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       warehouses: {
         Row: {
           accountant: string | null
@@ -5306,6 +5414,27 @@ export type Database = {
           total_out_qty: number
           total_out_value: number
           unit: string
+        }[]
+      }
+      get_warehouse_stock_with_reservations: {
+        Args: {
+          p_company_id: string
+          p_date_to?: string
+          p_warehouse_id: string
+        }
+        Returns: {
+          article_code: string
+          article_id: string
+          article_name: string
+          available_qty: number
+          balance_qty: number
+          balance_value: number
+          reserved_delivery_notes: number
+          reserved_invoices: number
+          reserved_other: number
+          total_reserved: number
+          unit: string
+          unit_price: number
         }[]
       }
       get_warehouse_turnover: {
