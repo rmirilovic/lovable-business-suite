@@ -51,6 +51,8 @@ import ZameneArtikala from "./pages/magacin/ZameneArtikala";
 import ArticleSwapEdit from "./pages/magacin/ArticleSwapEdit";
 import PrometMagacina from "./pages/magacin/PrometMagacina";
 import LagerLista from "./pages/magacin/LagerLista";
+import Rezervacije from "./pages/magacin/Rezervacije";
+import StanjeSaRezervacijama from "./pages/magacin/StanjeSaRezervacijama";
 import Normativi from "./pages/proizvodnja/Normativi";
 import NormativEdit from "./pages/proizvodnja/NormativEdit";
 import RadniNalozi from "./pages/proizvodnja/RadniNalozi";
@@ -297,6 +299,16 @@ const App = () => (
               <Route path="/magacin/lager-lista" element={
                 <ProtectedRoute>
                   <LagerLista />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/rezervacije" element={
+                <ProtectedRoute>
+                  <Rezervacije />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/stanje-rezervacije" element={
+                <ProtectedRoute>
+                  <StanjeSaRezervacijama />
                 </ProtectedRoute>
               } />
               <Route path="/proizvodnja/normativi" element={
