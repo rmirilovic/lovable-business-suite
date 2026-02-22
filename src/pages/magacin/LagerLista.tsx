@@ -21,6 +21,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { format } from "date-fns";
 import { exportInventoryListToExcel, exportInventoryListToPdf, printInventoryList } from "@/lib/inventoryListExportUtils";
 import { toast } from "sonner";
+import { ArticleWarehouseCardDialog } from "@/components/magacin/ArticleWarehouseCardDialog";
 
 type QtyFilter = "__all__" | "positive" | "negative" | "zero" | "nonzero";
 
@@ -59,6 +60,7 @@ export default function LagerLista() {
   const [prometFilter, setPrometFilter] = useState<QtyFilter>("__all__");
   const [stanjeFilter, setStanjeFilter] = useState<QtyFilter>("__all__");
   const [exporting, setExporting] = useState(false);
+  const [cardArticle, setCardArticle] = useState<InventoryListRow | null>(null);
 
   const { warehouses, isLoading: whLoading } = useWarehouses(companyId);
   const { data: inventoryData, isLoading } = useWarehouseInventoryList(
@@ -288,7 +290,7 @@ export default function LagerLista() {
                   </TableRow>
                 ) : (
                   sorted.map((row) => (
-                    <TableRow key={row.article_id}>
+                    <TableRow key={row.article_id} className="cursor-pointer hover:bg-muted/50" onClick={() => setCardArticle(row)}>
                       <TableCell className="font-medium">{row.article_code}</TableCell>
                       <TableCell>{row.article_name}</TableCell>
                       <TableCell>{row.unit}</TableCell>
@@ -303,6 +305,21 @@ export default function LagerLista() {
               </TableBody>
             </Table>
           </TableScrollContainer>
+        )}
+        {cardArticle && companyId && warehouseId && (
+          <ArticleWarehouseCardDialog
+            open={!!cardArticle}
+            onOpenChange={(open) => { if (!open) setCardArticle(null); }}
+            companyId={companyId}
+            warehouseId={warehouseId}
+            warehouseName={warehouseName}
+            articleId={cardArticle.article_id}
+            articleCode={cardArticle.article_code}
+            articleName={cardArticle.article_name}
+            unit={cardArticle.unit}
+            dateFrom={dateFrom || undefined}
+            dateTo={dateTo || undefined}
+          />
         )}
       </div>
     </MainLayout>
