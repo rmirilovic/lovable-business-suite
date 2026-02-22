@@ -166,8 +166,8 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
               <TableHead className="w-12">#</TableHead>
               <TableHead className="w-24">Šifra</TableHead>
               <TableHead className="min-w-[200px]">Naziv</TableHead>
-              <TableHead className="text-right w-32">Količina</TableHead>
               <TableHead className="w-16">JM</TableHead>
+              <TableHead className="text-right w-32">Količina</TableHead>
               <TableHead className="text-right w-36">Cena</TableHead>
               <TableHead className="text-right w-20">Rabat %</TableHead>
               <TableHead className="text-right w-20">PDV %</TableHead>
@@ -203,8 +203,8 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
                         {item.item_name}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
                     <TableCell>{item.unit}</TableCell>
+                    <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.unit_price)}</TableCell>
                     <TableCell className="text-right">{formatNumber(item.discount_percent)}%</TableCell>
                     <TableCell className="text-right">{formatNumber(item.vat_rate)}%</TableCell>
@@ -348,6 +348,14 @@ function EditingRow({
         )}
       </TableCell>
       <TableCell>
+        <Input
+          value={editingItem.unit || ""}
+          onChange={(e) => setEditingItem({ ...editingItem, unit: e.target.value })}
+          className="h-8 w-16"
+          autoComplete="off"
+        />
+      </TableCell>
+      <TableCell>
         <LocaleNumberInput
           value={qtyStr}
           onChange={setQtyStr}
@@ -358,14 +366,6 @@ function EditingRow({
             const num = parseLocaleNumber(qtyStr);
             setEditingItem({ ...editingItem, quantity: isNaN(num) ? 0 : num });
           }}
-        />
-      </TableCell>
-      <TableCell>
-        <Input
-          value={editingItem.unit || ""}
-          onChange={(e) => setEditingItem({ ...editingItem, unit: e.target.value })}
-          className="h-8 w-16"
-          autoComplete="off"
         />
       </TableCell>
       <TableCell>
