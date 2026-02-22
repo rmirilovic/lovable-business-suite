@@ -142,28 +142,99 @@ export async function printStockReservations(
 
 // ── Lista rezervacija ─ Excel ────────────────────────────────────────────────
 
+const DOC_TYPE_LABELS_EXPORT: Record<string, string> = {
+  delivery_note: "Otpremnica",
+  invoice: "Faktura",
+  quote: "Ponuda",
+  other: "Ostalo",
+};
+
 export function exportReservationsListToExcel(rows: WarehouseReservation[]) {
   const data = rows.map((r) => ({
-    "Datum": formatDate(r.reservation_date),
-    "Vrsta dok.": r.document_type,
+    "Magacin": r.warehouse_code,
+    "Vrsta dok.": DOC_TYPE_LABELS_EXPORT[r.document_type] || r.document_type,
     "Broj dok.": r.document_number,
+    "Datum": formatDate(r.reservation_date),
+    "Partner": r.partner_name || "",
     "Šifra artikla": r.article_code,
     "Naziv artikla": r.article_name,
     "JM": r.unit,
     "Količina": r.quantity,
-    "Partner": r.partner_name || "",
     "Operater": r.created_by_name,
     "Napomena": r.note || "",
   }));
 
   const ws = XLSX.utils.json_to_sheet(data);
   ws["!cols"] = [
-    { wch: 12 }, { wch: 16 }, { wch: 14 },
-    { wch: 12 }, { wch: 30 }, { wch: 6 },
-    { wch: 10 }, { wch: 30 }, { wch: 20 }, { wch: 25 },
+    { wch: 10 }, { wch: 14 }, { wch: 14 },
+    { wch: 12 }, { wch: 30 }, { wch: 12 },
+    { wch: 30 }, { wch: 6 }, { wch: 10 },
+    { wch: 20 }, { wch: 25 },
   ];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Rezervacije");
   XLSX.writeFile(wb, `Rezervacije.xlsx`);
+}
+
+// ── Lista rezervacija ─ PDF ─────────────────────────────────────────────────
+
+async function buildReservationsListPdf(rows: WarehouseReservation[]): Promise<jsPDF> {
+  await initializePdfFonts();
+  const doc = new jsPDF({ orientation: "landscape" });
+  configurePdfFonts(doc);
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 15;
+
+  doc.setFontSize(14);
+  doc.setFont("Roboto", "bold");
+  doc.text("Pregled rezervacija", pageWidth / 2, y, { align: "center" });
+  y += 10;
+
+  const head = [["Magacin", "Vrsta dok.", "Broj dok.", "Datum", "Partner", "Šifra", "Naziv artikla", "JM", "Količina", "Operater"]];
+  const body = rows.map((r) => [
+    r.warehouse_code,
+    DOC_TYPE_LABELS_EXPORT[r.document_type] || r.document_type,
+    r.document_number,
+    formatDate(r.reservation_date),
+    r.partner_name || "",
+    r.article_code,
+    r.article_name,
+    r.unit,
+    formatDecimal(Number(r.quantity)),
+    r.created_by_name,
+  ]);
+
+  autoTable(doc, {
+    startY: y,
+    head,
+    body,
+    styles: { font: "Roboto", fontSize: 7, cellPadding: 2 },
+    headStyles: { fillColor: [60, 60, 60], fontStyle: "bold", halign: "center" },
+    columnStyles: {
+      0: { halign: "left" },
+      1: { halign: "left" },
+      2: { halign: "left" },
+      3: { halign: "center" },
+      4: { halign: "left" },
+      5: { halign: "left" },
+      6: { halign: "left" },
+      7: { halign: "center" },
+      8: { halign: "right" },
+      9: { halign: "left" },
+    },
+  });
+
+  return doc;
+}
+
+export async function exportReservationsListToPdf(rows: WarehouseReservation[]) {
+  const doc = await buildReservationsListPdf(rows);
+  doc.save("Rezervacije.pdf");
+}
+
+export async function printReservationsList(rows: WarehouseReservation[]) {
+  const doc = await buildReservationsListPdf(rows);
+  printPdfBlob(doc.output("blob"));
 }
