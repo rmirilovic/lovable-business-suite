@@ -95,8 +95,8 @@ export default function StanjeMagacina() {
   const filteredStock = useMemo(() => {
     if (!stockData) return [];
     return stockData.filter((row) => {
-      const hasMovement = Number(row.total_in_qty) !== 0 || Number(row.total_out_qty) !== 0;
-      if (!hasMovement) return false;
+      const hasActivity = Number(row.total_in_qty) !== 0 || Number(row.total_out_qty) !== 0 || Number(row.balance_qty) !== 0;
+      if (!hasActivity) return false;
       if (!search) return true;
       const q = search.toLowerCase();
       return (
