@@ -202,7 +202,7 @@ async function buildQuotePdf(
     formatDecimal(item.quantity),
     formatDecimal(item.unit_price),
     item.discount_percent > 0 ? `${formatDecimal(item.discount_percent)}%` : "-",
-    `${formatDecimal(item.vat_rate)}%`,
+    `${Number(item.vat_rate).toFixed(0)}%`,
     formatDecimal(item.line_total),
   ]);
 
@@ -225,13 +225,13 @@ async function buildQuotePdf(
     },
     columnStyles: {
       0: { cellWidth: 10, halign: "center" },
-      1: { cellWidth: 20 },
+      1: { cellWidth: 25 },
       2: { cellWidth: "auto" },
       3: { cellWidth: 12, halign: "center" },
       4: { cellWidth: 18, halign: "right" },
       5: { cellWidth: 22, halign: "right" },
-      6: { cellWidth: 15, halign: "right" },
-      7: { cellWidth: 15, halign: "right" },
+      6: { cellWidth: 11, halign: "right" },
+      7: { cellWidth: 11, halign: "right" },
       8: { cellWidth: 25, halign: "right" },
     },
     margin: { left: 14, right: 14 },
