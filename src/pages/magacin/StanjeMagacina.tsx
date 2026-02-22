@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, Loader2, Warehouse, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWarehouseStock, type WarehouseStockRow } from "@/hooks/useWarehouseStock";
@@ -74,6 +75,7 @@ export default function StanjeMagacina() {
   const [dateFrom, setDateFrom] = useState(saved.dateFrom || defaultFrom);
   const [dateTo, setDateTo] = useState(saved.dateTo || defaultTo);
   const [search, setSearch] = useState(saved.search || "");
+  const [onlyWithTurnover, setOnlyWithTurnover] = useState(false);
   const [exporting, setExporting] = useState(false);
   const scrollRestoredRef = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -94,14 +96,19 @@ export default function StanjeMagacina() {
   // Filter by search
   const filteredStock = useMemo(() => {
     if (!stockData) return [];
-    if (!search) return stockData;
-    const q = search.toLowerCase();
-    return stockData.filter(
-      (row) =>
+    return stockData.filter((row) => {
+      if (onlyWithTurnover) {
+        const hasMovement = Number(row.total_in_qty) !== 0 || Number(row.total_out_qty) !== 0;
+        if (!hasMovement) return false;
+      }
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
         row.article_code.toLowerCase().includes(q) ||
         row.article_name.toLowerCase().includes(q)
-    );
-  }, [stockData, search]);
+      );
+    });
+  }, [stockData, search, onlyWithTurnover]);
 
   // Sorting
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
@@ -243,6 +250,17 @@ export default function StanjeMagacina() {
             placeholder="Datum do"
             className="w-[150px]"
           />
+
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="onlyWithTurnover"
+              checked={onlyWithTurnover}
+              onCheckedChange={(v) => setOnlyWithTurnover(!!v)}
+            />
+            <label htmlFor="onlyWithTurnover" className="text-sm cursor-pointer select-none">
+              Samo sa prometom
+            </label>
+          </div>
 
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

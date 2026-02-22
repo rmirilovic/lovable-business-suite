@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Search, Loader2, Warehouse, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWarehouseInventoryList, type InventoryListRow } from "@/hooks/useWarehouseInventoryList";
@@ -59,6 +60,7 @@ export default function LagerLista() {
   const [prometFilter, setPrometFilter] = useState<QtyFilter>("__all__");
   const [stanjeFilter, setStanjeFilter] = useState<QtyFilter>("__all__");
   const [exporting, setExporting] = useState(false);
+  const [onlyWithTurnover, setOnlyWithTurnover] = useState(false);
 
   const { warehouses, isLoading: whLoading } = useWarehouses(companyId);
   const { data: inventoryData, isLoading } = useWarehouseInventoryList(
@@ -72,6 +74,10 @@ export default function LagerLista() {
   const filtered = useMemo(() => {
     if (!inventoryData) return [];
     return inventoryData.filter((row) => {
+      if (onlyWithTurnover) {
+        const hasMovement = Number(row.in_qty) !== 0 || Number(row.out_qty) !== 0;
+        if (!hasMovement) return false;
+      }
       if (search) {
         const q = search.toLowerCase();
         if (!row.article_code.toLowerCase().includes(q) && !row.article_name.toLowerCase().includes(q)) return false;
@@ -81,7 +87,7 @@ export default function LagerLista() {
       if (!matchesQtyFilter(Number(row.closing_qty), stanjeFilter)) return false;
       return true;
     });
-  }, [inventoryData, search, donosFilter, prometFilter, stanjeFilter]);
+  }, [inventoryData, search, donosFilter, prometFilter, stanjeFilter, onlyWithTurnover]);
 
   // Sorting
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
@@ -178,6 +184,16 @@ export default function LagerLista() {
 
         {/* Filters Row 2 */}
         <div className="flex flex-col sm:flex-row gap-4 flex-wrap items-end">
+          <div className="flex items-center gap-2 pb-1">
+            <Checkbox
+              id="onlyWithTurnover"
+              checked={onlyWithTurnover}
+              onCheckedChange={(v) => setOnlyWithTurnover(!!v)}
+            />
+            <label htmlFor="onlyWithTurnover" className="text-sm cursor-pointer select-none">
+              Samo sa prometom u periodu
+            </label>
+          </div>
           <div className="space-y-1">
             <Label className="text-xs">Donos</Label>
             <Select value={donosFilter} onValueChange={(v) => setDonosFilter(v as QtyFilter)}>
