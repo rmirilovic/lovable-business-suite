@@ -171,7 +171,7 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
               <TableHead className="text-right w-36">Cena</TableHead>
               <TableHead className="text-right w-20">Rabat %</TableHead>
               <TableHead className="text-right w-20">PDV %</TableHead>
-              <TableHead className="text-right w-36">Ukupno</TableHead>
+              <TableHead className="text-right w-36">Iznos bez PDV-a</TableHead>
               {!isReadOnly && <TableHead className="w-20"></TableHead>}
             </TableRow>
           </TableHeader>
@@ -208,7 +208,7 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
                     <TableCell className="text-right">{formatDecimal(item.unit_price)}</TableCell>
                     <TableCell className="text-right">{formatNumber(item.discount_percent)}%</TableCell>
                     <TableCell className="text-right">{formatNumber(item.vat_rate)}%</TableCell>
-                    <TableCell className="text-right font-medium">{formatDecimal(item.line_total)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatDecimal(item.line_subtotal)}</TableCell>
                     {!isReadOnly && (
                       <TableCell>
                         <div className="flex gap-1">

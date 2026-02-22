@@ -64,19 +64,19 @@ async function buildQuotePdf(
   if (company.logo_url) {
     try {
       const img = await loadImage(company.logo_url);
-      // Scale logo to max 40mm height, preserving aspect ratio
-      const maxH = 40;
-      const maxW = 60;
+      // Scale logo to max 25mm height, preserving aspect ratio
+      const maxH = 25;
+      const maxW = 40;
       const ratio = Math.min(maxW / img.width, maxH / img.height, 1);
       const imgW = img.width * ratio;
       const imgH = img.height * ratio;
       doc.addImage(img, "PNG", 14, yPos, imgW, imgH);
       
-      // Logo text next to image
+      // Logo text next to image - larger font to match logo height
       if (company.logo_text) {
         const textX = 14 + imgW + 5;
         const textMaxW = pageWidth - textX - 14;
-        doc.setFontSize(9);
+        doc.setFontSize(11);
         doc.setFont("Roboto", "normal");
         const lines = doc.splitTextToSize(company.logo_text, textMaxW);
         doc.text(lines, textX, yPos + 4);
@@ -203,12 +203,12 @@ async function buildQuotePdf(
     formatDecimal(item.unit_price),
     item.discount_percent > 0 ? `${formatDecimal(item.discount_percent)}%` : "-",
     `${Number(item.vat_rate).toFixed(0)}%`,
-    formatDecimal(item.line_total),
+    formatDecimal(item.line_subtotal),
   ]);
 
   autoTable(doc, {
     startY: yPos,
-    head: [["#", "Šifra", "Naziv", "JM", "Kol.", "Cena", "Rab.", "PDV", "Iznos"]],
+    head: [["#", "Šifra", "Naziv", "JM", "Kol.", "Cena", "Rab.", "PDV", "Iznos bez PDV"]],
     body: tableData,
     theme: "grid",
     styles: {
