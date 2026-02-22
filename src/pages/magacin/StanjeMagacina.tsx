@@ -28,6 +28,7 @@ import { useTableSort } from "@/hooks/useTableSort";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { formatPrice, formatDecimal } from "@/lib/formatting";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { format } from "date-fns";
 import { exportStockToExcel, exportStockToPdf, printStock } from "@/lib/warehouseExportUtils";
 import { toast } from "sonner";
 
@@ -57,16 +58,21 @@ function saveState(state: Partial<ViewState>) {
 }
 
 export default function StanjeMagacina() {
-  const { selectedCompany } = useAuth();
+  const { selectedCompany, selectedYear } = useAuth();
   const companyId = selectedCompany?.id;
 
   const { warehouses, isLoading: whLoading } = useWarehouses(companyId);
 
   const saved = useRef(loadState()).current;
 
+  const defaultFrom = selectedYear ? `${selectedYear.year}-01-01` : "";
+  const yearEnd = selectedYear ? `${selectedYear.year}-12-31` : "";
+  const today = format(new Date(), "yyyy-MM-dd");
+  const defaultTo = yearEnd && yearEnd < today ? yearEnd : today;
+
   const [warehouseId, setWarehouseId] = useState<string>(saved.warehouseId || "");
-  const [dateFrom, setDateFrom] = useState(saved.dateFrom || "");
-  const [dateTo, setDateTo] = useState(saved.dateTo || "");
+  const [dateFrom, setDateFrom] = useState(saved.dateFrom || defaultFrom);
+  const [dateTo, setDateTo] = useState(saved.dateTo || defaultTo);
   const [search, setSearch] = useState(saved.search || "");
   const [exporting, setExporting] = useState(false);
   const scrollRestoredRef = useRef(false);
