@@ -18,6 +18,8 @@ interface CompanyData {
   email?: string | null;
   quote_note_1?: string | null;
   quote_note_2?: string | null;
+  logo_url?: string | null;
+  logo_text?: string | null;
 }
 
 interface PartnerData {
@@ -28,6 +30,16 @@ interface PartnerData {
   postal_code?: string | null;
   pib?: string | null;
   mb?: string | null;
+}
+
+function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = (e) => reject(e);
+    img.src = url;
+  });
 }
 
 async function buildQuotePdf(
@@ -47,43 +59,50 @@ async function buildQuotePdf(
   const pageWidth = doc.internal.pageSize.getWidth();
   let yPos = 20;
 
-  // Company Header
-  doc.setFontSize(16);
-  doc.setFont("Roboto", "bold");
-  doc.text(company.name, 14, yPos);
-  yPos += 7;
-
-  doc.setFontSize(9);
-  doc.setFont("Roboto", "normal");
-  
-  if (company.address) {
-    doc.text(company.address, 14, yPos);
-    yPos += 4;
+  // Company Header - Logo + Logo Text
+  let logoLoaded = false;
+  if (company.logo_url) {
+    try {
+      const img = await loadImage(company.logo_url);
+      // Scale logo to max 40mm height, preserving aspect ratio
+      const maxH = 40;
+      const maxW = 60;
+      const ratio = Math.min(maxW / img.width, maxH / img.height, 1);
+      const imgW = img.width * ratio;
+      const imgH = img.height * ratio;
+      doc.addImage(img, "PNG", 14, yPos, imgW, imgH);
+      
+      // Logo text next to image
+      if (company.logo_text) {
+        const textX = 14 + imgW + 5;
+        const textMaxW = pageWidth - textX - 14;
+        doc.setFontSize(9);
+        doc.setFont("Roboto", "normal");
+        const lines = doc.splitTextToSize(company.logo_text, textMaxW);
+        doc.text(lines, textX, yPos + 4);
+      }
+      
+      yPos += Math.max(imgH, company.logo_text ? 20 : 0) + 5;
+      logoLoaded = true;
+    } catch (e) {
+      console.warn("Failed to load company logo for PDF:", e);
+    }
   }
   
-  if (company.postal_code || company.city) {
-    doc.text(`${company.postal_code || ""} ${company.city || ""}`.trim(), 14, yPos);
-    yPos += 4;
-  }
-  
-  if (company.pib) {
-    doc.text(`PIB: ${company.pib}`, 14, yPos);
-    yPos += 4;
-  }
-  
-  if (company.mb) {
-    doc.text(`MB: ${company.mb}`, 14, yPos);
-    yPos += 4;
-  }
-  
-  if (company.phone) {
-    doc.text(`Tel: ${company.phone}`, 14, yPos);
-    yPos += 4;
-  }
-  
-  if (company.email) {
-    doc.text(`Email: ${company.email}`, 14, yPos);
-    yPos += 4;
+  if (!logoLoaded) {
+    // Fallback: just logo_text or company name
+    if (company.logo_text) {
+      doc.setFontSize(9);
+      doc.setFont("Roboto", "normal");
+      const lines = doc.splitTextToSize(company.logo_text, pageWidth - 28);
+      doc.text(lines, 14, yPos);
+      yPos += lines.length * 4 + 2;
+    } else {
+      doc.setFontSize(16);
+      doc.setFont("Roboto", "bold");
+      doc.text(company.name, 14, yPos);
+      yPos += 7;
+    }
   }
 
   // Document Title

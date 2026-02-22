@@ -160,6 +160,8 @@ export default function QuoteEdit() {
         email: companyData.email,
         quote_note_1: companyData.quote_note_1,
         quote_note_2: companyData.quote_note_2,
+        logo_url: companyData.logo_url,
+        logo_text: companyData.logo_text,
       },
       partner: {
         name: quoteForPdf.partner_name || quoteForPdf.partner?.name || "",
