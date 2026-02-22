@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Loader2, Plus, Trash2, FileSpreadsheet, Warehouse } from "lucide-react";
+import { Search, Loader2, Plus, Trash2, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWarehouseReservations, useCreateReservation, useDeleteReservation, type WarehouseReservation } from "@/hooks/useWarehouseReservations";
@@ -31,7 +31,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { formatDecimal, formatDate } from "@/lib/formatting";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { exportReservationsListToExcel } from "@/lib/reservationExportUtils";
+import { exportReservationsListToExcel, exportReservationsListToPdf, printReservationsList } from "@/lib/reservationExportUtils";
 
 const DOC_TYPE_OPTIONS = [
   { value: "delivery_note", label: "Otpremnica" },
@@ -47,15 +47,43 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   other: "Ostalo",
 };
 
+const STORAGE_KEY = "rezervacije_view_state";
+
+interface ViewState {
+  warehouseId: string;
+  search: string;
+  sortColumn: string;
+  sortDirection: string;
+  scrollTop: number;
+}
+
+function loadState(): Partial<ViewState> {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveState(state: Partial<ViewState>) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch { /* ignore */ }
+}
+
 export default function Rezervacije() {
   const { selectedCompany, selectedYear, user } = useAuth();
   const companyId = selectedCompany?.id;
   const businessYearId = selectedYear?.id;
 
-  const [warehouseId, setWarehouseId] = useState("");
-  const [search, setSearch] = useState("");
+  const saved = useRef(loadState()).current;
+  const [warehouseId, setWarehouseId] = useState(saved.warehouseId || "");
+  const [search, setSearch] = useState(saved.search || "");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<WarehouseReservation | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const scrollRestoredRef = useRef(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const lastScrollTopRef = useRef(saved.scrollTop ?? 0);
 
   const { warehouses, isLoading: whLoading } = useWarehouses(companyId);
   const { articles } = useArticles(companyId);
@@ -88,18 +116,24 @@ export default function Rezervacije() {
         r.article_code.toLowerCase().includes(q) ||
         r.article_name.toLowerCase().includes(q) ||
         r.document_number.toLowerCase().includes(q) ||
-        (r.partner_name || "").toLowerCase().includes(q)
+        (r.partner_name || "").toLowerCase().includes(q) ||
+        r.warehouse_code.toLowerCase().includes(q)
     );
   }, [reservations, search]);
 
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("reservation_date", "desc");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
+    (saved.sortColumn as any) || "reservation_date",
+    (saved.sortDirection as any) || "desc"
+  );
 
   const sorted = useMemo(() => {
     return sortItems(filtered, (item: WarehouseReservation, col: string) => {
       switch (col) {
+        case "warehouse_code": return item.warehouse_code;
         case "reservation_date": return item.reservation_date;
         case "article_code": return item.article_code;
         case "article_name": return item.article_name;
+        case "unit": return item.unit;
         case "quantity": return Number(item.quantity);
         case "document_type": return item.document_type;
         case "document_number": return item.document_number;
@@ -109,6 +143,37 @@ export default function Rezervacije() {
       }
     });
   }, [filtered, sortItems]);
+
+  // Persist state
+  const persistState = useCallback(() => {
+    saveState({ warehouseId, search, sortColumn, sortDirection, scrollTop: lastScrollTopRef.current });
+  }, [warehouseId, search, sortColumn, sortDirection]);
+
+  useEffect(() => { persistState(); }, [persistState]);
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const onScroll = () => { lastScrollTopRef.current = el.scrollTop; };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [isLoading]);
+
+  useEffect(() => {
+    return () => {
+      const prev = loadState();
+      saveState({ ...prev, scrollTop: lastScrollTopRef.current });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && sorted.length > 0 && !scrollRestoredRef.current && saved.scrollTop) {
+      scrollRestoredRef.current = true;
+      requestAnimationFrame(() => {
+        scrollContainerRef.current?.scrollTo({ top: saved.scrollTop });
+      });
+    }
+  }, [isLoading, sorted.length, saved.scrollTop]);
 
   const resetForm = () => {
     setFormArticleId("");
@@ -132,11 +197,13 @@ export default function Rezervacije() {
       toast.error("Popunite sva obavezna polja.");
       return;
     }
+    const wh = warehouses.find(w => w.id === whId);
     try {
       await createMutation.mutateAsync({
         company_id: companyId,
         business_year_id: businessYearId,
         warehouse_id: whId,
+        warehouse_code: wh?.code || "",
         article_id: formArticleId,
         article_code: formArticleCode,
         article_name: formArticleName,
@@ -172,6 +239,29 @@ export default function Rezervacije() {
     setDeleteTarget(null);
   };
 
+  const handleExcelExport = () => {
+    if (sorted.length === 0) return;
+    exportReservationsListToExcel(sorted);
+    toast.success("Excel fajl je kreiran.");
+  };
+
+  const handlePdfExport = async () => {
+    if (sorted.length === 0) return;
+    setExporting(true);
+    try {
+      await exportReservationsListToPdf(sorted);
+      toast.success("PDF fajl je kreiran.");
+    } finally { setExporting(false); }
+  };
+
+  const handlePrint = async () => {
+    if (sorted.length === 0) return;
+    setExporting(true);
+    try {
+      await printReservationsList(sorted);
+    } finally { setExporting(false); }
+  };
+
   return (
     <MainLayout title="Rezervacije artikala">
       <div className="flex flex-col h-full min-h-0 gap-4">
@@ -198,7 +288,7 @@ export default function Rezervacije() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Šifra, naziv, dokument, partner..."
+                placeholder="Šifra, naziv, dokument, partner, magacin..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -208,10 +298,17 @@ export default function Rezervacije() {
 
           <div className="flex items-center gap-1 ml-auto">
             {sorted.length > 0 && (
-              <Button variant="outline" size="sm" onClick={() => exportReservationsListToExcel(sorted)}>
-                <FileSpreadsheet className="h-4 w-4 mr-1" />
-                Excel
-              </Button>
+              <>
+                <Button variant="outline" size="sm" onClick={handleExcelExport} disabled={exporting}>
+                  <FileSpreadsheet className="h-4 w-4 mr-1" />Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={handlePdfExport} disabled={exporting}>
+                  <FileText className="h-4 w-4 mr-1" />PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={handlePrint} disabled={exporting}>
+                  <Printer className="h-4 w-4 mr-1" />Štampaj
+                </Button>
+              </>
             )}
             <Button size="sm" onClick={() => { resetForm(); setShowAddDialog(true); }}>
               <Plus className="h-4 w-4 mr-1" />
@@ -226,12 +323,12 @@ export default function Rezervacije() {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <TableScrollContainer className="flex-1">
+          <TableScrollContainer ref={scrollContainerRef} className="flex-1">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>
-                    <SortableHeader label="Datum" column="reservation_date" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                    <SortableHeader label="Magacin" column="warehouse_code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
                   <TableHead>
                     <SortableHeader label="Vrsta dok." column="document_type" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
@@ -240,16 +337,22 @@ export default function Rezervacije() {
                     <SortableHeader label="Broj dok." column="document_number" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
                   <TableHead>
+                    <SortableHeader label="Datum" column="reservation_date" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader label="Partner" column="partner_name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead>
                     <SortableHeader label="Šifra" column="article_code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
                   <TableHead>
                     <SortableHeader label="Naziv artikla" column="article_name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
+                  <TableHead className="w-[60px]">
+                    <SortableHeader label="JM" column="unit" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
                   <TableHead className="text-right">
                     <SortableHeader label="Količina" column="quantity" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                  <TableHead>
-                    <SortableHeader label="Partner" column="partner_name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
                   <TableHead>
                     <SortableHeader label="Operater" column="created_by_name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
@@ -260,20 +363,22 @@ export default function Rezervacije() {
               <TableBody>
                 {sorted.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                       {search ? "Nema rezultata za zadati filter." : "Nema aktivnih rezervacija."}
                     </TableCell>
                   </TableRow>
                 ) : (
                   sorted.map((row) => (
                     <TableRow key={row.id}>
-                      <TableCell>{formatDate(row.reservation_date)}</TableCell>
+                      <TableCell className="font-medium">{row.warehouse_code}</TableCell>
                       <TableCell>{DOC_TYPE_LABELS[row.document_type] || row.document_type}</TableCell>
                       <TableCell className="font-medium">{row.document_number}</TableCell>
+                      <TableCell>{formatDate(row.reservation_date)}</TableCell>
+                      <TableCell>{row.partner_name || "—"}</TableCell>
                       <TableCell className="font-medium">{row.article_code}</TableCell>
                       <TableCell>{row.article_name}</TableCell>
+                      <TableCell>{row.unit}</TableCell>
                       <TableCell className="text-right font-medium">{formatDecimal(Number(row.quantity))}</TableCell>
-                      <TableCell>{row.partner_name || "—"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{row.created_by_name}</TableCell>
                       <TableCell>
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget(row)}>

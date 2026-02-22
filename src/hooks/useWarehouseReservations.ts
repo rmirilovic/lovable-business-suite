@@ -6,6 +6,7 @@ export interface WarehouseReservation {
   company_id: string;
   business_year_id: string;
   warehouse_id: string;
+  warehouse_code: string;
   article_id: string;
   article_code: string;
   article_name: string;
@@ -50,7 +51,7 @@ export function useWarehouseReservations(
     queryFn: async () => {
       let query = supabase
         .from("warehouse_reservations")
-        .select("*")
+        .select("*, warehouses!warehouse_reservations_warehouse_id_fkey(code)")
         .eq("company_id", companyId!)
         .order("reservation_date", { ascending: false });
 
@@ -59,7 +60,10 @@ export function useWarehouseReservations(
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data as unknown as WarehouseReservation[]) ?? [];
+      return ((data ?? []) as any[]).map((r) => ({
+        ...r,
+        warehouse_code: r.warehouses?.code ?? "",
+      })) as WarehouseReservation[];
     },
     enabled: !!companyId,
   });
@@ -69,9 +73,10 @@ export function useCreateReservation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (reservation: Omit<WarehouseReservation, "id" | "created_at" | "updated_at">) => {
+      const { warehouse_code, ...insertData } = reservation;
       const { data, error } = await supabase
         .from("warehouse_reservations")
-        .insert(reservation as any)
+        .insert(insertData as any)
         .select()
         .single();
       if (error) throw error;
