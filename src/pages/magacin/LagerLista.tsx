@@ -72,8 +72,8 @@ export default function LagerLista() {
   const filtered = useMemo(() => {
     if (!inventoryData) return [];
     return inventoryData.filter((row) => {
-      const hasMovement = Number(row.in_qty) !== 0 || Number(row.out_qty) !== 0;
-      if (!hasMovement) return false;
+      const hasActivity = Number(row.in_qty) !== 0 || Number(row.out_qty) !== 0 || Number(row.opening_qty) !== 0;
+      if (!hasActivity) return false;
       if (search) {
         const q = search.toLowerCase();
         if (!row.article_code.toLowerCase().includes(q) && !row.article_name.toLowerCase().includes(q)) return false;
