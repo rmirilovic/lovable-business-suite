@@ -43,7 +43,9 @@ export default function PrometMagacina() {
 
   // Default date range: Jan 1 of business year to today
   const defaultFrom = selectedYear ? `${selectedYear.year}-01-01` : "";
-  const defaultTo = format(new Date(), "yyyy-MM-dd");
+  const yearEnd = selectedYear ? `${selectedYear.year}-12-31` : "";
+  const today = format(new Date(), "yyyy-MM-dd");
+  const defaultTo = yearEnd && yearEnd < today ? yearEnd : today;
 
   const [dateFrom, setDateFrom] = useState(defaultFrom);
   const [dateTo, setDateTo] = useState(defaultTo);
