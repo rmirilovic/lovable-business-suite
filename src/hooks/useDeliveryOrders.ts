@@ -255,7 +255,7 @@ export function useReserveDeliveryOrder() {
 
       // Create reservations for each item
       for (const item of items) {
-        await supabase.from("warehouse_reservations").insert({
+        const { error: resErr } = await supabase.from("warehouse_reservations").insert({
           company_id: order.company_id,
           business_year_id: order.business_year_id,
           warehouse_id: order.warehouse_id,
@@ -275,6 +275,7 @@ export function useReserveDeliveryOrder() {
           created_by: userId,
           created_by_name: userName,
         });
+        if (resErr) throw new Error(`Greška pri kreiranju rezervacije: ${resErr.message}`);
       }
 
       // Update order status
