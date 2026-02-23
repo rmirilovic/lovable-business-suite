@@ -29,7 +29,7 @@ import {
   Package,
   Truck,
   FileSpreadsheet,
-  FileDown,
+  FileText,
   Printer,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -118,14 +118,14 @@ export default function Otpremnice() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => exportDeliveryNotesToExcel(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="Excel">
-              <FileSpreadsheet className="h-4 w-4" />
+            <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToExcel(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
             </Button>
-            <Button variant="outline" size="icon" onClick={() => exportDeliveryNotesToPdf(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="PDF">
-              <FileDown className="h-4 w-4" />
+            <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToPdf(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+              <FileText className="w-4 h-4 mr-2" /> PDF
             </Button>
-            <Button variant="outline" size="icon" onClick={() => printDeliveryNotes(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="Štampa">
-              <Printer className="h-4 w-4" />
+            <Button variant="outline" size="sm" onClick={() => printDeliveryNotes(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
             </Button>
             <Button variant="outline" onClick={() => setShowFromOrderDialog(true)}>
               <Truck className="h-4 w-4 mr-2" />
