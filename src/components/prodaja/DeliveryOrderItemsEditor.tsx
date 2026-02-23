@@ -13,6 +13,7 @@ import { toast } from "sonner";
 interface DeliveryOrderItemsEditorProps {
   orderId: string;
   companyId: string;
+  warehouseId: string | null;
   isReadOnly: boolean;
   onItemsChanged?: () => void;
 }
@@ -32,12 +33,13 @@ interface ItemRow {
 
 const SVK_MATERIAL_GOODS = ["1", "2", "9"];
 
-export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onItemsChanged }: DeliveryOrderItemsEditorProps) {
+export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isReadOnly, onItemsChanged }: DeliveryOrderItemsEditorProps) {
   const { selectedCompany } = useAuth();
   const { articles } = useArticles(selectedCompany?.id);
   const [items, setItems] = useState<ItemRow[]>([]);
   const [addingArticleId, setAddingArticleId] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
+  const [stockMap, setStockMap] = useState<Record<string, number>>({});
 
   const materialArticles = articles.filter((a) => a.is_active && a.svk && SVK_MATERIAL_GOODS.includes(a.svk));
 
@@ -70,16 +72,35 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
     load();
   }, [orderId]);
 
-  // Enrich stock info
+  // Fetch warehouse-specific stock
+  useEffect(() => {
+    if (!companyId || !warehouseId) return;
+    const fetchStock = async () => {
+      const { data } = await supabase.rpc("get_warehouse_stock", {
+        p_company_id: companyId,
+        p_warehouse_id: warehouseId,
+        p_date_from: null,
+        p_date_to: new Date().toISOString().split("T")[0],
+      });
+      if (data) {
+        const map: Record<string, number> = {};
+        (data as any[]).forEach((row) => { map[row.article_id] = row.balance_qty; });
+        setStockMap(map);
+      }
+    };
+    fetchStock();
+  }, [companyId, warehouseId]);
+
+  // Enrich stock info from warehouse stock
   useEffect(() => {
     if (!isLoaded || items.length === 0) return;
     setItems((prev) =>
-      prev.map((item) => {
-        const art = articles.find((a) => a.id === item.article_id);
-        return { ...item, available_stock: art?.stock ?? 0 };
-      })
+      prev.map((item) => ({
+        ...item,
+        available_stock: stockMap[item.article_id] ?? 0,
+      }))
     );
-  }, [isLoaded, articles]);
+  }, [isLoaded, stockMap]);
 
   const saveItems = useCallback(
     async (newItems: ItemRow[]) => {
