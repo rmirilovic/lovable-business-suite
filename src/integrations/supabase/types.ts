@@ -877,16 +877,20 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string
+          delivery_address: string | null
           delivery_date: string
+          delivery_method: string | null
           delivery_number: string
           id: string
           internal_note: string | null
           invoice_id: string | null
+          issued_by: string | null
           note: string | null
           org_unit_id: string | null
           partner_id: string
           posted_at: string | null
           posted_by: string | null
+          received_by: string | null
           status: Database["public"]["Enums"]["document_status"]
           updated_at: string
           warehouse_id: string | null
@@ -896,16 +900,20 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by: string
+          delivery_address?: string | null
           delivery_date?: string
+          delivery_method?: string | null
           delivery_number: string
           id?: string
           internal_note?: string | null
           invoice_id?: string | null
+          issued_by?: string | null
           note?: string | null
           org_unit_id?: string | null
           partner_id: string
           posted_at?: string | null
           posted_by?: string | null
+          received_by?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           updated_at?: string
           warehouse_id?: string | null
@@ -915,16 +923,20 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string
+          delivery_address?: string | null
           delivery_date?: string
+          delivery_method?: string | null
           delivery_number?: string
           id?: string
           internal_note?: string | null
           invoice_id?: string | null
+          issued_by?: string | null
           note?: string | null
           org_unit_id?: string | null
           partner_id?: string
           posted_at?: string | null
           posted_by?: string | null
+          received_by?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           updated_at?: string
           warehouse_id?: string | null
