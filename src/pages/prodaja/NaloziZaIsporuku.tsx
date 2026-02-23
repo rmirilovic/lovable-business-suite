@@ -99,10 +99,10 @@ export default function NaloziZaIsporuku() {
                 <TableHead className="w-[100px]">Broj naloga</TableHead>
                 <TableHead className="w-[90px]">Datum</TableHead>
                 <TableHead>Kupac</TableHead>
-                <TableHead>Magacin</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ponuda</TableHead>
-                <TableHead>Otpremnica</TableHead>
+                <TableHead className="w-[100px]">Magacin</TableHead>
+                <TableHead className="w-[80px]">Ponuda</TableHead>
+                <TableHead className="w-[90px]">Otpremnica</TableHead>
+                <TableHead className="w-[80px]">Status</TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
@@ -147,13 +147,13 @@ export default function NaloziZaIsporuku() {
                         {order.warehouse ? `${order.warehouse.code} - ${order.warehouse.name}` : "-"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={status.variant}>{status.label}</Badge>
-                      </TableCell>
-                      <TableCell>
                         {order.source_quote?.quote_number || "-"}
                       </TableCell>
                       <TableCell>
                         {order.delivery_note?.delivery_number || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
