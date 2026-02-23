@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +25,8 @@ interface ItemRow {
   description: string;
   unit: string;
   quantity: number;
+  unit_price: number;
+  line_total: number;
   available_stock: number;
 }
 
@@ -57,6 +59,8 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
             description: d.description || "",
             unit: d.unit,
             quantity: d.quantity,
+            unit_price: d.unit_price,
+            line_total: d.line_total,
             available_stock: 0,
           }))
         );
@@ -69,20 +73,16 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
   // Enrich stock info
   useEffect(() => {
     if (!isLoaded || items.length === 0) return;
-    const enrichStock = () => {
-      setItems((prev) =>
-        prev.map((item) => {
-          const art = articles.find((a) => a.id === item.article_id);
-          return { ...item, available_stock: art?.stock ?? 0 };
-        })
-      );
-    };
-    enrichStock();
+    setItems((prev) =>
+      prev.map((item) => {
+        const art = articles.find((a) => a.id === item.article_id);
+        return { ...item, available_stock: art?.stock ?? 0 };
+      })
+    );
   }, [isLoaded, articles]);
 
   const saveItems = useCallback(
     async (newItems: ItemRow[]) => {
-      // Delete old items and re-insert
       await supabase.from("delivery_order_items").delete().eq("delivery_order_id", orderId);
       if (newItems.length > 0) {
         const toInsert = newItems.map((item, i) => ({
@@ -94,6 +94,8 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
           description: item.description || null,
           unit: item.unit,
           quantity: item.quantity,
+          unit_price: item.unit_price,
+          line_total: item.line_total,
           item_order: i + 1,
         }));
         const { error } = await supabase.from("delivery_order_items").insert(toInsert);
@@ -110,9 +112,11 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
   const addItem = (article: Article) => {
     const existing = items.findIndex((i) => i.article_id === article.id);
     let newItems: ItemRow[];
+    const price = article.selling_price ?? 0;
     if (existing >= 0) {
       newItems = [...items];
       newItems[existing].quantity += 1;
+      newItems[existing].line_total = newItems[existing].quantity * newItems[existing].unit_price;
     } else {
       newItems = [
         ...items,
@@ -123,6 +127,8 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
           description: "",
           unit: article.unit,
           quantity: 1,
+          unit_price: price,
+          line_total: price,
           available_stock: article.stock,
         },
       ];
@@ -137,13 +143,14 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
     if (article) addItem(article);
   };
 
-  const updateQuantity = (index: number, quantity: number) => {
+  const updateField = (index: number, field: "quantity" | "unit_price", value: number) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], quantity };
+    newItems[index] = { ...newItems[index], [field]: value };
+    newItems[index].line_total = newItems[index].quantity * newItems[index].unit_price;
     setItems(newItems);
   };
 
-  const commitQuantity = (index: number) => {
+  const commitChange = () => {
     saveItems(items);
   };
 
@@ -152,6 +159,9 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
     setItems(newItems);
     saveItems(newItems);
   };
+
+  const grandTotal = items.reduce((s, i) => s + i.line_total, 0);
+  const colCount = isReadOnly ? 7 : 8;
 
   return (
     <div className="space-y-4">
@@ -165,6 +175,7 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
               value={addingArticleId}
               onValueChange={(id) => setAddingArticleId(id)}
               placeholder="Pretraži artikle..."
+              priceField="selling_price"
             />
           </div>
           <Button onClick={handleAddItem} disabled={!addingArticleId} size="sm">
@@ -182,13 +193,15 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
               <TableHead className="w-[80px]">JM</TableHead>
               <TableHead className="w-[100px] text-right">Zaliha</TableHead>
               <TableHead className="w-[120px] text-right">Količina</TableHead>
+              <TableHead className="w-[130px] text-right">Cena za fakt.</TableHead>
+              <TableHead className="w-[130px] text-right">Iznos za fakt.</TableHead>
               {!isReadOnly && <TableHead className="w-[50px]"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={isReadOnly ? 5 : 6} className="text-center text-muted-foreground py-8">Nema stavki</TableCell>
+                <TableCell colSpan={colCount} className="text-center text-muted-foreground py-8">Nema stavki</TableCell>
               </TableRow>
             ) : (
               items.map((item, index) => (
@@ -201,12 +214,23 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
                     {isReadOnly ? formatDecimal(item.quantity) : (
                       <LocaleNumberInput
                         value={String(item.quantity)}
-                        onChange={(val) => updateQuantity(index, parseFloat(val.replace(",", ".")) || 0)}
-                        onBlur={() => commitQuantity(index)}
+                        onChange={(val) => updateField(index, "quantity", parseFloat(val.replace(",", ".")) || 0)}
+                        onBlur={commitChange}
                         className="w-full text-right"
                       />
                     )}
                   </TableCell>
+                  <TableCell className="text-right">
+                    {isReadOnly ? formatDecimal(item.unit_price, 2) : (
+                      <LocaleNumberInput
+                        value={String(item.unit_price)}
+                        onChange={(val) => updateField(index, "unit_price", parseFloat(val.replace(",", ".")) || 0)}
+                        onBlur={commitChange}
+                        className="w-full text-right"
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right font-medium">{formatDecimal(item.line_total, 2)}</TableCell>
                   {!isReadOnly && (
                     <TableCell>
                       <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)}>
@@ -218,6 +242,15 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
               ))
             )}
           </TableBody>
+          {items.length > 0 && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={6} className="text-right font-semibold">Ukupno za fakturisanje:</TableCell>
+                <TableCell className="text-right font-semibold">{formatDecimal(grandTotal, 2)}</TableCell>
+                {!isReadOnly && <TableCell />}
+              </TableRow>
+            </TableFooter>
+          )}
         </Table>
       </div>
     </div>

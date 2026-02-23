@@ -985,8 +985,10 @@ export type Database = {
           item_code: string
           item_name: string
           item_order: number
+          line_total: number
           quantity: number
           unit: string
+          unit_price: number
         }
         Insert: {
           article_id: string
@@ -998,8 +1000,10 @@ export type Database = {
           item_code: string
           item_name: string
           item_order?: number
+          line_total?: number
           quantity?: number
           unit?: string
+          unit_price?: number
         }
         Update: {
           article_id?: string
@@ -1011,8 +1015,10 @@ export type Database = {
           item_code?: string
           item_name?: string
           item_order?: number
+          line_total?: number
           quantity?: number
           unit?: string
+          unit_price?: number
         }
         Relationships: [
           {
