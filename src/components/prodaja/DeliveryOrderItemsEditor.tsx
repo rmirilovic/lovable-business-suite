@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
+import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal } from "@/lib/formatting";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,13 +34,10 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
   const { selectedCompany } = useAuth();
   const { articles } = useArticles(selectedCompany?.id);
   const [items, setItems] = useState<ItemRow[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [addingArticleId, setAddingArticleId] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
 
   const materialArticles = articles.filter((a) => a.is_active && a.svk && SVK_MATERIAL_GOODS.includes(a.svk));
-  const filteredArticles = materialArticles.filter(
-    (a) => a.code.toLowerCase().includes(searchTerm.toLowerCase()) || a.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   // Load items from DB
   useEffect(() => {
@@ -132,7 +129,12 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
     }
     setItems(newItems);
     saveItems(newItems);
-    setSearchTerm("");
+    setAddingArticleId("");
+  };
+
+  const handleAddItem = () => {
+    const article = materialArticles.find((a) => a.id === addingArticleId);
+    if (article) addItem(article);
   };
 
   const updateQuantity = (index: number, quantity: number) => {
@@ -155,18 +157,20 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, isReadOnly, onIte
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Stavke naloga</h3>
       {!isReadOnly && (
-        <div className="relative">
-          <Input placeholder="Pretraži artikle..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} autoComplete="off" />
-          {searchTerm && filteredArticles.length > 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-y-auto">
-              {filteredArticles.slice(0, 10).map((article) => (
-                <button key={article.id} type="button" className="w-full px-3 py-2 text-left hover:bg-accent flex justify-between" onClick={() => addItem(article)}>
-                  <span><span className="font-medium">{article.code}</span> - {article.name}</span>
-                  <span className="text-muted-foreground text-sm">Zaliha: {formatDecimal(article.stock)} {article.unit}</span>
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="flex items-end gap-2">
+          <div className="w-[400px]">
+            <label className="text-sm font-medium mb-1 block">Izaberite artikal</label>
+            <SearchableArticleSelect
+              articles={materialArticles}
+              value={addingArticleId}
+              onValueChange={(id) => setAddingArticleId(id)}
+              placeholder="Pretraži artikle..."
+            />
+          </div>
+          <Button onClick={handleAddItem} disabled={!addingArticleId} size="sm">
+            <Plus className="w-4 h-4 mr-1" />
+            Dodaj
+          </Button>
         </div>
       )}
       <div className="border rounded-md">
