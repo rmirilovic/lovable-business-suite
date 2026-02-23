@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, FileText, MoreHorizontal, Trash2, Eye, FileSpreadsheet, Printer } from "lucide-react";
+import { Plus, Search, FileText, MoreHorizontal, Trash2, Eye, Undo2 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { format } from "date-fns";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { useAuth } from "@/contexts/AuthContext";
-import { useDeliveryOrders, useDeleteDeliveryOrder, DeliveryOrder } from "@/hooks/useDeliveryOrders";
+import { useDeliveryOrders, useDeleteDeliveryOrder, useRevertDeliveryOrderToDraft, DeliveryOrder } from "@/hooks/useDeliveryOrders";
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
@@ -25,6 +25,7 @@ export default function NaloziZaIsporuku() {
   const { selectedCompany, selectedYear } = useAuth();
   const { data: orders, isLoading } = useDeliveryOrders(selectedCompany?.id, selectedYear?.id);
   const deleteMutation = useDeleteDeliveryOrder();
+  const revertMutation = useRevertDeliveryOrderToDraft();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -173,6 +174,18 @@ export default function NaloziZaIsporuku() {
                               >
                                 <Trash2 className="w-4 h-4 mr-2" />
                                 Obriši
+                              </DropdownMenuItem>
+                            )}
+                            {(order.status === "approved" || order.status === "reserved") && !order.delivery_note_id && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  if (window.confirm(`Vratiti nalog ${order.order_number} u nacrt?`)) {
+                                    revertMutation.mutate(order.id);
+                                  }
+                                }}
+                              >
+                                <Undo2 className="w-4 h-4 mr-2" />
+                                Vrati u nacrt
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
