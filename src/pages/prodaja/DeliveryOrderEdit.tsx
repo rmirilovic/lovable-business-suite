@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowLeft, RefreshCw, Pencil, ThumbsUp, ShieldCheck, History } from "lucide-react";
+import { Loader2, ArrowLeft, RefreshCw, Pencil, ThumbsUp, ShieldCheck, History, Undo2 } from "lucide-react";
 import {
   DeliveryOrder,
   DeliveryOrderItem,
@@ -14,6 +14,7 @@ import {
   useUpdateDeliveryOrder,
   useApproveDeliveryOrder,
   useReserveDeliveryOrder,
+  useRevertDeliveryOrderToDraft,
 } from "@/hooks/useDeliveryOrders";
 import { DeliveryOrderHeaderDialog } from "@/components/prodaja/DeliveryOrderHeaderDialog";
 import { DeliveryOrderItemsEditor } from "@/components/prodaja/DeliveryOrderItemsEditor";
@@ -51,12 +52,14 @@ export default function DeliveryOrderEdit() {
   const [headerDialogOpen, setHeaderDialogOpen] = useState(isNew);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [reserveDialogOpen, setReserveDialogOpen] = useState(false);
+  const [revertDialogOpen, setRevertDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const createMutation = useCreateDeliveryOrder();
   const updateMutation = useUpdateDeliveryOrder();
   const approveMutation = useApproveDeliveryOrder();
   const reserveMutation = useReserveDeliveryOrder();
+  const revertMutation = useRevertDeliveryOrderToDraft();
 
   const fetchOrder = async () => {
     if (!id || isNew) return;
@@ -163,6 +166,13 @@ export default function DeliveryOrderEdit() {
     fetchOrder();
   };
 
+  const handleRevertConfirm = async () => {
+    if (!order) return;
+    await revertMutation.mutateAsync(order.id);
+    setRevertDialogOpen(false);
+    fetchOrder();
+  };
+
   if (isNew) {
     return (
       <MainLayout title="Novi nalog za isporuku">
@@ -229,6 +239,11 @@ export default function DeliveryOrderEdit() {
                   <ShieldCheck className="h-4 w-4 mr-2" />Rezerviši
                 </Button>
               </>
+            )}
+            {(order.status === "approved" || order.status === "reserved") && !order.delivery_note_id && (
+              <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
+                <Undo2 className="h-4 w-4 mr-2" />Vrati u nacrt
+              </Button>
             )}
           </div>
         </div>
@@ -357,6 +372,22 @@ export default function DeliveryOrderEdit() {
           <AlertDialogFooter>
             <AlertDialogCancel>Otkaži</AlertDialogCancel>
             <AlertDialogAction onClick={handleReserveConfirm}>Rezerviši</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={revertDialogOpen} onOpenChange={setRevertDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vraćanje u nacrt</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da vratite nalog <strong>{order.order_number}</strong> u nacrt?
+              {order.status === "reserved" && " Sve rezervacije vezane za ovaj nalog će biti obrisane."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRevertConfirm}>Vrati u nacrt</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
