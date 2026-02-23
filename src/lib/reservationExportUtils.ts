@@ -22,8 +22,7 @@ export function exportStockReservationsToExcel(
     "Naziv artikla": r.article_name,
     "JM": r.unit,
     "Na zalihama": r.balance_qty,
-    "Rez. otpremnice": r.reserved_delivery_notes,
-    "Rez. fakture": r.reserved_invoices,
+    "Rez. nal.isp.": r.reserved_delivery_orders,
     "Rez. ostalo": r.reserved_other,
     "Ukupno rez.": r.total_reserved,
     "Raspoloživo": r.available_qty,
@@ -73,14 +72,13 @@ async function buildStockReservationsPdf(
   }
   y += 7;
 
-  const head = [["Šifra", "Naziv artikla", "JM", "Na zalihama", "Rez. otpr.", "Rez. fakt.", "Rez. ostalo", "Ukupno rez.", "Raspoloživo", "Cena", "Vrednost"]];
+  const head = [["Šifra", "Naziv artikla", "JM", "Na zalihama", "Rez. nal.isp.", "Rez. ostalo", "Ukupno rez.", "Raspoloživo", "Cena", "Vrednost"]];
   const body = rows.map((r) => [
     r.article_code,
     r.article_name,
     r.unit,
     formatDecimal(r.balance_qty),
-    formatDecimal(r.reserved_delivery_notes),
-    formatDecimal(r.reserved_invoices),
+    formatDecimal(r.reserved_delivery_orders),
     formatDecimal(r.reserved_other),
     formatDecimal(r.total_reserved),
     formatDecimal(r.available_qty),
@@ -88,7 +86,7 @@ async function buildStockReservationsPdf(
     formatPrice(r.balance_qty * r.unit_price),
   ]);
 
-  const foot = [["", "", "", "", "", "", "", formatDecimal(totals.totalReserved), "", "", formatPrice(totals.balanceValue)]];
+  const foot = [["", "", "", "", "", "", formatDecimal(totals.totalReserved), "", "", formatPrice(totals.balanceValue)]];
 
   autoTable(doc, {
     startY: y,

@@ -34,8 +34,7 @@ export interface StockWithReservationsRow {
   balance_qty: number;
   balance_value: number;
   unit_price: number;
-  reserved_delivery_notes: number;
-  reserved_invoices: number;
+  reserved_delivery_orders: number;
   reserved_other: number;
   total_reserved: number;
   available_qty: number;

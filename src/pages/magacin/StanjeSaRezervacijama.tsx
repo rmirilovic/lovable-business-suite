@@ -92,8 +92,7 @@ export default function StanjeSaRezervacijama() {
         case "unit": return item.unit;
         case "balance_qty": return Number(item.balance_qty);
         case "total_reserved": return Number(item.total_reserved);
-        case "reserved_delivery_notes": return Number(item.reserved_delivery_notes);
-        case "reserved_invoices": return Number(item.reserved_invoices);
+        case "reserved_delivery_orders": return Number(item.reserved_delivery_orders);
         case "reserved_other": return Number(item.reserved_other);
         case "available_qty": return Number(item.available_qty);
         case "unit_price": return Number(item.unit_price);
@@ -234,8 +233,7 @@ export default function StanjeSaRezervacijama() {
                   <TableHead className="w-[60px]"><SortableHeader label="JM" column="unit" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="text-right"><SortableHeader label="Na zalihama" column="balance_qty" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="text-right"><SortableHeader label="Ukupno rez." column="total_reserved" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                  <TableHead className="text-right"><SortableHeader label="Rez. otpr." column="reserved_delivery_notes" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                  <TableHead className="text-right"><SortableHeader label="Rez. fakt." column="reserved_invoices" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="text-right"><SortableHeader label="Rez. nal.isp." column="reserved_delivery_orders" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="text-right"><SortableHeader label="Rez. ostalo" column="reserved_other" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="text-right"><SortableHeader label="Raspoloživo" column="available_qty" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="text-right"><SortableHeader label="Cena" column="unit_price" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
@@ -245,7 +243,7 @@ export default function StanjeSaRezervacijama() {
               <TableBody>
                 {sorted.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       {search ? "Nema rezultata za zadati filter." : "Nema podataka za izabrani magacin."}
                     </TableCell>
                   </TableRow>
@@ -257,8 +255,7 @@ export default function StanjeSaRezervacijama() {
                       <TableCell>{row.unit}</TableCell>
                       <TableCell className="text-right">{formatDecimal(Number(row.balance_qty))}</TableCell>
                       <TableCell className="text-right font-medium">{formatDecimal(Number(row.total_reserved))}</TableCell>
-                      <TableCell className="text-right">{formatDecimal(Number(row.reserved_delivery_notes))}</TableCell>
-                      <TableCell className="text-right">{formatDecimal(Number(row.reserved_invoices))}</TableCell>
+                      <TableCell className="text-right">{formatDecimal(Number(row.reserved_delivery_orders))}</TableCell>
                       <TableCell className="text-right">{formatDecimal(Number(row.reserved_other))}</TableCell>
                       <TableCell className={`text-right font-medium ${Number(row.available_qty) < 0 ? "text-destructive" : ""}`}>
                         {formatDecimal(Number(row.available_qty))}
@@ -272,9 +269,9 @@ export default function StanjeSaRezervacijama() {
               {sorted.length > 0 && (
                 <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={4} className="text-right font-semibold">Ukupno:</TableCell>
+                    <TableCell colSpan={3} className="text-right font-semibold">Ukupno:</TableCell>
                     <TableCell className="text-right font-semibold">{formatDecimal(totals.totalReserved)}</TableCell>
-                    <TableCell colSpan={5} />
+                    <TableCell colSpan={4} />
                     <TableCell className="text-right font-semibold">{formatPrice(totals.balanceValue)}</TableCell>
                   </TableRow>
                 </TableFooter>
