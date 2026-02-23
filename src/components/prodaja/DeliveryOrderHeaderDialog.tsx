@@ -283,6 +283,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
             <Input
               value={formData.delivery_address}
               onChange={(e) => setFormData((p) => ({ ...p, delivery_address: e.target.value }))}
+              autoComplete="off"
             />
           </div>
           <div className="space-y-1">
@@ -291,6 +292,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
               value={formData.delivery_method}
               onChange={(e) => setFormData((p) => ({ ...p, delivery_method: e.target.value }))}
               placeholder="npr. Sopstveni transport"
+              autoComplete="off"
             />
           </div>
           <div className="space-y-1">
@@ -314,6 +316,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
               value={formData.payment_method}
               onChange={(e) => setFormData((p) => ({ ...p, payment_method: e.target.value }))}
               placeholder="npr. Virman 30 dana"
+              autoComplete="off"
             />
           </div>
           <div className="space-y-1">
@@ -321,6 +324,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
             <Input
               value={formData.contact_person}
               onChange={(e) => setFormData((p) => ({ ...p, contact_person: e.target.value }))}
+              autoComplete="off"
             />
           </div>
           <div className="space-y-1">
@@ -328,6 +332,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
             <Input
               value={formData.ordered_by}
               onChange={(e) => setFormData((p) => ({ ...p, ordered_by: e.target.value }))}
+              autoComplete="off"
             />
           </div>
           <div className="space-y-1">
@@ -335,6 +340,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
             <Input
               value={formData.composed_by}
               onChange={(e) => setFormData((p) => ({ ...p, composed_by: e.target.value }))}
+              autoComplete="off"
             />
           </div>
           <div className="col-span-2 space-y-1">
