@@ -66,7 +66,7 @@ export default function DeliveryOrderEdit() {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("delivery_orders")
-      .select(`*, partner:partners(id, code, name, address, city, postal_code), warehouse:warehouses(id, code, name)`)
+      .select(`*, partner:partners(id, code, name, address, city, postal_code), warehouse:warehouses(id, code, name), source_quote:quotes(id, quote_number)`)
       .eq("id", id)
       .single();
     if (error) {
@@ -318,7 +318,7 @@ export default function DeliveryOrderEdit() {
           </div>
           <div>
             <div className="text-muted-foreground">Broj ponude</div>
-            <div className="font-medium">{order.source_quote_id ? "Povezana" : "-"}</div>
+            <div className="font-medium">{(order as any).source_quote?.quote_number || "-"}</div>
           </div>
           <div>
             <div className="text-muted-foreground">Broj otpremnice</div>
