@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,7 +43,7 @@ export function DeliveryNoteHeaderDialog({
   isLoading,
   readOnly,
 }: DeliveryNoteHeaderDialogProps) {
-  const { selectedCompany } = useAuth();
+  const { selectedCompany, user } = useAuth();
   const companyId = selectedCompany?.id;
   const { partners } = usePartners();
   const { warehouses } = useWarehouses(companyId);
@@ -57,6 +58,10 @@ export function DeliveryNoteHeaderDialog({
     warehouse_id: "",
     org_unit_id: "" as string | null,
     delivery_date: format(new Date(), "yyyy-MM-dd"),
+    delivery_address: "",
+    delivery_method: "",
+    issued_by: "",
+    received_by: "",
     note: "",
     internal_note: "",
   });
@@ -69,15 +74,26 @@ export function DeliveryNoteHeaderDialog({
           warehouse_id: deliveryNote.warehouse_id || "",
           org_unit_id: deliveryNote.org_unit_id || null,
           delivery_date: deliveryNote.delivery_date,
+          delivery_address: (deliveryNote as any).delivery_address || "",
+          delivery_method: (deliveryNote as any).delivery_method || "",
+          issued_by: (deliveryNote as any).issued_by || "",
+          received_by: (deliveryNote as any).received_by || "",
           note: deliveryNote.note || "",
           internal_note: deliveryNote.internal_note || "",
         });
       } else {
+        const userName = user?.user_metadata?.first_name && user?.user_metadata?.last_name
+          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
+          : "";
         setFormData({
           partner_id: "",
           warehouse_id: "",
           org_unit_id: null,
           delivery_date: format(new Date(), "yyyy-MM-dd"),
+          delivery_address: "",
+          delivery_method: "",
+          issued_by: userName,
+          received_by: "",
           note: "",
           internal_note: "",
         });
@@ -167,7 +183,51 @@ export function DeliveryNoteHeaderDialog({
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+          </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Adresa otpreme</Label>
+            <Input
+              value={formData.delivery_address}
+              onChange={(e) => setFormData((p) => ({ ...p, delivery_address: e.target.value }))}
+              autoComplete="off"
+              disabled={readOnly}
+              placeholder="Unesite adresu otpreme"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Način otpreme</Label>
+            <Input
+              value={formData.delivery_method}
+              onChange={(e) => setFormData((p) => ({ ...p, delivery_method: e.target.value }))}
+              autoComplete="off"
+              disabled={readOnly}
+              placeholder="Unesite način otpreme"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Robu izdao</Label>
+            <Input
+              value={formData.issued_by}
+              onChange={(e) => setFormData((p) => ({ ...p, issued_by: e.target.value }))}
+              autoComplete="off"
+              disabled={readOnly}
+              placeholder="Ime i prezime"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Robu primio</Label>
+            <Input
+              value={formData.received_by}
+              onChange={(e) => setFormData((p) => ({ ...p, received_by: e.target.value }))}
+              autoComplete="off"
+              disabled={readOnly}
+              placeholder="Ime i prezime"
+            />
           </div>
 
           <div className="col-span-2 space-y-2">

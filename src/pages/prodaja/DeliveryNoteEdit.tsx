@@ -87,6 +87,10 @@ export default function DeliveryNoteEdit() {
         partner_id: formData.partner_id,
         warehouse_id: formData.warehouse_id,
         org_unit_id: formData.org_unit_id,
+        delivery_address: formData.delivery_address || null,
+        delivery_method: formData.delivery_method || null,
+        issued_by: formData.issued_by || null,
+        received_by: formData.received_by || null,
         note: formData.note || null,
         internal_note: formData.internal_note || null,
         status: "draft" as const,
@@ -108,6 +112,10 @@ export default function DeliveryNoteEdit() {
           partner_id: formData.partner_id,
           warehouse_id: formData.warehouse_id,
           org_unit_id: formData.org_unit_id,
+          delivery_address: formData.delivery_address || null,
+          delivery_method: formData.delivery_method || null,
+          issued_by: formData.issued_by || null,
+          received_by: formData.received_by || null,
           note: formData.note || null,
           internal_note: formData.internal_note || null,
           company_id: selectedCompany.id,
@@ -235,6 +243,22 @@ export default function DeliveryNoteEdit() {
           <div>
             <div className="text-muted-foreground">Faktura</div>
             <div className="font-medium">{deliveryNote.invoice_id ? "Povezana" : "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Adresa otpreme</div>
+            <div className="font-medium">{deliveryNote.delivery_address || "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Način otpreme</div>
+            <div className="font-medium">{deliveryNote.delivery_method || "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Robu izdao</div>
+            <div className="font-medium">{deliveryNote.issued_by || "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Robu primio</div>
+            <div className="font-medium">{deliveryNote.received_by || "-"}</div>
           </div>
         </div>
 

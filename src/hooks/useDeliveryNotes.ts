@@ -33,6 +33,10 @@ export interface DeliveryNote {
   partner_id: string;
   warehouse_id: string | null;
   org_unit_id: string | null;
+  delivery_address: string | null;
+  delivery_method: string | null;
+  issued_by: string | null;
+  received_by: string | null;
   note: string | null;
   internal_note: string | null;
   status: "draft" | "posted" | "cancelled";
