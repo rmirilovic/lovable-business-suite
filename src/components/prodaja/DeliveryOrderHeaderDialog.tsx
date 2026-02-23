@@ -29,6 +29,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
 
   const [formData, setFormData] = useState({
     order_date: new Date().toISOString().split("T")[0],
+    delivery_deadline: "",
     partner_id: "",
     delivery_address: "",
     delivery_method: "",
@@ -45,6 +46,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
       if (order) {
         setFormData({
           order_date: order.order_date,
+          delivery_deadline: order.delivery_deadline || "",
           partner_id: order.partner_id,
           delivery_address: order.delivery_address || "",
           delivery_method: order.delivery_method || "",
@@ -75,6 +77,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
         setFormData((prev) => ({
           ...prev,
           order_date: new Date().toISOString().split("T")[0],
+          delivery_deadline: "",
           partner_id: "",
           delivery_address: "",
           delivery_method: "",
@@ -115,6 +118,10 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
           <div className="space-y-1">
             <Label>Datum naloga *</Label>
             <LocaleDateInput value={formData.order_date} onChange={(v) => setFormData((p) => ({ ...p, order_date: v }))} />
+          </div>
+          <div className="space-y-1">
+            <Label>Rok isporuke</Label>
+            <LocaleDateInput value={formData.delivery_deadline} onChange={(v) => setFormData((p) => ({ ...p, delivery_deadline: v }))} />
           </div>
           <div className="space-y-1">
             <Label>Kupac *</Label>

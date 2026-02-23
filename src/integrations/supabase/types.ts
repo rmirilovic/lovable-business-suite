@@ -1049,6 +1049,7 @@ export type Database = {
           created_at: string
           created_by: string
           delivery_address: string | null
+          delivery_deadline: string | null
           delivery_method: string | null
           delivery_note_id: string | null
           id: string
@@ -1074,6 +1075,7 @@ export type Database = {
           created_at?: string
           created_by: string
           delivery_address?: string | null
+          delivery_deadline?: string | null
           delivery_method?: string | null
           delivery_note_id?: string | null
           id?: string
@@ -1099,6 +1101,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           delivery_address?: string | null
+          delivery_deadline?: string | null
           delivery_method?: string | null
           delivery_note_id?: string | null
           id?: string

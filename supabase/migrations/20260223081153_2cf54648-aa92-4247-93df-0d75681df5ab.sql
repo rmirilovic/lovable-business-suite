@@ -1,0 +1,1 @@
+ALTER TABLE public.delivery_orders ADD COLUMN delivery_deadline date NULL;
