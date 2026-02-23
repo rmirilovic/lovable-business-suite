@@ -314,6 +314,7 @@ export default function DeliveryOrderEdit() {
         <DeliveryOrderItemsEditor
           orderId={order.id}
           companyId={order.company_id}
+          warehouseId={order.warehouse_id}
           isReadOnly={!isDraft}
           onItemsChanged={fetchOrder}
         />
