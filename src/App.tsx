@@ -32,6 +32,7 @@ import QuoteEdit from "./pages/prodaja/QuoteEdit";
 import Fakture from "./pages/prodaja/Fakture";
 import InvoiceEdit from "./pages/prodaja/InvoiceEdit";
 import Otpremnice from "./pages/prodaja/Otpremnice";
+import DeliveryNoteEdit from "./pages/prodaja/DeliveryNoteEdit";
 import NaloziZaIsporuku from "./pages/prodaja/NaloziZaIsporuku";
 import DeliveryOrderEdit from "./pages/prodaja/DeliveryOrderEdit";
 import UlazneFaktureUsluge from "./pages/nabavka/UlazneFaktureUsluge";
@@ -216,6 +217,11 @@ const App = () => (
               <Route path="/prodaja/otpremnice" element={
                 <ProtectedRoute>
                   <Otpremnice />
+                </ProtectedRoute>
+              } />
+              <Route path="/prodaja/otpremnice/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <DeliveryNoteEdit />
                 </ProtectedRoute>
               } />
               <Route path="/nabavka/ulazne-fakture-usluge" element={
