@@ -100,9 +100,10 @@ export default function DeliveryOrderEdit() {
         company_id: selectedCompany.id,
         business_year_id: selectedYear.id,
         order_number: "",
-        order_date: formData.order_date,
-        partner_id: formData.partner_id,
-        delivery_address: formData.delivery_address || null,
+          order_date: formData.order_date,
+          delivery_deadline: formData.delivery_deadline || null,
+          partner_id: formData.partner_id,
+          delivery_address: formData.delivery_address || null,
         delivery_method: formData.delivery_method || null,
         warehouse_id: formData.warehouse_id || null,
         payment_method: formData.payment_method || null,
@@ -122,6 +123,7 @@ export default function DeliveryOrderEdit() {
         id: order.id,
         order: {
           order_date: formData.order_date,
+          delivery_deadline: formData.delivery_deadline || null,
           partner_id: formData.partner_id,
           delivery_address: formData.delivery_address || null,
           delivery_method: formData.delivery_method || null,
@@ -236,6 +238,10 @@ export default function DeliveryOrderEdit() {
           <div>
             <div className="text-muted-foreground">Datum naloga</div>
             <div className="font-medium">{formatDate(order.order_date)}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Rok isporuke</div>
+            <div className="font-medium">{order.delivery_deadline ? formatDate(order.delivery_deadline) : "-"}</div>
           </div>
           <div>
             <div className="text-muted-foreground">Način isporuke</div>

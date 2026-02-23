@@ -20,6 +20,7 @@ export interface DeliveryOrder {
   status: "draft" | "approved" | "reserved" | "shipped";
   source_quote_id: string | null;
   delivery_note_id: string | null;
+  delivery_deadline: string | null;
   invoice_id: string | null;
   created_by: string;
   created_at: string;
