@@ -67,7 +67,7 @@ export default function DeliveryOrderEdit() {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("delivery_orders")
-      .select(`*, partner:partners(id, code, name, address, city, postal_code), warehouse:warehouses(id, code, name), source_quote:quotes(id, quote_number), delivery_note:delivery_notes!delivery_orders_delivery_note_id_fkey(id, delivery_number)`)
+      .select(`*, partner:partners(id, code, name, address, city, postal_code), warehouse:warehouses(id, code, name), source_quote:quotes(id, quote_number), delivery_note:delivery_notes!delivery_orders_delivery_note_id_fkey(id, delivery_number), invoice:invoices!delivery_orders_invoice_id_fkey(id, invoice_number)`)
       .eq("id", id)
       .single();
     if (error) {
@@ -338,7 +338,7 @@ export default function DeliveryOrderEdit() {
           </div>
           <div>
             <div className="text-muted-foreground">Broj fakture</div>
-            <div className="font-medium">{order.invoice_id ? "Povezana" : "-"}</div>
+            <div className="font-medium">{(order as any).invoice?.invoice_number || "-"}</div>
           </div>
         </div>
 
