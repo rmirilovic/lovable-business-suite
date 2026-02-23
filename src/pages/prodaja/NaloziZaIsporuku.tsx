@@ -150,10 +150,10 @@ export default function NaloziZaIsporuku() {
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>
                       <TableCell>
-                        {order.source_quote_id ? <Badge variant="outline">Da</Badge> : "-"}
+                        {order.source_quote?.quote_number || "-"}
                       </TableCell>
                       <TableCell>
-                        {order.delivery_note_id ? <Badge variant="outline">Da</Badge> : "-"}
+                        {order.delivery_note?.delivery_number || "-"}
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>

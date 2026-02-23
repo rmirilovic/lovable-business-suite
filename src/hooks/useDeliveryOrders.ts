@@ -20,6 +20,8 @@ export interface DeliveryOrder {
   status: "draft" | "approved" | "reserved" | "shipped";
   source_quote_id: string | null;
   delivery_note_id: string | null;
+  source_quote?: { id: string; quote_number: string } | null;
+  delivery_note?: { id: string; delivery_number: string } | null;
   delivery_deadline: string | null;
   invoice_id: string | null;
   created_by: string;
@@ -72,7 +74,7 @@ export function useDeliveryOrders(companyId?: string, yearId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("delivery_orders")
-        .select(`*, partner:partners(id, code, name), warehouse:warehouses(id, code, name)`)
+        .select(`*, partner:partners(id, code, name), warehouse:warehouses(id, code, name), source_quote:quotes(id, quote_number), delivery_note:delivery_notes(id, delivery_number)`)
         .eq("company_id", companyId!)
         .eq("business_year_id", yearId!)
         .order("order_date", { ascending: false });
