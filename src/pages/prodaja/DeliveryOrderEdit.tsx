@@ -103,10 +103,10 @@ export default function DeliveryOrderEdit() {
         company_id: selectedCompany.id,
         business_year_id: selectedYear.id,
         order_number: "",
-          order_date: formData.order_date,
-          delivery_deadline: formData.delivery_deadline || null,
-          partner_id: formData.partner_id,
-          delivery_address: formData.delivery_address || null,
+        order_date: formData.order_date,
+        delivery_deadline: formData.delivery_deadline || null,
+        partner_id: formData.partner_id,
+        delivery_address: formData.delivery_address || null,
         delivery_method: formData.delivery_method || null,
         warehouse_id: formData.warehouse_id || null,
         payment_method: formData.payment_method || null,
@@ -114,11 +114,26 @@ export default function DeliveryOrderEdit() {
         ordered_by: formData.ordered_by || null,
         note: formData.note || null,
         composed_by: formData.composed_by || userName,
+        source_quote_id: formData.source_quote_id || null,
         status: "draft",
         created_by: user.id,
       };
 
-      const newOrder = await createMutation.mutateAsync({ order: orderData, items: [] });
+      // If quote items were loaded, pass them for creation
+      const items = formData.quoteItems
+        ? formData.quoteItems.map((qi: any) => ({
+            article_id: qi.article_id,
+            item_code: qi.item_code,
+            item_name: qi.item_name,
+            description: qi.description || null,
+            unit: qi.unit,
+            quantity: qi.quantity,
+            unit_price: qi.unit_price,
+            line_total: qi.line_total,
+          }))
+        : [];
+
+      const newOrder = await createMutation.mutateAsync({ order: orderData, items });
       setHeaderDialogOpen(false);
       navigate(`/prodaja/nalozi-isporuka/${newOrder.id}`, { replace: true });
     } else if (order) {

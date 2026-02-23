@@ -12,6 +12,27 @@ import { useWarehouses } from "@/hooks/useWarehouses";
 import { usePartners } from "@/hooks/usePartners";
 import { supabase } from "@/integrations/supabase/client";
 import { DeliveryOrder } from "@/hooks/useDeliveryOrders";
+import { toast } from "sonner";
+
+interface QuoteOption {
+  id: string;
+  quote_number: string;
+  partner_id: string;
+  partner_name: string | null;
+  quote_date: string;
+  total_amount: number;
+}
+
+interface QuoteItemForOrder {
+  article_id: string;
+  item_code: string;
+  item_name: string;
+  description: string;
+  unit: string;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+}
 
 interface DeliveryOrderHeaderDialogProps {
   open: boolean;
@@ -22,7 +43,7 @@ interface DeliveryOrderHeaderDialogProps {
 }
 
 export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, isLoading }: DeliveryOrderHeaderDialogProps) {
-  const { selectedCompany, user } = useAuth();
+  const { selectedCompany, selectedYear, user } = useAuth();
   const { warehouses } = useWarehouses(selectedCompany?.id);
   const { partners } = usePartners();
   const activeWarehouses = warehouses.filter((w) => w.is_active);
@@ -41,6 +62,27 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
     composed_by: "",
   });
 
+  const [approvedQuotes, setApprovedQuotes] = useState<QuoteOption[]>([]);
+  const [selectedQuoteId, setSelectedQuoteId] = useState("");
+  const [quoteItems, setQuoteItems] = useState<QuoteItemForOrder[]>([]);
+  const isNew = !order;
+
+  // Load approved quotes when dialog opens for new order
+  useEffect(() => {
+    if (!open || !isNew || !selectedCompany || !selectedYear) return;
+    const loadQuotes = async () => {
+      const { data } = await supabase
+        .from("quotes")
+        .select("id, quote_number, partner_id, partner_name, quote_date, total_amount")
+        .eq("company_id", selectedCompany.id)
+        .eq("business_year_id", selectedYear.id)
+        .eq("status", "approved")
+        .order("quote_number", { ascending: false });
+      setApprovedQuotes(data || []);
+    };
+    loadQuotes();
+  }, [open, isNew, selectedCompany?.id, selectedYear?.id]);
+
   useEffect(() => {
     if (open) {
       if (order) {
@@ -57,8 +99,9 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
           note: order.note || "",
           composed_by: order.composed_by || "",
         });
+        setSelectedQuoteId("");
+        setQuoteItems([]);
       } else {
-        // New order - get user name for composed_by
         const loadProfile = async () => {
           if (!user) return;
           const { data: profile } = await supabase
@@ -87,24 +130,108 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
           ordered_by: "",
           note: "",
         }));
+        setSelectedQuoteId("");
+        setQuoteItems([]);
       }
     }
   }, [open, order, user]);
 
-  // Auto-fill delivery address from partner
+  // When a quote is selected, load its data
+  const handleQuoteSelect = async (quoteId: string) => {
+    setSelectedQuoteId(quoteId);
+    if (!quoteId) {
+      setQuoteItems([]);
+      return;
+    }
+
+    // Load the quote with partner info
+    const { data: quote } = await supabase
+      .from("quotes")
+      .select("partner_id")
+      .eq("id", quoteId)
+      .single();
+
+    if (!quote) return;
+
+    // Set partner
+    const partner = partners.find((p) => p.id === quote.partner_id);
+    const addr = partner ? [partner.address, partner.postal_code, partner.city].filter(Boolean).join(", ") : "";
+
+    // Find warehouse with code "06" (GP)
+    const gpWarehouse = activeWarehouses.find((w) => w.code === "06");
+
+    setFormData((prev) => ({
+      ...prev,
+      partner_id: quote.partner_id,
+      delivery_address: addr,
+      warehouse_id: gpWarehouse?.id || prev.warehouse_id,
+    }));
+
+    // Load quote items - only gotovi proizvodi (SVK = 9)
+    const { data: items } = await supabase
+      .from("quote_items")
+      .select("article_id, item_code, item_name, description, unit, quantity, unit_price, line_subtotal")
+      .eq("quote_id", quoteId)
+      .order("item_order");
+
+    if (!items || items.length === 0) {
+      toast.info("Ponuda nema stavki");
+      setQuoteItems([]);
+      return;
+    }
+
+    // Filter only articles with SVK = 9 (gotovi proizvodi)
+    const articleIds = items.filter((i) => i.article_id).map((i) => i.article_id!);
+    let svkMap: Record<string, string | null> = {};
+    if (articleIds.length > 0) {
+      const { data: articles } = await supabase
+        .from("articles")
+        .select("id, svk")
+        .in("id", articleIds);
+      if (articles) {
+        articles.forEach((a) => { svkMap[a.id] = a.svk; });
+      }
+    }
+
+    const gpItems: QuoteItemForOrder[] = items
+      .filter((i) => i.article_id && svkMap[i.article_id!] === "9")
+      .map((i) => ({
+        article_id: i.article_id!,
+        item_code: i.item_code || "",
+        item_name: i.item_name,
+        description: i.description || "",
+        unit: i.unit,
+        quantity: i.quantity,
+        unit_price: i.unit_price,
+        line_total: i.quantity * i.unit_price,
+      }));
+
+    if (gpItems.length === 0) {
+      toast.info("Ponuda nema artikala gotovih proizvoda (SVK=9)");
+    } else {
+      toast.success(`Učitano ${gpItems.length} stavki gotovih proizvoda iz ponude`);
+    }
+    setQuoteItems(gpItems);
+  };
+
+  // Auto-fill delivery address from partner (only if not from quote)
   useEffect(() => {
-    if (formData.partner_id && !order) {
+    if (formData.partner_id && !order && !selectedQuoteId) {
       const partner = partners.find((p) => p.id === formData.partner_id);
       if (partner) {
         const addr = [partner.address, partner.postal_code, partner.city].filter(Boolean).join(", ");
         setFormData((prev) => ({ ...prev, delivery_address: addr }));
       }
     }
-  }, [formData.partner_id, partners, order]);
+  }, [formData.partner_id, partners, order, selectedQuoteId]);
 
   const handleSubmit = () => {
     if (!formData.partner_id) return;
-    onSave(formData);
+    onSave({
+      ...formData,
+      source_quote_id: selectedQuoteId || null,
+      quoteItems: quoteItems.length > 0 ? quoteItems : undefined,
+    });
   };
 
   return (
@@ -115,6 +242,25 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4">
+          {/* Quote selector - only for new orders */}
+          {isNew && approvedQuotes.length > 0 && (
+            <div className="col-span-2 space-y-1">
+              <Label>Učitaj iz odobrene ponude</Label>
+              <Select value={selectedQuoteId} onValueChange={handleQuoteSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Izaberite ponudu (opciono)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {approvedQuotes.map((q) => (
+                    <SelectItem key={q.id} value={q.id}>
+                      {q.quote_number} - {q.partner_name || "Nepoznat partner"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-1">
             <Label>Datum naloga *</Label>
             <LocaleDateInput value={formData.order_date} onChange={(v) => setFormData((p) => ({ ...p, order_date: v }))} />
