@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, FileText, MoreHorizontal, Trash2, Eye, Undo2, FileSpreadsheet, FileDown, Printer } from "lucide-react";
+import { Plus, Search, FileText, MoreHorizontal, Trash2, Eye, Undo2, FileSpreadsheet, Printer } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,14 +66,14 @@ export default function NaloziZaIsporuku() {
             <p className="text-muted-foreground">Upravljanje nalozima za isporuku</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={() => exportDeliveryOrdersToExcel(filteredOrders, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="Excel">
-              <FileSpreadsheet className="w-4 h-4" />
+            <Button variant="outline" size="sm" onClick={() => exportDeliveryOrdersToExcel(filteredOrders, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
             </Button>
-            <Button variant="outline" size="icon" onClick={() => exportDeliveryOrdersToPdf(filteredOrders, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="PDF">
-              <FileDown className="w-4 h-4" />
+            <Button variant="outline" size="sm" onClick={() => exportDeliveryOrdersToPdf(filteredOrders, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+              <FileText className="w-4 h-4 mr-2" /> PDF
             </Button>
-            <Button variant="outline" size="icon" onClick={() => printDeliveryOrders(filteredOrders, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="Štampa">
-              <Printer className="w-4 h-4" />
+            <Button variant="outline" size="sm" onClick={() => printDeliveryOrders(filteredOrders, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
             </Button>
             <Button onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" />
