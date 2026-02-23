@@ -54,7 +54,7 @@ export interface DeliveryNoteWithItems extends DeliveryNote {
 async function fetchDeliveryNotes(companyId: string, yearId: string): Promise<DeliveryNote[]> {
   const { data, error } = await supabase
     .from("delivery_notes")
-    .select(`*, partner:partners(id, code, name), warehouse:warehouses(id, code, name), invoice:invoices(id, invoice_number)`)
+    .select(`*, partner:partners(id, code, name), warehouse:warehouses(id, code, name), invoice:invoices!delivery_notes_invoice_id_fkey(id, invoice_number)`)
     .eq("company_id", companyId)
     .eq("business_year_id", yearId)
     .order("delivery_date", { ascending: false });
