@@ -297,3 +297,144 @@ export function useCreateDeliveryNoteFromQuote() {
     onError: (e: Error) => toast.error(`Greška: ${e.message}`),
   });
 }
+
+export interface DeliveryOrderForDeliveryNote {
+  id: string;
+  order_number: string;
+  order_date: string;
+  partner_id: string;
+  partner_name: string;
+  partner_code: string;
+  warehouse_id: string | null;
+  warehouse_code: string | null;
+  warehouse_name: string | null;
+  delivery_address: string | null;
+  note: string | null;
+  status: string;
+  item_count: number;
+}
+
+export function useDeliveryOrdersForDeliveryNote(companyId: string | undefined, yearId: string | undefined) {
+  return useQuery({
+    queryKey: ["delivery_orders_for_dn", companyId, yearId],
+    queryFn: async () => {
+      const { data: orders } = await supabase
+        .from("delivery_orders")
+        .select(`id, order_number, order_date, partner_id, status, warehouse_id, delivery_address, note, delivery_note_id, partner:partners(code, name), warehouse:warehouses(code, name)`)
+        .eq("company_id", companyId!)
+        .eq("business_year_id", yearId!)
+        .in("status", ["approved", "reserved"])
+        .is("delivery_note_id", null)
+        .order("order_date", { ascending: false });
+
+      const result: DeliveryOrderForDeliveryNote[] = [];
+      for (const o of orders || []) {
+        const { count } = await supabase
+          .from("delivery_order_items")
+          .select("id", { count: "exact", head: true })
+          .eq("delivery_order_id", o.id);
+
+        const partner = o.partner as any;
+        const warehouse = o.warehouse as any;
+        result.push({
+          id: o.id,
+          order_number: o.order_number,
+          order_date: o.order_date,
+          partner_id: o.partner_id,
+          partner_name: partner?.name || "",
+          partner_code: partner?.code || "",
+          warehouse_id: o.warehouse_id,
+          warehouse_code: warehouse?.code || null,
+          warehouse_name: warehouse?.name || null,
+          delivery_address: o.delivery_address,
+          note: o.note,
+          status: o.status,
+          item_count: count || 0,
+        });
+      }
+      return result;
+    },
+    enabled: !!companyId && !!yearId,
+  });
+}
+
+export function useCreateDeliveryNoteFromOrder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ orderId, companyId, yearId, userId }: { orderId: string; companyId: string; yearId: string; userId: string }) => {
+      // Fetch order
+      const { data: order, error: orderErr } = await supabase
+        .from("delivery_orders")
+        .select("*")
+        .eq("id", orderId)
+        .single();
+      if (orderErr) throw orderErr;
+
+      // Fetch order items
+      const { data: orderItems, error: itemsErr } = await supabase
+        .from("delivery_order_items")
+        .select("*")
+        .eq("delivery_order_id", orderId)
+        .order("item_order");
+      if (itemsErr) throw itemsErr;
+      if (!orderItems || orderItems.length === 0) throw new Error("Nalog nema stavke");
+
+      // Generate delivery note number
+      const { data: docNumber } = await supabase.rpc("get_next_document_number", {
+        _company_id: companyId,
+        _year_id: yearId,
+        _doc_type: "delivery_note",
+      });
+
+      // Create delivery note
+      const { data: newDn, error: dnErr } = await supabase
+        .from("delivery_notes")
+        .insert({
+          company_id: companyId,
+          business_year_id: yearId,
+          delivery_number: docNumber,
+          delivery_date: new Date().toISOString().split("T")[0],
+          partner_id: order.partner_id,
+          warehouse_id: order.warehouse_id,
+          org_unit_id: null,
+          note: `Iz naloga za isporuku ${order.order_number}`,
+          status: "draft",
+          created_by: userId,
+        })
+        .select()
+        .single();
+      if (dnErr) throw dnErr;
+
+      // Create delivery note items from order items
+      const dnItems = orderItems.map((item, i) => ({
+        delivery_note_id: newDn.id,
+        company_id: companyId,
+        article_id: item.article_id,
+        item_code: item.item_code,
+        item_name: item.item_name,
+        description: item.description,
+        unit: item.unit,
+        quantity: item.quantity,
+        item_order: i + 1,
+      }));
+      const { error: dnItemsErr } = await supabase.from("delivery_note_items").insert(dnItems);
+      if (dnItemsErr) throw dnItemsErr;
+
+      // Link delivery note back to the delivery order
+      const { error: linkErr } = await supabase
+        .from("delivery_orders")
+        .update({ delivery_note_id: newDn.id })
+        .eq("id", orderId);
+      if (linkErr) throw linkErr;
+
+      return newDn;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["delivery_notes"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_orders"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_orders_for_dn"] });
+      toast.success("Otpremnica kreirana iz naloga za isporuku");
+    },
+    onError: (e: Error) => toast.error(`Greška: ${e.message}`),
+  });
+}
