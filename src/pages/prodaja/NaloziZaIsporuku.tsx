@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, FileText, MoreHorizontal, Trash2, Eye, Undo2 } from "lucide-react";
+import { Plus, Search, FileText, MoreHorizontal, Trash2, Eye, Undo2, FileSpreadsheet, FileDown, Printer } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDeliveryOrders, useDeleteDeliveryOrder, useRevertDeliveryOrderToDraft, DeliveryOrder } from "@/hooks/useDeliveryOrders";
+import { exportDeliveryOrdersToExcel, exportDeliveryOrdersToPdf, printDeliveryOrders } from "@/lib/deliveryOrderListExportUtils";
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
@@ -65,6 +66,15 @@ export default function NaloziZaIsporuku() {
             <p className="text-muted-foreground">Upravljanje nalozima za isporuku</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" size="icon" onClick={() => exportDeliveryOrdersToExcel(filteredOrders, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="Excel">
+              <FileSpreadsheet className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => exportDeliveryOrdersToPdf(filteredOrders, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="PDF">
+              <FileDown className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => printDeliveryOrders(filteredOrders, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="Štampa">
+              <Printer className="w-4 h-4" />
+            </Button>
             <Button onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" />
               Novi nalog
