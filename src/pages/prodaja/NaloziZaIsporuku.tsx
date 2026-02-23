@@ -99,7 +99,7 @@ export default function NaloziZaIsporuku() {
                 <TableHead className="w-[100px]">Broj naloga</TableHead>
                 <TableHead className="w-[90px]">Datum</TableHead>
                 <TableHead>Kupac</TableHead>
-                <TableHead className="w-[100px]">Magacin</TableHead>
+                <TableHead className="w-[300px]">Magacin</TableHead>
                 <TableHead className="w-[80px]">Ponuda</TableHead>
                 <TableHead className="w-[90px]">Otpremnica</TableHead>
                 <TableHead className="w-[80px]">Status</TableHead>
