@@ -238,12 +238,12 @@ export default function Otpremnice() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Broj</TableHead>
-                <TableHead>Datum</TableHead>
+                <TableHead className="w-[100px]">Broj</TableHead>
+                <TableHead className="w-[90px]">Datum</TableHead>
                 <TableHead>Kupac</TableHead>
-                <TableHead>Magacin</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Faktura</TableHead>
+                <TableHead className="w-[300px]">Magacin</TableHead>
+                <TableHead className="w-[80px]">Faktura</TableHead>
+                <TableHead className="w-[80px]">Status</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -285,12 +285,12 @@ export default function Otpremnice() {
                       {dn.warehouse?.code} - {dn.warehouse?.name}
                     </TableCell>
                     <TableCell>
+                      {dn.invoice?.invoice_number || "-"}
+                    </TableCell>
+                    <TableCell>
                       <Badge variant={STATUS_LABELS[dn.status].variant}>
                         {STATUS_LABELS[dn.status].label}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {dn.invoice?.invoice_number || "-"}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
