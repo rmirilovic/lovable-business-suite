@@ -31,8 +31,8 @@ import {
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
-  approved: { label: "Odobrena", variant: "outline" },
-  posted: { label: "Potvrđena", variant: "default" },
+  approved: { label: "Odobrena", variant: "default" },
+  posted: { label: "Potvrđena", variant: "outline" },
   cancelled: { label: "Stornirana", variant: "destructive" },
 };
 
