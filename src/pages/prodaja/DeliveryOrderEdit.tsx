@@ -244,29 +244,34 @@ export default function DeliveryOrderEdit() {
               <RefreshCw className="w-4 h-4" />
             </Button>
             {isDraft && (
-              <>
-                <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setApproveDialogOpen(true)}>
-                  <ThumbsUp className="h-4 w-4 mr-2" />Odobri
-                </Button>
-                <Button size="sm" onClick={() => setReserveDialogOpen(true)}>
-                  <ShieldCheck className="h-4 w-4 mr-2" />Rezerviši
-                </Button>
-              </>
-            )}
-            {(order.status === "approved" || order.status === "reserved") && !order.delivery_note_id && (
-              <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
-                <Undo2 className="h-4 w-4 mr-2" />Vrati u nacrt
+              <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={() => generateDeliveryOrderPdf(order, order.items, selectedCompany as any)} title="PDF">
+            <Button variant="outline" size="sm" onClick={() => generateDeliveryOrderPdf(order, order.items, selectedCompany as any)}>
               <FileDown className="h-4 w-4 mr-2" />PDF
             </Button>
-            <Button variant="outline" size="sm" onClick={() => printDeliveryOrderPdf(order, order.items, selectedCompany as any)} title="Štampa">
+            <Button variant="outline" size="sm" onClick={() => printDeliveryOrderPdf(order, order.items, selectedCompany as any)}>
               <Printer className="h-4 w-4 mr-2" />Štampa
             </Button>
+
+            <div className="ml-auto flex items-center gap-2">
+              {isDraft && (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setApproveDialogOpen(true)}>
+                    <ThumbsUp className="h-4 w-4 mr-2" />Odobri
+                  </Button>
+                  <Button size="sm" onClick={() => setReserveDialogOpen(true)}>
+                    <ShieldCheck className="h-4 w-4 mr-2" />Rezerviši
+                  </Button>
+                </>
+              )}
+              {(order.status === "approved" || order.status === "reserved") && !order.delivery_note_id && (
+                <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
+                  <Undo2 className="h-4 w-4 mr-2" />Vrati u nacrt
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
