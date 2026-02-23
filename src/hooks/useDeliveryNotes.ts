@@ -37,6 +37,7 @@ export interface DeliveryNote {
   internal_note: string | null;
   status: "draft" | "posted" | "cancelled";
   invoice_id: string | null;
+  invoice?: { id: string; invoice_number: string } | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -53,7 +54,7 @@ export interface DeliveryNoteWithItems extends DeliveryNote {
 async function fetchDeliveryNotes(companyId: string, yearId: string): Promise<DeliveryNote[]> {
   const { data, error } = await supabase
     .from("delivery_notes")
-    .select(`*, partner:partners(id, code, name), warehouse:warehouses(id, code, name)`)
+    .select(`*, partner:partners(id, code, name), warehouse:warehouses(id, code, name), invoice:invoices(id, invoice_number)`)
     .eq("company_id", companyId)
     .eq("business_year_id", yearId)
     .order("delivery_date", { ascending: false });
