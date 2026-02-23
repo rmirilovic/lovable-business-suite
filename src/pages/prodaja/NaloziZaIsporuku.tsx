@@ -96,8 +96,8 @@ export default function NaloziZaIsporuku() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Broj naloga</TableHead>
-                <TableHead>Datum</TableHead>
+                <TableHead className="w-[100px]">Broj naloga</TableHead>
+                <TableHead className="w-[90px]">Datum</TableHead>
                 <TableHead>Kupac</TableHead>
                 <TableHead>Magacin</TableHead>
                 <TableHead>Status</TableHead>
