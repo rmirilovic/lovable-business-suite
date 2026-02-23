@@ -29,6 +29,7 @@ import {
   Send,
   FileText,
   Package,
+  Truck,
 } from "lucide-react";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
@@ -44,6 +45,7 @@ import { DeliveryNoteDialog, DeliveryNoteFormData } from "@/components/prodaja/D
 import { DeliveryNoteDetailDialog } from "@/components/prodaja/DeliveryNoteDetailDialog";
 import { DeliveryNoteItemsEditor } from "@/components/prodaja/DeliveryNoteItemsEditor";
 import { CreateDeliveryNoteFromQuoteDialog } from "@/components/prodaja/CreateDeliveryNoteFromQuoteDialog";
+import { CreateDeliveryNoteFromOrderDialog } from "@/components/prodaja/CreateDeliveryNoteFromOrderDialog";
 import { useCreateDeliveryNote, useUpdateDeliveryNote } from "@/hooks/useDeliveryNotes";
 import {
   Dialog,
@@ -80,6 +82,7 @@ export default function Otpremnice() {
   const [showItemsDialog, setShowItemsDialog] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [showFromQuoteDialog, setShowFromQuoteDialog] = useState(false);
+  const [showFromOrderDialog, setShowFromOrderDialog] = useState(false);
   const [selectedDeliveryNote, setSelectedDeliveryNote] = useState<DeliveryNote | null>(null);
   const [pendingFormData, setPendingFormData] = useState<DeliveryNoteFormData | null>(null);
   const [items, setItems] = useState<DeliveryNoteItemData[]>([]);
@@ -215,6 +218,10 @@ export default function Otpremnice() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowFromOrderDialog(true)}>
+              <Truck className="h-4 w-4 mr-2" />
+              Iz naloga
+            </Button>
             <Button variant="outline" onClick={() => setShowFromQuoteDialog(true)}>
               <Package className="h-4 w-4 mr-2" />
               Iz ponude
@@ -398,6 +405,13 @@ export default function Otpremnice() {
       <CreateDeliveryNoteFromQuoteDialog
         open={showFromQuoteDialog}
         onOpenChange={setShowFromQuoteDialog}
+        onSuccess={handleFromQuoteSuccess}
+      />
+
+      {/* Create from delivery order dialog */}
+      <CreateDeliveryNoteFromOrderDialog
+        open={showFromOrderDialog}
+        onOpenChange={setShowFromOrderDialog}
         onSuccess={handleFromQuoteSuccess}
       />
     </MainLayout>
