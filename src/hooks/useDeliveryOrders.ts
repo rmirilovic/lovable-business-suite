@@ -299,3 +299,53 @@ export function useReserveDeliveryOrder() {
     onError: (e: Error) => toast.error(`Greška: ${e.message}`),
   });
 }
+
+export function useRevertDeliveryOrderToDraft() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Check order status and delivery_note_id
+      const { data: order, error: orderErr } = await supabase
+        .from("delivery_orders")
+        .select("id, status, delivery_note_id")
+        .eq("id", id)
+        .single();
+      if (orderErr) throw orderErr;
+
+      if (order.status !== "approved" && order.status !== "reserved") {
+        throw new Error("Samo odobreni ili rezervisani nalozi mogu biti vraćeni u nacrt");
+      }
+      if (order.delivery_note_id) {
+        throw new Error("Nalog ima otpremnicu i ne može biti vraćen u nacrt");
+      }
+
+      // If reserved, delete associated reservations
+      if (order.status === "reserved") {
+        const { error: delErr } = await supabase
+          .from("warehouse_reservations")
+          .delete()
+          .eq("document_id", id);
+        if (delErr) throw new Error(`Greška pri brisanju rezervacija: ${delErr.message}`);
+      }
+
+      // Revert to draft
+      const { error: updateErr } = await supabase
+        .from("delivery_orders")
+        .update({
+          status: "draft",
+          approved_at: null,
+          approved_by: null,
+        })
+        .eq("id", id);
+      if (updateErr) throw updateErr;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["delivery_orders"] });
+      qc.invalidateQueries({ queryKey: ["delivery_order"] });
+      qc.invalidateQueries({ queryKey: ["warehouse-reservations"] });
+      qc.invalidateQueries({ queryKey: ["stock-with-reservations"] });
+      toast.success("Nalog vraćen u nacrt");
+    },
+    onError: (e: Error) => toast.error(`Greška: ${e.message}`),
+  });
+}
