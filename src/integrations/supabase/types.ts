@@ -974,6 +974,198 @@ export type Database = {
           },
         ]
       }
+      delivery_order_items: {
+        Row: {
+          article_id: string
+          company_id: string
+          created_at: string
+          delivery_order_id: string
+          description: string | null
+          id: string
+          item_code: string
+          item_name: string
+          item_order: number
+          quantity: number
+          unit: string
+        }
+        Insert: {
+          article_id: string
+          company_id: string
+          created_at?: string
+          delivery_order_id: string
+          description?: string | null
+          id?: string
+          item_code: string
+          item_name: string
+          item_order?: number
+          quantity?: number
+          unit?: string
+        }
+        Update: {
+          article_id?: string
+          company_id?: string
+          created_at?: string
+          delivery_order_id?: string
+          description?: string | null
+          id?: string
+          item_code?: string
+          item_name?: string
+          item_order?: number
+          quantity?: number
+          unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_order_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_order_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_order_items_delivery_order_id_fkey"
+            columns: ["delivery_order_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          business_year_id: string
+          company_id: string
+          composed_by: string | null
+          contact_person: string | null
+          created_at: string
+          created_by: string
+          delivery_address: string | null
+          delivery_method: string | null
+          delivery_note_id: string | null
+          id: string
+          invoice_id: string | null
+          note: string | null
+          order_date: string
+          order_number: string
+          ordered_by: string | null
+          partner_id: string
+          payment_method: string | null
+          source_quote_id: string | null
+          status: string
+          updated_at: string
+          warehouse_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          business_year_id: string
+          company_id: string
+          composed_by?: string | null
+          contact_person?: string | null
+          created_at?: string
+          created_by: string
+          delivery_address?: string | null
+          delivery_method?: string | null
+          delivery_note_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          note?: string | null
+          order_date?: string
+          order_number: string
+          ordered_by?: string | null
+          partner_id: string
+          payment_method?: string | null
+          source_quote_id?: string | null
+          status?: string
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          business_year_id?: string
+          company_id?: string
+          composed_by?: string | null
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string
+          delivery_address?: string | null
+          delivery_method?: string | null
+          delivery_note_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          note?: string | null
+          order_date?: string
+          order_number?: string
+          ordered_by?: string | null
+          partner_id?: string
+          payment_method?: string | null
+          source_quote_id?: string | null
+          status?: string
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_orders_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_orders_delivery_note_id_fkey"
+            columns: ["delivery_note_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_orders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_orders_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_orders_source_quote_id_fkey"
+            columns: ["source_quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_orders_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_history: {
         Row: {
           change_type: string

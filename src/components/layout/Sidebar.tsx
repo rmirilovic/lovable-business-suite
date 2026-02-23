@@ -57,6 +57,7 @@ const navigation: NavItem[] = [
     moduleCode: "prodaja",
     children: [
       { label: "Ponude", href: "/prodaja/ponude", moduleCode: "prodaja.ponude" },
+      { label: "Nalozi za isporuku", href: "/prodaja/nalozi-isporuka", moduleCode: "prodaja.otpremnice" },
       { label: "Fakture", href: "/prodaja/fakture", moduleCode: "prodaja.fakture" },
       { label: "Otpremnice", href: "/prodaja/otpremnice", moduleCode: "prodaja.otpremnice" },
     ],
