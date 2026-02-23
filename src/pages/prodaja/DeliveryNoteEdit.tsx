@@ -49,6 +49,7 @@ export default function DeliveryNoteEdit() {
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [revertDialogOpen, setRevertDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [sourceOrderNumber, setSourceOrderNumber] = useState<string | null>(null);
 
   const createMutation = useCreateDeliveryNote();
   const updateMutation = useUpdateDeliveryNote();
@@ -69,6 +70,15 @@ export default function DeliveryNoteEdit() {
       return;
     }
     setDeliveryNote(data as DeliveryNote);
+
+    // Fetch source delivery order if linked
+    const { data: linkedOrder } = await supabase
+      .from("delivery_orders")
+      .select("order_number")
+      .eq("delivery_note_id", id)
+      .maybeSingle();
+    setSourceOrderNumber(linkedOrder?.order_number || null);
+
     setIsLoading(false);
   };
 
@@ -256,6 +266,10 @@ export default function DeliveryNoteEdit() {
           <div>
             <div className="text-muted-foreground">Faktura</div>
             <div className="font-medium">{deliveryNote.invoice_id ? "Povezana" : "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Nalog za isporuku</div>
+            <div className="font-medium">{sourceOrderNumber || "-"}</div>
           </div>
           <div>
             <div className="text-muted-foreground">Adresa otpreme</div>

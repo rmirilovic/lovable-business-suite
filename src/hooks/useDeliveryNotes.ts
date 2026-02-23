@@ -451,6 +451,7 @@ export function useCreateDeliveryNoteFromOrder() {
           org_unit_id: null,
           delivery_address: order.delivery_address || null,
           delivery_method: order.delivery_method || null,
+          issued_by: order.composed_by || null,
           internal_note: `Iz naloga za isporuku ${order.order_number}`,
           note: order.note || null,
           status: "draft",
