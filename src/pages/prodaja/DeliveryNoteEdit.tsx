@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowLeft, RefreshCw, Pencil, Eye, Send, History, Undo2 } from "lucide-react";
+import { Loader2, ArrowLeft, RefreshCw, Pencil, Eye, Send, History, Undo2, FileDown, Printer } from "lucide-react";
 import {
   DeliveryNote,
   useCreateDeliveryNote,
@@ -19,6 +19,7 @@ import { formatDate } from "@/lib/formatting";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { generateDeliveryNotePdf, printDeliveryNotePdf } from "@/lib/deliveryNotePdfGenerator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -218,6 +219,18 @@ export default function DeliveryNoteEdit() {
                 <Undo2 className="h-4 w-4 mr-2" />Vrati u nacrt
               </Button>
             )}
+            <Button variant="outline" size="sm" onClick={async () => {
+              const { data: items } = await supabase.from("delivery_note_items").select("*").eq("delivery_note_id", deliveryNote.id).order("item_order");
+              generateDeliveryNotePdf(deliveryNote, items || [], selectedCompany as any);
+            }} title="PDF">
+              <FileDown className="h-4 w-4 mr-2" />PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={async () => {
+              const { data: items } = await supabase.from("delivery_note_items").select("*").eq("delivery_note_id", deliveryNote.id).order("item_order");
+              printDeliveryNotePdf(deliveryNote, items || [], selectedCompany as any);
+            }} title="Štampa">
+              <Printer className="h-4 w-4 mr-2" />Štampa
+            </Button>
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowLeft, RefreshCw, Pencil, ThumbsUp, ShieldCheck, History, Undo2 } from "lucide-react";
+import { Loader2, ArrowLeft, RefreshCw, Pencil, ThumbsUp, ShieldCheck, History, Undo2, FileDown, Printer } from "lucide-react";
 import {
   DeliveryOrder,
   DeliveryOrderItem,
@@ -23,6 +23,7 @@ import { formatDate } from "@/lib/formatting";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { generateDeliveryOrderPdf, printDeliveryOrderPdf } from "@/lib/deliveryOrderPdfGenerator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -260,6 +261,12 @@ export default function DeliveryOrderEdit() {
                 <Undo2 className="h-4 w-4 mr-2" />Vrati u nacrt
               </Button>
             )}
+            <Button variant="outline" size="sm" onClick={() => generateDeliveryOrderPdf(order, order.items, selectedCompany as any)} title="PDF">
+              <FileDown className="h-4 w-4 mr-2" />PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printDeliveryOrderPdf(order, order.items, selectedCompany as any)} title="Štampa">
+              <Printer className="h-4 w-4 mr-2" />Štampa
+            </Button>
           </div>
         </div>
 

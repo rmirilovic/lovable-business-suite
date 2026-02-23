@@ -28,6 +28,9 @@ import {
   Trash2,
   Package,
   Truck,
+  FileSpreadsheet,
+  FileDown,
+  Printer,
 } from "lucide-react";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
@@ -39,6 +42,7 @@ import {
 } from "@/hooks/useDeliveryNotes";
 import { CreateDeliveryNoteFromQuoteDialog } from "@/components/prodaja/CreateDeliveryNoteFromQuoteDialog";
 import { CreateDeliveryNoteFromOrderDialog } from "@/components/prodaja/CreateDeliveryNoteFromOrderDialog";
+import { exportDeliveryNotesToExcel, exportDeliveryNotesToPdf, printDeliveryNotes } from "@/lib/deliveryNoteListExportUtils";
 
 const STATUS_LABELS: Record<
   string,
@@ -114,6 +118,15 @@ export default function Otpremnice() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={() => exportDeliveryNotesToExcel(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="Excel">
+              <FileSpreadsheet className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => exportDeliveryNotesToPdf(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="PDF">
+              <FileDown className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => printDeliveryNotes(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} title="Štampa">
+              <Printer className="h-4 w-4" />
+            </Button>
             <Button variant="outline" onClick={() => setShowFromOrderDialog(true)}>
               <Truck className="h-4 w-4 mr-2" />
               Iz naloga
