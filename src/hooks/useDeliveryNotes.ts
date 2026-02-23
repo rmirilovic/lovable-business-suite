@@ -449,7 +449,10 @@ export function useCreateDeliveryNoteFromOrder() {
           partner_id: order.partner_id,
           warehouse_id: order.warehouse_id,
           org_unit_id: null,
-          note: `Iz naloga za isporuku ${order.order_number}`,
+          delivery_address: order.delivery_address || null,
+          delivery_method: order.delivery_method || null,
+          internal_note: `Iz naloga za isporuku ${order.order_number}`,
+          note: order.note || null,
           status: "draft",
           created_by: userId,
         })
