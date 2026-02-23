@@ -243,7 +243,7 @@ export default function Otpremnice() {
                 <TableHead>Kupac</TableHead>
                 <TableHead>Magacin</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Fakturisano</TableHead>
+                <TableHead>Faktura</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -290,11 +290,7 @@ export default function Otpremnice() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {dn.invoice_id ? (
-                        <Badge variant="outline">Da</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
+                      {dn.invoice?.invoice_number || "-"}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
