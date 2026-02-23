@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, ArrowRightLeft, Truck, Pencil, FileText } from "lucide-react";
+import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, ArrowRightLeft, Truck, Pencil, FileText, Undo2 } from "lucide-react";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "@/components/prodaja/QuoteItemsEditor";
 import { QuoteHeaderDialog } from "@/components/prodaja/QuoteHeaderDialog";
@@ -44,6 +44,7 @@ export default function QuoteEdit() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+  const [revertDialogOpen, setRevertDialogOpen] = useState(false);
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [localTotals, setLocalTotals] = useState({ subtotal: 0, vat_amount: 0, total_amount: 0 });
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -51,7 +52,7 @@ export default function QuoteEdit() {
   const [isCopying, setIsCopying] = useState(false);
   const [deliveryNoteDialogOpen, setDeliveryNoteDialogOpen] = useState(false);
 
-  const { approveQuote, copyQuote } = useQuotes();
+  const { approveQuote, copyQuote, revertQuoteToDraft } = useQuotes();
   const { items } = useQuoteItems(quote?.id || null);
   const createFromQuote = useCreateInvoiceFromQuote();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
@@ -122,6 +123,13 @@ export default function QuoteEdit() {
     
     await approveQuote.mutateAsync(quote.id);
     setApproveDialogOpen(false);
+    fetchQuote();
+  };
+
+  const handleRevertConfirm = async () => {
+    if (!quote) return;
+    await revertQuoteToDraft.mutateAsync(quote.id);
+    setRevertDialogOpen(false);
     fetchQuote();
   };
 
@@ -298,16 +306,10 @@ export default function QuoteEdit() {
                   {isCopying ? "Kopiranje..." : "Kopiraj"}
                 </Button>
                 {!quote.converted_to_invoice_id && (
-                  <>
-                    <Button variant="outline" size="sm" onClick={() => setDeliveryNoteDialogOpen(true)}>
-                      <Truck className="w-4 h-4 mr-2" />
-                      U otpremnicu
-                    </Button>
-                    <Button size="sm" onClick={handleConvertToInvoice}>
-                      <ArrowRightLeft className="w-4 h-4 mr-2" />
-                      U fakturu
-                    </Button>
-                  </>
+                  <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
+                    <Undo2 className="w-4 h-4 mr-2" />
+                    Vrati u nacrt
+                  </Button>
                 )}
                 {quote.converted_to_invoice_id && (
                   <Badge variant="outline">Konvertovana u fakturu</Badge>
@@ -451,6 +453,21 @@ export default function QuoteEdit() {
             <AlertDialogAction onClick={handleApproveConfirm}>
               Odobri
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={revertDialogOpen} onOpenChange={setRevertDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vraćanje u nacrt</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da vratite ponudu <strong>{quote.quote_number}</strong> u nacrt?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRevertConfirm}>Vrati u nacrt</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

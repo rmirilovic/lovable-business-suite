@@ -324,6 +324,37 @@ export function useQuotes() {
     },
   });
 
+  const revertQuoteToDraft = useMutation({
+    mutationFn: async (quoteId: string) => {
+      // Check that quote is approved and not converted
+      const { data: quote, error: fetchErr } = await supabase
+        .from("quotes")
+        .select("id, status, converted_to_invoice_id")
+        .eq("id", quoteId)
+        .single();
+      if (fetchErr) throw fetchErr;
+      if (quote.status !== "approved") throw new Error("Samo odobrene ponude mogu biti vraćene u nacrt");
+      if (quote.converted_to_invoice_id) throw new Error("Ponuda je već konvertovana u fakturu");
+
+      const { error } = await supabase
+        .from("quotes")
+        .update({
+          status: "draft",
+          approved_by: null,
+          approved_at: null,
+        })
+        .eq("id", quoteId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast.success("Ponuda vraćena u nacrt");
+    },
+    onError: (error) => {
+      toast.error(`Greška: ${error.message}`);
+    },
+  });
+
   const copyQuote = useMutation({
     mutationFn: async (sourceQuote: Quote) => {
       if (!selectedCompany?.id || !selectedYear?.id || !user?.id) {
@@ -446,6 +477,7 @@ export function useQuotes() {
     deleteQuote,
     updateQuoteTotals,
     approveQuote,
+    revertQuoteToDraft,
     copyQuote,
     getNextQuoteNumber,
   };
