@@ -177,7 +177,7 @@ export default function Ponude() {
                 <TableHead className="min-w-[300px]"><SortableHeader column="partner" label="Kupac" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[90px]"><SortableHeader column="valid_until" label="Važi do" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="text-right w-[130px]"><SortableHeader column="total_amount" label="Iznos" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
-                <TableHead className="w-[120px]"><SortableHeader column="composed_by" label="Sastavio" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[240px]"><SortableHeader column="composed_by" label="Sastavio" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
