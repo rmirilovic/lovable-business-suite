@@ -725,6 +725,7 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string
+          idle_timeout_hours: number | null
           invoice_note_1: string | null
           invoice_note_2: string | null
           is_active: boolean | null
@@ -755,6 +756,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: string
+          idle_timeout_hours?: number | null
           invoice_note_1?: string | null
           invoice_note_2?: string | null
           is_active?: boolean | null
@@ -785,6 +787,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           id?: string
+          idle_timeout_hours?: number | null
           invoice_note_1?: string | null
           invoice_note_2?: string | null
           is_active?: boolean | null

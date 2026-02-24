@@ -51,6 +51,7 @@ interface Company {
   logo_url: string | null;
   logo_text: string | null;
   is_active: boolean | null;
+  idle_timeout_hours: number | null;
 }
 
 interface FormData {
@@ -78,6 +79,7 @@ interface FormData {
   quote_note_2: string;
   logo_url: string;
   logo_text: string;
+  idle_timeout_hours: string;
 }
 
 const emptyFormData: FormData = {
@@ -105,6 +107,7 @@ const emptyFormData: FormData = {
   quote_note_2: "",
   logo_url: "",
   logo_text: "",
+  idle_timeout_hours: "",
 };
 
 export function CompaniesTab() {
@@ -206,6 +209,7 @@ export function CompaniesTab() {
       quote_note_2: formData.quote_note_2 || null,
       logo_url: logoUrl || null,
       logo_text: formData.logo_text || null,
+      idle_timeout_hours: formData.idle_timeout_hours ? parseFloat(formData.idle_timeout_hours) : null,
     };
 
     if (editingCompany) {
@@ -261,6 +265,7 @@ export function CompaniesTab() {
       quote_note_2: company.quote_note_2 || "",
       logo_url: company.logo_url || "",
       logo_text: company.logo_text || "",
+      idle_timeout_hours: company.idle_timeout_hours != null ? String(company.idle_timeout_hours) : "",
     });
     setLogoFile(null);
     setLogoPreview(company.logo_url || null);
@@ -514,6 +519,22 @@ export function CompaniesTab() {
                       onChange={(e) => updateFormField("api_demo_token", e.target.value)}
                       placeholder="Ključ za testni API"
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="idle_timeout_hours">Tajmout neaktivnosti (u satima)</Label>
+                    <Input
+                      id="idle_timeout_hours"
+                      type="number"
+                      min="0.5"
+                      max="24"
+                      step="0.5"
+                      value={formData.idle_timeout_hours}
+                      onChange={(e) => updateFormField("idle_timeout_hours", e.target.value)}
+                      placeholder="Npr. 2 (prazno = isključeno)"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Nakon zadatog broja sati neaktivnosti korisnik će biti upozoren, a zatim automatski odjavljen. Ostavite prazno da biste isključili ovu funkciju.
+                    </p>
                   </div>
                 </TabsContent>
 
