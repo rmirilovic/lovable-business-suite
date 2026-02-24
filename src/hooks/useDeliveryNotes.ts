@@ -177,28 +177,19 @@ export function usePostDeliveryNote() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ deliveryNoteId, userId }: { deliveryNoteId: string; userId: string }) => {
-      const { data: items } = await supabase
-        .from("delivery_note_items")
-        .select(`article_id, quantity, article:articles(id, name, stock)`)
-        .eq("delivery_note_id", deliveryNoteId);
-      if (!items || items.length === 0) throw new Error("Otpremnica mora imati stavke");
-      for (const item of items) {
-        const article = item.article as any;
-        if (article.stock < item.quantity) {
-          throw new Error(`Nedovoljna zaliha: ${article.name}`);
-        }
-        await supabase.from("articles").update({ stock: article.stock - item.quantity }).eq("id", item.article_id);
-      }
-      await supabase
-        .from("delivery_notes")
-        .update({ status: "posted", posted_at: new Date().toISOString(), posted_by: userId })
-        .eq("id", deliveryNoteId);
-      return true;
+      const { data, error } = await supabase.rpc("post_delivery_note", {
+        _delivery_note_id: deliveryNoteId,
+        _user_id: userId,
+      });
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["delivery_notes"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_note"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
-      toast.success("Otpremnica proknjižena - zalihe ažurirane");
+      queryClient.invalidateQueries({ queryKey: ["warehouse-stock"] });
+      toast.success("Otpremnica proknjižena - zalihe razdužene po magacinskim cenama");
     },
     onError: (e: Error) => toast.error(`Greška: ${e.message}`),
   });
@@ -207,45 +198,19 @@ export function usePostDeliveryNote() {
 export function useRevertDeliveryNoteToDraft() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (deliveryNoteId: string) => {
-      // Check that it's posted and not invoiced
-      const { data: dn, error: dnErr } = await supabase
-        .from("delivery_notes")
-        .select("id, status, invoice_id")
-        .eq("id", deliveryNoteId)
-        .single();
-      if (dnErr) throw dnErr;
-      if (dn.status !== "posted") throw new Error("Samo proknjižene otpremnice mogu biti vraćene u nacrt");
-      if (dn.invoice_id) throw new Error("Otpremnica je fakturisana i ne može biti vraćena u nacrt");
-
-      // Restore stock for each item
-      const { data: items } = await supabase
-        .from("delivery_note_items")
-        .select("article_id, quantity, article:articles(id, stock)")
-        .eq("delivery_note_id", deliveryNoteId);
-      if (items) {
-        for (const item of items) {
-          const article = item.article as any;
-          if (article) {
-            await supabase
-              .from("articles")
-              .update({ stock: (article.stock || 0) + item.quantity })
-              .eq("id", item.article_id);
-          }
-        }
-      }
-
-      // Revert status
-      const { error } = await supabase
-        .from("delivery_notes")
-        .update({ status: "draft", posted_at: null, posted_by: null })
-        .eq("id", deliveryNoteId);
+    mutationFn: async ({ deliveryNoteId, userId }: { deliveryNoteId: string; userId: string }) => {
+      const { data, error } = await supabase.rpc("unpost_delivery_note", {
+        _delivery_note_id: deliveryNoteId,
+        _user_id: userId,
+      });
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["delivery_notes"] });
       queryClient.invalidateQueries({ queryKey: ["delivery_note"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-stock"] });
       toast.success("Otpremnica vraćena u nacrt - zalihe vraćene");
     },
     onError: (e: Error) => toast.error(`Greška: ${e.message}`),

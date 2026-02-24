@@ -821,8 +821,10 @@ export type Database = {
           item_code: string
           item_name: string
           item_order: number
+          line_value: number
           quantity: number
           unit: string
+          unit_price: number
         }
         Insert: {
           article_id: string
@@ -834,8 +836,10 @@ export type Database = {
           item_code: string
           item_name: string
           item_order?: number
+          line_value?: number
           quantity?: number
           unit?: string
+          unit_price?: number
         }
         Update: {
           article_id?: string
@@ -847,8 +851,10 @@ export type Database = {
           item_code?: string
           item_name?: string
           item_order?: number
+          line_value?: number
           quantity?: number
           unit?: string
+          unit_price?: number
         }
         Relationships: [
           {
@@ -5684,6 +5690,10 @@ export type Database = {
         Args: { _swap_id: string; _user_id: string }
         Returns: string
       }
+      post_delivery_note: {
+        Args: { _delivery_note_id: string; _user_id: string }
+        Returns: string
+      }
       post_goods_purchase_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: string
@@ -5740,6 +5750,10 @@ export type Database = {
       }
       unpost_article_swap: {
         Args: { _swap_id: string; _user_id: string }
+        Returns: string
+      }
+      unpost_delivery_note: {
+        Args: { _delivery_note_id: string; _user_id: string }
         Returns: string
       }
       unpost_goods_purchase_invoice: {
