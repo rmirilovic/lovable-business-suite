@@ -226,12 +226,25 @@ export default function StanjeSaRezervacijama() {
           </div>
         ) : (
           <TableScrollContainer ref={scrollContainerRef} className="flex-1">
-            <Table>
+            <Table className="table-fixed">
+              <colgroup>
+                <col className="w-[100px]" />
+                <col />
+                <col className="w-[60px]" />
+                <col className="w-[110px]" />
+                <col className="w-[100px]" />
+                <col className="w-[100px]" />
+                <col className="w-[100px]" />
+                <col className="w-[100px]" />
+                <col className="w-[110px]" />
+                <col className="w-[110px]" />
+                <col className="w-[120px]" />
+              </colgroup>
               <TableHeader>
                 <TableRow>
                   <TableHead><SortableHeader label="Šifra" column="article_code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead><SortableHeader label="Naziv artikla" column="article_name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                  <TableHead className="w-[60px]"><SortableHeader label="JM" column="unit" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead><SortableHeader label="JM" column="unit" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="text-right"><SortableHeader label="Na zalihama" column="balance_qty" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="text-right"><SortableHeader label="Ukupno rez." column="total_reserved" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="text-right"><SortableHeader label="Rez. otpr." column="reserved_delivery_notes" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
@@ -252,8 +265,8 @@ export default function StanjeSaRezervacijama() {
                 ) : (
                   sorted.map((row) => (
                     <TableRow key={row.article_id}>
-                      <TableCell className="font-medium">{row.article_code}</TableCell>
-                      <TableCell>{row.article_name}</TableCell>
+                      <TableCell className="font-medium truncate">{row.article_code}</TableCell>
+                      <TableCell className="truncate">{row.article_name}</TableCell>
                       <TableCell>{row.unit}</TableCell>
                       <TableCell className="text-right">{formatDecimal(Number(row.balance_qty))}</TableCell>
                       <TableCell className="text-right font-medium">{formatDecimal(Number(row.total_reserved))}</TableCell>
