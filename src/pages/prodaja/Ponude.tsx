@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuotes, Quote, QuoteFormData } from "@/hooks/useQuotes";
 import { QuoteDialog } from "@/components/prodaja/QuoteDialog";
-import { formatDecimal } from "@/lib/formatting";
+import { formatDecimal, formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -223,7 +223,7 @@ export default function Ponude() {
                         {quote.valid_until ? format(new Date(quote.valid_until), "dd.MM.yyyy") : "-"}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatDecimal(quote.total_amount)}
+                        {formatNumber(quote.total_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell>{quote.composed_by || "-"}</TableCell>
                       <TableCell>
