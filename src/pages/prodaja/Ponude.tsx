@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye, FileSpreadsheet, Printer } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ export default function Ponude() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const filteredQuotes = quotes.filter((quote) => {
@@ -40,7 +42,8 @@ export default function Ponude() {
       quote.partner?.code?.toLowerCase().includes(searchLower);
     const matchesDateFrom = !dateFrom || quote.quote_date >= dateFrom;
     const matchesDateTo = !dateTo || quote.quote_date <= dateTo;
-    return matchesSearch && matchesDateFrom && matchesDateTo;
+    const matchesStatus = statusFilter === "all" || quote.status === statusFilter;
+    return matchesSearch && matchesDateFrom && matchesDateTo && matchesStatus;
   });
 
   const handleCreate = () => {
@@ -110,6 +113,21 @@ export default function Ponude() {
           <div className="space-y-1">
             <Label className="text-xs">Datum do</Label>
             <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                <SelectItem value="draft">Nacrt</SelectItem>
+                <SelectItem value="approved">Odobrena</SelectItem>
+                <SelectItem value="posted">Potvrđena</SelectItem>
+                <SelectItem value="cancelled">Stornirana</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
