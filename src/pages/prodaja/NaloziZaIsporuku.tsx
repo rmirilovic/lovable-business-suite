@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, FileText, MoreHorizontal, Trash2, Eye, Undo2, FileSpreadsheet, Printer } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,8 @@ export default function NaloziZaIsporuku() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [composedByFilter, setComposedByFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const filteredOrders = (orders || []).filter((o) => {
     const searchLower = searchTerm.toLowerCase();
@@ -40,7 +43,9 @@ export default function NaloziZaIsporuku() {
       o.partner?.code?.toLowerCase().includes(searchLower);
     const matchesDateFrom = !dateFrom || o.order_date >= dateFrom;
     const matchesDateTo = !dateTo || o.order_date <= dateTo;
-    return matchesSearch && matchesDateFrom && matchesDateTo;
+    const matchesComposedBy = composedByFilter === "all" || (o.composed_by ?? "") === composedByFilter;
+    const matchesStatus = statusFilter === "all" || o.status === statusFilter;
+    return matchesSearch && matchesDateFrom && matchesDateTo && matchesComposedBy && matchesStatus;
   });
 
   const handleNavigate = (order: DeliveryOrder) => {
@@ -99,6 +104,35 @@ export default function NaloziZaIsporuku() {
           <div className="space-y-1">
             <Label className="text-xs">Datum do</Label>
             <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Kreirao</Label>
+            <Select value={composedByFilter} onValueChange={setComposedByFilter}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                {[...new Set((orders || []).map(o => o.composed_by).filter(Boolean))].sort().map(name => (
+                  <SelectItem key={name!} value={name!}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                <SelectItem value="draft">Nacrt</SelectItem>
+                <SelectItem value="approved">Odobren</SelectItem>
+                <SelectItem value="reserved">Rezervisan</SelectItem>
+                <SelectItem value="shipped">Otpremljen</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
