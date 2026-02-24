@@ -35,6 +35,7 @@ export default function Ponude() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [composedByFilter, setComposedByFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const filteredQuotes = quotes.filter((quote) => {
@@ -46,7 +47,8 @@ export default function Ponude() {
     const matchesDateFrom = !dateFrom || quote.quote_date >= dateFrom;
     const matchesDateTo = !dateTo || quote.quote_date <= dateTo;
     const matchesStatus = statusFilter === "all" || quote.status === statusFilter;
-    return matchesSearch && matchesDateFrom && matchesDateTo && matchesStatus;
+    const matchesComposedBy = composedByFilter === "all" || (quote.composed_by ?? "") === composedByFilter;
+    return matchesSearch && matchesDateFrom && matchesDateTo && matchesStatus && matchesComposedBy;
   });
 
   const STATUS_LABELS: Record<string, string> = {
@@ -61,6 +63,7 @@ export default function Ponude() {
       case "valid_until": return quote.valid_until ?? "";
       case "total_amount": return quote.total_amount ?? 0;
       case "status": return STATUS_LABELS[quote.status] ?? quote.status;
+      case "composed_by": return quote.composed_by ?? "";
       default: return null;
     }
   });
@@ -148,6 +151,20 @@ export default function Ponude() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Sastavio</Label>
+            <Select value={composedByFilter} onValueChange={setComposedByFilter}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                {[...new Set(quotes.map(q => q.composed_by).filter(Boolean))].sort().map(name => (
+                  <SelectItem key={name!} value={name!}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Table */}
@@ -160,6 +177,7 @@ export default function Ponude() {
                 <TableHead><SortableHeader column="partner" label="Kupac" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="valid_until" label="Važi do" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="text-right"><SortableHeader column="total_amount" label="Iznos" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                <TableHead><SortableHeader column="composed_by" label="Sastavio" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
@@ -167,13 +185,13 @@ export default function Ponude() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : sortedQuotes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     {searchTerm ? "Nema rezultata pretrage" : "Nema ponuda. Kreirajte novu ponudu."}
                   </TableCell>
                 </TableRow>
@@ -207,6 +225,7 @@ export default function Ponude() {
                       <TableCell className="text-right font-medium">
                         {formatDecimal(quote.total_amount)}
                       </TableCell>
+                      <TableCell>{quote.composed_by || "-"}</TableCell>
                       <TableCell>
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>
