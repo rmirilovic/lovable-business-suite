@@ -16,6 +16,8 @@ import { format } from "date-fns";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { exportQuotesToExcel, exportQuotesToPdf, printQuotes } from "@/lib/quoteListExportUtils";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
@@ -28,6 +30,7 @@ export default function Ponude() {
   const navigate = useNavigate();
   const { quotes, isLoading, createQuote, deleteQuote } = useQuotes();
   const { selectedCompany } = useAuth();
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -44,6 +47,22 @@ export default function Ponude() {
     const matchesDateTo = !dateTo || quote.quote_date <= dateTo;
     const matchesStatus = statusFilter === "all" || quote.status === statusFilter;
     return matchesSearch && matchesDateFrom && matchesDateTo && matchesStatus;
+  });
+
+  const STATUS_LABELS: Record<string, string> = {
+    draft: "Nacrt", approved: "Odobrena", posted: "Potvrđena", cancelled: "Stornirana",
+  };
+
+  const sortedQuotes = sortItems(filteredQuotes, (quote: Quote, column: string) => {
+    switch (column) {
+      case "quote_number": return quote.quote_number;
+      case "quote_date": return quote.quote_date;
+      case "partner": return quote.partner_name ?? quote.partner?.name ?? "";
+      case "valid_until": return quote.valid_until ?? "";
+      case "total_amount": return quote.total_amount ?? 0;
+      case "status": return STATUS_LABELS[quote.status] ?? quote.status;
+      default: return null;
+    }
   });
 
   const handleCreate = () => {
@@ -135,13 +154,13 @@ export default function Ponude() {
         <div className="border rounded-lg">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Broj ponude</TableHead>
-                <TableHead>Datum</TableHead>
-                <TableHead>Kupac</TableHead>
-                <TableHead>Važi do</TableHead>
-                <TableHead className="text-right">Iznos</TableHead>
-                <TableHead>Status</TableHead>
+             <TableRow>
+                <SortableHeader column="quote_number" label="Broj ponude" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                <SortableHeader column="quote_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                <SortableHeader column="partner" label="Kupac" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                <SortableHeader column="valid_until" label="Važi do" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                <SortableHeader column="total_amount" label="Iznos" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="text-right" />
+                <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
@@ -152,14 +171,14 @@ export default function Ponude() {
                     Učitavanje...
                   </TableCell>
                 </TableRow>
-              ) : filteredQuotes.length === 0 ? (
+              ) : sortedQuotes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     {searchTerm ? "Nema rezultata pretrage" : "Nema ponuda. Kreirajte novu ponudu."}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredQuotes.map((quote) => {
+                sortedQuotes.map((quote) => {
                   const status = STATUS_BADGES[quote.status] || STATUS_BADGES.draft;
                   return (
                     <TableRow
