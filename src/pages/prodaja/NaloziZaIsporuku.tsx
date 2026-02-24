@@ -14,6 +14,8 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDeliveryOrders, useDeleteDeliveryOrder, useRevertDeliveryOrderToDraft, DeliveryOrder } from "@/hooks/useDeliveryOrders";
 import { exportDeliveryOrdersToExcel, exportDeliveryOrdersToPdf, printDeliveryOrders } from "@/lib/deliveryOrderListExportUtils";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
@@ -28,6 +30,7 @@ export default function NaloziZaIsporuku() {
   const { data: orders, isLoading } = useDeliveryOrders(selectedCompany?.id, selectedYear?.id);
   const deleteMutation = useDeleteDeliveryOrder();
   const revertMutation = useRevertDeliveryOrderToDraft();
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -46,6 +49,24 @@ export default function NaloziZaIsporuku() {
     const matchesComposedBy = composedByFilter === "all" || (o.composed_by ?? "") === composedByFilter;
     const matchesStatus = statusFilter === "all" || o.status === statusFilter;
     return matchesSearch && matchesDateFrom && matchesDateTo && matchesComposedBy && matchesStatus;
+  });
+
+  const STATUS_LABELS: Record<string, string> = {
+    draft: "Nacrt", approved: "Odobren", reserved: "Rezervisan", shipped: "Otpremljen",
+  };
+
+  const sortedOrders = sortItems(filteredOrders, (order: DeliveryOrder, column: string) => {
+    switch (column) {
+      case "order_number": return order.order_number;
+      case "order_date": return order.order_date;
+      case "partner": return order.partner?.name ?? "";
+      case "warehouse": return order.warehouse ? `${order.warehouse.code} - ${order.warehouse.name}` : "";
+      case "quote": return order.source_quote?.quote_number ?? "";
+      case "delivery_note": return order.delivery_note?.delivery_number ?? "";
+      case "composed_by": return order.composed_by ?? "";
+      case "status": return STATUS_LABELS[order.status] ?? order.status;
+      default: return null;
+    }
   });
 
   const handleNavigate = (order: DeliveryOrder) => {
@@ -140,14 +161,14 @@ export default function NaloziZaIsporuku() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Broj naloga</TableHead>
-                <TableHead className="w-[90px]">Datum</TableHead>
-                <TableHead>Kupac</TableHead>
-                <TableHead className="w-[300px]">Magacin</TableHead>
-                <TableHead className="w-[80px]">Ponuda</TableHead>
-                <TableHead className="w-[90px]">Otpremnica</TableHead>
-                <TableHead className="w-[150px]">Kreirao</TableHead>
-                <TableHead className="w-[80px]">Status</TableHead>
+                <TableHead className="w-[100px]"><SortableHeader column="order_number" label="Broj naloga" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[90px]"><SortableHeader column="order_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="partner" label="Kupac" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[300px]"><SortableHeader column="warehouse" label="Magacin" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[80px]"><SortableHeader column="quote" label="Ponuda" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[90px]"><SortableHeader column="delivery_note" label="Otpremnica" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[150px]"><SortableHeader column="composed_by" label="Kreirao" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[80px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
@@ -158,14 +179,14 @@ export default function NaloziZaIsporuku() {
                     Učitavanje...
                   </TableCell>
                 </TableRow>
-              ) : filteredOrders.length === 0 ? (
+              ) : sortedOrders.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     {searchTerm ? "Nema rezultata pretrage" : "Nema naloga za isporuku. Kreirajte novi nalog."}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredOrders.map((order) => {
+                sortedOrders.map((order) => {
                   const status = STATUS_BADGES[order.status] || STATUS_BADGES.draft;
                   return (
                     <TableRow
