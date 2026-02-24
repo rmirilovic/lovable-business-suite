@@ -172,10 +172,10 @@ export default function Ponude() {
           <Table>
             <TableHeader>
              <TableRow>
-                <TableHead><SortableHeader column="quote_number" label="Broj ponude" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                <TableHead><SortableHeader column="quote_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[100px]"><SortableHeader column="quote_number" label="Broj ponude" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[90px]"><SortableHeader column="quote_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="partner" label="Kupac" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                <TableHead><SortableHeader column="valid_until" label="Važi do" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[90px]"><SortableHeader column="valid_until" label="Važi do" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="text-right"><SortableHeader column="total_amount" label="Iznos" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
                 <TableHead><SortableHeader column="composed_by" label="Sastavio" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
