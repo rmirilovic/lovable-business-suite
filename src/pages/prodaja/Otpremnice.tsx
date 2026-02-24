@@ -122,78 +122,78 @@ export default function Otpremnice() {
   return (
     <MainLayout title="Otpremnice">
       <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="relative w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Pretraži otpremnice..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8"
-                autoComplete="off"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Datum od</Label>
-              <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Datum do</Label>
-              <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Robu izdao</Label>
-              <Select value={issuedByFilter} onValueChange={setIssuedByFilter}>
-                <SelectTrigger className="w-[170px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Svi</SelectItem>
-                  {[...new Set((deliveryNotes || []).map(dn => dn.issued_by).filter(Boolean))].sort().map(name => (
-                    <SelectItem key={name!} value={name!}>{name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[170px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Svi</SelectItem>
-                  <SelectItem value="draft">Nacrt</SelectItem>
-                  <SelectItem value="posted">Proknjižena</SelectItem>
-                  <SelectItem value="cancelled">Stornirana</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        {/* Actions row */}
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToExcel(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+            <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToPdf(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+            <FileText className="w-4 h-4 mr-2" /> PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => printDeliveryNotes(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+            <Printer className="w-4 h-4 mr-2" /> Štampa
+          </Button>
+          <Button variant="outline" onClick={() => setShowFromOrderDialog(true)}>
+            <Truck className="h-4 w-4 mr-2" />
+            Iz naloga
+          </Button>
+          <Button variant="outline" onClick={() => setShowFromQuoteDialog(true)}>
+            <Package className="h-4 w-4 mr-2" />
+            Iz ponude
+          </Button>
+          <Button onClick={() => navigate("/prodaja/otpremnice/new")}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova otpremnica
+          </Button>
+        </div>
+
+        {/* Filters row */}
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="relative w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Pretraži otpremnice..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8"
+              autoComplete="off"
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToExcel(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
-              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToPdf(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
-              <FileText className="w-4 h-4 mr-2" /> PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => printDeliveryNotes(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
-              <Printer className="w-4 h-4 mr-2" /> Štampa
-            </Button>
-            <Button variant="outline" onClick={() => setShowFromOrderDialog(true)}>
-              <Truck className="h-4 w-4 mr-2" />
-              Iz naloga
-            </Button>
-            <Button variant="outline" onClick={() => setShowFromQuoteDialog(true)}>
-              <Package className="h-4 w-4 mr-2" />
-              Iz ponude
-            </Button>
-            <Button onClick={() => navigate("/prodaja/otpremnice/new")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova otpremnica
-            </Button>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum od</Label>
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum do</Label>
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Robu izdao</Label>
+            <Select value={issuedByFilter} onValueChange={setIssuedByFilter}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                {[...new Set((deliveryNotes || []).map(dn => dn.issued_by).filter(Boolean))].sort().map(name => (
+                  <SelectItem key={name!} value={name!}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                <SelectItem value="draft">Nacrt</SelectItem>
+                <SelectItem value="posted">Proknjižena</SelectItem>
+                <SelectItem value="cancelled">Stornirana</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
