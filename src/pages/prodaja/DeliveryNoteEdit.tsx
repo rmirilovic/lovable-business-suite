@@ -211,22 +211,12 @@ export default function DeliveryNoteEdit() {
               <RefreshCw className="w-4 h-4" />
             </Button>
             {isDraft ? (
-              <>
-                <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
-                </Button>
-                <Button size="sm" onClick={() => setPostDialogOpen(true)}>
-                  <Send className="h-4 w-4 mr-2" />Proknjiži
-                </Button>
-              </>
+              <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+              </Button>
             ) : (
               <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
                 <Eye className="h-4 w-4 mr-2" />Prikaži zaglavlje
-              </Button>
-            )}
-            {isPosted && !deliveryNote.invoice_id && (
-              <Button variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10" onClick={() => setRevertDialogOpen(true)}>
-                <Undo2 className="h-4 w-4 mr-2" />Vrati u nacrt
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={async () => {
@@ -241,6 +231,16 @@ export default function DeliveryNoteEdit() {
             }} title="Štampa">
               <Printer className="h-4 w-4 mr-2" />Štampa
             </Button>
+            {isDraft && (
+              <Button size="sm" onClick={() => setPostDialogOpen(true)}>
+                <Send className="h-4 w-4 mr-2" />Proknjiži
+              </Button>
+            )}
+            {isPosted && !deliveryNote.invoice_id && (
+              <Button variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10" onClick={() => setRevertDialogOpen(true)}>
+                <Undo2 className="h-4 w-4 mr-2" />Vrati u nacrt
+              </Button>
+            )}
           </div>
         </div>
 
