@@ -112,6 +112,7 @@ export default function NaloziZaIsporuku() {
                 <TableHead className="w-[300px]">Magacin</TableHead>
                 <TableHead className="w-[80px]">Ponuda</TableHead>
                 <TableHead className="w-[90px]">Otpremnica</TableHead>
+                <TableHead className="w-[120px]">Kreirao</TableHead>
                 <TableHead className="w-[80px]">Status</TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
@@ -119,13 +120,13 @@ export default function NaloziZaIsporuku() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : filteredOrders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     {searchTerm ? "Nema rezultata pretrage" : "Nema naloga za isporuku. Kreirajte novi nalog."}
                   </TableCell>
                 </TableRow>
@@ -162,6 +163,7 @@ export default function NaloziZaIsporuku() {
                       <TableCell>
                         {order.delivery_note?.delivery_number || "-"}
                       </TableCell>
+                      <TableCell>{order.composed_by || "-"}</TableCell>
                       <TableCell>
                         <Badge variant={status.variant}>{status.label}</Badge>
                       </TableCell>
