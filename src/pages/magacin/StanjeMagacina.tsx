@@ -288,7 +288,19 @@ export default function StanjeMagacina() {
           </div>
         ) : (
           <TableScrollContainer ref={scrollContainerRef} className="flex-1">
-            <Table>
+            <Table className="table-fixed">
+              <colgroup>
+                <col className="w-[100px]" />
+                <col />
+                <col className="w-[60px]" />
+                <col className="w-[110px]" />
+                <col className="w-[120px]" />
+                <col className="w-[110px]" />
+                <col className="w-[120px]" />
+                <col className="w-[110px]" />
+                <col className="w-[120px]" />
+                <col className="w-[110px]" />
+              </colgroup>
               <TableHeader>
                 <TableRow>
                   <TableHead>
@@ -297,7 +309,7 @@ export default function StanjeMagacina() {
                   <TableHead>
                     <SortableHeader label="Naziv artikla" column="article_name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
-                  <TableHead className="w-[60px]">JM</TableHead>
+                  <TableHead>JM</TableHead>
                   <TableHead className="text-right">
                     <SortableHeader label="Ulaz kol." column="total_in_qty" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
@@ -337,8 +349,8 @@ export default function StanjeMagacina() {
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => setSelectedArticle(row)}
                     >
-                      <TableCell className="font-medium">{row.article_code}</TableCell>
-                      <TableCell>{row.article_name}</TableCell>
+                      <TableCell className="font-medium truncate">{row.article_code}</TableCell>
+                      <TableCell className="truncate">{row.article_name}</TableCell>
                       <TableCell>{row.unit}</TableCell>
                       <TableCell className="text-right">{formatDecimal(row.total_in_qty)}</TableCell>
                       <TableCell className="text-right">{formatPrice(row.total_in_value)}</TableCell>
