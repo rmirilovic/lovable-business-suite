@@ -112,7 +112,7 @@ export default function NaloziZaIsporuku() {
                 <TableHead className="w-[300px]">Magacin</TableHead>
                 <TableHead className="w-[80px]">Ponuda</TableHead>
                 <TableHead className="w-[90px]">Otpremnica</TableHead>
-                <TableHead className="w-[120px]">Kreirao</TableHead>
+                <TableHead className="w-[150px]">Kreirao</TableHead>
                 <TableHead className="w-[80px]">Status</TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
