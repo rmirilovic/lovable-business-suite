@@ -6,6 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -43,6 +50,8 @@ import {
 import { CreateDeliveryNoteFromQuoteDialog } from "@/components/prodaja/CreateDeliveryNoteFromQuoteDialog";
 import { CreateDeliveryNoteFromOrderDialog } from "@/components/prodaja/CreateDeliveryNoteFromOrderDialog";
 import { exportDeliveryNotesToExcel, exportDeliveryNotesToPdf, printDeliveryNotes } from "@/lib/deliveryNoteListExportUtils";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 
 const STATUS_LABELS: Record<
   string,
@@ -61,10 +70,13 @@ export default function Otpremnice() {
     selectedYear?.id
   );
   const deleteMutation = useDeleteDeliveryNote();
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
 
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [issuedByFilter, setIssuedByFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showFromQuoteDialog, setShowFromQuoteDialog] = useState(false);
   const [showFromOrderDialog, setShowFromOrderDialog] = useState(false);
 
@@ -75,7 +87,22 @@ export default function Otpremnice() {
       dn.partner?.code?.toLowerCase().includes(search.toLowerCase());
     const matchesDateFrom = !dateFrom || dn.delivery_date >= dateFrom;
     const matchesDateTo = !dateTo || dn.delivery_date <= dateTo;
-    return matchesSearch && matchesDateFrom && matchesDateTo;
+    const matchesIssuedBy = issuedByFilter === "all" || (dn.issued_by ?? "") === issuedByFilter;
+    const matchesStatus = statusFilter === "all" || dn.status === statusFilter;
+    return matchesSearch && matchesDateFrom && matchesDateTo && matchesIssuedBy && matchesStatus;
+  });
+
+  const sortedDeliveryNotes = sortItems(filteredDeliveryNotes, (dn: DeliveryNote, column: string) => {
+    switch (column) {
+      case "delivery_number": return dn.delivery_number;
+      case "delivery_date": return dn.delivery_date;
+      case "partner": return dn.partner?.name ?? "";
+      case "warehouse": return dn.warehouse ? `${dn.warehouse.code} - ${dn.warehouse.name}` : "";
+      case "invoice": return dn.invoice?.invoice_number ?? "";
+      case "issued_by": return dn.issued_by ?? "";
+      case "status": return STATUS_LABELS[dn.status]?.label ?? dn.status;
+      default: return null;
+    }
   });
 
   const handleNavigate = (dn: DeliveryNote) => {
@@ -116,6 +143,34 @@ export default function Otpremnice() {
               <Label className="text-xs">Datum do</Label>
               <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Robu izdao</Label>
+              <Select value={issuedByFilter} onValueChange={setIssuedByFilter}>
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Svi</SelectItem>
+                  {[...new Set((deliveryNotes || []).map(dn => dn.issued_by).filter(Boolean))].sort().map(name => (
+                    <SelectItem key={name!} value={name!}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Status</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Svi</SelectItem>
+                  <SelectItem value="draft">Nacrt</SelectItem>
+                  <SelectItem value="posted">Proknjižena</SelectItem>
+                  <SelectItem value="cancelled">Stornirana</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToExcel(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
@@ -147,30 +202,31 @@ export default function Otpremnice() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Broj</TableHead>
-                <TableHead className="w-[90px]">Datum</TableHead>
-                <TableHead>Kupac</TableHead>
-                <TableHead className="w-[300px]">Magacin</TableHead>
-                <TableHead className="w-[80px]">Faktura</TableHead>
-                <TableHead className="w-[80px]">Status</TableHead>
+                <TableHead className="w-[100px]"><SortableHeader column="delivery_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[90px]"><SortableHeader column="delivery_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="partner" label="Kupac" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[300px]"><SortableHeader column="warehouse" label="Magacin" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[80px]"><SortableHeader column="invoice" label="Faktura" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[150px]"><SortableHeader column="issued_by" label="Robu izdao" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[80px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
-              ) : filteredDeliveryNotes.length === 0 ? (
+              ) : sortedDeliveryNotes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nema otpremnica
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredDeliveryNotes.map((dn) => (
+                sortedDeliveryNotes.map((dn) => (
                   <TableRow
                     key={dn.id}
                     className="cursor-pointer hover:bg-muted/50"
@@ -188,6 +244,9 @@ export default function Otpremnice() {
                     </TableCell>
                     <TableCell>
                       {dn.invoice?.invoice_number || "-"}
+                    </TableCell>
+                    <TableCell>
+                      {dn.issued_by || "-"}
                     </TableCell>
                     <TableCell>
                       <Badge variant={STATUS_LABELS[dn.status].variant}>
@@ -226,14 +285,12 @@ export default function Otpremnice() {
         </div>
       </div>
 
-      {/* Create from quote dialog */}
       <CreateDeliveryNoteFromQuoteDialog
         open={showFromQuoteDialog}
         onOpenChange={setShowFromQuoteDialog}
         onSuccess={handleFromSuccess}
       />
 
-      {/* Create from delivery order dialog */}
       <CreateDeliveryNoteFromOrderDialog
         open={showFromOrderDialog}
         onOpenChange={setShowFromOrderDialog}
