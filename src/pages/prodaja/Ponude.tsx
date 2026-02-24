@@ -137,6 +137,20 @@ export default function Ponude() {
             <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
           </div>
           <div className="space-y-1">
+            <Label className="text-xs">Sastavio</Label>
+            <Select value={composedByFilter} onValueChange={setComposedByFilter}>
+              <SelectTrigger className="w-[170px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                {[...new Set(quotes.map(q => q.composed_by).filter(Boolean))].sort().map(name => (
+                  <SelectItem key={name!} value={name!}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
             <Label className="text-xs">Status</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[170px]">
@@ -148,20 +162,6 @@ export default function Ponude() {
                 <SelectItem value="approved">Odobrena</SelectItem>
                 <SelectItem value="posted">Potvrđena</SelectItem>
                 <SelectItem value="cancelled">Stornirana</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Sastavio</Label>
-            <Select value={composedByFilter} onValueChange={setComposedByFilter}>
-              <SelectTrigger className="w-[170px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Svi</SelectItem>
-                {[...new Set(quotes.map(q => q.composed_by).filter(Boolean))].sort().map(name => (
-                  <SelectItem key={name!} value={name!}>{name}</SelectItem>
-                ))}
               </SelectContent>
             </Select>
           </div>
