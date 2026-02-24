@@ -149,8 +149,8 @@ export default function DeliveryNoteEdit() {
   };
 
   const handleRevertConfirm = async () => {
-    if (!deliveryNote) return;
-    await revertMutation.mutateAsync(deliveryNote.id);
+    if (!deliveryNote || !user) return;
+    await revertMutation.mutateAsync({ deliveryNoteId: deliveryNote.id, userId: user.id });
     setRevertDialogOpen(false);
     fetchDeliveryNote();
   };
