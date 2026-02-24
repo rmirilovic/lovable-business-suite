@@ -189,6 +189,10 @@ export function usePostDeliveryNote() {
       queryClient.invalidateQueries({ queryKey: ["delivery_note"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-stock"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_orders"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_orders_for_dn"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["stock-with-reservations"] });
       toast.success("Otpremnica proknjižena - zalihe razdužene po magacinskim cenama");
     },
     onError: (e: Error) => toast.error(`Greška: ${e.message}`),
@@ -211,6 +215,10 @@ export function useRevertDeliveryNoteToDraft() {
       queryClient.invalidateQueries({ queryKey: ["delivery_note"] });
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-stock"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_orders"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_orders_for_dn"] });
+      queryClient.invalidateQueries({ queryKey: ["warehouse-reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["stock-with-reservations"] });
       toast.success("Otpremnica vraćena u nacrt - zalihe vraćene");
     },
     onError: (e: Error) => toast.error(`Greška: ${e.message}`),
