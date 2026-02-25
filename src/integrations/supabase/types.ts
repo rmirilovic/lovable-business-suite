@@ -2102,9 +2102,11 @@ export type Database = {
         Row: {
           business_year_id: string
           company_id: string
+          composed_by: string | null
           created_at: string
           created_by: string
           due_date: string | null
+          header_note: string | null
           id: string
           internal_note: string | null
           invoice_date: string
@@ -2112,7 +2114,13 @@ export type Database = {
           journal_entry_id: string | null
           note: string | null
           org_unit_id: string | null
+          partner_address: string | null
+          partner_city: string | null
           partner_id: string
+          partner_mb: string | null
+          partner_name: string | null
+          partner_pib: string | null
+          partner_postal_code: string | null
           posted_at: string | null
           posted_by: string | null
           source_delivery_note_id: string | null
@@ -2126,9 +2134,11 @@ export type Database = {
         Insert: {
           business_year_id: string
           company_id: string
+          composed_by?: string | null
           created_at?: string
           created_by: string
           due_date?: string | null
+          header_note?: string | null
           id?: string
           internal_note?: string | null
           invoice_date?: string
@@ -2136,7 +2146,13 @@ export type Database = {
           journal_entry_id?: string | null
           note?: string | null
           org_unit_id?: string | null
+          partner_address?: string | null
+          partner_city?: string | null
           partner_id: string
+          partner_mb?: string | null
+          partner_name?: string | null
+          partner_pib?: string | null
+          partner_postal_code?: string | null
           posted_at?: string | null
           posted_by?: string | null
           source_delivery_note_id?: string | null
@@ -2150,9 +2166,11 @@ export type Database = {
         Update: {
           business_year_id?: string
           company_id?: string
+          composed_by?: string | null
           created_at?: string
           created_by?: string
           due_date?: string | null
+          header_note?: string | null
           id?: string
           internal_note?: string | null
           invoice_date?: string
@@ -2160,7 +2178,13 @@ export type Database = {
           journal_entry_id?: string | null
           note?: string | null
           org_unit_id?: string | null
+          partner_address?: string | null
+          partner_city?: string | null
           partner_id?: string
+          partner_mb?: string | null
+          partner_name?: string | null
+          partner_pib?: string | null
+          partner_postal_code?: string | null
           posted_at?: string | null
           posted_by?: string | null
           source_delivery_note_id?: string | null
