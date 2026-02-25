@@ -74,7 +74,7 @@ export default function Fakture() {
   });
 
   const handleNavigate = (invoice: Invoice) => {
-    navigate(`/prodaja/fakture/${invoice.id}`);
+    navigate(`/prodaja/fakture/${invoice.id}`, { state: { prefetchedInvoice: invoice } });
   };
 
   const handleDelete = (invoice: Invoice) => {

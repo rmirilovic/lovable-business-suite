@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,13 +36,21 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
 export default function InvoiceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { selectedCompany, selectedYear } = useAuth();
-  
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const prefetchedInvoice = (location.state as { prefetchedInvoice?: Invoice } | null)?.prefetchedInvoice;
+  const hasMatchingPrefetchedInvoice = !!prefetchedInvoice && prefetchedInvoice.id === id;
+
+  const [invoice, setInvoice] = useState<Invoice | null>(hasMatchingPrefetchedInvoice ? prefetchedInvoice : null);
+  const [isLoading, setIsLoading] = useState(!hasMatchingPrefetchedInvoice);
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
-  const [localTotals, setLocalTotals] = useState({ subtotal: 0, vat_amount: 0, total_amount: 0 });
+  const [localTotals, setLocalTotals] = useState({
+    subtotal: hasMatchingPrefetchedInvoice ? prefetchedInvoice!.subtotal : 0,
+    vat_amount: hasMatchingPrefetchedInvoice ? prefetchedInvoice!.vat_amount : 0,
+    total_amount: hasMatchingPrefetchedInvoice ? prefetchedInvoice!.total_amount : 0,
+  });
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const { postInvoice } = useInvoiceMutations();
@@ -55,10 +63,10 @@ export default function InvoiceEdit() {
     onConflict: () => fetchInvoice(),
   });
 
-  const fetchInvoice = async () => {
+  const fetchInvoice = async (showLoader = true) => {
     if (!id) return;
-    
-    setIsLoading(true);
+
+    if (showLoader) setIsLoading(true);
     const { data, error } = await supabase
       .from("invoices")
       .select(`
@@ -85,7 +93,7 @@ export default function InvoiceEdit() {
   };
 
   useEffect(() => {
-    fetchInvoice();
+    fetchInvoice(!hasMatchingPrefetchedInvoice);
   }, [id]);
 
   const handleTotalsChange = useCallback((subtotal: number, vatAmount: number, totalAmount: number) => {
@@ -147,7 +155,7 @@ export default function InvoiceEdit() {
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
               <History className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={fetchInvoice} title="Osveži">
+            <Button variant="ghost" size="sm" onClick={() => fetchInvoice()} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
             {isDraft ? (
