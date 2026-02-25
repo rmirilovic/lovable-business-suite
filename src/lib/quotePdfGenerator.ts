@@ -298,7 +298,7 @@ async function buildQuotePdf(
 
   // Notes
   if (quote.note) {
-    totalsY += 15;
+    totalsY += 5;
     doc.setFontSize(9);
     doc.setFont("Roboto", "bold");
     doc.text("Napomena:", 14, totalsY);
