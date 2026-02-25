@@ -32,6 +32,8 @@ export interface Quote {
   header_note: string | null;
   composed_by: string | null;
   approved_by_name: string | null;
+  bank_account_id: string | null;
+  payment_method: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -88,6 +90,8 @@ export interface QuoteFormData {
   partner_mb?: string | null;
   composed_by?: string | null;
   approved_by_name?: string | null;
+  bank_account_id?: string | null;
+  payment_method?: string | null;
 }
 
 export interface QuoteItemFormData {
@@ -206,6 +210,8 @@ export function useQuotes() {
           partner_postal_code: partnerData?.postal_code || null,
           partner_pib: partnerData?.pib || null,
           partner_mb: partnerData?.mb || null,
+          bank_account_id: formData.bank_account_id || null,
+          payment_method: formData.payment_method || null,
         })
         .select()
         .single();
@@ -243,6 +249,8 @@ export function useQuotes() {
           ...(formData.partner_mb !== undefined && { partner_mb: formData.partner_mb }),
           ...(formData.composed_by !== undefined && { composed_by: formData.composed_by }),
           ...(formData.approved_by_name !== undefined && { approved_by_name: formData.approved_by_name }),
+          ...(formData.bank_account_id !== undefined && { bank_account_id: formData.bank_account_id || null }),
+          ...(formData.payment_method !== undefined && { payment_method: formData.payment_method || null }),
         })
         .eq("id", id)
         .select()
@@ -421,6 +429,8 @@ export function useQuotes() {
           partner_postal_code: sourceQuote.partner_postal_code ?? sourceQuote.partner?.postal_code ?? null,
           partner_pib: sourceQuote.partner_pib ?? sourceQuote.partner?.pib ?? null,
           partner_mb: sourceQuote.partner_mb ?? sourceQuote.partner?.mb ?? null,
+          bank_account_id: sourceQuote.bank_account_id,
+          payment_method: sourceQuote.payment_method,
         })
         .select()
         .single();
@@ -509,6 +519,8 @@ export function useQuotes() {
           partner_postal_code: sourceQuote.partner_postal_code ?? sourceQuote.partner?.postal_code ?? null,
           partner_pib: sourceQuote.partner_pib ?? sourceQuote.partner?.pib ?? null,
           partner_mb: sourceQuote.partner_mb ?? sourceQuote.partner?.mb ?? null,
+          bank_account_id: sourceQuote.bank_account_id,
+          payment_method: sourceQuote.payment_method,
         })
         .select()
         .single();

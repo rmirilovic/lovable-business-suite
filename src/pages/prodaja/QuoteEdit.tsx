@@ -12,6 +12,7 @@ import { CreateDeliveryNoteFromQuoteDialog } from "@/components/prodaja/CreateDe
 import { formatDate, formatPrice } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
 import { toast } from "sonner";
@@ -58,6 +59,7 @@ export default function QuoteEdit() {
   const { items } = useQuoteItems(quote?.id || null);
   const createFromQuote = useCreateInvoiceFromQuote();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
+  const { bankAccounts } = useBankAccounts(selectedCompany?.id);
   
   // Optimistic locking
   const { checkLock, updateLockTimestamp } = useDocumentLock({
@@ -357,6 +359,21 @@ export default function QuoteEdit() {
           <div>
             <div className="text-muted-foreground">Ponudu sastavio</div>
             <div className="font-medium">{quote.composed_by || "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Tekući račun</div>
+            <div className="font-medium">
+              {quote.bank_account_id
+                ? (() => {
+                    const ba = bankAccounts.find((b) => b.id === quote.bank_account_id);
+                    return ba ? `${ba.account_number} (${ba.bank_name})` : "-";
+                  })()
+                : "-"}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Način plaćanja</div>
+            <div className="font-medium">{quote.payment_method || "-"}</div>
           </div>
         </div>
 

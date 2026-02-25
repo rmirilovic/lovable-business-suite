@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,6 +9,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import { Quote, QuoteFormData } from "@/hooks/useQuotes";
 import { format } from "date-fns";
@@ -30,6 +32,7 @@ export function QuoteDialog({
   const { selectedCompany } = useAuth();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
+  const { bankAccounts } = useBankAccounts(selectedCompany?.id);
 
   const [formData, setFormData] = useState<QuoteFormData>({
     quote_date: format(new Date(), "yyyy-MM-dd"),
@@ -46,6 +49,8 @@ export function QuoteDialog({
     partner_postal_code: null,
     partner_pib: null,
     partner_mb: null,
+    bank_account_id: null,
+    payment_method: null,
   });
 
   useEffect(() => {
@@ -64,8 +69,11 @@ export function QuoteDialog({
         partner_postal_code: quote.partner_postal_code,
         partner_pib: quote.partner_pib,
         partner_mb: quote.partner_mb,
+        bank_account_id: quote.bank_account_id,
+        payment_method: quote.payment_method,
       });
     } else {
+      const defaultBa = bankAccounts.find((ba) => ba.is_default && ba.is_active);
       setFormData({
         quote_date: format(new Date(), "yyyy-MM-dd"),
         valid_until: null,
@@ -80,9 +88,11 @@ export function QuoteDialog({
         partner_postal_code: null,
         partner_pib: null,
         partner_mb: null,
+        bank_account_id: defaultBa?.id || null,
+        payment_method: null,
       });
     }
-  }, [quote, open]);
+  }, [quote, open, bankAccounts]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,6 +175,38 @@ export function QuoteDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tekući račun</Label>
+              <Select
+                value={formData.bank_account_id || "none"}
+                onValueChange={(v) => setFormData({ ...formData, bank_account_id: v === "none" ? null : v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="-- Izaberite tekući račun --" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">-- Bez tekućeg računa --</SelectItem>
+                  {bankAccounts.filter((ba) => ba.is_active).map((ba) => (
+                    <SelectItem key={ba.id} value={ba.id}>
+                      {ba.code} - {ba.account_number} ({ba.bank_name})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Način plaćanja</Label>
+              <Input
+                value={formData.payment_method || ""}
+                onChange={(e) => setFormData({ ...formData, payment_method: e.target.value || null })}
+                maxLength={127}
+                autoComplete="off"
+                placeholder="Npr. Virmansko plaćanje..."
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
