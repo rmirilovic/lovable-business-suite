@@ -174,7 +174,7 @@ export default function Ponude() {
           <Table>
             <TableHeader>
              <TableRow>
-                <TableHead className="w-[100px]"><SortableHeader column="quote_number" label="Broj ponude" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[120px]"><SortableHeader column="quote_number" label="Broj ponude" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[90px]"><SortableHeader column="quote_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="min-w-[300px]"><SortableHeader column="partner" label="Kupac" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[90px]"><SortableHeader column="valid_until" label="Važi do" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
