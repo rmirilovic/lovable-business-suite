@@ -49,6 +49,7 @@ const navigation: NavItem[] = [
       { label: "Kontni plan", href: "/sifarnici/kontni-plan", moduleCode: "racunovodstvo.kontni_plan" },
       { label: "Ulazni troškovi", href: "/sifarnici/ulazni-troskovi", moduleCode: "sifarnici.ulazni_troskovi" },
       { label: "Šefovi smena", href: "/sifarnici/sefovi-smena", moduleCode: "sifarnici.ulazni_troskovi" },
+      { label: "Tekući računi", href: "/sifarnici/tekuci-racuni", moduleCode: "sifarnici.magacini" },
     ],
   },
   {
