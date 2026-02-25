@@ -186,6 +186,12 @@ export default function QuoteEdit() {
       },
       approverName: quoteForPdf.approved_by_name || null,
       creatorName: quoteForPdf.composed_by || null,
+      bankAccountText: (() => {
+        if (!quoteForPdf.bank_account_id) return null;
+        const ba = bankAccounts.find((b) => b.id === quoteForPdf.bank_account_id);
+        return ba ? `${ba.account_number} - ${ba.bank_name}` : null;
+      })(),
+      paymentMethod: quoteForPdf.payment_method || null,
     };
   };
 
@@ -194,7 +200,7 @@ export default function QuoteEdit() {
     try {
       const data = await preparePdfData();
       if (!data) return;
-      await generateQuotePdf(data.quoteForPdf, data.items, data.company, data.partner, data.approverName, data.creatorName);
+      await generateQuotePdf(data.quoteForPdf, data.items, data.company, data.partner, data.approverName, data.creatorName, data.bankAccountText, data.paymentMethod);
       toast.success("PDF ponuda je generisana");
     } catch (error: any) {
       toast.error(`Greška pri generisanju PDF-a: ${error.message}`);
@@ -208,7 +214,7 @@ export default function QuoteEdit() {
     try {
       const data = await preparePdfData();
       if (!data) return;
-      await printQuotePdf(data.quoteForPdf, data.items, data.company, data.partner, data.approverName, data.creatorName);
+      await printQuotePdf(data.quoteForPdf, data.items, data.company, data.partner, data.approverName, data.creatorName, data.bankAccountText, data.paymentMethod);
     } catch (error: any) {
       toast.error(`Greška pri štampi: ${error.message}`);
     } finally {

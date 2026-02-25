@@ -48,7 +48,9 @@ async function buildQuotePdf(
   company: CompanyData,
   partner: PartnerData,
   approverName?: string | null,
-  creatorName?: string | null
+  creatorName?: string | null,
+  bankAccountText?: string | null,
+  paymentMethod?: string | null
 ): Promise<jsPDF> {
   // Initialize fonts with UTF-8 support for Serbian characters
   await initializePdfFonts();
@@ -103,6 +105,15 @@ async function buildQuotePdf(
       doc.text(company.name, 14, yPos);
       yPos += 7;
     }
+  }
+
+  // Bank account - right-aligned above PONUDA
+  if (bankAccountText) {
+    yPos += 4;
+    doc.setFontSize(9);
+    doc.setFont("Roboto", "normal");
+    doc.text(bankAccountText, pageWidth - 14, yPos, { align: "right" });
+    yPos += 4;
   }
 
   // Document Title
@@ -274,6 +285,17 @@ async function buildQuotePdf(
   doc.text("UKUPNO:", totalsX - 50, totalsY);
   doc.text(`${formatPdfNumber(totalForPdf)}`, totalsX, totalsY, { align: "right" });
 
+  // Payment method - above notes
+  if (paymentMethod) {
+    totalsY += 10;
+    doc.setFontSize(9);
+    doc.setFont("Roboto", "bold");
+    doc.text("Način plaćanja:", 14, totalsY);
+    doc.setFont("Roboto", "normal");
+    doc.text(paymentMethod, 14 + doc.getTextWidth("Način plaćanja: ") + 2, totalsY);
+    totalsY += 5;
+  }
+
   // Notes
   if (quote.note) {
     totalsY += 15;
@@ -336,9 +358,11 @@ export async function generateQuotePdf(
   company: CompanyData,
   partner: PartnerData,
   approverName?: string | null,
-  creatorName?: string | null
+  creatorName?: string | null,
+  bankAccountText?: string | null,
+  paymentMethod?: string | null
 ) {
-  const doc = await buildQuotePdf(quote, items, company, partner, approverName, creatorName);
+  const doc = await buildQuotePdf(quote, items, company, partner, approverName, creatorName, bankAccountText, paymentMethod);
   doc.save(`Ponuda_${quote.quote_number.replace(/\//g, "-")}.pdf`);
 }
 
@@ -348,9 +372,11 @@ export async function printQuotePdf(
   company: CompanyData,
   partner: PartnerData,
   approverName?: string | null,
-  creatorName?: string | null
+  creatorName?: string | null,
+  bankAccountText?: string | null,
+  paymentMethod?: string | null
 ) {
-  const doc = await buildQuotePdf(quote, items, company, partner, approverName, creatorName);
+  const doc = await buildQuotePdf(quote, items, company, partner, approverName, creatorName, bankAccountText, paymentMethod);
   const blob = doc.output("blob");
   printPdfBlob(blob);
 }
