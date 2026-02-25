@@ -24,6 +24,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
   approved: { label: "Odobrena", variant: "default" },
   posted: { label: "Potvrđena", variant: "outline" },
   cancelled: { label: "Stornirana", variant: "destructive" },
+  renewed: { label: "Obnovljena", variant: "outline" },
 };
 
 export default function Ponude() {
@@ -160,6 +161,7 @@ export default function Ponude() {
                 <SelectItem value="all">Svi</SelectItem>
                 <SelectItem value="draft">Nacrt</SelectItem>
                 <SelectItem value="approved">Odobrena</SelectItem>
+                <SelectItem value="renewed">Obnovljena</SelectItem>
                 <SelectItem value="posted">Potvrđena</SelectItem>
                 <SelectItem value="cancelled">Stornirana</SelectItem>
               </SelectContent>

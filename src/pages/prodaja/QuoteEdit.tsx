@@ -34,6 +34,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
   approved: { label: "Odobrena", variant: "default" },
   posted: { label: "Potvrđena", variant: "outline" },
   cancelled: { label: "Stornirana", variant: "destructive" },
+  renewed: { label: "Obnovljena", variant: "outline" },
 };
 
 export default function QuoteEdit() {

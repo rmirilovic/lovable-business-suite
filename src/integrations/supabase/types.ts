@@ -5813,7 +5813,7 @@ export type Database = {
         | "integer"
         | "decimal"
         | "date"
-      document_status: "draft" | "approved" | "posted" | "cancelled"
+      document_status: "draft" | "approved" | "posted" | "cancelled" | "renewed"
       module_type:
         | "sifarnici"
         | "robno_materijalno"
@@ -5965,7 +5965,7 @@ export const Constants = {
         "decimal",
         "date",
       ],
-      document_status: ["draft", "approved", "posted", "cancelled"],
+      document_status: ["draft", "approved", "posted", "cancelled", "renewed"],
       module_type: [
         "sifarnici",
         "robno_materijalno",
