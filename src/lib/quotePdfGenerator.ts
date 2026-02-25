@@ -314,9 +314,9 @@ async function buildQuotePdf(
   if (company.quote_note_1) {
     totalsY += 10;
     doc.setFontSize(8);
-    doc.setFont("Roboto", "normal");
+    doc.setFont("Roboto", "italic");
     const splitNote1 = doc.splitTextToSize(company.quote_note_1, pageWidth - 28);
-    doc.text(splitNote1, 14, totalsY);
+    doc.text(splitNote1, pageWidth / 2, totalsY, { align: "center" });
     totalsY += splitNote1.length * 3;
   }
 
