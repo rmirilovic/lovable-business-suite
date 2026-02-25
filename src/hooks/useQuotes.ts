@@ -336,15 +336,18 @@ export function useQuotes() {
       if (quote.status !== "approved") throw new Error("Samo odobrene ponude mogu biti vraćene u nacrt");
       if (quote.converted_to_invoice_id) throw new Error("Ponuda je već konvertovana u fakturu");
 
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from("quotes")
         .update({
           status: "draft",
           approved_by: null,
           approved_at: null,
         })
-        .eq("id", quoteId);
+        .eq("id", quoteId)
+        .select("id")
+        .single();
       if (error) throw error;
+      if (!updated) throw new Error("Ažuriranje nije uspelo — nema promenjena redova");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
