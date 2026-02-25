@@ -112,7 +112,7 @@ async function buildQuotePdf(
     yPos += 4;
     doc.setFontSize(9);
     doc.setFont("Roboto", "normal");
-    doc.text(bankAccountText, pageWidth - 14, yPos, { align: "right" });
+    doc.text(`Broj tekućeg računa: ${bankAccountText}`, pageWidth - 14, yPos, { align: "right" });
     yPos += 4;
   }
 
