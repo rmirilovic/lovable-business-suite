@@ -29,6 +29,7 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
   approved: { label: "Odobrena", variant: "outline" },
   posted: { label: "Potvrđena", variant: "default" },
   cancelled: { label: "Stornirana", variant: "destructive" },
+  renewed: { label: "Obnovljena", variant: "outline" },
 };
 
 export function QuoteDetailDialog({

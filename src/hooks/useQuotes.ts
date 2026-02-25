@@ -19,7 +19,7 @@ export interface Quote {
   partner_postal_code: string | null;
   partner_pib: string | null;
   partner_mb: string | null;
-  status: 'draft' | 'approved' | 'posted' | 'cancelled';
+  status: 'draft' | 'approved' | 'posted' | 'cancelled' | 'renewed';
   approved_by: string | null;
   approved_at: string | null;
   converted_to_invoice_id: string | null;
@@ -426,6 +426,12 @@ export function useQuotes() {
         .single();
 
       if (quoteError) throw quoteError;
+
+      // Set original quote status to 'renewed'
+      await supabase
+        .from("quotes")
+        .update({ status: "renewed" })
+        .eq("id", sourceQuote.id);
 
       // Copy items from source quote
       const { data: sourceItems } = await supabase
