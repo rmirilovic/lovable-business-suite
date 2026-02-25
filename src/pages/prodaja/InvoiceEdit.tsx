@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, CheckCircle, ArrowLeft, RefreshCw, History, Pencil, Eye } from "lucide-react";
-import { Invoice, useInvoices } from "@/hooks/useInvoices";
+import { Invoice } from "@/hooks/useInvoices";
+import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { InvoiceItemsEditor } from "@/components/prodaja/InvoiceItemsEditor";
 import { InvoiceHeaderDialog } from "@/components/prodaja/InvoiceHeaderDialog";
 import { formatDate, formatPrice } from "@/lib/formatting";
@@ -44,7 +45,7 @@ export default function InvoiceEdit() {
   const [localTotals, setLocalTotals] = useState({ subtotal: 0, vat_amount: 0, total_amount: 0 });
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  const { postInvoice } = useInvoices();
+  const { postInvoice } = useInvoiceMutations();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
   
   const { checkLock, updateLockTimestamp } = useDocumentLock({
