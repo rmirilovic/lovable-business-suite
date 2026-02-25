@@ -291,7 +291,7 @@ export default function UlazneFaktureUsluge() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      {formatNumber(invoice.total_amount)} RSD
+                      {formatNumber(invoice.total_amount)}
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusVariants[invoice.status]}>
