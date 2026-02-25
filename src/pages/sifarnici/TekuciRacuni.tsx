@@ -239,7 +239,16 @@ export default function TekuciRacuni() {
                 ) : (
                   sorted.map((ba) => (
                     <TableRow key={ba.id}>
-                      <TableCell className="font-medium">{ba.code}</TableCell>
+                      <TableCell className="font-medium">
+                        <InlineEditCell
+                          value={ba.code}
+                          onSave={async (val) => {
+                            if (val.length > 15) { toast.error("Maksimalno 15 karaktera"); return; }
+                            await updateBankAccount({ id: ba.id, updates: { code: val } });
+                          }}
+                          disabled={!canEdit}
+                        />
+                      </TableCell>
                       <TableCell>
                         <InlineEditCell
                           value={ba.account_number}
