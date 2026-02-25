@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, ArrowRightLeft, Truck, Pencil, FileText, Undo2 } from "lucide-react";
+import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, FilePlus, ArrowRightLeft, Truck, Pencil, FileText, Undo2 } from "lucide-react";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "@/components/prodaja/QuoteItemsEditor";
 import { QuoteHeaderDialog } from "@/components/prodaja/QuoteHeaderDialog";
@@ -50,9 +50,10 @@ export default function QuoteEdit() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
+  const [isCopyingNew, setIsCopyingNew] = useState(false);
   const [deliveryNoteDialogOpen, setDeliveryNoteDialogOpen] = useState(false);
 
-  const { approveQuote, copyQuote, revertQuoteToDraft } = useQuotes();
+  const { approveQuote, copyQuote, copyQuoteAsNew, revertQuoteToDraft } = useQuotes();
   const { items } = useQuoteItems(quote?.id || null);
   const createFromQuote = useCreateInvoiceFromQuote();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
@@ -223,6 +224,17 @@ export default function QuoteEdit() {
     }
   };
 
+  const handleCopyAsNew = async () => {
+    if (!quote) return;
+    setIsCopyingNew(true);
+    try {
+      const newQuote = await copyQuoteAsNew.mutateAsync(quote);
+      navigate(`/prodaja/ponude/${newQuote.id}`);
+    } finally {
+      setIsCopyingNew(false);
+    }
+  };
+
   const handleConvertToInvoice = async () => {
     if (!quote) return;
     try {
@@ -301,9 +313,13 @@ export default function QuoteEdit() {
             )}
             {isApproved && (
               <>
-                <Button variant="outline" size="sm" onClick={handleCopy} disabled={isCopying}>
+                <Button variant="outline" size="sm" onClick={handleCopy} disabled={isCopying || isCopyingNew}>
                   <Copy className="w-4 h-4 mr-2" />
-                  {isCopying ? "Kopiranje..." : "Kopiraj"}
+                  {isCopying ? "Kopiranje..." : "Kopiraj verziju"}
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleCopyAsNew} disabled={isCopying || isCopyingNew}>
+                  <FilePlus className="w-4 h-4 mr-2" />
+                  {isCopyingNew ? "Kopiranje..." : "Kopiraj kao novu"}
                 </Button>
                 {!quote.converted_to_invoice_id && (
                   <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
