@@ -21,7 +21,8 @@ import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-sele
 import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useAuth } from "@/contexts/AuthContext";
-import { Invoice, useInvoices } from "@/hooks/useInvoices";
+import { Invoice } from "@/hooks/useInvoices";
+import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { Eye } from "lucide-react";
 
 interface InvoiceHeaderDialogProps {
@@ -42,7 +43,7 @@ export function InvoiceHeaderDialog({
   const { selectedCompany } = useAuth();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
-  const { updateInvoice } = useInvoices();
+  const { updateInvoice } = useInvoiceMutations();
 
   const [formData, setFormData] = useState({
     invoice_date: "",

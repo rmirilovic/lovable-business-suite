@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Invoice, useInvoices } from "@/hooks/useInvoices";
+import { Invoice } from "@/hooks/useInvoices";
+import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { InvoiceItemsEditor } from "./InvoiceItemsEditor";
 import { formatDate, formatPrice } from "@/lib/formatting";
 import { CheckCircle, FileText, BookOpen } from "lucide-react";
@@ -42,7 +43,7 @@ export function InvoiceDetailDialog({
   onOpenChange,
   invoice,
 }: InvoiceDetailDialogProps) {
-  const { postInvoice, updateInvoiceTotals } = useInvoices();
+  const { postInvoice, updateInvoiceTotals } = useInvoiceMutations();
   const [showPostConfirm, setShowPostConfirm] = useState(false);
 
   if (!invoice) return null;
