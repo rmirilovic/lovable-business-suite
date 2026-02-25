@@ -4,12 +4,13 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, CheckCircle, ArrowLeft, RefreshCw, History } from "lucide-react";
+import { Loader2, CheckCircle, ArrowLeft, RefreshCw, History, Pencil, Eye } from "lucide-react";
 import { Invoice, useInvoices } from "@/hooks/useInvoices";
 import { InvoiceItemsEditor } from "@/components/prodaja/InvoiceItemsEditor";
-import { InvoiceDialog } from "@/components/prodaja/InvoiceDialog";
+import { InvoiceHeaderDialog } from "@/components/prodaja/InvoiceHeaderDialog";
 import { formatDate, formatPrice } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
 import { toast } from "sonner";
@@ -25,16 +26,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Nacrt",
-  posted: "Proknjižena",
-  cancelled: "Stornirana",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  posted: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  cancelled: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+  draft: { label: "Nacrt", variant: "secondary" },
+  posted: { label: "Proknjižena", variant: "default" },
+  cancelled: { label: "Stornirana", variant: "destructive" },
 };
 
 export default function InvoiceEdit() {
@@ -49,9 +44,9 @@ export default function InvoiceEdit() {
   const [localTotals, setLocalTotals] = useState({ subtotal: 0, vat_amount: 0, total_amount: 0 });
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  const { postInvoice, updateInvoice } = useInvoices();
+  const { postInvoice } = useInvoices();
+  const { units } = useOrganizationalUnits(selectedCompany?.id);
   
-  // Optimistic locking
   const { checkLock, updateLockTimestamp } = useDocumentLock({
     tableName: "invoices",
     documentId: id || null,
@@ -59,7 +54,6 @@ export default function InvoiceEdit() {
     onConflict: () => fetchInvoice(),
   });
 
-  // Fetch invoice data
   const fetchInvoice = async () => {
     if (!id) return;
     
@@ -68,7 +62,7 @@ export default function InvoiceEdit() {
       .from("invoices")
       .select(`
         *,
-        partner:partners(id, name, code)
+        partner:partners(id, name, code, address, city, postal_code, pib, mb)
       `)
       .eq("id", id)
       .single();
@@ -108,11 +102,6 @@ export default function InvoiceEdit() {
     fetchInvoice();
   };
 
-  const handleHeaderSaved = async () => {
-    setHeaderDialogOpen(false);
-    fetchInvoice();
-  };
-
   if (isLoading || !selectedCompany || !selectedYear) {
     return (
       <MainLayout title="Učitavanje...">
@@ -138,10 +127,11 @@ export default function InvoiceEdit() {
   }
 
   const isDraft = invoice.status === "draft";
+  const status = STATUS_BADGES[invoice.status] || STATUS_BADGES.draft;
 
   return (
     <MainLayout title={`Faktura: ${invoice.invoice_number}`}>
-      <div className="space-y-4">
+      <div className="space-y-4 flex-1 min-h-0 overflow-y-auto">
         {/* Header actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -150,9 +140,7 @@ export default function InvoiceEdit() {
               Nazad
             </Button>
             <h1 className="text-xl font-semibold">{invoice.invoice_number}</h1>
-            <Badge className={STATUS_COLORS[invoice.status]}>
-              {STATUS_LABELS[invoice.status]}
-            </Badge>
+            <Badge variant={status.variant}>{status.label}</Badge>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
@@ -161,7 +149,7 @@ export default function InvoiceEdit() {
             <Button variant="ghost" size="sm" onClick={fetchInvoice} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
-            {isDraft && (
+            {isDraft ? (
               <>
                 <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
                   <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
@@ -170,6 +158,10 @@ export default function InvoiceEdit() {
                   <CheckCircle className="h-4 w-4 mr-2" />Proknjiži
                 </Button>
               </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                <Eye className="h-4 w-4 mr-2" />Prikaži zaglavlje
+              </Button>
             )}
           </div>
         </div>
@@ -181,19 +173,83 @@ export default function InvoiceEdit() {
             <div className="font-medium">{formatDate(invoice.invoice_date)}</div>
           </div>
           <div>
-            <div className="text-muted-foreground">Valuta</div>
+            <div className="text-muted-foreground">Datum valute</div>
             <div className="font-medium">{invoice.due_date ? formatDate(invoice.due_date) : "-"}</div>
           </div>
-          <div className="col-span-2">
-            <div className="text-muted-foreground">Kupac</div>
-            <div className="font-medium">{invoice.partner?.name}</div>
-            <div className="text-xs text-muted-foreground">{invoice.partner?.code}</div>
+          <div>
+            <div className="text-muted-foreground">Org. jedinica</div>
+            <div className="font-medium">
+              {invoice.org_unit_id
+                ? units.find((u) => u.id === invoice.org_unit_id)?.name || "-"
+                : "-"}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Fakturu sastavio</div>
+            <div className="font-medium">{invoice.composed_by || "-"}</div>
           </div>
         </div>
 
+        {/* Partner info */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="col-span-2">
+            <div className="text-muted-foreground">Kupac</div>
+            <div className="font-medium">
+              {invoice.partner?.code && <span className="text-muted-foreground mr-1">[{invoice.partner.code}]</span>}
+              {invoice.partner_name ?? invoice.partner?.name}
+            </div>
+            {(invoice.partner_address ?? invoice.partner?.address) && (
+              <div className="text-xs text-muted-foreground">
+                {invoice.partner_address ?? invoice.partner?.address}
+                {(invoice.partner_city ?? invoice.partner?.city) && `, ${invoice.partner_postal_code ?? invoice.partner?.postal_code ?? ""} ${invoice.partner_city ?? invoice.partner?.city}`}
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="text-muted-foreground">PIB</div>
+            <div className="font-medium">{invoice.partner_pib ?? invoice.partner?.pib ?? "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Matični broj</div>
+            <div className="font-medium">{invoice.partner_mb ?? invoice.partner?.mb ?? "-"}</div>
+          </div>
+        </div>
+
+        {/* Notes */}
+        {(invoice.note || invoice.internal_note || invoice.header_note) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            {invoice.header_note && (
+              <div>
+                <div className="text-muted-foreground mb-1">Napomena u zaglavlju</div>
+                <div className="bg-muted p-2 rounded-md">{invoice.header_note}</div>
+              </div>
+            )}
+            {invoice.note && (
+              <div>
+                <div className="text-muted-foreground mb-1">Napomena za kupca</div>
+                <div className="bg-muted p-2 rounded-md">{invoice.note}</div>
+              </div>
+            )}
+            {invoice.internal_note && (
+              <div>
+                <div className="text-muted-foreground mb-1">Interna napomena</div>
+                <div className="bg-muted p-2 rounded-md">{invoice.internal_note}</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Source document */}
+        {(invoice.source_quote_id || invoice.source_delivery_note_id) && (
+          <div className="rounded-md bg-muted/50 p-3 text-sm">
+            <span className="text-muted-foreground">Izvor: </span>
+            {invoice.source_quote_id && <span className="font-medium">Ponuda</span>}
+            {invoice.source_delivery_note_id && <span className="font-medium">Otpremnica</span>}
+          </div>
+        )}
+
         <Separator />
 
-        {/* Items editor */}
         <InvoiceItemsEditor
           invoiceId={invoice.id}
           readOnly={!isDraft}
@@ -202,7 +258,6 @@ export default function InvoiceEdit() {
 
         <Separator />
 
-        {/* Totals */}
         <div className="flex justify-end">
           <div className="w-64 space-y-2 text-sm">
             <div className="flex justify-between">
@@ -220,16 +275,14 @@ export default function InvoiceEdit() {
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Dialogs */}
-      <InvoiceDialog
+      <InvoiceHeaderDialog
         open={headerDialogOpen}
         onOpenChange={setHeaderDialogOpen}
         invoice={invoice}
-        onSave={handleHeaderSaved}
-        isLoading={false}
+        readOnly={!isDraft}
+        onSaved={fetchInvoice}
       />
 
       <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>

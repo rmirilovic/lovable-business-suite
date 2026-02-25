@@ -18,6 +18,7 @@ export interface Invoice {
   total_amount: number;
   note: string | null;
   internal_note: string | null;
+  header_note: string | null;
   source_quote_id: string | null;
   source_delivery_note_id: string | null;
   journal_entry_id: string | null;
@@ -26,10 +27,23 @@ export interface Invoice {
   created_by: string;
   created_at: string;
   updated_at: string;
+  // Partner snapshot
+  partner_name: string | null;
+  partner_address: string | null;
+  partner_city: string | null;
+  partner_postal_code: string | null;
+  partner_pib: string | null;
+  partner_mb: string | null;
+  composed_by: string | null;
   partner?: {
     id: string;
     name: string;
     code: string;
+    address: string | null;
+    city: string | null;
+    postal_code: string | null;
+    pib: string | null;
+    mb: string | null;
   };
 }
 
@@ -99,7 +113,7 @@ export function useInvoices() {
         .from("invoices")
         .select(`
           *,
-          partner:partners(id, name, code)
+          partner:partners(id, name, code, address, city, postal_code, pib, mb)
         `)
         .eq("company_id", selectedCompany.id)
         .eq("business_year_id", selectedYear.id)
