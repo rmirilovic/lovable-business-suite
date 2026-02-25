@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Trash2, Package, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Package, Wrench } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableArticleSelect, type Article as SearchableArticle } from "@/components/ui/searchable-article-select";
 import { useArticles } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
-import { InvoiceItem, InvoiceItemFormData, useInvoiceItems } from "@/hooks/useInvoices";
+import { InvoiceItemFormData, useInvoiceItems } from "@/hooks/useInvoices";
 import { formatDecimal, formatPrice, parseLocaleNumber } from "@/lib/formatting";
-import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 
 interface InvoiceItemsEditorProps {
   invoiceId: string;
@@ -18,100 +19,143 @@ interface InvoiceItemsEditorProps {
 
 const VAT_RATES = [0, 10, 20];
 
+type EditingItem = Partial<InvoiceItemFormData> & { isService?: boolean };
+
 export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange }: InvoiceItemsEditorProps) {
   const { selectedCompany } = useAuth();
-  const { articles } = useArticles(selectedCompany?.id);
-  const { items, addItem, updateItem, deleteItem } = useInvoiceItems(invoiceId);
+  const { items, isLoading, addItem, deleteItem } = useInvoiceItems(invoiceId);
 
-  const [newItem, setNewItem] = useState<InvoiceItemFormData>({
-    article_id: null,
-    item_code: null,
-    item_name: "",
-    unit: "kom",
-    quantity: 1,
-    unit_price: 0,
-    discount_percent: 0,
-    vat_rate: 20,
-    description: null,
-  });
-
+  const [editingItem, setEditingItem] = useState<EditingItem>({});
+  const [isAdding, setIsAdding] = useState(false);
   const [itemType, setItemType] = useState<"article" | "service">("article");
 
-  // Calculate totals when items change
+  const { articles } = useArticles(!readOnly && isAdding ? selectedCompany?.id : undefined);
+
+  const onTotalsChangeRef = useRef(onTotalsChange);
+  useEffect(() => {
+    onTotalsChangeRef.current = onTotalsChange;
+  }, [onTotalsChange]);
+
   useEffect(() => {
     const subtotal = items.reduce((sum, item) => sum + item.line_subtotal, 0);
     const vatAmount = items.reduce((sum, item) => sum + item.line_vat, 0);
     const total = items.reduce((sum, item) => sum + item.line_total, 0);
-    onTotalsChange?.(subtotal, vatAmount, total);
-  }, [items, onTotalsChange]);
+    onTotalsChangeRef.current?.(subtotal, vatAmount, total);
+  }, [items]);
 
-  const handleArticleSelect = (articleId: string) => {
-    const article = articles.find(a => a.id === articleId);
-    if (article) {
-      setNewItem({
-        article_id: articleId,
-        item_code: article.code,
-        item_name: article.name,
-        unit: article.unit,
-        quantity: 1,
-        unit_price: article.selling_price,
-        discount_percent: 0,
-        vat_rate: 20,
-        description: null,
-      });
-    }
+  const resetEditingItem = () => {
+    setEditingItem({});
+    setIsAdding(false);
+    setItemType("article");
   };
 
-  const handleAddItem = async () => {
-    if (!newItem.item_name || newItem.quantity <= 0) return;
-
-    await addItem.mutateAsync({
-      ...newItem,
-      invoice_id: invoiceId,
-    });
-
-    // Reset form
-    setNewItem({
+  const handleAddNew = (type: "article" | "service") => {
+    setItemType(type);
+    setIsAdding(true);
+    setEditingItem({
       article_id: null,
       item_code: null,
       item_name: "",
-      unit: "kom",
+      unit: type === "service" ? "usluga" : "kom",
       quantity: 1,
       unit_price: 0,
       discount_percent: 0,
       vat_rate: 20,
       description: null,
+      isService: type === "service",
     });
+  };
+
+  const handleArticleSelect = (articleId: string, article: SearchableArticle) => {
+    setEditingItem((prev) => ({
+      ...prev,
+      article_id: articleId,
+      item_code: article.code,
+      item_name: article.name,
+      unit: article.unit,
+      unit_price: article.selling_price || 0,
+      vat_rate: 20,
+    }));
+  };
+
+  const handleSaveItem = async () => {
+    if (!editingItem.item_name) return;
+
+    const itemData: InvoiceItemFormData = {
+      article_id: editingItem.article_id || null,
+      item_code: editingItem.item_code || null,
+      item_name: editingItem.item_name,
+      unit: editingItem.unit || "kom",
+      quantity: editingItem.quantity || 1,
+      unit_price: editingItem.unit_price || 0,
+      discount_percent: editingItem.discount_percent || 0,
+      vat_rate: editingItem.vat_rate || 20,
+      description: editingItem.description || null,
+    };
+
+    await addItem.mutateAsync({
+      ...itemData,
+      invoice_id: invoiceId,
+    });
+
+    resetEditingItem();
   };
 
   const handleDeleteItem = async (id: string) => {
     await deleteItem.mutateAsync(id);
   };
 
-  const calculateLineTotal = (item: InvoiceItemFormData) => {
-    const subtotal = item.quantity * item.unit_price * (1 - item.discount_percent / 100);
-    const vat = subtotal * (item.vat_rate / 100);
-    return { subtotal, vat, total: subtotal + vat };
+  const calculateLineTotals = () => {
+    const quantity = editingItem.quantity ?? 0;
+    const unitPrice = editingItem.unit_price ?? 0;
+    const discountPercent = editingItem.discount_percent ?? 0;
+    const vatRate = editingItem.vat_rate ?? 0;
+
+    const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
+    const vat = subtotal * (vatRate / 100);
+
+    return { subtotal, total: subtotal + vat };
   };
 
-  const newItemTotals = calculateLineTotal(newItem);
+  const editingTotals = calculateLineTotals();
+
+  if (isLoading) {
+    return <div className="text-muted-foreground">Učitavanje stavki...</div>;
+  }
 
   return (
     <div className="space-y-4">
+      {!readOnly && (
+        <div className="flex justify-end gap-2">
+          {!isAdding && (
+            <>
+              <Button size="sm" variant="outline" onClick={() => handleAddNew("article")}>
+                <Package className="w-4 h-4 mr-2" />
+                Dodaj artikal
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => handleAddNew("service")}>
+                <Briefcase className="w-4 h-4 mr-2" />
+                Dodaj uslugu
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-12">#</TableHead>
-            <TableHead>Šifra</TableHead>
-            <TableHead className="min-w-[200px]">Naziv</TableHead>
+            <TableHead className="w-24">Šifra</TableHead>
+            <TableHead className="min-w-[220px]">Naziv</TableHead>
             <TableHead className="w-20 text-center">JM</TableHead>
-            <TableHead className="w-24 text-right">Količina</TableHead>
-            <TableHead className="w-28 text-right">Cena</TableHead>
+            <TableHead className="w-28 text-right">Količina</TableHead>
+            <TableHead className="w-32 text-right">Cena</TableHead>
             <TableHead className="w-20 text-right">Rab.%</TableHead>
             <TableHead className="w-20 text-right">PDV%</TableHead>
-            <TableHead className="w-28 text-right">Osnovica</TableHead>
-            <TableHead className="w-28 text-right">Ukupno</TableHead>
-            {!readOnly && <TableHead className="w-12"></TableHead>}
+            <TableHead className="w-32 text-right">Osnovica</TableHead>
+            <TableHead className="w-32 text-right">Ukupno</TableHead>
+            {!readOnly && <TableHead className="w-16"></TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -119,7 +163,16 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
             <TableRow key={item.id}>
               <TableCell className="text-muted-foreground">{index + 1}</TableCell>
               <TableCell className="font-mono text-sm">{item.item_code || "-"}</TableCell>
-              <TableCell>{item.item_name}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {item.article_id ? (
+                    <Package className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <Briefcase className="w-4 h-4 text-muted-foreground" />
+                  )}
+                  {item.item_name}
+                </div>
+              </TableCell>
               <TableCell className="text-center">{item.unit}</TableCell>
               <TableCell className="text-right">{formatDecimal(item.quantity, 3)}</TableCell>
               <TableCell className="text-right">{formatPrice(item.unit_price)}</TableCell>
@@ -142,89 +195,76 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
             </TableRow>
           ))}
 
-          {/* New item row */}
-          {!readOnly && (
+          {!readOnly && isAdding && (
             <TableRow className="bg-muted/30">
+              <TableCell className="text-muted-foreground">{items.length + 1}</TableCell>
               <TableCell>
-                <div className="flex gap-1">
-                  <Button
-                    variant={itemType === "article" ? "default" : "outline"}
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setItemType("article")}
-                    title="Artikal"
-                  >
-                    <Package className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant={itemType === "service" ? "default" : "outline"}
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => setItemType("service")}
-                    title="Usluga"
-                  >
-                    <Wrench className="h-3 w-3" />
-                  </Button>
-                </div>
+                {itemType === "service" ? (
+                  <Input
+                    className="h-8"
+                    value={editingItem.item_code || ""}
+                    onChange={(e) => setEditingItem({ ...editingItem, item_code: e.target.value })}
+                    placeholder="Šifra"
+                    autoComplete="off"
+                  />
+                ) : (
+                  <span className="text-muted-foreground">{editingItem.item_code || "-"}</span>
+                )}
               </TableCell>
-              <TableCell colSpan={2}>
+              <TableCell>
                 {itemType === "article" ? (
-                  <Select onValueChange={handleArticleSelect} value={newItem.article_id || ""}>
-                    <SelectTrigger className="h-8">
-                      <SelectValue placeholder="Izaberite artikal..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {articles.filter(a => a.is_active).map((article) => (
-                        <SelectItem key={article.id} value={article.id}>
-                          {article.code} - {article.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableArticleSelect
+                    articles={articles}
+                    value={editingItem.article_id || ""}
+                    onValueChange={handleArticleSelect}
+                    placeholder="Pretraži artikal..."
+                  />
                 ) : (
                   <Input
                     className="h-8"
                     placeholder="Naziv usluge..."
-                    value={newItem.item_name}
-                    onChange={(e) => setNewItem({ ...newItem, item_name: e.target.value, article_id: null, item_code: null })}
+                    value={editingItem.item_name || ""}
+                    onChange={(e) => setEditingItem({ ...editingItem, item_name: e.target.value, article_id: null })}
+                    autoComplete="off"
                   />
                 )}
               </TableCell>
               <TableCell>
                 <Input
                   className="h-8 w-16 text-center"
-                  value={newItem.unit}
-                  onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-                />
-              </TableCell>
-              <TableCell>
-                <LocaleNumberInput
-                  className="h-8 w-20 text-right"
-                  value={String(newItem.quantity)}
-                  onChange={(val) => setNewItem({ ...newItem, quantity: parseLocaleNumber(val) })}
-                  decimalPlaces={3}
+                  value={editingItem.unit || ""}
+                  onChange={(e) => setEditingItem({ ...editingItem, unit: e.target.value })}
+                  autoComplete="off"
                 />
               </TableCell>
               <TableCell>
                 <LocaleNumberInput
                   className="h-8 w-24 text-right"
-                  value={String(newItem.unit_price)}
-                  onChange={(val) => setNewItem({ ...newItem, unit_price: parseLocaleNumber(val) })}
+                  value={String(editingItem.quantity ?? 1)}
+                  onChange={(val) => setEditingItem({ ...editingItem, quantity: parseLocaleNumber(val) })}
+                  decimalPlaces={3}
+                />
+              </TableCell>
+              <TableCell>
+                <LocaleNumberInput
+                  className="h-8 w-28 text-right"
+                  value={String(editingItem.unit_price ?? 0)}
+                  onChange={(val) => setEditingItem({ ...editingItem, unit_price: parseLocaleNumber(val) })}
                   decimalPlaces={2}
                 />
               </TableCell>
               <TableCell>
                 <LocaleNumberInput
                   className="h-8 w-16 text-right"
-                  value={String(newItem.discount_percent)}
-                  onChange={(val) => setNewItem({ ...newItem, discount_percent: parseLocaleNumber(val) })}
+                  value={String(editingItem.discount_percent ?? 0)}
+                  onChange={(val) => setEditingItem({ ...editingItem, discount_percent: parseLocaleNumber(val) })}
                   decimalPlaces={2}
                 />
               </TableCell>
               <TableCell>
-                <Select 
-                  value={String(newItem.vat_rate)} 
-                  onValueChange={(v) => setNewItem({ ...newItem, vat_rate: Number(v) })}
+                <Select
+                  value={String(editingItem.vat_rate ?? 20)}
+                  onValueChange={(v) => setEditingItem({ ...editingItem, vat_rate: Number(v) })}
                 >
                   <SelectTrigger className="h-8 w-16">
                     <SelectValue />
@@ -239,28 +279,40 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                 </Select>
               </TableCell>
               <TableCell className="text-right text-sm text-muted-foreground">
-                {formatPrice(newItemTotals.subtotal)}
+                {formatPrice(editingTotals.subtotal)}
               </TableCell>
               <TableCell className="text-right text-sm font-medium">
-                {formatPrice(newItemTotals.total)}
+                {formatPrice(editingTotals.total)}
               </TableCell>
               <TableCell>
-                <Button
-                  variant="default"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={handleAddItem}
-                  disabled={!newItem.item_name || newItem.quantity <= 0 || addItem.isPending}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="default"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={handleSaveItem}
+                    disabled={!editingItem.item_name || (editingItem.quantity ?? 0) <= 0 || addItem.isPending}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={resetEditingItem}>
+                    ×
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          )}
+
+          {items.length === 0 && !isAdding && (
+            <TableRow>
+              <TableCell colSpan={readOnly ? 10 : 11} className="text-center text-muted-foreground py-8">
+                Nema stavki. Dodajte artikal ili uslugu.
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
 
-      {/* Totals summary */}
       <div className="flex justify-end">
         <div className="w-72 space-y-2 text-sm">
           <div className="flex justify-between">
@@ -280,3 +332,4 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
     </div>
   );
 }
+
