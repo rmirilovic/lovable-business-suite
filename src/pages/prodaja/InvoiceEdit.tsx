@@ -278,13 +278,15 @@ export default function InvoiceEdit() {
         </div>
       </div>
 
-      <InvoiceHeaderDialog
-        open={headerDialogOpen}
-        onOpenChange={setHeaderDialogOpen}
-        invoice={invoice}
-        readOnly={!isDraft}
-        onSaved={fetchInvoice}
-      />
+      {headerDialogOpen && (
+        <InvoiceHeaderDialog
+          open={headerDialogOpen}
+          onOpenChange={setHeaderDialogOpen}
+          invoice={invoice}
+          readOnly={!isDraft}
+          onSaved={fetchInvoice}
+        />
+      )}
 
       <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
         <AlertDialogContent>
