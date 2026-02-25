@@ -3921,6 +3921,7 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           approved_by_name: string | null
+          bank_account_id: string | null
           business_year_id: string
           company_id: string
           composed_by: string | null
@@ -3940,6 +3941,7 @@ export type Database = {
           partner_name: string | null
           partner_pib: string | null
           partner_postal_code: string | null
+          payment_method: string | null
           quote_date: string
           quote_number: string
           status: Database["public"]["Enums"]["document_status"]
@@ -3953,6 +3955,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           approved_by_name?: string | null
+          bank_account_id?: string | null
           business_year_id: string
           company_id: string
           composed_by?: string | null
@@ -3972,6 +3975,7 @@ export type Database = {
           partner_name?: string | null
           partner_pib?: string | null
           partner_postal_code?: string | null
+          payment_method?: string | null
           quote_date?: string
           quote_number: string
           status?: Database["public"]["Enums"]["document_status"]
@@ -3985,6 +3989,7 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           approved_by_name?: string | null
+          bank_account_id?: string | null
           business_year_id?: string
           company_id?: string
           composed_by?: string | null
@@ -4004,6 +4009,7 @@ export type Database = {
           partner_name?: string | null
           partner_pib?: string | null
           partner_postal_code?: string | null
+          payment_method?: string | null
           quote_date?: string
           quote_number?: string
           status?: Database["public"]["Enums"]["document_status"]
@@ -4014,6 +4020,13 @@ export type Database = {
           vat_amount?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "quotes_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quotes_business_year_id_fkey"
             columns: ["business_year_id"]

@@ -20,6 +20,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import { Quote, QuoteFormData, useQuotes } from "@/hooks/useQuotes";
 
@@ -39,6 +40,7 @@ export function QuoteHeaderDialog({
   const { selectedCompany } = useAuth();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
+  const { bankAccounts } = useBankAccounts(selectedCompany?.id);
   const { updateQuote } = useQuotes();
 
   const [formData, setFormData] = useState({
@@ -57,6 +59,8 @@ export function QuoteHeaderDialog({
     partner_mb: "" as string | null,
     composed_by: "" as string | null,
     approved_by_name: "" as string | null,
+    bank_account_id: "" as string | null,
+    payment_method: "" as string | null,
   });
 
   useEffect(() => {
@@ -77,6 +81,8 @@ export function QuoteHeaderDialog({
       partner_mb: quote.partner_mb ?? quote.partner?.mb ?? "",
       composed_by: quote.composed_by || "",
       approved_by_name: quote.approved_by_name || "",
+      bank_account_id: quote.bank_account_id || "",
+      payment_method: quote.payment_method || "",
     });
   }, [quote, open]);
 
@@ -115,6 +121,8 @@ export function QuoteHeaderDialog({
       partner_mb: formData.partner_mb || null,
       composed_by: formData.composed_by || null,
       approved_by_name: formData.approved_by_name || null,
+      bank_account_id: formData.bank_account_id || null,
+      payment_method: formData.payment_method || null,
     });
     onOpenChange(false);
     onSaved?.();
@@ -266,6 +274,39 @@ export function QuoteHeaderDialog({
                 onChange={(e) => setFormData({ ...formData, internal_note: e.target.value || null })}
                 rows={2}
                 placeholder="Interna napomena..."
+              />
+            </div>
+          </div>
+
+          {/* Bank account & Payment method */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tekući račun</Label>
+              <Select
+                value={formData.bank_account_id || "none"}
+                onValueChange={(v) => setFormData({ ...formData, bank_account_id: v === "none" ? null : v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="-- Izaberite tekući račun --" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">-- Bez tekućeg računa --</SelectItem>
+                  {bankAccounts.filter((ba) => ba.is_active).map((ba) => (
+                    <SelectItem key={ba.id} value={ba.id}>
+                      {ba.code} - {ba.account_number} ({ba.bank_name})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Način plaćanja</Label>
+              <Input
+                value={formData.payment_method || ""}
+                onChange={(e) => setFormData({ ...formData, payment_method: e.target.value || null })}
+                maxLength={127}
+                autoComplete="off"
+                placeholder="Npr. Virmansko plaćanje..."
               />
             </div>
           </div>
