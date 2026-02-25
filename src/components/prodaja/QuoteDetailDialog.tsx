@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Pencil, ArrowRightLeft, Printer, Check, Truck, Copy } from "lucide-react";
+import { FileText, Pencil, ArrowRightLeft, Printer, Check, Truck, Copy, FilePlus } from "lucide-react";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "./QuoteItemsEditor";
 import { QuotePartnerEditor } from "./QuotePartnerEditor";
@@ -40,11 +40,12 @@ export function QuoteDetailDialog({
   onConvertToDeliveryNote,
 }: QuoteDetailDialogProps) {
   const { selectedCompany, user } = useAuth();
-  const { updateQuoteTotals, approveQuote, copyQuote } = useQuotes();
+  const { updateQuoteTotals, approveQuote, copyQuote, copyQuoteAsNew } = useQuotes();
   const { items } = useQuoteItems(quote?.id || null);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
+  const [isCopyingNew, setIsCopyingNew] = useState(false);
 
   const round2 = (n: number) => Math.round(n * 100) / 100;
   const approxEqualMoney = (a: number, b: number, eps = 0.005) => Math.abs(a - b) < eps;
@@ -306,10 +307,26 @@ export function QuoteDetailDialog({
                       setIsCopying(false);
                     }
                   }}
-                  disabled={isCopying}
+                  disabled={isCopying || isCopyingNew}
                 >
                   <Copy className="w-4 h-4 mr-2" />
-                  {isCopying ? "Kopiranje..." : "Kopiraj"}
+                  {isCopying ? "Kopiranje..." : "Kopiraj verziju"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    setIsCopyingNew(true);
+                    try {
+                      await copyQuoteAsNew.mutateAsync(quote);
+                      onOpenChange(false);
+                    } finally {
+                      setIsCopyingNew(false);
+                    }
+                  }}
+                  disabled={isCopying || isCopyingNew}
+                >
+                  <FilePlus className="w-4 h-4 mr-2" />
+                  {isCopyingNew ? "Kopiranje..." : "Kopiraj kao novu"}
                 </Button>
                 {!quote.converted_to_invoice_id && (
                   <>

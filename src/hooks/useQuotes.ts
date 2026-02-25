@@ -468,6 +468,88 @@ export function useQuotes() {
     },
   });
 
+  const copyQuoteAsNew = useMutation({
+    mutationFn: async (sourceQuote: Quote) => {
+      if (!selectedCompany?.id || !selectedYear?.id || !user?.id) {
+        throw new Error("Potrebno je izabrati firmu i godinu");
+      }
+
+      const newQuoteNumber = await getNextQuoteNumber();
+
+      const { data: newQuote, error: quoteError } = await supabase
+        .from("quotes")
+        .insert({
+          company_id: selectedCompany.id,
+          business_year_id: selectedYear.id,
+          quote_number: newQuoteNumber,
+          quote_date: new Date().toISOString().split("T")[0],
+          valid_until: sourceQuote.valid_until,
+          partner_id: sourceQuote.partner_id,
+          org_unit_id: sourceQuote.org_unit_id,
+          note: sourceQuote.note,
+          internal_note: sourceQuote.internal_note,
+          header_note: sourceQuote.header_note,
+          created_by: user.id,
+          status: "draft",
+          subtotal: sourceQuote.subtotal,
+          vat_amount: sourceQuote.vat_amount,
+          total_amount: sourceQuote.total_amount,
+          partner_name: sourceQuote.partner_name ?? sourceQuote.partner?.name ?? null,
+          partner_address: sourceQuote.partner_address ?? sourceQuote.partner?.address ?? null,
+          partner_city: sourceQuote.partner_city ?? sourceQuote.partner?.city ?? null,
+          partner_postal_code: sourceQuote.partner_postal_code ?? sourceQuote.partner?.postal_code ?? null,
+          partner_pib: sourceQuote.partner_pib ?? sourceQuote.partner?.pib ?? null,
+          partner_mb: sourceQuote.partner_mb ?? sourceQuote.partner?.mb ?? null,
+        })
+        .select()
+        .single();
+
+      if (quoteError) throw quoteError;
+
+      // Copy items from source quote
+      const { data: sourceItems } = await supabase
+        .from("quote_items")
+        .select("*")
+        .eq("quote_id", sourceQuote.id)
+        .order("item_order");
+
+      if (sourceItems && sourceItems.length > 0) {
+        const newItems = sourceItems.map((item) => ({
+          quote_id: newQuote.id,
+          company_id: selectedCompany.id,
+          item_order: item.item_order,
+          article_id: item.article_id,
+          item_code: item.item_code,
+          item_name: item.item_name,
+          unit: item.unit,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          discount_percent: item.discount_percent,
+          vat_rate: item.vat_rate,
+          line_subtotal: item.line_subtotal,
+          line_vat: item.line_vat,
+          line_total: item.line_total,
+          description: item.description,
+        }));
+
+        const { error: itemsError } = await supabase
+          .from("quote_items")
+          .insert(newItems);
+
+        if (itemsError) throw itemsError;
+      }
+
+      return newQuote;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast.success(`Ponuda kopirana kao nova ${data.quote_number}`);
+    },
+    onError: (error) => {
+      toast.error(`Greška pri kopiranju ponude: ${error.message}`);
+    },
+  });
+
   return {
     quotes: quotesQuery.data || [],
     isLoading: quotesQuery.isLoading,
@@ -479,6 +561,7 @@ export function useQuotes() {
     approveQuote,
     revertQuoteToDraft,
     copyQuote,
+    copyQuoteAsNew,
     getNextQuoteNumber,
   };
 }
