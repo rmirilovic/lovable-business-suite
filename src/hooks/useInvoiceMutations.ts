@@ -32,6 +32,8 @@ export function useInvoiceMutations() {
       if (formData.billing_reference_number !== undefined) updatePayload.billing_reference_number = formData.billing_reference_number;
       if (formData.billing_reference_date !== undefined) updatePayload.billing_reference_date = formData.billing_reference_date;
       if (formData.contract_reference !== undefined) updatePayload.contract_reference = formData.contract_reference;
+      if (formData.tax_category_code !== undefined) updatePayload.tax_category_code = formData.tax_category_code;
+      if (formData.tax_exemption_reason !== undefined) updatePayload.tax_exemption_reason = formData.tax_exemption_reason;
 
       const { data, error } = await supabase
         .from("invoices")
