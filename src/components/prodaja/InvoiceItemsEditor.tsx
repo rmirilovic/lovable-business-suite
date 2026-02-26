@@ -23,7 +23,7 @@ type EditingItem = Partial<InvoiceItemFormData> & { isService?: boolean };
 
 export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange }: InvoiceItemsEditorProps) {
   const { selectedCompany } = useAuth();
-  const { items, isLoading, addItem, deleteItem } = useInvoiceItems(invoiceId);
+  const { items, isLoading, addItem, updateItem, deleteItem } = useInvoiceItems(invoiceId);
 
   const [editingItem, setEditingItem] = useState<EditingItem>({});
   const [isAdding, setIsAdding] = useState(false);
@@ -174,10 +174,53 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                 </div>
               </TableCell>
               <TableCell className="text-center">{item.unit}</TableCell>
-              <TableCell className="text-right">{formatDecimal(item.quantity, 3)}</TableCell>
-              <TableCell className="text-right">{formatPrice(item.unit_price)}</TableCell>
-              <TableCell className="text-right">{formatDecimal(item.discount_percent, 2)}</TableCell>
-              <TableCell className="text-right">{item.vat_rate}%</TableCell>
+              <TableCell className="text-right">
+                {!readOnly ? (
+                  <LocaleNumberInput
+                    className="h-8 w-24 text-right"
+                    value={String(item.quantity)}
+                    onChange={(val) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: parseLocaleNumber(val), unit_price: item.unit_price, discount_percent: item.discount_percent, vat_rate: item.vat_rate, description: item.description })}
+                    decimalPlaces={3}
+                  />
+                ) : formatDecimal(item.quantity, 3)}
+              </TableCell>
+              <TableCell className="text-right">
+                {!readOnly ? (
+                  <LocaleNumberInput
+                    className="h-8 w-28 text-right"
+                    value={String(item.unit_price)}
+                    onChange={(val) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: parseLocaleNumber(val), discount_percent: item.discount_percent, vat_rate: item.vat_rate, description: item.description })}
+                    decimalPlaces={2}
+                  />
+                ) : formatPrice(item.unit_price)}
+              </TableCell>
+              <TableCell className="text-right">
+                {!readOnly ? (
+                  <LocaleNumberInput
+                    className="h-8 w-16 text-right"
+                    value={String(item.discount_percent)}
+                    onChange={(val) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: item.unit_price, discount_percent: parseLocaleNumber(val), vat_rate: item.vat_rate, description: item.description })}
+                    decimalPlaces={2}
+                  />
+                ) : formatDecimal(item.discount_percent, 2)}
+              </TableCell>
+              <TableCell className="text-right">
+                {!readOnly ? (
+                  <Select
+                    value={String(item.vat_rate)}
+                    onValueChange={(v) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: item.unit_price, discount_percent: item.discount_percent, vat_rate: Number(v), description: item.description })}
+                  >
+                    <SelectTrigger className="h-8 w-16">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VAT_RATES.map((rate) => (
+                        <SelectItem key={rate} value={String(rate)}>{rate}%</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : `${item.vat_rate}%`}
+              </TableCell>
               <TableCell className="text-right">{formatPrice(item.line_subtotal)}</TableCell>
               <TableCell className="text-right font-medium">{formatPrice(item.line_total)}</TableCell>
               {!readOnly && (
