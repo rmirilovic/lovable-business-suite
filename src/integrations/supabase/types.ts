@@ -2594,6 +2594,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          bank_account_id: string | null
           billing_reference_date: string | null
           billing_reference_number: string | null
           business_year_id: string
@@ -2603,6 +2604,7 @@ export type Database = {
           created_at: string
           created_by: string
           currency: string
+          datum_prometa: string | null
           due_date: string | null
           header_note: string | null
           id: string
@@ -2611,6 +2613,7 @@ export type Database = {
           invoice_number: string
           invoice_type_code: string
           journal_entry_id: string | null
+          mesto_prometa: string | null
           note: string | null
           org_unit_id: string | null
           partner_address: string | null
@@ -2636,6 +2639,7 @@ export type Database = {
           vat_amount: number
         }
         Insert: {
+          bank_account_id?: string | null
           billing_reference_date?: string | null
           billing_reference_number?: string | null
           business_year_id: string
@@ -2645,6 +2649,7 @@ export type Database = {
           created_at?: string
           created_by: string
           currency?: string
+          datum_prometa?: string | null
           due_date?: string | null
           header_note?: string | null
           id?: string
@@ -2653,6 +2658,7 @@ export type Database = {
           invoice_number: string
           invoice_type_code?: string
           journal_entry_id?: string | null
+          mesto_prometa?: string | null
           note?: string | null
           org_unit_id?: string | null
           partner_address?: string | null
@@ -2678,6 +2684,7 @@ export type Database = {
           vat_amount?: number
         }
         Update: {
+          bank_account_id?: string | null
           billing_reference_date?: string | null
           billing_reference_number?: string | null
           business_year_id?: string
@@ -2687,6 +2694,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           currency?: string
+          datum_prometa?: string | null
           due_date?: string | null
           header_note?: string | null
           id?: string
@@ -2695,6 +2703,7 @@ export type Database = {
           invoice_number?: string
           invoice_type_code?: string
           journal_entry_id?: string | null
+          mesto_prometa?: string | null
           note?: string | null
           org_unit_id?: string | null
           partner_address?: string | null
@@ -2720,6 +2729,13 @@ export type Database = {
           vat_amount?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_business_year_id_fkey"
             columns: ["business_year_id"]
