@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, CheckCircle, ArrowLeft, RefreshCw, History, Pencil, Eye, FileCode } from "lucide-react";
+import { Loader2, CheckCircle, ArrowLeft, RefreshCw, History, Pencil, Eye, FileCode, FileDown, FileSpreadsheet, Printer } from "lucide-react";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { InvoiceItemsEditor } from "@/components/prodaja/InvoiceItemsEditor";
@@ -17,6 +17,8 @@ import { useDocumentLock } from "@/hooks/useDocumentLock";
 import { toast } from "sonner";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { generateInvoiceXml, downloadInvoiceXml } from "@/lib/invoiceXmlGenerator";
+import { generateInvoicePdf, printInvoicePdf } from "@/lib/invoicePdfGenerator";
+import { exportInvoiceToExcel } from "@/lib/invoiceExcelExport";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import {
   AlertDialog,
@@ -219,6 +221,59 @@ export default function InvoiceEdit() {
     toast.success("eFaktura XML je uspešno exportovan");
   };
 
+  const fetchInvoiceDataForExport = async () => {
+    if (!invoice || !selectedCompany) return null;
+
+    const [itemsRes, companyRes] = await Promise.all([
+      supabase.from("invoice_items").select("*").eq("invoice_id", invoice.id).order("item_order"),
+      supabase.from("companies").select("*").eq("id", selectedCompany.id).single(),
+    ]);
+
+    if (itemsRes.error || !itemsRes.data) { toast.error("Greška pri učitavanju stavki"); return null; }
+    if (companyRes.error || !companyRes.data) { toast.error("Greška pri učitavanju podataka o firmi"); return null; }
+
+    const co = companyRes.data;
+    const defaultBank = bankAccounts.find((b) => b.is_default && b.is_active) || bankAccounts.find((b) => b.is_active);
+
+    return {
+      items: itemsRes.data as any,
+      company: {
+        name: co.name, address: co.address, city: co.city, postal_code: co.postal_code,
+        pib: co.pib, mb: co.mb, phone: co.phone, email: co.email,
+        invoice_note_1: co.invoice_note_1, invoice_note_2: co.invoice_note_2,
+        logo_url: co.logo_url, logo_text: co.logo_text, responsible_person_name: co.responsible_person_name,
+      },
+      partner: {
+        name: invoice.partner?.name || invoice.partner_name || "", code: invoice.partner?.code || "",
+        address: invoice.partner?.address, city: invoice.partner?.city,
+        postal_code: invoice.partner?.postal_code, pib: invoice.partner?.pib, mb: invoice.partner?.mb,
+      },
+      bankAccountText: defaultBank ? `${defaultBank.account_number} (${defaultBank.bank_name})` : null,
+    };
+  };
+
+  const handleExportPdf = async () => {
+    const data = await fetchInvoiceDataForExport();
+    if (!data || !invoice) return;
+    await generateInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText);
+    toast.success("PDF je uspešno exportovan");
+  };
+
+  const handlePrint = async () => {
+    const data = await fetchInvoiceDataForExport();
+    if (!data || !invoice) return;
+    await printInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText);
+  };
+
+  const handleExportExcel = async () => {
+    if (!invoice) return;
+    const { data: itemsData, error } = await supabase
+      .from("invoice_items").select("*").eq("invoice_id", invoice.id).order("item_order");
+    if (error || !itemsData) { toast.error("Greška pri učitavanju stavki"); return; }
+    exportInvoiceToExcel(invoice, itemsData as any);
+    toast.success("Excel je uspešno exportovan");
+  };
+
   if (isLoading || !selectedCompany || !selectedYear) {
     return (
       <MainLayout title="Učitavanje...">
@@ -265,6 +320,15 @@ export default function InvoiceEdit() {
             </Button>
             <Button variant="ghost" size="sm" onClick={() => fetchInvoice()} title="Osveži">
               <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPdf} title="PDF">
+              <FileDown className="w-4 h-4 mr-2" />PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportExcel} title="Excel">
+              <FileSpreadsheet className="w-4 h-4 mr-2" />Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} title="Štampa">
+              <Printer className="w-4 h-4 mr-2" />Štampa
             </Button>
             <Button variant="outline" size="sm" onClick={handleExportXml} title="eFaktura XML">
               <FileCode className="w-4 h-4 mr-2" />eFaktura XML
