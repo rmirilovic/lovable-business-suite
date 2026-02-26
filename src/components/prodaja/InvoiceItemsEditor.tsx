@@ -356,22 +356,6 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
         </TableBody>
       </Table>
 
-      <div className="flex justify-end">
-        <div className="w-72 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Osnovica:</span>
-            <span>{formatPrice(items.reduce((sum, i) => sum + i.line_subtotal, 0))}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">PDV:</span>
-            <span>{formatPrice(items.reduce((sum, i) => sum + i.line_vat, 0))}</span>
-          </div>
-          <div className="flex justify-between border-t pt-2 text-base font-semibold">
-            <span>Ukupno:</span>
-            <span>{formatPrice(items.reduce((sum, i) => sum + i.line_total, 0))}</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
