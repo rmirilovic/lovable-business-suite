@@ -70,6 +70,8 @@ export function InvoiceHeaderDialog({
     billing_reference_number: "" as string | null,
     billing_reference_date: "" as string | null,
     contract_reference: "" as string | null,
+    tax_category_code: "S",
+    tax_exemption_reason: "" as string | null,
   });
 
   useEffect(() => {
@@ -98,6 +100,8 @@ export function InvoiceHeaderDialog({
       billing_reference_number: invoice.billing_reference_number || "",
       billing_reference_date: invoice.billing_reference_date || "",
       contract_reference: invoice.contract_reference || "",
+      tax_category_code: invoice.tax_category_code || "S",
+      tax_exemption_reason: invoice.tax_exemption_reason || "",
     });
   }, [invoice, open]);
 
@@ -136,6 +140,8 @@ export function InvoiceHeaderDialog({
       billing_reference_number: formData.billing_reference_number || null,
       billing_reference_date: formData.billing_reference_date || null,
       contract_reference: formData.contract_reference || null,
+      tax_category_code: formData.tax_category_code,
+      tax_exemption_reason: formData.tax_category_code !== "S" ? (formData.tax_exemption_reason || null) : null,
     });
     onOpenChange(false);
     onSaved?.();
@@ -372,6 +378,39 @@ export function InvoiceHeaderDialog({
                   autoComplete="off"
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">PDV kategorija</Label>
+                <Select
+                  value={formData.tax_category_code}
+                  onValueChange={(v) => setFormData({ ...formData, tax_category_code: v, tax_exemption_reason: v === "S" ? "" : formData.tax_exemption_reason })}
+                  disabled={readOnly}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="S">S - Standardna stopa</SelectItem>
+                    <SelectItem value="E">E - Oslobođeno PDV-a</SelectItem>
+                    <SelectItem value="O">O - Van sistema PDV-a</SelectItem>
+                    <SelectItem value="AE">AE - Obrnuti obračun</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.tax_category_code !== "S" && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Osnov oslobođenja (član, stav, tačka)</Label>
+                  <Input
+                    value={formData.tax_exemption_reason || ""}
+                    onChange={(e) => setFormData({ ...formData, tax_exemption_reason: e.target.value || null })}
+                    className="h-8 text-sm"
+                    placeholder="Npr. Član 25. stav 2. tačka 1."
+                    disabled={readOnly}
+                    autoComplete="off"
+                  />
+                </div>
+              )}
             </div>
             {formData.invoice_type_code === "381" && (
               <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg">

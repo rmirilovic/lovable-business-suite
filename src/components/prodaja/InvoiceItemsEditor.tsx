@@ -19,13 +19,6 @@ interface InvoiceItemsEditorProps {
 
 const VAT_RATES = [0, 10, 20];
 
-const TAX_CATEGORIES = [
-  { value: "S", label: "S - Standardna" },
-  { value: "E", label: "E - Oslobođeno" },
-  { value: "O", label: "O - Van PDV" },
-  { value: "AE", label: "AE - Obrnuti obračun" },
-];
-
 type EditingItem = Partial<InvoiceItemFormData> & { isService?: boolean };
 
 export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange }: InvoiceItemsEditorProps) {
@@ -179,7 +172,6 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
             <TableHead className="w-32 text-right">Cena</TableHead>
             <TableHead className="w-20 text-right">Rab.%</TableHead>
             <TableHead className="w-20 text-right">PDV%</TableHead>
-            <TableHead className="w-28">PDV kat.</TableHead>
             <TableHead className="w-32 text-right">Osnovica</TableHead>
             <TableHead className="w-32 text-right">Ukupno</TableHead>
             {!readOnly && <TableHead className="w-16"></TableHead>}
@@ -187,7 +179,6 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
         </TableHeader>
         <TableBody>
           {items.map((item, index) => {
-            const needsExemptionReason = item.tax_category_code && item.tax_category_code !== "S";
             return (
             <TableRow key={item.id}>
               <TableCell className="text-muted-foreground">{index + 1}</TableCell>
@@ -249,40 +240,6 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                     </SelectContent>
                   </Select>
                 ) : `${item.vat_rate}%`}
-              </TableCell>
-              <TableCell>
-                {!readOnly ? (
-                  <div className="space-y-1">
-                    <Select
-                      value={item.tax_category_code || "S"}
-                      onValueChange={(v) => updateItem.mutate({ ...buildItemPayload(item), tax_category_code: v, tax_exemption_reason: v === "S" ? null : item.tax_exemption_reason })}
-                    >
-                      <SelectTrigger className="h-8 w-full text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TAX_CATEGORIES.map((cat) => (
-                          <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {needsExemptionReason && (
-                      <Input
-                        className="h-7 text-xs"
-                        placeholder="Član, stav, tačka..."
-                        value={item.tax_exemption_reason || ""}
-                        onChange={(e) => updateItem.mutate({ ...buildItemPayload(item), tax_exemption_reason: e.target.value || null })}
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-xs">
-                    <span>{item.tax_category_code || "S"}</span>
-                    {item.tax_exemption_reason && (
-                      <p className="text-muted-foreground mt-0.5">{item.tax_exemption_reason}</p>
-                    )}
-                  </div>
-                )}
               </TableCell>
               <TableCell className="text-right">{formatPrice(item.line_subtotal)}</TableCell>
               <TableCell className="text-right font-medium">{formatPrice(item.line_total)}</TableCell>
@@ -385,31 +342,6 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                   </SelectContent>
                 </Select>
               </TableCell>
-              <TableCell>
-                <div className="space-y-1">
-                  <Select
-                    value={editingItem.tax_category_code || "S"}
-                    onValueChange={(v) => setEditingItem({ ...editingItem, tax_category_code: v, tax_exemption_reason: v === "S" ? null : editingItem.tax_exemption_reason })}
-                  >
-                    <SelectTrigger className="h-8 w-full text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TAX_CATEGORIES.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {editingItem.tax_category_code && editingItem.tax_category_code !== "S" && (
-                    <Input
-                      className="h-7 text-xs"
-                      placeholder="Član, stav, tačka..."
-                      value={editingItem.tax_exemption_reason || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, tax_exemption_reason: e.target.value || null })}
-                    />
-                  )}
-                </div>
-              </TableCell>
               <TableCell className="text-right text-sm text-muted-foreground">
                 {formatPrice(editingTotals.subtotal)}
               </TableCell>
@@ -437,7 +369,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
 
           {items.length === 0 && !isAdding && (
             <TableRow>
-              <TableCell colSpan={readOnly ? 11 : 12} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={readOnly ? 10 : 11} className="text-center text-muted-foreground py-8">
                 Nema stavki. Dodajte artikal ili uslugu.
               </TableCell>
             </TableRow>

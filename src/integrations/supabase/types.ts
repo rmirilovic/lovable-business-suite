@@ -2629,6 +2629,8 @@ export type Database = {
           source_quote_id: string | null
           status: Database["public"]["Enums"]["document_status"]
           subtotal: number
+          tax_category_code: string
+          tax_exemption_reason: string | null
           total_amount: number
           updated_at: string
           vat_amount: number
@@ -2669,6 +2671,8 @@ export type Database = {
           source_quote_id?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           subtotal?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
           total_amount?: number
           updated_at?: string
           vat_amount?: number
@@ -2709,6 +2713,8 @@ export type Database = {
           source_quote_id?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           subtotal?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
           total_amount?: number
           updated_at?: string
           vat_amount?: number

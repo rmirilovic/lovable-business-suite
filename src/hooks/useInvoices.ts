@@ -44,6 +44,8 @@ export interface Invoice {
   billing_reference_number: string | null;
   billing_reference_date: string | null;
   contract_reference: string | null;
+  tax_category_code: string;
+  tax_exemption_reason: string | null;
   partner?: {
     id: string;
     name: string;
@@ -97,6 +99,8 @@ export interface InvoiceFormData {
   billing_reference_number?: string | null;
   billing_reference_date?: string | null;
   contract_reference?: string | null;
+  tax_category_code?: string;
+  tax_exemption_reason?: string | null;
 }
 
 export interface InvoiceItemFormData {

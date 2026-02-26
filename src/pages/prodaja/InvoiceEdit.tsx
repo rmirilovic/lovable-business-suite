@@ -343,6 +343,23 @@ export default function InvoiceEdit() {
             </div>
           </div>
         </div>
+
+        {/* Tax exemption note */}
+        {invoice.tax_category_code && invoice.tax_category_code !== "S" ? (
+          <div className="rounded-md bg-muted/50 p-3 text-sm">
+            <span className="text-muted-foreground">Poresko oslobođenje: </span>
+            <span className="font-medium">
+              {invoice.tax_category_code === "E" && "Oslobođeno PDV-a"}
+              {invoice.tax_category_code === "O" && "Van sistema PDV-a"}
+              {invoice.tax_category_code === "AE" && "Obrnuti obračun PDV-a"}
+              {invoice.tax_exemption_reason && ` — ${invoice.tax_exemption_reason}`}
+            </span>
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground">
+            Poreskog oslobođenja nema.
+          </div>
+        )}
       </div>
 
       {headerDialogOpen && (
