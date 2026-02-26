@@ -41,6 +41,9 @@ export interface Invoice {
   payment_means_code: string;
   partner_country_code: string;
   partner_jbkjs: string | null;
+  billing_reference_number: string | null;
+  billing_reference_date: string | null;
+  contract_reference: string | null;
   partner?: {
     id: string;
     name: string;
@@ -85,6 +88,15 @@ export interface InvoiceFormData {
   internal_note: string | null;
   source_quote_id?: string | null;
   source_delivery_note_id?: string | null;
+  // eFaktura fields
+  invoice_type_code?: string;
+  currency?: string;
+  payment_means_code?: string;
+  partner_country_code?: string;
+  partner_jbkjs?: string | null;
+  billing_reference_number?: string | null;
+  billing_reference_date?: string | null;
+  contract_reference?: string | null;
 }
 
 export interface InvoiceItemFormData {

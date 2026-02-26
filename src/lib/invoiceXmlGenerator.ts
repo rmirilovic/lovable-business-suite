@@ -111,14 +111,24 @@ export function generateInvoiceXml(data: InvoiceXmlData): string {
   const paymentMeansCode = (invoice as any).payment_means_code || "30";
   const partnerCountryCode = (invoice as any).partner_country_code || "RS";
   const partnerJbkjs = (invoice as any).partner_jbkjs || null;
+  const billingRefNumber = (invoice as any).billing_reference_number || null;
+  const billingRefDate = (invoice as any).billing_reference_date || null;
+  const contractReference = (invoice as any).contract_reference || null;
 
+  const isCreditNote = invoiceTypeCode === "381";
   const taxGroups = groupTaxes(items);
 
   const lines: string[] = [];
 
+  // Determine root element based on document type
+  const rootElement = isCreditNote ? "CreditNote" : "Invoice";
+  const rootNs = isCreditNote
+    ? "urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2"
+    : "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
+
   // XML declaration and root element
   lines.push(`<?xml version="1.0" encoding="UTF-8"?>`);
-  lines.push(`<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"`);
+  lines.push(`<${rootElement} xmlns="${rootNs}"`);
   lines.push(`  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"`);
   lines.push(`  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"`);
   lines.push(`  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">`);
@@ -132,7 +142,11 @@ export function generateInvoiceXml(data: InvoiceXmlData): string {
     lines.push(`  <cbc:DueDate>${formatDate(invoice.due_date)}</cbc:DueDate>`);
   }
 
-  lines.push(`  <cbc:InvoiceTypeCode>${escapeXml(invoiceTypeCode)}</cbc:InvoiceTypeCode>`);
+  if (isCreditNote) {
+    lines.push(`  <cbc:CreditNoteTypeCode>${escapeXml(invoiceTypeCode)}</cbc:CreditNoteTypeCode>`);
+  } else {
+    lines.push(`  <cbc:InvoiceTypeCode>${escapeXml(invoiceTypeCode)}</cbc:InvoiceTypeCode>`);
+  }
 
   // Notes
   if (invoice.note) {
@@ -141,11 +155,30 @@ export function generateInvoiceXml(data: InvoiceXmlData): string {
 
   lines.push(`  <cbc:DocumentCurrencyCode>${escapeXml(currency)}</cbc:DocumentCurrencyCode>`);
 
+  // Contract reference (for advance invoices or general use)
+  if (contractReference) {
+    lines.push(`  <cac:ContractDocumentReference>`);
+    lines.push(`    <cbc:ID>${escapeXml(contractReference)}</cbc:ID>`);
+    lines.push(`  </cac:ContractDocumentReference>`);
+  }
+
   // Invoice period (using invoice date)
   lines.push(`  <cac:InvoicePeriod>`);
   lines.push(`    <cbc:StartDate>${formatDate(invoice.invoice_date)}</cbc:StartDate>`);
   lines.push(`    <cbc:EndDate>${formatDate(invoice.invoice_date)}</cbc:EndDate>`);
   lines.push(`  </cac:InvoicePeriod>`);
+
+  // Billing reference (required for credit notes)
+  if (isCreditNote && billingRefNumber) {
+    lines.push(`  <cac:BillingReference>`);
+    lines.push(`    <cac:InvoiceDocumentReference>`);
+    lines.push(`      <cbc:ID>${escapeXml(billingRefNumber)}</cbc:ID>`);
+    if (billingRefDate) {
+      lines.push(`      <cbc:IssueDate>${formatDate(billingRefDate)}</cbc:IssueDate>`);
+    }
+    lines.push(`    </cac:InvoiceDocumentReference>`);
+    lines.push(`  </cac:BillingReference>`);
+  }
 
   // Supplier (AccountingSupplierParty)
   lines.push(`  <cac:AccountingSupplierParty>`);
@@ -291,15 +324,19 @@ export function generateInvoiceXml(data: InvoiceXmlData): string {
   lines.push(`    <cbc:PayableAmount currencyID="${escapeXml(currency)}">${formatAmount(invoice.total_amount)}</cbc:PayableAmount>`);
   lines.push(`  </cac:LegalMonetaryTotal>`);
 
-  // Invoice Lines
+  // Line element names differ for credit notes vs invoices
+  const lineElement = isCreditNote ? "CreditNoteLine" : "InvoiceLine";
+  const quantityElement = isCreditNote ? "CreditedQuantity" : "InvoicedQuantity";
+
+  // Document Lines
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    const catCode = (item as any).tax_category_code || "S";
-    const exemptionReason = (item as any).tax_exemption_reason || null;
+    const catCode = item.tax_category_code || "S";
+    const exemptionReason = item.tax_exemption_reason || null;
 
-    lines.push(`  <cac:InvoiceLine>`);
+    lines.push(`  <cac:${lineElement}>`);
     lines.push(`    <cbc:ID>${i + 1}</cbc:ID>`);
-    lines.push(`    <cbc:InvoicedQuantity unitCode="${escapeXml(item.unit)}">${formatAmount(item.quantity)}</cbc:InvoicedQuantity>`);
+    lines.push(`    <cbc:${quantityElement} unitCode="${escapeXml(item.unit)}">${formatAmount(item.quantity)}</cbc:${quantityElement}>`);
     lines.push(`    <cbc:LineExtensionAmount currencyID="${escapeXml(currency)}">${formatAmount(item.line_subtotal)}</cbc:LineExtensionAmount>`);
 
     // Discount
@@ -341,10 +378,10 @@ export function generateInvoiceXml(data: InvoiceXmlData): string {
     lines.push(`      <cbc:PriceAmount currencyID="${escapeXml(currency)}">${formatAmount(item.unit_price)}</cbc:PriceAmount>`);
     lines.push(`    </cac:Price>`);
 
-    lines.push(`  </cac:InvoiceLine>`);
+    lines.push(`  </cac:${lineElement}>`);
   }
 
-  lines.push(`</Invoice>`);
+  lines.push(`</${rootElement}>`);
 
   return lines.join("\n");
 }

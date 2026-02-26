@@ -15,16 +15,27 @@ export function useInvoiceMutations() {
 
   const updateInvoice = useMutation({
     mutationFn: async ({ id, ...formData }: InvoiceFormData & { id: string }) => {
+      const updatePayload: Record<string, any> = {
+        invoice_date: formData.invoice_date,
+        due_date: formData.due_date,
+        partner_id: formData.partner_id,
+        org_unit_id: formData.org_unit_id,
+        note: formData.note,
+        internal_note: formData.internal_note,
+      };
+      // Include eFaktura fields if provided
+      if (formData.invoice_type_code !== undefined) updatePayload.invoice_type_code = formData.invoice_type_code;
+      if (formData.currency !== undefined) updatePayload.currency = formData.currency;
+      if (formData.payment_means_code !== undefined) updatePayload.payment_means_code = formData.payment_means_code;
+      if (formData.partner_country_code !== undefined) updatePayload.partner_country_code = formData.partner_country_code;
+      if (formData.partner_jbkjs !== undefined) updatePayload.partner_jbkjs = formData.partner_jbkjs;
+      if (formData.billing_reference_number !== undefined) updatePayload.billing_reference_number = formData.billing_reference_number;
+      if (formData.billing_reference_date !== undefined) updatePayload.billing_reference_date = formData.billing_reference_date;
+      if (formData.contract_reference !== undefined) updatePayload.contract_reference = formData.contract_reference;
+
       const { data, error } = await supabase
         .from("invoices")
-        .update({
-          invoice_date: formData.invoice_date,
-          due_date: formData.due_date,
-          partner_id: formData.partner_id,
-          org_unit_id: formData.org_unit_id,
-          note: formData.note,
-          internal_note: formData.internal_note,
-        })
+        .update(updatePayload)
         .eq("id", id)
         .select()
         .single();

@@ -2150,9 +2150,12 @@ export type Database = {
       }
       invoices: {
         Row: {
+          billing_reference_date: string | null
+          billing_reference_number: string | null
           business_year_id: string
           company_id: string
           composed_by: string | null
+          contract_reference: string | null
           created_at: string
           created_by: string
           currency: string
@@ -2187,9 +2190,12 @@ export type Database = {
           vat_amount: number
         }
         Insert: {
+          billing_reference_date?: string | null
+          billing_reference_number?: string | null
           business_year_id: string
           company_id: string
           composed_by?: string | null
+          contract_reference?: string | null
           created_at?: string
           created_by: string
           currency?: string
@@ -2224,9 +2230,12 @@ export type Database = {
           vat_amount?: number
         }
         Update: {
+          billing_reference_date?: string | null
+          billing_reference_number?: string | null
           business_year_id?: string
           company_id?: string
           composed_by?: string | null
+          contract_reference?: string | null
           created_at?: string
           created_by?: string
           currency?: string
