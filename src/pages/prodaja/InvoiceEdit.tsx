@@ -54,6 +54,11 @@ export default function InvoiceEdit() {
     total_amount: hasMatchingPrefetchedInvoice ? prefetchedInvoice!.total_amount : 0,
   });
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [linkedDocs, setLinkedDocs] = useState<{
+    deliveryNoteNumber?: string;
+    deliveryOrderNumber?: string;
+    quoteNumber?: string;
+  }>({});
 
   const { postInvoice } = useInvoiceMutations();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
@@ -93,6 +98,53 @@ export default function InvoiceEdit() {
       total_amount: data.total_amount,
     });
     setIsLoading(false);
+
+    // Fetch linked document numbers
+    fetchLinkedDocs(data);
+  };
+
+  const fetchLinkedDocs = async (inv: any) => {
+    const docs: typeof linkedDocs = {};
+
+    // If invoice came from a delivery note
+    if (inv.source_delivery_note_id) {
+      const { data: dn } = await supabase
+        .from("delivery_notes")
+        .select("delivery_number")
+        .eq("id", inv.source_delivery_note_id)
+        .single();
+      if (dn) docs.deliveryNoteNumber = dn.delivery_number;
+
+      // Check if delivery note has a linked delivery order with a quote
+      const { data: doData } = await supabase
+        .from("delivery_orders")
+        .select("order_number, source_quote_id")
+        .eq("delivery_note_id", inv.source_delivery_note_id)
+        .maybeSingle();
+      if (doData) {
+        docs.deliveryOrderNumber = doData.order_number;
+        if (doData.source_quote_id) {
+          const { data: q } = await supabase
+            .from("quotes")
+            .select("quote_number")
+            .eq("id", doData.source_quote_id)
+            .single();
+          if (q) docs.quoteNumber = q.quote_number;
+        }
+      }
+    }
+
+    // If invoice came directly from a quote
+    if (inv.source_quote_id && !docs.quoteNumber) {
+      const { data: q } = await supabase
+        .from("quotes")
+        .select("quote_number")
+        .eq("id", inv.source_quote_id)
+        .single();
+      if (q) docs.quoteNumber = q.quote_number;
+    }
+
+    setLinkedDocs(docs);
   };
 
   useEffect(() => {
@@ -327,12 +379,27 @@ export default function InvoiceEdit() {
           </div>
         )}
 
-        {/* Source document */}
-        {(invoice.source_quote_id || invoice.source_delivery_note_id) && (
-          <div className="rounded-md bg-muted/50 p-3 text-sm">
-            <span className="text-muted-foreground">Izvor: </span>
-            {invoice.source_quote_id && <span className="font-medium">Ponuda</span>}
-            {invoice.source_delivery_note_id && <span className="font-medium">Otpremnica</span>}
+        {/* Linked documents */}
+        {(linkedDocs.deliveryNoteNumber || linkedDocs.deliveryOrderNumber || linkedDocs.quoteNumber) && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            {linkedDocs.deliveryNoteNumber && (
+              <div>
+                <div className="text-muted-foreground">Otpremnica</div>
+                <div className="font-medium">{linkedDocs.deliveryNoteNumber}</div>
+              </div>
+            )}
+            {linkedDocs.deliveryOrderNumber && (
+              <div>
+                <div className="text-muted-foreground">Nalog za isporuku</div>
+                <div className="font-medium">{linkedDocs.deliveryOrderNumber}</div>
+              </div>
+            )}
+            {linkedDocs.quoteNumber && (
+              <div>
+                <div className="text-muted-foreground">Ponuda</div>
+                <div className="font-medium">{linkedDocs.quoteNumber}</div>
+              </div>
+            )}
           </div>
         )}
 
