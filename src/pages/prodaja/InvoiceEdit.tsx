@@ -283,6 +283,26 @@ export default function InvoiceEdit() {
           </div>
         </div>
 
+        {/* PDV category */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <div className="text-muted-foreground">PDV kategorija</div>
+            <div className="font-medium">
+              {invoice.tax_category_code === "S" && "S - Standardna stopa"}
+              {invoice.tax_category_code === "E" && "E - Oslobođeno PDV-a"}
+              {invoice.tax_category_code === "O" && "O - Van sistema PDV-a"}
+              {invoice.tax_category_code === "AE" && "AE - Obrnuti obračun"}
+              {!invoice.tax_category_code && "S - Standardna stopa"}
+            </div>
+          </div>
+          {invoice.tax_category_code && invoice.tax_category_code !== "S" && invoice.tax_exemption_reason && (
+            <div className="col-span-2">
+              <div className="text-muted-foreground">Osnov oslobođenja</div>
+              <div className="font-medium">{invoice.tax_exemption_reason}</div>
+            </div>
+          )}
+        </div>
+
         {/* Notes */}
         {(invoice.note || invoice.internal_note || invoice.header_note) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
