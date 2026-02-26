@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, ArrowLeft, RefreshCw, Plus, Trash2, FileCode } from "lucide-react";
 import { CreditNote, CreditNoteItem, useCreditNoteItems, useCreditNotes } from "@/hooks/useCreditNotes";
-import { formatDate, formatPrice } from "@/lib/formatting";
+import { formatDate, formatPrice, parseLocaleNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -216,13 +216,13 @@ export default function CreditNoteEdit() {
                     </TableCell>
                     <TableCell className="text-sm">{item.unit}</TableCell>
                     <TableCell>
-                      {isDraft ? <LocaleNumberInput value={item.quantity} onChange={(v) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: v, unit_price: item.unit_price, discount_percent: item.discount_percent, vat_rate: item.vat_rate, description: item.description })} className="h-8 text-sm w-[70px]" /> : item.quantity}
+                      {isDraft ? <LocaleNumberInput value={String(item.quantity)} onChange={(v) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: parseLocaleNumber(v), unit_price: item.unit_price, discount_percent: item.discount_percent, vat_rate: item.vat_rate, description: item.description })} className="h-8 text-sm w-[70px]" /> : item.quantity}
                     </TableCell>
                     <TableCell>
-                      {isDraft ? <LocaleNumberInput value={item.unit_price} onChange={(v) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: v, discount_percent: item.discount_percent, vat_rate: item.vat_rate, description: item.description })} className="h-8 text-sm w-[90px]" /> : formatPrice(item.unit_price)}
+                      {isDraft ? <LocaleNumberInput value={String(item.unit_price)} onChange={(v) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: parseLocaleNumber(v), discount_percent: item.discount_percent, vat_rate: item.vat_rate, description: item.description })} className="h-8 text-sm w-[90px]" /> : formatPrice(item.unit_price)}
                     </TableCell>
                     <TableCell>
-                      {isDraft ? <LocaleNumberInput value={item.discount_percent} onChange={(v) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: item.unit_price, discount_percent: v, vat_rate: item.vat_rate, description: item.description })} className="h-8 text-sm w-[60px]" /> : `${item.discount_percent}%`}
+                      {isDraft ? <LocaleNumberInput value={String(item.discount_percent)} onChange={(v) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: item.unit_price, discount_percent: parseLocaleNumber(v), vat_rate: item.vat_rate, description: item.description })} className="h-8 text-sm w-[60px]" /> : `${item.discount_percent}%`}
                     </TableCell>
                     <TableCell className="text-sm">{item.vat_rate}%</TableCell>
                     <TableCell className="text-right">{formatPrice(item.line_subtotal)}</TableCell>
