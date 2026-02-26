@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,6 +61,15 @@ export function InvoiceHeaderDialog({
     partner_pib: "" as string | null,
     partner_mb: "" as string | null,
     composed_by: "" as string | null,
+    // eFaktura fields
+    invoice_type_code: "380",
+    currency: "RSD",
+    payment_means_code: "30",
+    partner_country_code: "RS",
+    partner_jbkjs: "" as string | null,
+    billing_reference_number: "" as string | null,
+    billing_reference_date: "" as string | null,
+    contract_reference: "" as string | null,
   });
 
   useEffect(() => {
@@ -79,6 +89,15 @@ export function InvoiceHeaderDialog({
       partner_pib: invoice.partner_pib ?? invoice.partner?.pib ?? "",
       partner_mb: invoice.partner_mb ?? invoice.partner?.mb ?? "",
       composed_by: invoice.composed_by || "",
+      // eFaktura fields
+      invoice_type_code: invoice.invoice_type_code || "380",
+      currency: invoice.currency || "RSD",
+      payment_means_code: invoice.payment_means_code || "30",
+      partner_country_code: invoice.partner_country_code || "RS",
+      partner_jbkjs: invoice.partner_jbkjs || "",
+      billing_reference_number: invoice.billing_reference_number || "",
+      billing_reference_date: invoice.billing_reference_date || "",
+      contract_reference: invoice.contract_reference || "",
     });
   }, [invoice, open]);
 
@@ -108,6 +127,15 @@ export function InvoiceHeaderDialog({
       org_unit_id: formData.org_unit_id || null,
       note: formData.note || null,
       internal_note: formData.internal_note || null,
+      // eFaktura fields
+      invoice_type_code: formData.invoice_type_code,
+      currency: formData.currency,
+      payment_means_code: formData.payment_means_code,
+      partner_country_code: formData.partner_country_code,
+      partner_jbkjs: formData.partner_jbkjs || null,
+      billing_reference_number: formData.billing_reference_number || null,
+      billing_reference_date: formData.billing_reference_date || null,
+      contract_reference: formData.contract_reference || null,
     });
     onOpenChange(false);
     onSaved?.();
@@ -244,6 +272,130 @@ export function InvoiceHeaderDialog({
                 autoComplete="off"
               />
             </div>
+          </div>
+
+          <Separator />
+
+          {/* eFaktura section */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-muted-foreground">eFaktura podešavanja</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Tip dokumenta</Label>
+                <Select
+                  value={formData.invoice_type_code}
+                  onValueChange={(v) => setFormData({ ...formData, invoice_type_code: v })}
+                  disabled={readOnly}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="380">380 - Faktura</SelectItem>
+                    <SelectItem value="381">381 - Knjižno odobrenje</SelectItem>
+                    <SelectItem value="386">386 - Avansni račun</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Valuta</Label>
+                <Select
+                  value={formData.currency}
+                  onValueChange={(v) => setFormData({ ...formData, currency: v })}
+                  disabled={readOnly}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="RSD">RSD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="CHF">CHF</SelectItem>
+                    <SelectItem value="GBP">GBP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Način plaćanja</Label>
+                <Select
+                  value={formData.payment_means_code}
+                  onValueChange={(v) => setFormData({ ...formData, payment_means_code: v })}
+                  disabled={readOnly}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 - Virman</SelectItem>
+                    <SelectItem value="10">10 - Gotovina</SelectItem>
+                    <SelectItem value="42">42 - Kompenzacija</SelectItem>
+                    <SelectItem value="48">48 - Kartica</SelectItem>
+                    <SelectItem value="49">49 - Direktno zaduženje</SelectItem>
+                    <SelectItem value="ZZZ">ZZZ - Dogovoreno</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Država kupca</Label>
+                <Input
+                  value={formData.partner_country_code}
+                  onChange={(e) => setFormData({ ...formData, partner_country_code: e.target.value.toUpperCase() })}
+                  className="h-8 text-sm"
+                  maxLength={2}
+                  placeholder="RS"
+                  disabled={readOnly}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">JBKJS (za B2G)</Label>
+                <Input
+                  value={formData.partner_jbkjs || ""}
+                  onChange={(e) => setFormData({ ...formData, partner_jbkjs: e.target.value || null })}
+                  className="h-8 text-sm"
+                  placeholder="Broj JBKJS..."
+                  disabled={readOnly}
+                  autoComplete="off"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Ugovor/referenca</Label>
+                <Input
+                  value={formData.contract_reference || ""}
+                  onChange={(e) => setFormData({ ...formData, contract_reference: e.target.value || null })}
+                  className="h-8 text-sm"
+                  placeholder="Broj ugovora..."
+                  disabled={readOnly}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+            {formData.invoice_type_code === "381" && (
+              <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Broj originalne fakture *</Label>
+                  <Input
+                    value={formData.billing_reference_number || ""}
+                    onChange={(e) => setFormData({ ...formData, billing_reference_number: e.target.value || null })}
+                    className="h-8 text-sm"
+                    placeholder="Npr. FAK-2026-001"
+                    disabled={readOnly}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Datum originalne fakture</Label>
+                  <LocaleDateInput
+                    value={formData.billing_reference_date || ""}
+                    onChange={(v) => setFormData({ ...formData, billing_reference_date: v || null })}
+                    disabled={readOnly}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Notes */}
