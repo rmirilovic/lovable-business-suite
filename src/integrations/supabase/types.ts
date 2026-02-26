@@ -2076,6 +2076,8 @@ export type Database = {
           line_total: number
           line_vat: number
           quantity: number
+          tax_category_code: string
+          tax_exemption_reason: string | null
           unit: string
           unit_price: number
           vat_rate: number
@@ -2095,6 +2097,8 @@ export type Database = {
           line_total?: number
           line_vat?: number
           quantity?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
           unit?: string
           unit_price?: number
           vat_rate?: number
@@ -2114,6 +2118,8 @@ export type Database = {
           line_total?: number
           line_vat?: number
           quantity?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
           unit?: string
           unit_price?: number
           vat_rate?: number
@@ -2149,22 +2155,27 @@ export type Database = {
           composed_by: string | null
           created_at: string
           created_by: string
+          currency: string
           due_date: string | null
           header_note: string | null
           id: string
           internal_note: string | null
           invoice_date: string
           invoice_number: string
+          invoice_type_code: string
           journal_entry_id: string | null
           note: string | null
           org_unit_id: string | null
           partner_address: string | null
           partner_city: string | null
+          partner_country_code: string
           partner_id: string
+          partner_jbkjs: string | null
           partner_mb: string | null
           partner_name: string | null
           partner_pib: string | null
           partner_postal_code: string | null
+          payment_means_code: string
           posted_at: string | null
           posted_by: string | null
           source_delivery_note_id: string | null
@@ -2181,22 +2192,27 @@ export type Database = {
           composed_by?: string | null
           created_at?: string
           created_by: string
+          currency?: string
           due_date?: string | null
           header_note?: string | null
           id?: string
           internal_note?: string | null
           invoice_date?: string
           invoice_number: string
+          invoice_type_code?: string
           journal_entry_id?: string | null
           note?: string | null
           org_unit_id?: string | null
           partner_address?: string | null
           partner_city?: string | null
+          partner_country_code?: string
           partner_id: string
+          partner_jbkjs?: string | null
           partner_mb?: string | null
           partner_name?: string | null
           partner_pib?: string | null
           partner_postal_code?: string | null
+          payment_means_code?: string
           posted_at?: string | null
           posted_by?: string | null
           source_delivery_note_id?: string | null
@@ -2213,22 +2229,27 @@ export type Database = {
           composed_by?: string | null
           created_at?: string
           created_by?: string
+          currency?: string
           due_date?: string | null
           header_note?: string | null
           id?: string
           internal_note?: string | null
           invoice_date?: string
           invoice_number?: string
+          invoice_type_code?: string
           journal_entry_id?: string | null
           note?: string | null
           org_unit_id?: string | null
           partner_address?: string | null
           partner_city?: string | null
+          partner_country_code?: string
           partner_id?: string
+          partner_jbkjs?: string | null
           partner_mb?: string | null
           partner_name?: string | null
           partner_pib?: string | null
           partner_postal_code?: string | null
+          payment_means_code?: string
           posted_at?: string | null
           posted_by?: string | null
           source_delivery_note_id?: string | null

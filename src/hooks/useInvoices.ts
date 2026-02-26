@@ -35,6 +35,12 @@ export interface Invoice {
   partner_pib: string | null;
   partner_mb: string | null;
   composed_by: string | null;
+  // eFaktura fields
+  invoice_type_code: string;
+  currency: string;
+  payment_means_code: string;
+  partner_country_code: string;
+  partner_jbkjs: string | null;
   partner?: {
     id: string;
     name: string;
@@ -65,6 +71,9 @@ export interface InvoiceItem {
   line_total: number;
   description: string | null;
   created_at: string;
+  // eFaktura fields
+  tax_category_code: string;
+  tax_exemption_reason: string | null;
 }
 
 export interface InvoiceFormData {
