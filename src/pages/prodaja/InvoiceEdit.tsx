@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, CheckCircle, ArrowLeft, RefreshCw, History, Pencil, Eye } from "lucide-react";
+import { Loader2, CheckCircle, ArrowLeft, RefreshCw, History, Pencil, Eye, FileCode } from "lucide-react";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { InvoiceItemsEditor } from "@/components/prodaja/InvoiceItemsEditor";
@@ -16,6 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
 import { toast } from "sonner";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { generateInvoiceXml, downloadInvoiceXml } from "@/lib/invoiceXmlGenerator";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +57,7 @@ export default function InvoiceEdit() {
 
   const { postInvoice } = useInvoiceMutations();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
+  const { bankAccounts } = useBankAccounts(selectedCompany?.id);
   
   const { checkLock, updateLockTimestamp } = useDocumentLock({
     tableName: "invoices",
@@ -111,6 +114,59 @@ export default function InvoiceEdit() {
     fetchInvoice();
   };
 
+  const handleExportXml = async () => {
+    if (!invoice || !selectedCompany) return;
+
+    // Fetch items and company details in parallel
+    const [itemsRes, companyRes] = await Promise.all([
+      supabase
+        .from("invoice_items")
+        .select("*")
+        .eq("invoice_id", invoice.id)
+        .order("item_order"),
+      supabase
+        .from("companies")
+        .select("*")
+        .eq("id", selectedCompany.id)
+        .single(),
+    ]);
+
+    if (itemsRes.error || !itemsRes.data?.length) {
+      toast.error("Greška pri učitavanju stavki ili nema stavki za export");
+      return;
+    }
+    if (companyRes.error || !companyRes.data) {
+      toast.error("Greška pri učitavanju podataka o firmi");
+      return;
+    }
+
+    const co = companyRes.data;
+    const defaultBank = bankAccounts.find((b) => b.is_default && b.is_active) 
+      || bankAccounts.find((b) => b.is_active);
+
+    const xml = generateInvoiceXml({
+      invoice,
+      items: itemsRes.data as any,
+      company: {
+        name: co.name,
+        pib: co.pib,
+        mb: co.mb,
+        address: co.address,
+        city: co.city,
+        postal_code: co.postal_code,
+        municipality: co.municipality,
+        municipality_code: co.municipality_code,
+        email: co.email,
+        phone: co.phone,
+        responsible_person_name: co.responsible_person_name,
+      },
+      bankAccount: defaultBank ? { account_number: defaultBank.account_number, bank_name: defaultBank.bank_name } : null,
+    });
+
+    downloadInvoiceXml(xml, invoice.invoice_number);
+    toast.success("eFaktura XML je uspešno exportovan");
+  };
+
   if (isLoading || !selectedCompany || !selectedYear) {
     return (
       <MainLayout title="Učitavanje...">
@@ -157,6 +213,9 @@ export default function InvoiceEdit() {
             </Button>
             <Button variant="ghost" size="sm" onClick={() => fetchInvoice()} title="Osveži">
               <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportXml} title="eFaktura XML">
+              <FileCode className="w-4 h-4 mr-2" />eFaktura XML
             </Button>
             {isDraft ? (
               <>
