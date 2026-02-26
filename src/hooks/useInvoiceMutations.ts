@@ -34,6 +34,14 @@ export function useInvoiceMutations() {
       if (formData.contract_reference !== undefined) updatePayload.contract_reference = formData.contract_reference;
       if (formData.tax_category_code !== undefined) updatePayload.tax_category_code = formData.tax_category_code;
       if (formData.tax_exemption_reason !== undefined) updatePayload.tax_exemption_reason = formData.tax_exemption_reason;
+      if (formData.header_note !== undefined) updatePayload.header_note = formData.header_note;
+      if (formData.composed_by !== undefined) updatePayload.composed_by = formData.composed_by;
+      if (formData.partner_name !== undefined) updatePayload.partner_name = formData.partner_name;
+      if (formData.partner_address !== undefined) updatePayload.partner_address = formData.partner_address;
+      if (formData.partner_city !== undefined) updatePayload.partner_city = formData.partner_city;
+      if (formData.partner_postal_code !== undefined) updatePayload.partner_postal_code = formData.partner_postal_code;
+      if (formData.partner_pib !== undefined) updatePayload.partner_pib = formData.partner_pib;
+      if (formData.partner_mb !== undefined) updatePayload.partner_mb = formData.partner_mb;
 
       const { data, error } = await supabase
         .from("invoices")

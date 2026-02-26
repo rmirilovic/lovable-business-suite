@@ -88,6 +88,14 @@ export interface InvoiceFormData {
   org_unit_id: string | null;
   note: string | null;
   internal_note: string | null;
+  header_note?: string | null;
+  composed_by?: string | null;
+  partner_name?: string | null;
+  partner_address?: string | null;
+  partner_city?: string | null;
+  partner_postal_code?: string | null;
+  partner_pib?: string | null;
+  partner_mb?: string | null;
   source_quote_id?: string | null;
   source_delivery_note_id?: string | null;
   // eFaktura fields
