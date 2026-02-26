@@ -14,6 +14,212 @@ export type Database = {
   }
   public: {
     Tables: {
+      advance_invoice_items: {
+        Row: {
+          advance_invoice_id: string
+          company_id: string
+          created_at: string
+          description: string
+          id: string
+          item_order: number
+          line_subtotal: number
+          line_total: number
+          line_vat: number
+          quantity: number
+          tax_category_code: string
+          tax_exemption_reason: string | null
+          unit: string
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          advance_invoice_id: string
+          company_id: string
+          created_at?: string
+          description?: string
+          id?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          advance_invoice_id?: string
+          company_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advance_invoice_items_advance_invoice_id_fkey"
+            columns: ["advance_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "advance_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_invoice_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advance_invoices: {
+        Row: {
+          advance_date: string
+          advance_number: string
+          business_year_id: string
+          company_id: string
+          composed_by: string | null
+          contract_reference: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          due_date: string | null
+          header_note: string | null
+          id: string
+          internal_note: string | null
+          journal_entry_id: string | null
+          note: string | null
+          org_unit_id: string | null
+          partner_address: string | null
+          partner_city: string | null
+          partner_country_code: string
+          partner_id: string
+          partner_jbkjs: string | null
+          partner_mb: string | null
+          partner_name: string | null
+          partner_pib: string | null
+          partner_postal_code: string | null
+          payment_means_code: string
+          posted_at: string | null
+          posted_by: string | null
+          status: string
+          subtotal: number
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+        }
+        Insert: {
+          advance_date?: string
+          advance_number: string
+          business_year_id: string
+          company_id: string
+          composed_by?: string | null
+          contract_reference?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          due_date?: string | null
+          header_note?: string | null
+          id?: string
+          internal_note?: string | null
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_address?: string | null
+          partner_city?: string | null
+          partner_country_code?: string
+          partner_id: string
+          partner_jbkjs?: string | null
+          partner_mb?: string | null
+          partner_name?: string | null
+          partner_pib?: string | null
+          partner_postal_code?: string | null
+          payment_means_code?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Update: {
+          advance_date?: string
+          advance_number?: string
+          business_year_id?: string
+          company_id?: string
+          composed_by?: string | null
+          contract_reference?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          due_date?: string | null
+          header_note?: string | null
+          id?: string
+          internal_note?: string | null
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_address?: string | null
+          partner_city?: string | null
+          partner_country_code?: string
+          partner_id?: string
+          partner_jbkjs?: string | null
+          partner_mb?: string | null
+          partner_name?: string | null
+          partner_pib?: string | null
+          partner_postal_code?: string | null
+          payment_means_code?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advance_invoices_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_invoices_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_invoices_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       article_attribute_assignments: {
         Row: {
           article_id: string
@@ -853,6 +1059,244 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      credit_note_items: {
+        Row: {
+          article_id: string | null
+          company_id: string
+          created_at: string
+          credit_note_id: string
+          description: string | null
+          discount_percent: number
+          id: string
+          item_code: string | null
+          item_name: string
+          item_order: number
+          line_subtotal: number
+          line_total: number
+          line_vat: number
+          quantity: number
+          tax_category_code: string
+          tax_exemption_reason: string | null
+          unit: string
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          article_id?: string | null
+          company_id: string
+          created_at?: string
+          credit_note_id: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          article_id?: string | null
+          company_id?: string
+          created_at?: string
+          credit_note_id?: string
+          description?: string | null
+          discount_percent?: number
+          id?: string
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_note_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_note_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_note_items_credit_note_id_fkey"
+            columns: ["credit_note_id"]
+            isOneToOne: false
+            referencedRelation: "credit_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_notes: {
+        Row: {
+          billing_reference_date: string | null
+          billing_reference_number: string | null
+          business_year_id: string
+          company_id: string
+          composed_by: string | null
+          created_at: string
+          created_by: string
+          credit_note_date: string
+          credit_note_number: string
+          currency: string
+          due_date: string | null
+          header_note: string | null
+          id: string
+          internal_note: string | null
+          journal_entry_id: string | null
+          note: string | null
+          org_unit_id: string | null
+          partner_address: string | null
+          partner_city: string | null
+          partner_country_code: string
+          partner_id: string
+          partner_jbkjs: string | null
+          partner_mb: string | null
+          partner_name: string | null
+          partner_pib: string | null
+          partner_postal_code: string | null
+          payment_means_code: string
+          posted_at: string | null
+          posted_by: string | null
+          source_invoice_id: string | null
+          status: string
+          subtotal: number
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+        }
+        Insert: {
+          billing_reference_date?: string | null
+          billing_reference_number?: string | null
+          business_year_id: string
+          company_id: string
+          composed_by?: string | null
+          created_at?: string
+          created_by: string
+          credit_note_date?: string
+          credit_note_number: string
+          currency?: string
+          due_date?: string | null
+          header_note?: string | null
+          id?: string
+          internal_note?: string | null
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_address?: string | null
+          partner_city?: string | null
+          partner_country_code?: string
+          partner_id: string
+          partner_jbkjs?: string | null
+          partner_mb?: string | null
+          partner_name?: string | null
+          partner_pib?: string | null
+          partner_postal_code?: string | null
+          payment_means_code?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          source_invoice_id?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Update: {
+          billing_reference_date?: string | null
+          billing_reference_number?: string | null
+          business_year_id?: string
+          company_id?: string
+          composed_by?: string | null
+          created_at?: string
+          created_by?: string
+          credit_note_date?: string
+          credit_note_number?: string
+          currency?: string
+          due_date?: string | null
+          header_note?: string | null
+          id?: string
+          internal_note?: string | null
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_address?: string | null
+          partner_city?: string | null
+          partner_country_code?: string
+          partner_id?: string
+          partner_jbkjs?: string | null
+          partner_mb?: string | null
+          partner_name?: string | null
+          partner_pib?: string | null
+          partner_postal_code?: string | null
+          payment_means_code?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          source_invoice_id?: string | null
+          status?: string
+          subtotal?: number
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_notes_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_notes_source_invoice_id_fkey"
+            columns: ["source_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       delivery_note_items: {
         Row: {
