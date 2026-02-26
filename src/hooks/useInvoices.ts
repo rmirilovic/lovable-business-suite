@@ -109,6 +109,8 @@ export interface InvoiceItemFormData {
   discount_percent: number;
   vat_rate: number;
   description: string | null;
+  tax_category_code?: string;
+  tax_exemption_reason?: string | null;
 }
 
 export interface DeliveryNoteForInvoicing {
@@ -355,6 +357,8 @@ export function useInvoiceItems(invoiceId: string | null) {
           line_vat: lineVat,
           line_total: lineTotal,
           description: item.description,
+          tax_category_code: item.tax_category_code || "S",
+          tax_exemption_reason: item.tax_exemption_reason || null,
         })
         .select()
         .single();
@@ -391,6 +395,8 @@ export function useInvoiceItems(invoiceId: string | null) {
           line_vat: lineVat,
           line_total: lineTotal,
           description: item.description,
+          tax_category_code: item.tax_category_code || "S",
+          tax_exemption_reason: item.tax_exemption_reason || null,
         })
         .eq("id", id)
         .select()

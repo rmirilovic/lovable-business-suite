@@ -19,6 +19,13 @@ interface InvoiceItemsEditorProps {
 
 const VAT_RATES = [0, 10, 20];
 
+const TAX_CATEGORIES = [
+  { value: "S", label: "S - Standardna" },
+  { value: "E", label: "E - Oslobođeno" },
+  { value: "O", label: "O - Van PDV" },
+  { value: "AE", label: "AE - Obrnuti obračun" },
+];
+
 type EditingItem = Partial<InvoiceItemFormData> & { isService?: boolean };
 
 export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange }: InvoiceItemsEditorProps) {
@@ -63,6 +70,8 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
       vat_rate: 20,
       description: null,
       isService: type === "service",
+      tax_category_code: "S",
+      tax_exemption_reason: null,
     });
   };
 
@@ -78,6 +87,21 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
     }));
   };
 
+  const buildItemPayload = (item: any) => ({
+    id: item.id,
+    article_id: item.article_id,
+    item_code: item.item_code,
+    item_name: item.item_name,
+    unit: item.unit,
+    quantity: item.quantity,
+    unit_price: item.unit_price,
+    discount_percent: item.discount_percent,
+    vat_rate: item.vat_rate,
+    description: item.description,
+    tax_category_code: item.tax_category_code || "S",
+    tax_exemption_reason: item.tax_exemption_reason || null,
+  });
+
   const handleSaveItem = async () => {
     if (!editingItem.item_name) return;
 
@@ -91,6 +115,8 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
       discount_percent: editingItem.discount_percent || 0,
       vat_rate: editingItem.vat_rate || 20,
       description: editingItem.description || null,
+      tax_category_code: editingItem.tax_category_code || "S",
+      tax_exemption_reason: editingItem.tax_exemption_reason || null,
     };
 
     await addItem.mutateAsync({
@@ -147,19 +173,22 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
           <TableRow>
             <TableHead className="w-12">#</TableHead>
             <TableHead className="w-24">Šifra</TableHead>
-            <TableHead className="min-w-[220px]">Naziv</TableHead>
+            <TableHead className="min-w-[180px]">Naziv</TableHead>
             <TableHead className="w-20 text-center">JM</TableHead>
             <TableHead className="w-28 text-right">Količina</TableHead>
             <TableHead className="w-32 text-right">Cena</TableHead>
             <TableHead className="w-20 text-right">Rab.%</TableHead>
             <TableHead className="w-20 text-right">PDV%</TableHead>
+            <TableHead className="w-28">PDV kat.</TableHead>
             <TableHead className="w-32 text-right">Osnovica</TableHead>
             <TableHead className="w-32 text-right">Ukupno</TableHead>
             {!readOnly && <TableHead className="w-16"></TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item, index) => (
+          {items.map((item, index) => {
+            const needsExemptionReason = item.tax_category_code && item.tax_category_code !== "S";
+            return (
             <TableRow key={item.id}>
               <TableCell className="text-muted-foreground">{index + 1}</TableCell>
               <TableCell className="font-mono text-sm">{item.item_code || "-"}</TableCell>
@@ -179,7 +208,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                   <LocaleNumberInput
                     className="h-8 w-24 text-right"
                     value={String(item.quantity)}
-                    onChange={(val) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: parseLocaleNumber(val), unit_price: item.unit_price, discount_percent: item.discount_percent, vat_rate: item.vat_rate, description: item.description })}
+                    onChange={(val) => updateItem.mutate({ ...buildItemPayload(item), quantity: parseLocaleNumber(val) })}
                     decimalPlaces={3}
                   />
                 ) : formatDecimal(item.quantity, 3)}
@@ -189,7 +218,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                   <LocaleNumberInput
                     className="h-8 w-28 text-right"
                     value={String(item.unit_price)}
-                    onChange={(val) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: parseLocaleNumber(val), discount_percent: item.discount_percent, vat_rate: item.vat_rate, description: item.description })}
+                    onChange={(val) => updateItem.mutate({ ...buildItemPayload(item), unit_price: parseLocaleNumber(val) })}
                     decimalPlaces={2}
                   />
                 ) : formatPrice(item.unit_price)}
@@ -199,7 +228,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                   <LocaleNumberInput
                     className="h-8 w-16 text-right"
                     value={String(item.discount_percent)}
-                    onChange={(val) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: item.unit_price, discount_percent: parseLocaleNumber(val), vat_rate: item.vat_rate, description: item.description })}
+                    onChange={(val) => updateItem.mutate({ ...buildItemPayload(item), discount_percent: parseLocaleNumber(val) })}
                     decimalPlaces={2}
                   />
                 ) : formatDecimal(item.discount_percent, 2)}
@@ -208,7 +237,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                 {!readOnly ? (
                   <Select
                     value={String(item.vat_rate)}
-                    onValueChange={(v) => updateItem.mutate({ id: item.id, article_id: item.article_id, item_code: item.item_code, item_name: item.item_name, unit: item.unit, quantity: item.quantity, unit_price: item.unit_price, discount_percent: item.discount_percent, vat_rate: Number(v), description: item.description })}
+                    onValueChange={(v) => updateItem.mutate({ ...buildItemPayload(item), vat_rate: Number(v) })}
                   >
                     <SelectTrigger className="h-8 w-16">
                       <SelectValue />
@@ -220,6 +249,40 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                     </SelectContent>
                   </Select>
                 ) : `${item.vat_rate}%`}
+              </TableCell>
+              <TableCell>
+                {!readOnly ? (
+                  <div className="space-y-1">
+                    <Select
+                      value={item.tax_category_code || "S"}
+                      onValueChange={(v) => updateItem.mutate({ ...buildItemPayload(item), tax_category_code: v, tax_exemption_reason: v === "S" ? null : item.tax_exemption_reason })}
+                    >
+                      <SelectTrigger className="h-8 w-full text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TAX_CATEGORIES.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {needsExemptionReason && (
+                      <Input
+                        className="h-7 text-xs"
+                        placeholder="Član, stav, tačka..."
+                        value={item.tax_exemption_reason || ""}
+                        onChange={(e) => updateItem.mutate({ ...buildItemPayload(item), tax_exemption_reason: e.target.value || null })}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-xs">
+                    <span>{item.tax_category_code || "S"}</span>
+                    {item.tax_exemption_reason && (
+                      <p className="text-muted-foreground mt-0.5">{item.tax_exemption_reason}</p>
+                    )}
+                  </div>
+                )}
               </TableCell>
               <TableCell className="text-right">{formatPrice(item.line_subtotal)}</TableCell>
               <TableCell className="text-right font-medium">{formatPrice(item.line_total)}</TableCell>
@@ -236,7 +299,8 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                 </TableCell>
               )}
             </TableRow>
-          ))}
+            );
+          })}
 
           {!readOnly && isAdding && (
             <TableRow className="bg-muted/30">
@@ -321,6 +385,31 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
                   </SelectContent>
                 </Select>
               </TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  <Select
+                    value={editingItem.tax_category_code || "S"}
+                    onValueChange={(v) => setEditingItem({ ...editingItem, tax_category_code: v, tax_exemption_reason: v === "S" ? null : editingItem.tax_exemption_reason })}
+                  >
+                    <SelectTrigger className="h-8 w-full text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TAX_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {editingItem.tax_category_code && editingItem.tax_category_code !== "S" && (
+                    <Input
+                      className="h-7 text-xs"
+                      placeholder="Član, stav, tačka..."
+                      value={editingItem.tax_exemption_reason || ""}
+                      onChange={(e) => setEditingItem({ ...editingItem, tax_exemption_reason: e.target.value || null })}
+                    />
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="text-right text-sm text-muted-foreground">
                 {formatPrice(editingTotals.subtotal)}
               </TableCell>
@@ -348,7 +437,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
 
           {items.length === 0 && !isAdding && (
             <TableRow>
-              <TableCell colSpan={readOnly ? 10 : 11} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={readOnly ? 11 : 12} className="text-center text-muted-foreground py-8">
                 Nema stavki. Dodajte artikal ili uslugu.
               </TableCell>
             </TableRow>
