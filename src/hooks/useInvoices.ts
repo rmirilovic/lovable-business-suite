@@ -46,6 +46,9 @@ export interface Invoice {
   contract_reference: string | null;
   tax_category_code: string;
   tax_exemption_reason: string | null;
+  mesto_prometa: string | null;
+  datum_prometa: string | null;
+  bank_account_id: string | null;
   partner?: {
     id: string;
     name: string;
@@ -109,6 +112,9 @@ export interface InvoiceFormData {
   contract_reference?: string | null;
   tax_category_code?: string;
   tax_exemption_reason?: string | null;
+  mesto_prometa?: string | null;
+  datum_prometa?: string | null;
+  bank_account_id?: string | null;
 }
 
 export interface InvoiceItemFormData {

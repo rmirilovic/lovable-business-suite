@@ -20,7 +20,9 @@ import {
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { usePartners } from "@/hooks/usePartners";
+import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
@@ -44,6 +46,7 @@ export function InvoiceHeaderDialog({
   const { selectedCompany } = useAuth();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
+  const { bankAccounts } = useBankAccounts(selectedCompany?.id);
   const { updateInvoice } = useInvoiceMutations();
 
   const [formData, setFormData] = useState({
@@ -72,10 +75,31 @@ export function InvoiceHeaderDialog({
     contract_reference: "" as string | null,
     tax_category_code: "S",
     tax_exemption_reason: "" as string | null,
+    mesto_prometa: "" as string | null,
+    datum_prometa: "" as string | null,
+    bank_account_id: "" as string | null,
   });
 
   useEffect(() => {
     if (!invoice || !open) return;
+    
+    const defaultBankId = bankAccounts.find((b) => b.is_default && b.is_active)?.id || "";
+    
+    // Fetch company mesto_prometa for default
+    const loadDefaults = async () => {
+      let mestoPrometa = invoice.mesto_prometa || "";
+      if (!mestoPrometa && selectedCompany?.id) {
+        const { data: co } = await supabase
+          .from("companies")
+          .select("mesto_prometa")
+          .eq("id", selectedCompany.id)
+          .single();
+        if (co?.mesto_prometa) mestoPrometa = co.mesto_prometa;
+      }
+      
+      setFormData((prev) => ({ ...prev, mesto_prometa: mestoPrometa }));
+    };
+
     setFormData({
       invoice_date: invoice.invoice_date,
       due_date: invoice.due_date || "",
@@ -91,7 +115,6 @@ export function InvoiceHeaderDialog({
       partner_pib: invoice.partner_pib ?? invoice.partner?.pib ?? "",
       partner_mb: invoice.partner_mb ?? invoice.partner?.mb ?? "",
       composed_by: invoice.composed_by || "",
-      // eFaktura fields
       invoice_type_code: invoice.invoice_type_code || "380",
       currency: invoice.currency || "RSD",
       payment_means_code: invoice.payment_means_code || "30",
@@ -102,8 +125,13 @@ export function InvoiceHeaderDialog({
       contract_reference: invoice.contract_reference || "",
       tax_category_code: invoice.tax_category_code || "S",
       tax_exemption_reason: invoice.tax_exemption_reason || "",
+      mesto_prometa: invoice.mesto_prometa || "",
+      datum_prometa: invoice.datum_prometa || "",
+      bank_account_id: invoice.bank_account_id || defaultBankId,
     });
-  }, [invoice, open]);
+
+    loadDefaults();
+  }, [invoice, open, bankAccounts, selectedCompany?.id]);
 
   const handlePartnerChange = (partnerId: string) => {
     const p = customerPartners.find((x) => x.id === partnerId);
@@ -150,6 +178,9 @@ export function InvoiceHeaderDialog({
       contract_reference: formData.contract_reference || null,
       tax_category_code: formData.tax_category_code,
       tax_exemption_reason: formData.tax_category_code !== "S" ? (formData.tax_exemption_reason || null) : null,
+      mesto_prometa: formData.mesto_prometa || null,
+      datum_prometa: formData.datum_prometa || null,
+      bank_account_id: formData.bank_account_id || null,
     });
     onOpenChange(false);
     onSaved?.();
@@ -185,6 +216,47 @@ export function InvoiceHeaderDialog({
                 onChange={(v) => setFormData({ ...formData, due_date: v || null })}
                 disabled={readOnly}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Mesto prometa</Label>
+              <Input
+                value={formData.mesto_prometa || ""}
+                onChange={(e) => setFormData({ ...formData, mesto_prometa: e.target.value || null })}
+                placeholder="Mesto prometa..."
+                disabled={readOnly}
+                autoComplete="off"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Datum prometa</Label>
+              <LocaleDateInput
+                value={formData.datum_prometa || ""}
+                onChange={(v) => setFormData({ ...formData, datum_prometa: v || null })}
+                disabled={readOnly}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Tekući račun</Label>
+              <Select
+                value={formData.bank_account_id || "none"}
+                onValueChange={(v) => setFormData({ ...formData, bank_account_id: v === "none" ? null : v })}
+                disabled={readOnly}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="--" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">-- Bez tekućeg računa --</SelectItem>
+                  {bankAccounts.filter((b) => b.is_active).map((ba) => (
+                    <SelectItem key={ba.id} value={ba.id}>
+                      {ba.account_number} ({ba.bank_name})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
