@@ -418,7 +418,7 @@ export default function InvoiceEdit() {
           </div>
         </div>
 
-        {/* PDV category */}
+        {/* PDV category + linked documents */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
             <div className="text-muted-foreground">PDV kategorija</div>
@@ -429,6 +429,18 @@ export default function InvoiceEdit() {
               {invoice.tax_category_code === "AE" && "AE - Obrnuti obračun"}
               {!invoice.tax_category_code && "S - Standardna stopa"}
             </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Otpremnica</div>
+            <div className="font-medium">{linkedDocs.deliveryNoteNumber || "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Nalog za isporuku</div>
+            <div className="font-medium">{linkedDocs.deliveryOrderNumber || "-"}</div>
+          </div>
+          <div>
+            <div className="text-muted-foreground">Ponuda</div>
+            <div className="font-medium">{linkedDocs.quoteNumber || "-"}</div>
           </div>
           {invoice.tax_category_code && invoice.tax_category_code !== "S" && invoice.tax_exemption_reason && (
             <div className="col-span-2">
@@ -457,30 +469,6 @@ export default function InvoiceEdit() {
               <div>
                 <div className="text-muted-foreground mb-1">Interna napomena</div>
                 <div className="bg-muted p-2 rounded-md">{invoice.internal_note}</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Linked documents */}
-        {(linkedDocs.deliveryNoteNumber || linkedDocs.deliveryOrderNumber || linkedDocs.quoteNumber) && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            {linkedDocs.deliveryNoteNumber && (
-              <div>
-                <div className="text-muted-foreground">Otpremnica</div>
-                <div className="font-medium">{linkedDocs.deliveryNoteNumber}</div>
-              </div>
-            )}
-            {linkedDocs.deliveryOrderNumber && (
-              <div>
-                <div className="text-muted-foreground">Nalog za isporuku</div>
-                <div className="font-medium">{linkedDocs.deliveryOrderNumber}</div>
-              </div>
-            )}
-            {linkedDocs.quoteNumber && (
-              <div>
-                <div className="text-muted-foreground">Ponuda</div>
-                <div className="font-medium">{linkedDocs.quoteNumber}</div>
               </div>
             )}
           </div>
