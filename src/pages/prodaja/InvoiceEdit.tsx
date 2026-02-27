@@ -255,14 +255,14 @@ export default function InvoiceEdit() {
   const handleExportPdf = async () => {
     const data = await fetchInvoiceDataForExport();
     if (!data || !invoice) return;
-    await generateInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText);
+    await generateInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null);
     toast.success("PDF je uspešno exportovan");
   };
 
   const handlePrint = async () => {
     const data = await fetchInvoiceDataForExport();
     if (!data || !invoice) return;
-    await printInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText);
+    await printInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null);
   };
 
   const handleExportExcel = async () => {

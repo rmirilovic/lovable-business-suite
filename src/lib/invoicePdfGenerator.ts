@@ -60,7 +60,8 @@ async function buildInvoicePdf(
   items: InvoiceItem[],
   company: CompanyData,
   partner: PartnerData,
-  bankAccountText?: string | null
+  bankAccountText?: string | null,
+  deliveryNoteNumber?: string | null
 ): Promise<jsPDF> {
   await initializePdfFonts();
 
@@ -149,6 +150,21 @@ async function buildInvoicePdf(
 
   if (invoice.due_date) {
     doc.text(`Datum valute: ${format(new Date(invoice.due_date), "dd.MM.yyyy.", { locale: sr })}`, 14, yPos);
+    yPos += 4;
+  }
+
+  if ((invoice as any).datum_prometa) {
+    doc.text(`Datum prometa: ${format(new Date((invoice as any).datum_prometa), "dd.MM.yyyy.", { locale: sr })}`, 14, yPos);
+    yPos += 4;
+  }
+
+  if ((invoice as any).mesto_prometa) {
+    doc.text(`Mesto prometa: ${(invoice as any).mesto_prometa}`, 14, yPos);
+    yPos += 4;
+  }
+
+  if (deliveryNoteNumber) {
+    doc.text(`Otpremnica: ${deliveryNoteNumber}`, 14, yPos);
     yPos += 4;
   }
 
@@ -356,9 +372,10 @@ export async function generateInvoicePdf(
   items: InvoiceItem[],
   company: CompanyData,
   partner: PartnerData,
-  bankAccountText?: string | null
+  bankAccountText?: string | null,
+  deliveryNoteNumber?: string | null
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber);
   doc.save(`Faktura_${invoice.invoice_number.replace(/\//g, "-")}.pdf`);
 }
 
@@ -367,9 +384,10 @@ export async function printInvoicePdf(
   items: InvoiceItem[],
   company: CompanyData,
   partner: PartnerData,
-  bankAccountText?: string | null
+  bankAccountText?: string | null,
+  deliveryNoteNumber?: string | null
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber);
   const blob = doc.output("blob");
   printPdfBlob(blob);
 }
