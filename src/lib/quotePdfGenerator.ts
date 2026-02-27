@@ -302,28 +302,28 @@ async function buildQuotePdf(
     doc.setFontSize(9);
     doc.setFont("Roboto", "bold");
     doc.text("Napomena:", 14, totalsY);
-    totalsY += 5;
+    totalsY += 4;
     doc.setFont("Roboto", "normal");
     
     const splitNote = doc.splitTextToSize(quote.note, pageWidth - 28);
-    doc.text(splitNote, 14, totalsY);
-    totalsY += splitNote.length * 4;
+    doc.text(splitNote, 14, totalsY, { lineHeightFactor: 1.2 });
+    totalsY += splitNote.length * 3.5;
   }
 
   // Company notes
   if (company.quote_note_1) {
-    totalsY += 10;
+    totalsY += 8;
     doc.setFontSize(8);
     doc.setFont("Roboto", "italic");
     const splitNote1 = doc.splitTextToSize(company.quote_note_1, pageWidth - 28);
-    doc.text(splitNote1, pageWidth / 2, totalsY, { align: "center" });
+    doc.text(splitNote1, pageWidth / 2, totalsY, { align: "center", lineHeightFactor: 1.2 });
     totalsY += splitNote1.length * 3;
   }
 
   if (company.quote_note_2) {
-    totalsY += 3;
+    totalsY += 2;
     const splitNote2 = doc.splitTextToSize(company.quote_note_2, pageWidth - 28);
-    doc.text(splitNote2, 14, totalsY);
+    doc.text(splitNote2, 14, totalsY, { lineHeightFactor: 1.2 });
     totalsY += splitNote2.length * 3;
   }
 
