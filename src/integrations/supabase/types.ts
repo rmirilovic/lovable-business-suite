@@ -6263,9 +6263,17 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      post_advance_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
+        Returns: boolean
+      }
       post_article_swap: {
         Args: { _swap_id: string; _user_id: string }
         Returns: string
+      }
+      post_credit_note: {
+        Args: { _credit_note_id: string; _user_id: string }
+        Returns: boolean
       }
       post_delivery_note: {
         Args: { _delivery_note_id: string; _user_id: string }
@@ -6325,9 +6333,17 @@ export type Database = {
         Args: { _order_id: string; _user_id: string }
         Returns: boolean
       }
+      unpost_advance_invoice: {
+        Args: { _invoice_id: string }
+        Returns: boolean
+      }
       unpost_article_swap: {
         Args: { _swap_id: string; _user_id: string }
         Returns: string
+      }
+      unpost_credit_note: {
+        Args: { _credit_note_id: string }
+        Returns: boolean
       }
       unpost_delivery_note: {
         Args: { _delivery_note_id: string; _user_id: string }

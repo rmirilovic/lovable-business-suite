@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowLeft, RefreshCw, Plus, Trash2, FileCode } from "lucide-react";
+import { Loader2, ArrowLeft, RefreshCw, Plus, Trash2, FileCode, FileDown, FileSpreadsheet, Printer, CheckCircle, Undo2, History } from "lucide-react";
 import { CreditNote, CreditNoteItem, useCreditNoteItems, useCreditNotes } from "@/hooks/useCreditNotes";
 import { formatDate, formatPrice, parseLocaleNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,20 @@ import { SearchableArticleSelect } from "@/components/ui/searchable-article-sele
 import { useArticles } from "@/hooks/useArticles";
 import { generateInvoiceXml, downloadInvoiceXml } from "@/lib/invoiceXmlGenerator";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
+import { generateInvoicePdf, printInvoicePdf } from "@/lib/invoicePdfGenerator";
+import { exportInvoiceToExcel } from "@/lib/invoiceExcelExport";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { usePermissions } from "@/hooks/usePermissions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
@@ -29,13 +43,17 @@ export default function CreditNoteEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedCompany, selectedYear } = useAuth();
+  const { selectedCompany, selectedYear, user } = useAuth();
+  const { hasAccess } = usePermissions();
 
   const prefetched = (location.state as any)?.prefetched as CreditNote | undefined;
   const hasMatch = !!prefetched && prefetched.id === id;
 
   const [doc, setDoc] = useState<CreditNote | null>(hasMatch ? prefetched : null);
   const [isLoading, setIsLoading] = useState(!hasMatch);
+  const [postDialogOpen, setPostDialogOpen] = useState(false);
+  const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const { updateTotals } = useCreditNotes();
   const { items, addItem, updateItem, deleteItem } = useCreditNoteItems(id || null);
   const { articles } = useArticles(selectedCompany?.id);
@@ -96,14 +114,45 @@ export default function CreditNoteEdit() {
     });
   };
 
-  const handleExportXml = async () => {
-    if (!doc || !selectedCompany) return;
+  const handlePost = async () => {
+    if (!doc || !user?.id) return;
+    try {
+      const { error } = await supabase.rpc("post_credit_note", {
+        _credit_note_id: doc.id,
+        _user_id: user.id,
+      });
+      if (error) throw error;
+      toast.success("Knjižno odobrenje je proknjiženo i kreiran je nalog za knjiženje");
+      setPostDialogOpen(false);
+      fetchDoc();
+    } catch (err: any) {
+      toast.error(`Greška pri knjiženju: ${err.message}`);
+    }
+  };
+
+  const handleUnpost = async () => {
+    if (!doc) return;
+    try {
+      const { error } = await supabase.rpc("unpost_credit_note", {
+        _credit_note_id: doc.id,
+      });
+      if (error) throw error;
+      toast.success("Knjiženje je poništeno, dokument je vraćen u nacrt");
+      setUnpostDialogOpen(false);
+      fetchDoc();
+    } catch (err: any) {
+      toast.error(`Greška pri poništavanju: ${err.message}`);
+    }
+  };
+
+  const fetchDataForExport = async () => {
+    if (!doc || !selectedCompany) return null;
     const [itemsRes, companyRes] = await Promise.all([
       supabase.from("credit_note_items").select("*").eq("credit_note_id", doc.id).order("item_order"),
       supabase.from("companies").select("*").eq("id", selectedCompany.id).single(),
     ]);
-    if (itemsRes.error || !itemsRes.data?.length) { toast.error("Nema stavki za export"); return; }
-    if (companyRes.error) { toast.error("Greška pri učitavanju firme"); return; }
+    if (itemsRes.error || !itemsRes.data) { toast.error("Greška pri učitavanju stavki"); return null; }
+    if (companyRes.error) { toast.error("Greška pri učitavanju firme"); return null; }
     const co = companyRes.data;
     const defaultBank = bankAccounts.find((b) => b.is_default && b.is_active) || bankAccounts.find((b) => b.is_active);
     const invoiceLike: any = {
@@ -114,14 +163,59 @@ export default function CreditNoteEdit() {
       billing_reference_number: doc.billing_reference_number,
       billing_reference_date: doc.billing_reference_date,
     };
-    const xml = generateInvoiceXml({
-      invoice: invoiceLike,
-      items: itemsRes.data as any,
-      company: { name: co.name, pib: co.pib, mb: co.mb, address: co.address, city: co.city, postal_code: co.postal_code, municipality: co.municipality, municipality_code: co.municipality_code, email: co.email, phone: co.phone, responsible_person_name: co.responsible_person_name },
+    return {
+      invoiceLike,
+      items: itemsRes.data,
+      company: {
+        name: co.name, address: co.address, city: co.city, postal_code: co.postal_code,
+        pib: co.pib, mb: co.mb, phone: co.phone, email: co.email,
+        invoice_note_1: co.invoice_note_1, invoice_note_2: co.invoice_note_2,
+        logo_url: co.logo_url, logo_text: co.logo_text, responsible_person_name: co.responsible_person_name,
+      },
+      partner: {
+        name: doc.partner?.name || doc.partner_name || "", code: doc.partner?.code || "",
+        address: doc.partner?.address, city: doc.partner?.city,
+        postal_code: doc.partner?.postal_code, pib: doc.partner?.pib, mb: doc.partner?.mb,
+      },
+      bankAccountText: defaultBank ? `${defaultBank.account_number} (${defaultBank.bank_name})` : null,
       bankAccount: defaultBank ? { account_number: defaultBank.account_number, bank_name: defaultBank.bank_name } : null,
+    };
+  };
+
+  const handleExportXml = async () => {
+    const data = await fetchDataForExport();
+    if (!data) return;
+    const xml = generateInvoiceXml({
+      invoice: data.invoiceLike,
+      items: data.items as any,
+      company: { name: data.company.name, pib: data.company.pib, mb: data.company.mb, address: data.company.address, city: data.company.city, postal_code: data.company.postal_code, municipality: null, municipality_code: null, email: data.company.email, phone: data.company.phone, responsible_person_name: data.company.responsible_person_name },
+      bankAccount: data.bankAccount,
     });
-    downloadInvoiceXml(xml, doc.credit_note_number);
+    downloadInvoiceXml(xml, doc!.credit_note_number);
     toast.success("eFaktura XML exportovan");
+  };
+
+  const handleExportPdf = async () => {
+    const data = await fetchDataForExport();
+    if (!data || !doc) return;
+    await generateInvoicePdf(data.invoiceLike, data.items as any, data.company, data.partner, data.bankAccountText, null);
+    toast.success("PDF je uspešno exportovan");
+  };
+
+  const handlePrint = async () => {
+    const data = await fetchDataForExport();
+    if (!data || !doc) return;
+    await printInvoicePdf(data.invoiceLike, data.items as any, data.company, data.partner, data.bankAccountText, null);
+  };
+
+  const handleExportExcel = async () => {
+    if (!doc) return;
+    const { data: itemsData, error } = await supabase
+      .from("credit_note_items").select("*").eq("credit_note_id", doc.id).order("item_order");
+    if (error || !itemsData) { toast.error("Greška pri učitavanju stavki"); return; }
+    const invoiceLike: any = { ...doc, invoice_number: doc.credit_note_number, invoice_date: doc.credit_note_date };
+    exportInvoiceToExcel(invoiceLike, itemsData as any);
+    toast.success("Excel je uspešno exportovan");
   };
 
   if (isLoading || !selectedCompany || !selectedYear) {
@@ -133,10 +227,12 @@ export default function CreditNoteEdit() {
   }
 
   const isDraft = doc.status === "draft";
+  const isPosted = doc.status === "posted";
   const status = STATUS_BADGES[doc.status] || STATUS_BADGES.draft;
   const subtotal = items.reduce((s, i) => s + i.line_subtotal, 0);
   const vatAmount = items.reduce((s, i) => s + i.line_vat, 0);
   const totalAmount = items.reduce((s, i) => s + i.line_total, 0);
+  const canUnpost = hasAccess("prodaja.fakture", "admin");
 
   return (
     <MainLayout title={`Knjižno odobrenje: ${doc.credit_note_number}`}>
@@ -148,8 +244,22 @@ export default function CreditNoteEdit() {
             <Badge variant={status.variant}>{status.label}</Badge>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
             <Button variant="ghost" size="sm" onClick={() => fetchDoc()} title="Osveži"><RefreshCw className="w-4 h-4" /></Button>
+            <Button variant="outline" size="sm" onClick={handleExportPdf} title="PDF"><FileDown className="w-4 h-4 mr-2" />PDF</Button>
+            <Button variant="outline" size="sm" onClick={handleExportExcel} title="Excel"><FileSpreadsheet className="w-4 h-4 mr-2" />Excel</Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} title="Štampa"><Printer className="w-4 h-4 mr-2" />Štampa</Button>
             <Button variant="outline" size="sm" onClick={handleExportXml} title="eFaktura XML"><FileCode className="w-4 h-4 mr-2" />eFaktura XML</Button>
+            {isDraft && (
+              <Button size="sm" onClick={() => setPostDialogOpen(true)}>
+                <CheckCircle className="h-4 w-4 mr-2" />Proknjiži
+              </Button>
+            )}
+            {isPosted && canUnpost && (
+              <Button variant="destructive" size="sm" className="border" onClick={() => setUnpostDialogOpen(true)}>
+                <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
+              </Button>
+            )}
           </div>
         </div>
 
@@ -248,6 +358,52 @@ export default function CreditNoteEdit() {
           </div>
         </div>
       </div>
+
+      {/* Post dialog */}
+      <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Proknjiženje knjižnog odobrenja</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da proknjižite knjižno odobrenje{" "}
+              <strong>{doc.credit_note_number}</strong>?
+              Proknjižen dokument se više ne može menjati.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePost}>Proknjiži</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unpost dialog */}
+      <AlertDialog open={unpostDialogOpen} onOpenChange={setUnpostDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Poništavanje knjiženja</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da poništite knjiženje knjižnog odobrenja{" "}
+              <strong>{doc.credit_note_number}</strong>?
+              Nalog za knjiženje će biti obrisan, a dokument vraćen u nacrt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnpost} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Poništi knjiženje</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {doc && (
+        <DocumentHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          documentId={doc.id}
+          documentName={doc.credit_note_number}
+          documentType="credit_note"
+        />
+      )}
     </MainLayout>
   );
 }
