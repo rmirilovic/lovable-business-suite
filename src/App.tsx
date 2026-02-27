@@ -70,6 +70,10 @@ import ReprocessingWorkOrders from "./pages/proizvodnja/ReprocessingWorkOrders";
 import ReprocessingWorkOrderEdit from "./pages/proizvodnja/ReprocessingWorkOrderEdit";
 import ReprocessingDeliveryNotesList from "./pages/proizvodnja/ReprocessingDeliveryNotesList";
 import ReprocessingDeliveryNoteEdit from "./pages/proizvodnja/ReprocessingDeliveryNoteEdit";
+import AvansniRacuni from "./pages/prodaja/AvansniRacuni";
+import AdvanceInvoiceEdit from "./pages/prodaja/AdvanceInvoiceEdit";
+import KnjiznaOdobrenja from "./pages/prodaja/KnjiznaOdobrenja";
+import CreditNoteEdit from "./pages/prodaja/CreditNoteEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -230,6 +234,26 @@ const App = () => (
               <Route path="/prodaja/otpremnice/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <DeliveryNoteEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/prodaja/avansni-racuni" element={
+                <ProtectedRoute>
+                  <AvansniRacuni />
+                </ProtectedRoute>
+              } />
+              <Route path="/prodaja/avansni-racuni/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <AdvanceInvoiceEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/prodaja/knjizna-odobrenja" element={
+                <ProtectedRoute>
+                  <KnjiznaOdobrenja />
+                </ProtectedRoute>
+              } />
+              <Route path="/prodaja/knjizna-odobrenja/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <CreditNoteEdit />
                 </ProtectedRoute>
               } />
               <Route path="/nabavka/ulazne-fakture-usluge" element={
