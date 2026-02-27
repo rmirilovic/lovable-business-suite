@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, MoreHorizontal, Eye, Trash2, FileText, FileInput } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Eye, Trash2, FileText, FileInput, Download, FileSpreadsheet, Printer } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { exportCreditNotesToExcel, exportCreditNotesToPdf, printCreditNotes } from "@/lib/creditNoteListExportUtils";
 
 const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Nacrt", variant: "secondary" },
@@ -115,6 +116,17 @@ export default function KnjiznaOdobrenja() {
   return (
     <MainLayout title="Knjižna odobrenja">
       <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          <Button variant="outline" size="sm" onClick={() => exportCreditNotesToExcel(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+            <FileSpreadsheet className="w-4 h-4 mr-1" />Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => exportCreditNotesToPdf(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+            <Download className="w-4 h-4 mr-1" />PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => printCreditNotes(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
+            <Printer className="w-4 h-4 mr-1" />Štampa
+          </Button>
+        </div>
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="flex flex-wrap items-end gap-4">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
