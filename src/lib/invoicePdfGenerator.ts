@@ -318,30 +318,47 @@ async function buildInvoicePdf(
     doc.text("Napomena:", 14, totalsY);
     totalsY += 4;
     doc.setFont("Roboto", "normal");
+    doc.setFontSize(8);
     const splitNote = doc.splitTextToSize(invoice.note, pageWidth - 28);
     const prevLH = (doc as any).getLineHeightFactor?.() ?? 1.15;
-    doc.setLineHeightFactor(1.15);
+    const prevCharSpace = (doc as any).getCharSpace?.() ?? 0;
+    doc.setLineHeightFactor(1.1);
+    (doc as any).setCharSpace(-0.15);
     doc.text(splitNote, 14, totalsY);
+    (doc as any).setCharSpace(prevCharSpace);
     doc.setLineHeightFactor(prevLH);
-    totalsY += splitNote.length * 3.5;
+    totalsY += splitNote.length * 3.2;
   }
 
   // Company notes
   if (company.invoice_note_1) {
-    totalsY += 8;
-    doc.setFontSize(8);
+    totalsY += 7;
+    doc.setFontSize(7);
     doc.setFont("Roboto", "italic");
     const splitNote1 = doc.splitTextToSize(company.invoice_note_1, pageWidth - 28);
-    doc.setLineHeightFactor(1.15);
+    const prevLH = (doc as any).getLineHeightFactor?.() ?? 1.15;
+    const prevCharSpace = (doc as any).getCharSpace?.() ?? 0;
+    doc.setLineHeightFactor(1.1);
+    (doc as any).setCharSpace(-0.15);
     doc.text(splitNote1, pageWidth / 2, totalsY, { align: "center" });
-    totalsY += splitNote1.length * 3;
+    (doc as any).setCharSpace(prevCharSpace);
+    doc.setLineHeightFactor(prevLH);
+    totalsY += splitNote1.length * 2.8;
   }
 
   if (company.invoice_note_2) {
     totalsY += 2;
+    doc.setFontSize(7);
+    doc.setFont("Roboto", "normal");
     const splitNote2 = doc.splitTextToSize(company.invoice_note_2, pageWidth - 28);
+    const prevLH = (doc as any).getLineHeightFactor?.() ?? 1.15;
+    const prevCharSpace = (doc as any).getCharSpace?.() ?? 0;
+    doc.setLineHeightFactor(1.1);
+    (doc as any).setCharSpace(-0.15);
     doc.text(splitNote2, 14, totalsY);
-    totalsY += splitNote2.length * 3;
+    (doc as any).setCharSpace(prevCharSpace);
+    doc.setLineHeightFactor(prevLH);
+    totalsY += splitNote2.length * 2.8;
   }
 
   // Signature section
