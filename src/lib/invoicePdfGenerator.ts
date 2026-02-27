@@ -168,10 +168,6 @@ async function buildInvoicePdf(
     yPos += 4;
   }
 
-  if (invoice.composed_by) {
-    doc.text(`Fakturu sastavio: ${invoice.composed_by}`, 14, yPos);
-    yPos += 4;
-  }
 
   // Right column - Customer details
   const rightColX = 14 + colWidth + 10;
@@ -232,7 +228,6 @@ async function buildInvoicePdf(
   // Items table
   const tableData = items.map((item, index) => [
     (index + 1).toString(),
-    item.item_code || "-",
     item.item_name,
     item.unit,
     formatDecimal(item.quantity),
@@ -240,12 +235,13 @@ async function buildInvoicePdf(
     item.discount_percent > 0 ? `${formatDecimal(item.discount_percent)}%` : "-",
     `${item.vat_rate}%`,
     formatDecimal(item.line_subtotal),
+    formatDecimal(item.line_vat),
     formatDecimal(item.line_total),
   ]);
 
   autoTable(doc, {
     startY: yPos,
-    head: [["#", "Šifra", "Naziv", "JM", "Kol.", "Cena", "Rab.", "PDV", "Osnovica", "Ukupno"]],
+    head: [["#", "Naziv", "JM", "Kol.", "Cena", "Rab.", "PDV%", "Osnovica", "PDV iznos", "Ukupno"]],
     body: tableData,
     theme: "grid",
     styles: { font: "Roboto" },
@@ -258,13 +254,13 @@ async function buildInvoicePdf(
     bodyStyles: { fontSize: 8 },
     columnStyles: {
       0: { cellWidth: 10, halign: "center" },
-      1: { cellWidth: 20 },
-      2: { cellWidth: "auto" },
-      3: { cellWidth: 12, halign: "center" },
-      4: { cellWidth: 18, halign: "right" },
-      5: { cellWidth: 22, halign: "right" },
-      6: { cellWidth: 11, halign: "right" },
-      7: { cellWidth: 12, halign: "right" },
+      1: { cellWidth: "auto" },
+      2: { cellWidth: 12, halign: "center" },
+      3: { cellWidth: 18, halign: "right" },
+      4: { cellWidth: 22, halign: "right" },
+      5: { cellWidth: 11, halign: "right" },
+      6: { cellWidth: 12, halign: "right" },
+      7: { cellWidth: 22, halign: "right" },
       8: { cellWidth: 22, halign: "right" },
       9: { cellWidth: 22, halign: "right" },
     },
