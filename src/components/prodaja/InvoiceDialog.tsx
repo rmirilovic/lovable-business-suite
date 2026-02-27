@@ -266,14 +266,11 @@ export function InvoiceDialog({
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Tip dokumenta</Label>
-                <Select value={formData.invoice_type_code} onValueChange={(v) => set("invoice_type_code", v)}>
-                  <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="380">380 - Faktura</SelectItem>
-                    <SelectItem value="381">381 - Knjižno odobrenje</SelectItem>
-                    <SelectItem value="386">386 - Avansni račun</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  value="380 - Faktura"
+                  disabled
+                  className="h-8 text-sm bg-muted"
+                />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">Valuta</Label>
@@ -365,27 +362,6 @@ export function InvoiceDialog({
                 </div>
               )}
             </div>
-            {formData.invoice_type_code === "381" && (
-              <div className="grid grid-cols-2 gap-4 p-3 bg-muted/50 rounded-lg">
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Broj originalne fakture *</Label>
-                  <Input
-                    value={formData.billing_reference_number || ""}
-                    onChange={(e) => set("billing_reference_number", e.target.value || null)}
-                    className="h-8 text-sm"
-                    placeholder="Npr. FAK-2026-001"
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Datum originalne fakture</Label>
-                  <LocaleDateInput
-                    value={formData.billing_reference_date || ""}
-                    onChange={(v) => set("billing_reference_date", v || null)}
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Notes */}
