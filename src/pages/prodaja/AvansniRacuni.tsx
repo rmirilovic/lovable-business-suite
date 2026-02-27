@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, MoreHorizontal, Eye, Trash2, FileText, Download, FileSpreadsheet, Printer } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Eye, Trash2, FileText, FileSpreadsheet, Printer } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -107,44 +107,45 @@ export default function AvansniRacuni() {
   return (
     <MainLayout title="Avansni računi">
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2 mb-2">
+        {/* Actions row */}
+        <div className="flex items-center justify-end gap-2">
           <Button variant="outline" size="sm" onClick={() => exportAdvanceInvoicesToExcel(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
-            <FileSpreadsheet className="w-4 h-4 mr-1" />Excel
+            <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
           </Button>
           <Button variant="outline" size="sm" onClick={() => exportAdvanceInvoicesToPdf(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
-            <Download className="w-4 h-4 mr-1" />PDF
+            <FileText className="w-4 h-4 mr-2" /> PDF
           </Button>
           <Button variant="outline" size="sm" onClick={() => printAdvanceInvoices(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
-            <Printer className="w-4 h-4 mr-1" />Štampa
+            <Printer className="w-4 h-4 mr-2" /> Štampa
           </Button>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Pretraži..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Datum od</Label>
-              <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Datum do</Label>
-              <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Svi</SelectItem>
-                  <SelectItem value="draft">Nacrt</SelectItem>
-                  <SelectItem value="posted">Proknjižen</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
           <Button onClick={() => setDialogOpen(true)}><Plus className="mr-2 h-4 w-4" />Novi avansni račun</Button>
+        </div>
+
+        {/* Filters row */}
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Pretraži..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum od</Label>
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Datum do</Label>
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                <SelectItem value="draft">Nacrt</SelectItem>
+                <SelectItem value="posted">Proknjižen</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="border rounded-lg">
