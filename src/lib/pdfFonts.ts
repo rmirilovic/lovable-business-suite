@@ -54,6 +54,11 @@ export function configurePdfFonts(doc: jsPDF): void {
   doc.addFileToVFS("Roboto-Bold.ttf", robotoBold);
   doc.addFont("Roboto-Bold.ttf", "Roboto", "bold");
 
+  // Map italic variants to Roboto files too, so jsPDF never falls back to core fonts
+  // (prevents missing Serbian Latin glyphs in italic text)
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "italic");
+  doc.addFont("Roboto-Bold.ttf", "Roboto", "bolditalic");
+
   // Set default font
   doc.setFont("Roboto", "normal");
 }
