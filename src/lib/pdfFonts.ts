@@ -26,10 +26,10 @@ export async function initializePdfFonts(): Promise<void> {
   if (fontLoaded) return;
 
   try {
-    // Load Roboto fonts from Google Fonts
+    // Load full Roboto fonts (complete Unicode coverage including Serbian Latin ŠĐČĆŽšđčćž)
     const [regular, bold] = await Promise.all([
-      loadFont("https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Me5Q.ttf"),
-      loadFont("https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlvAw.ttf"),
+      loadFont("https://raw.githubusercontent.com/googlefonts/roboto/main/src/hinted/Roboto-Regular.ttf"),
+      loadFont("https://raw.githubusercontent.com/googlefonts/roboto/main/src/hinted/Roboto-Bold.ttf"),
     ]);
 
     robotoRegular = regular;
