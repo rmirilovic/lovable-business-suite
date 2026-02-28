@@ -232,15 +232,15 @@ export default function AdvanceInvoiceEdit() {
              <Badge variant={status.variant}>{status.label}</Badge>
            </div>
            <div className="flex items-center gap-2">
-             <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
-               {isDraft ? <><Pencil className="w-4 h-4 mr-2" />Uredi zaglavlje</> : <><Eye className="w-4 h-4 mr-2" />Prikaži zaglavlje</>}
-             </Button>
              <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
              <Button variant="ghost" size="sm" onClick={() => fetchDoc()} title="Osveži"><RefreshCw className="w-4 h-4" /></Button>
              <Button variant="outline" size="sm" onClick={handleExportPdf} title="PDF"><FileDown className="w-4 h-4 mr-2" />PDF</Button>
              <Button variant="outline" size="sm" onClick={handleExportExcel} title="Excel"><FileSpreadsheet className="w-4 h-4 mr-2" />Excel</Button>
              <Button variant="outline" size="sm" onClick={handlePrint} title="Štampa"><Printer className="w-4 h-4 mr-2" />Štampa</Button>
              <Button variant="outline" size="sm" onClick={handleExportXml} title="eFaktura XML"><FileCode className="w-4 h-4 mr-2" />eFaktura XML</Button>
+             <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+               {isDraft ? <><Pencil className="w-4 h-4 mr-2" />Uredi zaglavlje</> : <><Eye className="w-4 h-4 mr-2" />Prikaži zaglavlje</>}
+             </Button>
              {isDraft && (
                <Button size="sm" onClick={() => setPostDialogOpen(true)}>
                  <CheckCircle className="h-4 w-4 mr-2" />Proknjiži
