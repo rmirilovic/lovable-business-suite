@@ -45,8 +45,8 @@ export function exportAdvanceInvoicesToExcel(items: AdvanceInvoice[], meta: Expo
     { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 35 }, { wch: 16 }, { wch: 14 },
   ];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Avansni računi");
-  XLSX.writeFile(wb, "avansni_racuni.xlsx");
+  XLSX.utils.book_append_sheet(wb, ws, "Fakture za avans");
+  XLSX.writeFile(wb, "fakture_za_avans.xlsx");
 }
 
 async function buildPdf(items: AdvanceInvoice[], meta: ExportMeta): Promise<jsPDF> {
@@ -61,7 +61,7 @@ async function buildPdf(items: AdvanceInvoice[], meta: ExportMeta): Promise<jsPD
   doc.text(meta.companyName, pageWidth / 2, y, { align: "center" });
   y += 8;
   doc.setFontSize(14);
-  doc.text("Avansni računi", pageWidth / 2, y, { align: "center" });
+  doc.text("Fakture za avans", pageWidth / 2, y, { align: "center" });
   y += 6;
 
   if (meta.dateFrom || meta.dateTo) {
@@ -94,7 +94,7 @@ async function buildPdf(items: AdvanceInvoice[], meta: ExportMeta): Promise<jsPD
 
 export async function exportAdvanceInvoicesToPdf(items: AdvanceInvoice[], meta: ExportMeta) {
   const doc = await buildPdf(items, meta);
-  doc.save("avansni_racuni.pdf");
+  doc.save("fakture_za_avans.pdf");
 }
 
 export async function printAdvanceInvoices(items: AdvanceInvoice[], meta: ExportMeta) {

@@ -379,7 +379,7 @@ export function InvoiceHeaderDialog({
                   <SelectContent>
                     <SelectItem value="380">380 - Faktura</SelectItem>
                     <SelectItem value="381">381 - Knjižno odobrenje</SelectItem>
-                    <SelectItem value="386">386 - Avansni račun</SelectItem>
+                    <SelectItem value="386">386 - Faktura za avans</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

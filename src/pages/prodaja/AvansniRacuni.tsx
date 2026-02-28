@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, MoreHorizontal, Eye, Trash2, FileText, FileSpreadsheet, Printer } from "lucide-react";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -50,14 +52,17 @@ export default function AvansniRacuni() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<AdvanceInvoice | null>(null);
 
-  const [formData, setFormData] = useState<AdvanceInvoiceFormData>({
-    advance_date: format(new Date(), "yyyy-MM-dd"),
-    due_date: format(addDays(new Date(), 15), "yyyy-MM-dd"),
-    partner_id: "",
-    org_unit_id: null,
-    note: null,
-    internal_note: null,
-  });
+   const [formData, setFormData] = useState<AdvanceInvoiceFormData>({
+     advance_date: format(new Date(), "yyyy-MM-dd"),
+     due_date: format(addDays(new Date(), 15), "yyyy-MM-dd"),
+     partner_id: "",
+     org_unit_id: null,
+     note: null,
+     internal_note: null,
+     payment_date: format(new Date(), "yyyy-MM-dd"),
+     payment_amount: 0,
+     payment_reference: null,
+   });
 
   const customerPartners = partners.filter((p) => p.is_customer && p.is_active);
 
@@ -105,7 +110,7 @@ export default function AvansniRacuni() {
   };
 
   return (
-    <MainLayout title="Avansni računi">
+    <MainLayout title="Fakture za avans">
       <div className="space-y-4">
         {/* Actions row */}
         <div className="flex items-center justify-end gap-2">
@@ -118,7 +123,7 @@ export default function AvansniRacuni() {
           <Button variant="outline" size="sm" onClick={() => printAdvanceInvoices(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
             <Printer className="w-4 h-4 mr-2" /> Štampa
           </Button>
-          <Button onClick={() => setDialogOpen(true)}><Plus className="mr-2 h-4 w-4" />Novi avansni račun</Button>
+          <Button onClick={() => setDialogOpen(true)}><Plus className="mr-2 h-4 w-4" />Nova faktura za avans</Button>
         </div>
 
         {/* Filters row */}
@@ -165,7 +170,7 @@ export default function AvansniRacuni() {
               {isLoading ? (
                 <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Učitavanje...</TableCell></TableRow>
               ) : sortedItems.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">{searchQuery ? "Nema rezultata" : "Nema avansnih računa."}</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">{searchQuery ? "Nema rezultata" : "Nema faktura za avans."}</TableCell></TableRow>
               ) : (
                 sortedItems.map((item) => {
                   const status = STATUS_BADGES[item.status] || STATUS_BADGES.draft;
@@ -199,7 +204,7 @@ export default function AvansniRacuni() {
         {/* Create dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-2xl" onFocusOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
-            <DialogHeader><DialogTitle>Novi avansni račun</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Nova faktura za avans</DialogTitle></DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -227,6 +232,22 @@ export default function AvansniRacuni() {
                   </Select>
                 </div>
               </div>
+              <Separator className="my-2" />
+              <h3 className="text-sm font-medium text-muted-foreground">Podaci o uplati</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Datum uplate</Label>
+                  <LocaleDateInput value={formData.payment_date || ""} onChange={(v) => setFormData({ ...formData, payment_date: v || null })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Iznos uplate</Label>
+                  <LocaleNumberInput value={String(formData.payment_amount || 0)} onChange={(v) => setFormData({ ...formData, payment_amount: Number(v) })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Poziv na broj</Label>
+                  <Input value={formData.payment_reference || ""} onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value || null })} placeholder="Poziv na broj uplate..." autoComplete="off" />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Napomena</Label>
                 <Textarea value={formData.note || ""} onChange={(e) => setFormData({ ...formData, note: e.target.value || null })} rows={2} />
@@ -243,7 +264,7 @@ export default function AvansniRacuni() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Potvrda brisanja</AlertDialogTitle>
-              <AlertDialogDescription>Da li ste sigurni da želite da obrišete avansni račun {itemToDelete?.advance_number}?</AlertDialogDescription>
+              <AlertDialogDescription>Da li ste sigurni da želite da obrišete fakturu za avans {itemToDelete?.advance_number}?</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Otkaži</AlertDialogCancel>

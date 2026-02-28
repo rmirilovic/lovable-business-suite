@@ -60,7 +60,7 @@ const navigation: NavItem[] = [
       { label: "Ponude", href: "/prodaja/ponude", moduleCode: "prodaja.ponude" },
       { label: "Nalozi za isporuku", href: "/prodaja/nalozi-isporuka", moduleCode: "prodaja.otpremnice" },
       { label: "Fakture", href: "/prodaja/fakture", moduleCode: "prodaja.fakture" },
-      { label: "Avansni računi", href: "/prodaja/avansni-racuni", moduleCode: "prodaja.fakture" },
+      { label: "Fakture za avans", href: "/prodaja/avansni-racuni", moduleCode: "prodaja.fakture" },
       { label: "Knjižna odobrenja", href: "/prodaja/knjizna-odobrenja", moduleCode: "prodaja.fakture" },
     ],
   },

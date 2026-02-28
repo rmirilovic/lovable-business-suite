@@ -37,6 +37,9 @@ export interface AdvanceInvoice {
   created_by: string;
   created_at: string;
   updated_at: string;
+  payment_date: string | null;
+  payment_amount: number;
+  payment_reference: string | null;
   partner?: {
     id: string;
     name: string;
@@ -79,6 +82,9 @@ export interface AdvanceInvoiceFormData {
   partner_country_code?: string;
   partner_jbkjs?: string | null;
   contract_reference?: string | null;
+  payment_date?: string | null;
+  payment_amount?: number;
+  payment_reference?: string | null;
 }
 
 export interface AdvanceInvoiceItemFormData {
@@ -119,28 +125,31 @@ export function useAdvanceInvoices() {
         _year_id: selectedYear.id,
         _doc_type: "advance_invoice",
       });
-      const { data, error } = await supabase
-        .from("advance_invoices")
-        .insert({
-          company_id: selectedCompany.id,
-          business_year_id: selectedYear.id,
-          advance_number: num as string,
-          advance_date: formData.advance_date,
-          due_date: formData.due_date,
-          partner_id: formData.partner_id,
-          org_unit_id: formData.org_unit_id,
-          note: formData.note,
-          internal_note: formData.internal_note,
-          created_by: user.id,
-        })
-        .select()
-        .single();
+       const { data, error } = await supabase
+         .from("advance_invoices")
+         .insert({
+           company_id: selectedCompany.id,
+           business_year_id: selectedYear.id,
+           advance_number: num as string,
+           advance_date: formData.advance_date,
+           due_date: formData.due_date,
+           partner_id: formData.partner_id,
+           org_unit_id: formData.org_unit_id,
+           note: formData.note,
+           internal_note: formData.internal_note,
+           created_by: user.id,
+           payment_date: formData.payment_date || null,
+           payment_amount: formData.payment_amount || 0,
+           payment_reference: formData.payment_reference || null,
+         })
+         .select()
+         .single();
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["advance-invoices"] });
-      toast.success("Avansni račun je uspešno kreiran");
+      toast.success("Faktura za avans je uspešno kreirana");
     },
     onError: (error) => toast.error(`Greška: ${error.message}`),
   });
@@ -152,7 +161,7 @@ export function useAdvanceInvoices() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["advance-invoices"] });
-      toast.success("Avansni račun je obrisan");
+      toast.success("Faktura za avans je obrisana");
     },
     onError: (error) => toast.error(`Greška: ${error.message}`),
   });
@@ -167,11 +176,14 @@ export function useAdvanceInvoices() {
         note: formData.note,
         internal_note: formData.internal_note,
       };
-      if (formData.currency !== undefined) payload.currency = formData.currency;
-      if (formData.payment_means_code !== undefined) payload.payment_means_code = formData.payment_means_code;
-      if (formData.partner_country_code !== undefined) payload.partner_country_code = formData.partner_country_code;
-      if (formData.partner_jbkjs !== undefined) payload.partner_jbkjs = formData.partner_jbkjs;
-      if (formData.contract_reference !== undefined) payload.contract_reference = formData.contract_reference;
+       if (formData.currency !== undefined) payload.currency = formData.currency;
+       if (formData.payment_means_code !== undefined) payload.payment_means_code = formData.payment_means_code;
+       if (formData.partner_country_code !== undefined) payload.partner_country_code = formData.partner_country_code;
+       if (formData.partner_jbkjs !== undefined) payload.partner_jbkjs = formData.partner_jbkjs;
+       if (formData.contract_reference !== undefined) payload.contract_reference = formData.contract_reference;
+       if (formData.payment_date !== undefined) payload.payment_date = formData.payment_date;
+       if (formData.payment_amount !== undefined) payload.payment_amount = formData.payment_amount;
+       if (formData.payment_reference !== undefined) payload.payment_reference = formData.payment_reference;
       const { data, error } = await supabase
         .from("advance_invoices")
         .update(payload)
@@ -183,7 +195,7 @@ export function useAdvanceInvoices() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["advance-invoices"] });
-      toast.success("Avansni račun je ažuriran");
+      toast.success("Faktura za avans je ažurirana");
     },
     onError: (error) => toast.error(`Greška: ${error.message}`),
   });
