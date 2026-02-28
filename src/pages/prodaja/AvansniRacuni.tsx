@@ -1,30 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, MoreHorizontal, Eye, Trash2, FileText, FileSpreadsheet, Printer } from "lucide-react";
-import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useAdvanceInvoices, AdvanceInvoice, AdvanceInvoiceFormData } from "@/hooks/useAdvanceInvoices";
+import { useAdvanceInvoices, AdvanceInvoice } from "@/hooks/useAdvanceInvoices";
 import { formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
-import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
-import { usePartners } from "@/hooks/usePartners";
-import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { addDays } from "date-fns";
+
 import { exportAdvanceInvoicesToExcel, exportAdvanceInvoicesToPdf, printAdvanceInvoices } from "@/lib/advanceInvoiceListExportUtils";
+import { AdvanceInvoiceHeaderDialog } from "@/components/prodaja/AdvanceInvoiceHeaderDialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -39,67 +33,50 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
 export default function AvansniRacuni() {
   const navigate = useNavigate();
   const { selectedCompany } = useAuth();
-  const { advanceInvoices, isLoading, createAdvanceInvoice, deleteAdvanceInvoice } = useAdvanceInvoices();
-  const { partners } = usePartners();
-  const { units } = useOrganizationalUnits(selectedCompany?.id);
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+   const { advanceInvoices, isLoading, createAdvanceInvoice, deleteAdvanceInvoice } = useAdvanceInvoices();
+   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<AdvanceInvoice | null>(null);
+   const [searchQuery, setSearchQuery] = useState("");
+   const [dateFrom, setDateFrom] = useState("");
+   const [dateTo, setDateTo] = useState("");
+   const [statusFilter, setStatusFilter] = useState<string>("all");
+   const [dialogOpen, setDialogOpen] = useState(false);
+   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+   const [itemToDelete, setItemToDelete] = useState<AdvanceInvoice | null>(null);
 
-   const [formData, setFormData] = useState<AdvanceInvoiceFormData>({
-     advance_date: format(new Date(), "yyyy-MM-dd"),
-     due_date: format(addDays(new Date(), 15), "yyyy-MM-dd"),
-     partner_id: "",
-     org_unit_id: null,
-     note: null,
-     internal_note: null,
-     payment_date: format(new Date(), "yyyy-MM-dd"),
-     payment_amount: 0,
-     payment_reference: null,
+   const filteredItems = advanceInvoices.filter((item) => {
+     const query = searchQuery.toLowerCase();
+     const matchesSearch =
+       item.advance_number.toLowerCase().includes(query) ||
+       item.partner?.name?.toLowerCase().includes(query) ||
+       item.partner?.code?.toLowerCase().includes(query);
+     const matchesDateFrom = !dateFrom || item.advance_date >= dateFrom;
+     const matchesDateTo = !dateTo || item.advance_date <= dateTo;
+     const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+     return matchesSearch && matchesDateFrom && matchesDateTo && matchesStatus;
    });
 
-  const customerPartners = partners.filter((p) => p.is_customer && p.is_active);
+   const sortedItems = sortItems(filteredItems, (item, column) => {
+     switch (column) {
+       case "number": return item.advance_number;
+       case "date": return item.advance_date;
+       case "due_date": return item.due_date || "";
+       case "partner": return item.partner?.name || "";
+       case "total_amount": return item.total_amount;
+       case "status": return item.status;
+       default: return "";
+     }
+   });
 
-  const filteredItems = advanceInvoices.filter((item) => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch =
-      item.advance_number.toLowerCase().includes(query) ||
-      item.partner?.name?.toLowerCase().includes(query) ||
-      item.partner?.code?.toLowerCase().includes(query);
-    const matchesDateFrom = !dateFrom || item.advance_date >= dateFrom;
-    const matchesDateTo = !dateTo || item.advance_date <= dateTo;
-    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-    return matchesSearch && matchesDateFrom && matchesDateTo && matchesStatus;
-  });
+   const handleNavigate = (item: AdvanceInvoice) => {
+     navigate(`/prodaja/avansni-racuni/${item.id}`, { state: { prefetched: item } });
+   };
 
-  const sortedItems = sortItems(filteredItems, (item, column) => {
-    switch (column) {
-      case "number": return item.advance_number;
-      case "date": return item.advance_date;
-      case "due_date": return item.due_date || "";
-      case "partner": return item.partner?.name || "";
-      case "total_amount": return item.total_amount;
-      case "status": return item.status;
-      default: return "";
-    }
-  });
-
-  const handleNavigate = (item: AdvanceInvoice) => {
-    navigate(`/prodaja/avansni-racuni/${item.id}`, { state: { prefetched: item } });
-  };
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const result = await createAdvanceInvoice.mutateAsync(formData);
-    setDialogOpen(false);
-    navigate(`/prodaja/avansni-racuni/${result.id}`);
-  };
+   const handleCreateSave = async (data: any) => {
+     const result = await createAdvanceInvoice.mutateAsync(data);
+     setDialogOpen(false);
+     navigate(`/prodaja/avansni-racuni/${result.id}`);
+   };
 
   const confirmDelete = async () => {
     if (itemToDelete) {
@@ -201,64 +178,13 @@ export default function AvansniRacuni() {
           </Table>
         </div>
 
-        {/* Create dialog */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-2xl" onFocusOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
-            <DialogHeader><DialogTitle>Nova faktura za avans</DialogTitle></DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Datum *</Label>
-                  <LocaleDateInput value={formData.advance_date} onChange={(v) => setFormData({ ...formData, advance_date: v })} required />
-                </div>
-                <div className="space-y-2">
-                  <Label>Datum valute</Label>
-                  <LocaleDateInput value={formData.due_date || ""} onChange={(v) => setFormData({ ...formData, due_date: v || null })} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Kupac *</Label>
-                  <SearchablePartnerSelect partners={customerPartners} value={formData.partner_id} onValueChange={(v) => setFormData({ ...formData, partner_id: v })} placeholder="Izaberi kupca..." />
-                </div>
-                <div className="space-y-2">
-                  <Label>Org. jedinica</Label>
-                  <Select value={formData.org_unit_id || "none"} onValueChange={(v) => setFormData({ ...formData, org_unit_id: v === "none" ? null : v })}>
-                    <SelectTrigger><SelectValue placeholder="--" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">-- Bez org. jedinice --</SelectItem>
-                      {units.filter((u) => u.is_active).map((u) => (<SelectItem key={u.id} value={u.id}>{u.code} - {u.name}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <Separator className="my-2" />
-              <h3 className="text-sm font-medium text-muted-foreground">Podaci o uplati</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Datum uplate</Label>
-                  <LocaleDateInput value={formData.payment_date || ""} onChange={(v) => setFormData({ ...formData, payment_date: v || null })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Iznos uplate</Label>
-                  <LocaleNumberInput value={String(formData.payment_amount || 0)} onChange={(v) => setFormData({ ...formData, payment_amount: Number(v) })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Poziv na broj</Label>
-                  <Input value={formData.payment_reference || ""} onChange={(e) => setFormData({ ...formData, payment_reference: e.target.value || null })} placeholder="Poziv na broj uplate..." autoComplete="off" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Napomena</Label>
-                <Textarea value={formData.note || ""} onChange={(e) => setFormData({ ...formData, note: e.target.value || null })} rows={2} />
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Otkaži</Button>
-                <Button type="submit" disabled={!formData.partner_id || createAdvanceInvoice.isPending}>{createAdvanceInvoice.isPending ? "Kreiranje..." : "Kreiraj"}</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+         <AdvanceInvoiceHeaderDialog
+           open={dialogOpen}
+           onOpenChange={setDialogOpen}
+           title="Nova faktura za avans"
+           onSave={handleCreateSave}
+           isLoading={createAdvanceInvoice.isPending}
+         />
 
         <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
           <AlertDialogContent>
