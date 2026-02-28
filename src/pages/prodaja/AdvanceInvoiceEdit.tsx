@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, ArrowLeft, RefreshCw, Plus, Trash2, FileCode, FileDown, FileSpreadsheet, Printer, CheckCircle, Undo2, History, Pencil, Eye } from "lucide-react";
 import { AdvanceInvoice, AdvanceInvoiceItem, useAdvanceInvoiceItems, useAdvanceInvoices } from "@/hooks/useAdvanceInvoices";
+import { AdvanceInvoiceHeaderDialog } from "@/components/prodaja/AdvanceInvoiceHeaderDialog";
 import { formatDate, formatPrice } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,10 +50,11 @@ export default function AdvanceInvoiceEdit() {
 
   const [doc, setDoc] = useState<AdvanceInvoice | null>(hasMatch ? prefetched : null);
   const [isLoading, setIsLoading] = useState(!hasMatch);
-  const [postDialogOpen, setPostDialogOpen] = useState(false);
-  const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const { updateTotals } = useAdvanceInvoices();
+   const [postDialogOpen, setPostDialogOpen] = useState(false);
+   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+   const [historyOpen, setHistoryOpen] = useState(false);
+   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
+   const { updateTotals, updateAdvanceInvoice } = useAdvanceInvoices();
   const { items, addItem, updateItem, deleteItem } = useAdvanceInvoiceItems(id || null);
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
 
@@ -227,7 +229,10 @@ export default function AdvanceInvoiceEdit() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate("/prodaja/avansni-racuni")}><ArrowLeft className="w-4 h-4 mr-2" />Nazad</Button>
             <h1 className="text-xl font-semibold">{doc.advance_number}</h1>
-            <Badge variant={status.variant}>{status.label}</Badge>
+             <Badge variant={status.variant}>{status.label}</Badge>
+             <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+               {isDraft ? <><Pencil className="w-4 h-4 mr-2" />Uredi zaglavlje</> : <><Eye className="w-4 h-4 mr-2" />Prikaži zaglavlje</>}
+             </Button>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
@@ -377,15 +382,30 @@ export default function AdvanceInvoiceEdit() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {doc && (
-        <DocumentHistoryDialog
-          open={historyOpen}
-          onOpenChange={setHistoryOpen}
-          documentId={doc.id}
-          documentName={doc.advance_number}
-          documentType="advance_invoice"
-        />
-      )}
+       {doc && (
+         <DocumentHistoryDialog
+           open={historyOpen}
+           onOpenChange={setHistoryOpen}
+           documentId={doc.id}
+           documentName={doc.advance_number}
+           documentType="advance_invoice"
+         />
+       )}
+
+       {doc && (
+         <AdvanceInvoiceHeaderDialog
+           open={headerDialogOpen}
+           onOpenChange={setHeaderDialogOpen}
+           doc={doc}
+           readOnly={!isDraft}
+           isLoading={updateAdvanceInvoice.isPending}
+           onSave={async (data) => {
+             await updateAdvanceInvoice.mutateAsync({ id: doc.id, ...data });
+             setHeaderDialogOpen(false);
+             fetchDoc(false);
+           }}
+         />
+       )}
     </MainLayout>
   );
 }
