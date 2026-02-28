@@ -119,6 +119,8 @@ export type Database = {
           posted_by: string | null
           status: string
           subtotal: number
+          tax_category_code: string
+          tax_exemption_reason: string | null
           total_amount: number
           updated_at: string
           vat_amount: number
@@ -158,6 +160,8 @@ export type Database = {
           posted_by?: string | null
           status?: string
           subtotal?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
           total_amount?: number
           updated_at?: string
           vat_amount?: number
@@ -197,6 +201,8 @@ export type Database = {
           posted_by?: string | null
           status?: string
           subtotal?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
           total_amount?: number
           updated_at?: string
           vat_amount?: number
