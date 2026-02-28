@@ -87,6 +87,7 @@ export type Database = {
         Row: {
           advance_date: string
           advance_number: string
+          bank_account_id: string | null
           business_year_id: string
           company_id: string
           composed_by: string | null
@@ -125,6 +126,7 @@ export type Database = {
         Insert: {
           advance_date?: string
           advance_number: string
+          bank_account_id?: string | null
           business_year_id: string
           company_id: string
           composed_by?: string | null
@@ -163,6 +165,7 @@ export type Database = {
         Update: {
           advance_date?: string
           advance_number?: string
+          bank_account_id?: string | null
           business_year_id?: string
           company_id?: string
           composed_by?: string | null
@@ -199,6 +202,13 @@ export type Database = {
           vat_amount?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "advance_invoices_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "advance_invoices_business_year_id_fkey"
             columns: ["business_year_id"]
