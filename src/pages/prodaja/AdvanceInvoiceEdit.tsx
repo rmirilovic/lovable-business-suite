@@ -84,7 +84,7 @@ export default function AdvanceInvoiceEdit() {
     if (!id) return;
     await addItem.mutateAsync({
       advance_invoice_id: id,
-      description: "Avans po ugovoru",
+       description: "Avans po ugovoru",
       unit: "kom",
       quantity: 1,
       unit_price: 0,
@@ -100,7 +100,7 @@ export default function AdvanceInvoiceEdit() {
         _user_id: user.id,
       });
       if (error) throw error;
-      toast.success("Avansni račun je proknjižen i kreiran je nalog za knjiženje");
+      toast.success("Faktura za avans je proknjižena i kreiran je nalog za knjiženje");
       setPostDialogOpen(false);
       fetchDoc();
     } catch (err: any) {
@@ -209,7 +209,7 @@ export default function AdvanceInvoiceEdit() {
   }
 
   if (!doc) {
-    return <MainLayout title="Dokument nije pronađen"><div className="text-center py-12"><p className="text-muted-foreground mb-4">Dokument nije pronađen.</p><Button onClick={() => navigate("/prodaja/avansni-racuni")}><ArrowLeft className="w-4 h-4 mr-2" />Nazad</Button></div></MainLayout>;
+     return <MainLayout title="Dokument nije pronađen"><div className="text-center py-12"><p className="text-muted-foreground mb-4">Dokument nije pronađen.</p><Button onClick={() => navigate("/prodaja/avansni-racuni")}><ArrowLeft className="w-4 h-4 mr-2" />Nazad</Button></div></MainLayout>;
   }
 
   const isDraft = doc.status === "draft";
@@ -221,7 +221,7 @@ export default function AdvanceInvoiceEdit() {
   const canUnpost = hasAccess("prodaja.fakture", "admin");
 
   return (
-    <MainLayout title={`Avansni račun: ${doc.advance_number}`}>
+    <MainLayout title={`Faktura za avans: ${doc.advance_number}`}>
       <div className="space-y-4 flex-1 min-h-0 overflow-y-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -249,11 +249,14 @@ export default function AdvanceInvoiceEdit() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
-          <div><div className="text-muted-foreground">Datum</div><div className="font-medium">{formatDate(doc.advance_date)}</div></div>
-          <div><div className="text-muted-foreground">Datum valute</div><div className="font-medium">{doc.due_date ? formatDate(doc.due_date) : "-"}</div></div>
-          <div className="col-span-2"><div className="text-muted-foreground">Kupac</div><div className="font-medium">{doc.partner_name ?? doc.partner?.name}</div></div>
-        </div>
+         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
+           <div><div className="text-muted-foreground">Datum</div><div className="font-medium">{formatDate(doc.advance_date)}</div></div>
+           <div><div className="text-muted-foreground">Datum valute</div><div className="font-medium">{doc.due_date ? formatDate(doc.due_date) : "-"}</div></div>
+           <div className="col-span-2"><div className="text-muted-foreground">Kupac</div><div className="font-medium">{doc.partner_name ?? doc.partner?.name}</div></div>
+           <div><div className="text-muted-foreground">Datum uplate</div><div className="font-medium">{doc.payment_date ? formatDate(doc.payment_date) : "-"}</div></div>
+           <div><div className="text-muted-foreground">Iznos uplate</div><div className="font-medium">{formatPrice(doc.payment_amount || 0)}</div></div>
+           <div className="col-span-2"><div className="text-muted-foreground">Poziv na broj</div><div className="font-medium">{doc.payment_reference || "-"}</div></div>
+         </div>
 
         {doc.note && <div className="text-sm"><span className="text-muted-foreground">Napomena:</span> {doc.note}</div>}
 
@@ -342,10 +345,10 @@ export default function AdvanceInvoiceEdit() {
       <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Proknjiženje avansnog računa</AlertDialogTitle>
-            <AlertDialogDescription>
-              Da li ste sigurni da želite da proknjižite avansni račun{" "}
-              <strong>{doc.advance_number}</strong>?
+             <AlertDialogTitle>Proknjiženje fakture za avans</AlertDialogTitle>
+             <AlertDialogDescription>
+               Da li ste sigurni da želite da proknjižite fakturu za avans{" "}
+               <strong>{doc.advance_number}</strong>?
               Proknjižen dokument se više ne može menjati.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -362,7 +365,7 @@ export default function AdvanceInvoiceEdit() {
           <AlertDialogHeader>
             <AlertDialogTitle>Poništavanje knjiženja</AlertDialogTitle>
             <AlertDialogDescription>
-              Da li ste sigurni da želite da poništite knjiženje avansnog računa{" "}
+              Da li ste sigurni da želite da poništite knjiženje fakture za avans{" "}
               <strong>{doc.advance_number}</strong>?
               Nalog za knjiženje će biti obrisan, a dokument vraćen u nacrt.
             </AlertDialogDescription>

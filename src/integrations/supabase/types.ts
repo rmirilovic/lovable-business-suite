@@ -110,7 +110,10 @@ export type Database = {
           partner_name: string | null
           partner_pib: string | null
           partner_postal_code: string | null
+          payment_amount: number | null
+          payment_date: string | null
           payment_means_code: string
+          payment_reference: string | null
           posted_at: string | null
           posted_by: string | null
           status: string
@@ -145,7 +148,10 @@ export type Database = {
           partner_name?: string | null
           partner_pib?: string | null
           partner_postal_code?: string | null
+          payment_amount?: number | null
+          payment_date?: string | null
           payment_means_code?: string
+          payment_reference?: string | null
           posted_at?: string | null
           posted_by?: string | null
           status?: string
@@ -180,7 +186,10 @@ export type Database = {
           partner_name?: string | null
           partner_pib?: string | null
           partner_postal_code?: string | null
+          payment_amount?: number | null
+          payment_date?: string | null
           payment_means_code?: string
+          payment_reference?: string | null
           posted_at?: string | null
           posted_by?: string | null
           status?: string
