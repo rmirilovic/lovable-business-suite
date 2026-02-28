@@ -266,7 +266,8 @@ export default function AdvanceInvoiceEdit() {
            <div><div className="text-muted-foreground">Fakturu sastavio</div><div className="font-medium">{doc.composed_by || "-"}</div></div>
             <div><div className="text-muted-foreground">Tekući račun</div><div className="font-medium">{doc.bank_account_id ? (() => { const ba = bankAccounts.find((b) => b.id === doc.bank_account_id); return ba ? `${ba.account_number} (${ba.bank_name})` : "-"; })() : "-"}</div></div>
             <div><div className="text-muted-foreground">Datum uplate</div><div className="font-medium">{doc.payment_date ? formatDate(doc.payment_date) : "-"}</div></div>
-            <div><div className="text-muted-foreground">Poziv na broj</div><div className="font-medium">{doc.payment_reference || "-"}</div></div>
+             <div><div className="text-muted-foreground">Poziv na broj</div><div className="font-medium">{doc.payment_reference || "-"}</div></div>
+             <div><div className="text-muted-foreground">Ugovor/referenca</div><div className="font-medium">{doc.contract_reference || "-"}</div></div>
          </div>
 
          {/* Partner info */}
