@@ -264,10 +264,9 @@ export default function AdvanceInvoiceEdit() {
            <div><div className="text-muted-foreground">Datum valute</div><div className="font-medium">{doc.due_date ? formatDate(doc.due_date) : "-"}</div></div>
            <div><div className="text-muted-foreground">Org. jedinica</div><div className="font-medium">{doc.org_unit_id ? units.find((u) => u.id === doc.org_unit_id)?.name || "-" : "-"}</div></div>
            <div><div className="text-muted-foreground">Fakturu sastavio</div><div className="font-medium">{doc.composed_by || "-"}</div></div>
-           <div><div className="text-muted-foreground">Tekući račun</div><div className="font-medium">{doc.bank_account_id ? (() => { const ba = bankAccounts.find((b) => b.id === doc.bank_account_id); return ba ? `${ba.account_number} (${ba.bank_name})` : "-"; })() : "-"}</div></div>
-           <div><div className="text-muted-foreground">Datum uplate</div><div className="font-medium">{doc.payment_date ? formatDate(doc.payment_date) : "-"}</div></div>
-           <div><div className="text-muted-foreground">Iznos uplate</div><div className="font-medium">{formatPrice(doc.payment_amount || 0)}</div></div>
-           <div><div className="text-muted-foreground">Poziv na broj</div><div className="font-medium">{doc.payment_reference || "-"}</div></div>
+            <div><div className="text-muted-foreground">Tekući račun</div><div className="font-medium">{doc.bank_account_id ? (() => { const ba = bankAccounts.find((b) => b.id === doc.bank_account_id); return ba ? `${ba.account_number} (${ba.bank_name})` : "-"; })() : "-"}</div></div>
+            <div><div className="text-muted-foreground">Datum uplate</div><div className="font-medium">{doc.payment_date ? formatDate(doc.payment_date) : "-"}</div></div>
+            <div><div className="text-muted-foreground">Poziv na broj</div><div className="font-medium">{doc.payment_reference || "-"}</div></div>
          </div>
 
          {/* Partner info */}
