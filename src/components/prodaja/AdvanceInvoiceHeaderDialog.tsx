@@ -222,10 +222,6 @@ export function AdvanceInvoiceHeaderDialog({
                 <LocaleDateInput value={formData.payment_date || ""} onChange={(v) => set("payment_date", v || null)} disabled={readOnly} />
               </div>
               <div className="space-y-2">
-                <Label>Iznos uplate</Label>
-                <LocaleNumberInput value={String(formData.payment_amount || 0)} onChange={(v) => set("payment_amount", Number(v))} disabled={readOnly} />
-              </div>
-              <div className="space-y-2">
                 <Label>Poziv na broj</Label>
                 <Input value={formData.payment_reference || ""} onChange={(e) => set("payment_reference", e.target.value || null)} placeholder="Poziv na broj uplate..." disabled={readOnly} autoComplete="off" />
               </div>
