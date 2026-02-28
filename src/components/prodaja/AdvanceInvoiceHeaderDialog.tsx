@@ -66,6 +66,8 @@ export function AdvanceInvoiceHeaderDialog({
       payment_amount: doc.payment_amount || 0,
       payment_reference: doc.payment_reference || "",
       bank_account_id: (doc as any).bank_account_id || null,
+      tax_category_code: (doc as any).tax_category_code || "S",
+      tax_exemption_reason: (doc as any).tax_exemption_reason || "",
     });
   }, [open, doc]);
 
@@ -107,6 +109,8 @@ export function AdvanceInvoiceHeaderDialog({
       payment_amount: formData.payment_amount || 0,
       payment_reference: formData.payment_reference || null,
       bank_account_id: formData.bank_account_id || null,
+      tax_category_code: formData.tax_category_code || "S",
+      tax_exemption_reason: formData.tax_category_code !== "S" ? (formData.tax_exemption_reason || null) : null,
     });
   };
 
@@ -231,6 +235,26 @@ export function AdvanceInvoiceHeaderDialog({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">PDV kategorija</Label>
+                <Select value={formData.tax_category_code || "S"} onValueChange={(v) => set("tax_category_code", v)} disabled={readOnly}>
+                  <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="S">S - Standardna stopa</SelectItem>
+                    <SelectItem value="E">E - Oslobođeno PDV-a</SelectItem>
+                    <SelectItem value="O">O - Van sistema PDV-a</SelectItem>
+                    <SelectItem value="AE">AE - Obrnuti obračun</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.tax_category_code !== "S" && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Osnov oslobođenja</Label>
+                  <Input value={formData.tax_exemption_reason || ""} onChange={(e) => set("tax_exemption_reason", e.target.value || null)} className="h-8 text-sm" placeholder="Npr. Član 25. stav 2. tačka 1." disabled={readOnly} autoComplete="off" />
+                </div>
+              )}
             </div>
           </div>
 
