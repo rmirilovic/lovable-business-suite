@@ -37,9 +37,12 @@ export interface AdvanceInvoice {
   created_by: string;
   created_at: string;
   updated_at: string;
-  payment_date: string | null;
-  payment_amount: number;
-  payment_reference: string | null;
+   payment_date: string | null;
+   payment_amount: number;
+   payment_reference: string | null;
+   bank_account_id: string | null;
+   tax_category_code: string | null;
+   tax_exemption_reason: string | null;
   partner?: {
     id: string;
     name: string;

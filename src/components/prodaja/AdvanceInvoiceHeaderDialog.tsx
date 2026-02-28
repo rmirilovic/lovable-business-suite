@@ -14,15 +14,45 @@ import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { AdvanceInvoice } from "@/hooks/useAdvanceInvoices";
+import { format, addDays } from "date-fns";
 
 interface AdvanceInvoiceHeaderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  doc: AdvanceInvoice;
+  doc?: AdvanceInvoice | null;
   onSave: (data: any) => void;
   isLoading?: boolean;
   readOnly?: boolean;
+  title?: string;
 }
+
+const DEFAULT_FORM: Record<string, any> = {
+  advance_date: "",
+  due_date: "",
+  partner_id: "",
+  org_unit_id: null,
+  note: "",
+  internal_note: "",
+  header_note: "",
+  composed_by: "",
+  currency: "RSD",
+  payment_means_code: "30",
+  partner_country_code: "RS",
+  partner_jbkjs: "",
+  contract_reference: "",
+  partner_name: "",
+  partner_address: "",
+  partner_city: "",
+  partner_postal_code: "",
+  partner_pib: "",
+  partner_mb: "",
+  payment_date: "",
+  payment_amount: 0,
+  payment_reference: "",
+  bank_account_id: null,
+  tax_category_code: "S",
+  tax_exemption_reason: "",
+};
 
 export function AdvanceInvoiceHeaderDialog({
   open,
@@ -31,6 +61,7 @@ export function AdvanceInvoiceHeaderDialog({
   onSave,
   isLoading,
   readOnly,
+  title,
 }: AdvanceInvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
   const { partners } = usePartners();
@@ -41,35 +72,47 @@ export function AdvanceInvoiceHeaderDialog({
   const [formData, setFormData] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    if (!open || !doc) return;
-    setFormData({
-      advance_date: doc.advance_date,
-      due_date: doc.due_date || "",
-      partner_id: doc.partner_id,
-      org_unit_id: doc.org_unit_id || null,
-      note: doc.note || "",
-      internal_note: doc.internal_note || "",
-      header_note: doc.header_note || "",
-      composed_by: doc.composed_by || "",
-      currency: doc.currency || "RSD",
-      payment_means_code: doc.payment_means_code || "30",
-      partner_country_code: doc.partner_country_code || "RS",
-      partner_jbkjs: doc.partner_jbkjs || "",
-      contract_reference: doc.contract_reference || "",
-      partner_name: doc.partner_name ?? doc.partner?.name ?? "",
-      partner_address: doc.partner_address ?? doc.partner?.address ?? "",
-      partner_city: doc.partner_city ?? doc.partner?.city ?? "",
-      partner_postal_code: doc.partner_postal_code ?? doc.partner?.postal_code ?? "",
-      partner_pib: doc.partner_pib ?? doc.partner?.pib ?? "",
-      partner_mb: doc.partner_mb ?? doc.partner?.mb ?? "",
-      payment_date: doc.payment_date || "",
-      payment_amount: doc.payment_amount || 0,
-      payment_reference: doc.payment_reference || "",
-      bank_account_id: (doc as any).bank_account_id || null,
-      tax_category_code: (doc as any).tax_category_code || "S",
-      tax_exemption_reason: (doc as any).tax_exemption_reason || "",
-    });
-  }, [open, doc]);
+    if (!open) return;
+    const defaultBankId = bankAccounts.find((b) => b.is_default && b.is_active)?.id || null;
+    if (doc) {
+      setFormData({
+        advance_date: doc.advance_date,
+        due_date: doc.due_date || "",
+        partner_id: doc.partner_id,
+        org_unit_id: doc.org_unit_id || null,
+        note: doc.note || "",
+        internal_note: doc.internal_note || "",
+        header_note: doc.header_note || "",
+        composed_by: doc.composed_by || "",
+        currency: doc.currency || "RSD",
+        payment_means_code: doc.payment_means_code || "30",
+        partner_country_code: doc.partner_country_code || "RS",
+        partner_jbkjs: doc.partner_jbkjs || "",
+        contract_reference: doc.contract_reference || "",
+        partner_name: doc.partner_name ?? doc.partner?.name ?? "",
+        partner_address: doc.partner_address ?? doc.partner?.address ?? "",
+        partner_city: doc.partner_city ?? doc.partner?.city ?? "",
+        partner_postal_code: doc.partner_postal_code ?? doc.partner?.postal_code ?? "",
+        partner_pib: doc.partner_pib ?? doc.partner?.pib ?? "",
+        partner_mb: doc.partner_mb ?? doc.partner?.mb ?? "",
+        payment_date: doc.payment_date || "",
+        payment_amount: doc.payment_amount || 0,
+        payment_reference: doc.payment_reference || "",
+        bank_account_id: doc.bank_account_id || defaultBankId,
+        tax_category_code: doc.tax_category_code || "S",
+        tax_exemption_reason: doc.tax_exemption_reason || "",
+      });
+    } else {
+      const today = format(new Date(), "yyyy-MM-dd");
+      setFormData({
+        ...DEFAULT_FORM,
+        advance_date: today,
+        due_date: format(addDays(new Date(), 15), "yyyy-MM-dd"),
+        payment_date: today,
+        bank_account_id: defaultBankId,
+      });
+    }
+  }, [open, doc, bankAccounts]);
 
   const set = (key: string, value: any) => setFormData((prev) => ({ ...prev, [key]: value }));
 
@@ -118,7 +161,7 @@ export function AdvanceInvoiceHeaderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" onFocusOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{readOnly ? "Zaglavlje fakture za avans" : "Uredi zaglavlje"}</DialogTitle>
+          <DialogTitle>{title || (readOnly ? "Zaglavlje fakture za avans" : "Uredi zaglavlje")}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -291,7 +334,7 @@ export function AdvanceInvoiceHeaderDialog({
               <>
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Otkaži</Button>
                 <Button type="submit" disabled={isLoading || !formData.partner_id}>
-                  {isLoading ? "Čuvanje..." : "Sačuvaj"}
+                  {isLoading ? "Čuvanje..." : doc ? "Sačuvaj" : "Kreiraj"}
                 </Button>
               </>
             )}
