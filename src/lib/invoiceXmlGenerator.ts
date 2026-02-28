@@ -66,6 +66,42 @@ function formatDate(dateStr: string): string {
 }
 
 /**
+ * Maps local unit names to UN/ECE Recommendation 20 codes
+ * required by UBL 2.1 / Serbian eFaktura standard.
+ */
+const UNIT_CODE_MAP: Record<string, string> = {
+  "kom": "H87",
+  "KOM": "H87",
+  "komad": "H87",
+  "kg": "KGM",
+  "KG": "KGM",
+  "g": "GRM",
+  "t": "TNE",
+  "l": "LTR",
+  "L": "LTR",
+  "lit": "LTR",
+  "m": "MTR",
+  "m2": "MTK",
+  "m3": "MTQ",
+  "km": "KMT",
+  "cm": "CMT",
+  "mm": "MMT",
+  "par": "PR",
+  "pak": "PK",
+  "kutija": "BX",
+  "sat": "HUR",
+  "h": "HUR",
+  "dan": "DAY",
+  "min": "MIN",
+  "set": "SET",
+  "rolna": "RO",
+};
+
+function mapUnitCode(unit: string): string {
+  return UNIT_CODE_MAP[unit] || UNIT_CODE_MAP[unit.toLowerCase()] || unit;
+}
+
+/**
  * Groups invoice items by tax category and rate for TaxTotal section
  */
 function groupTaxes(items: InvoiceItem[]): Array<{
@@ -336,7 +372,7 @@ export function generateInvoiceXml(data: InvoiceXmlData): string {
 
     lines.push(`  <cac:${lineElement}>`);
     lines.push(`    <cbc:ID>${i + 1}</cbc:ID>`);
-    lines.push(`    <cbc:${quantityElement} unitCode="${escapeXml(item.unit)}">${formatAmount(item.quantity)}</cbc:${quantityElement}>`);
+    lines.push(`    <cbc:${quantityElement} unitCode="${escapeXml(mapUnitCode(item.unit))}">${formatAmount(item.quantity)}</cbc:${quantityElement}>`);
     lines.push(`    <cbc:LineExtensionAmount currencyID="${escapeXml(currency)}">${formatAmount(item.line_subtotal)}</cbc:LineExtensionAmount>`);
 
     // Discount
