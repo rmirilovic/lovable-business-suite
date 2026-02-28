@@ -225,34 +225,34 @@ export default function AdvanceInvoiceEdit() {
   return (
     <MainLayout title={`Faktura za avans: ${doc.advance_number}`}>
       <div className="space-y-4 flex-1 min-h-0 overflow-y-auto">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/prodaja/avansni-racuni")}><ArrowLeft className="w-4 h-4 mr-2" />Nazad</Button>
-            <h1 className="text-xl font-semibold">{doc.advance_number}</h1>
+         <div className="flex items-center justify-between">
+           <div className="flex items-center gap-3">
+             <Button variant="ghost" size="sm" onClick={() => navigate("/prodaja/avansni-racuni")}><ArrowLeft className="w-4 h-4 mr-2" />Nazad</Button>
+             <h1 className="text-xl font-semibold">{doc.advance_number}</h1>
              <Badge variant={status.variant}>{status.label}</Badge>
+           </div>
+           <div className="flex items-center gap-2">
              <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
                {isDraft ? <><Pencil className="w-4 h-4 mr-2" />Uredi zaglavlje</> : <><Eye className="w-4 h-4 mr-2" />Prikaži zaglavlje</>}
              </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
-            <Button variant="ghost" size="sm" onClick={() => fetchDoc()} title="Osveži"><RefreshCw className="w-4 h-4" /></Button>
-            <Button variant="outline" size="sm" onClick={handleExportPdf} title="PDF"><FileDown className="w-4 h-4 mr-2" />PDF</Button>
-            <Button variant="outline" size="sm" onClick={handleExportExcel} title="Excel"><FileSpreadsheet className="w-4 h-4 mr-2" />Excel</Button>
-            <Button variant="outline" size="sm" onClick={handlePrint} title="Štampa"><Printer className="w-4 h-4 mr-2" />Štampa</Button>
-            <Button variant="outline" size="sm" onClick={handleExportXml} title="eFaktura XML"><FileCode className="w-4 h-4 mr-2" />eFaktura XML</Button>
-            {isDraft && (
-              <Button size="sm" onClick={() => setPostDialogOpen(true)}>
-                <CheckCircle className="h-4 w-4 mr-2" />Proknjiži
-              </Button>
-            )}
-            {isPosted && canUnpost && (
-              <Button variant="destructive" size="sm" className="border" onClick={() => setUnpostDialogOpen(true)}>
-                <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
-              </Button>
-            )}
-          </div>
-        </div>
+             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
+             <Button variant="ghost" size="sm" onClick={() => fetchDoc()} title="Osveži"><RefreshCw className="w-4 h-4" /></Button>
+             <Button variant="outline" size="sm" onClick={handleExportPdf} title="PDF"><FileDown className="w-4 h-4 mr-2" />PDF</Button>
+             <Button variant="outline" size="sm" onClick={handleExportExcel} title="Excel"><FileSpreadsheet className="w-4 h-4 mr-2" />Excel</Button>
+             <Button variant="outline" size="sm" onClick={handlePrint} title="Štampa"><Printer className="w-4 h-4 mr-2" />Štampa</Button>
+             <Button variant="outline" size="sm" onClick={handleExportXml} title="eFaktura XML"><FileCode className="w-4 h-4 mr-2" />eFaktura XML</Button>
+             {isDraft && (
+               <Button size="sm" onClick={() => setPostDialogOpen(true)}>
+                 <CheckCircle className="h-4 w-4 mr-2" />Proknjiži
+               </Button>
+             )}
+             {isPosted && canUnpost && (
+               <Button variant="destructive" size="sm" className="border" onClick={() => setUnpostDialogOpen(true)}>
+                 <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
+               </Button>
+             )}
+           </div>
+         </div>
 
          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
            <div><div className="text-muted-foreground">Datum</div><div className="font-medium">{formatDate(doc.advance_date)}</div></div>
