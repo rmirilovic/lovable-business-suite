@@ -80,14 +80,25 @@ export interface AdvanceInvoiceFormData {
   org_unit_id: string | null;
   note: string | null;
   internal_note: string | null;
+  header_note?: string | null;
+  composed_by?: string | null;
   currency?: string;
   payment_means_code?: string;
   partner_country_code?: string;
   partner_jbkjs?: string | null;
   contract_reference?: string | null;
+  partner_name?: string | null;
+  partner_address?: string | null;
+  partner_city?: string | null;
+  partner_postal_code?: string | null;
+  partner_pib?: string | null;
+  partner_mb?: string | null;
   payment_date?: string | null;
   payment_amount?: number;
   payment_reference?: string | null;
+  bank_account_id?: string | null;
+  tax_category_code?: string;
+  tax_exemption_reason?: string | null;
 }
 
 export interface AdvanceInvoiceItemFormData {
@@ -140,10 +151,26 @@ export function useAdvanceInvoices() {
            org_unit_id: formData.org_unit_id,
            note: formData.note,
            internal_note: formData.internal_note,
+           header_note: formData.header_note || null,
+           composed_by: formData.composed_by || null,
+           currency: formData.currency || "RSD",
+           payment_means_code: formData.payment_means_code || "30",
+           partner_country_code: formData.partner_country_code || "RS",
+           partner_jbkjs: formData.partner_jbkjs || null,
+           contract_reference: formData.contract_reference || null,
+           partner_name: formData.partner_name || null,
+           partner_address: formData.partner_address || null,
+           partner_city: formData.partner_city || null,
+           partner_postal_code: formData.partner_postal_code || null,
+           partner_pib: formData.partner_pib || null,
+           partner_mb: formData.partner_mb || null,
            created_by: user.id,
            payment_date: formData.payment_date || null,
            payment_amount: formData.payment_amount || 0,
            payment_reference: formData.payment_reference || null,
+           bank_account_id: formData.bank_account_id || null,
+           tax_category_code: formData.tax_category_code || "S",
+           tax_exemption_reason: formData.tax_exemption_reason || null,
          })
          .select()
          .single();
@@ -179,14 +206,25 @@ export function useAdvanceInvoices() {
         note: formData.note,
         internal_note: formData.internal_note,
       };
+       if (formData.header_note !== undefined) payload.header_note = formData.header_note;
+       if (formData.composed_by !== undefined) payload.composed_by = formData.composed_by;
        if (formData.currency !== undefined) payload.currency = formData.currency;
        if (formData.payment_means_code !== undefined) payload.payment_means_code = formData.payment_means_code;
        if (formData.partner_country_code !== undefined) payload.partner_country_code = formData.partner_country_code;
        if (formData.partner_jbkjs !== undefined) payload.partner_jbkjs = formData.partner_jbkjs;
        if (formData.contract_reference !== undefined) payload.contract_reference = formData.contract_reference;
+       if (formData.partner_name !== undefined) payload.partner_name = formData.partner_name;
+       if (formData.partner_address !== undefined) payload.partner_address = formData.partner_address;
+       if (formData.partner_city !== undefined) payload.partner_city = formData.partner_city;
+       if (formData.partner_postal_code !== undefined) payload.partner_postal_code = formData.partner_postal_code;
+       if (formData.partner_pib !== undefined) payload.partner_pib = formData.partner_pib;
+       if (formData.partner_mb !== undefined) payload.partner_mb = formData.partner_mb;
        if (formData.payment_date !== undefined) payload.payment_date = formData.payment_date;
        if (formData.payment_amount !== undefined) payload.payment_amount = formData.payment_amount;
        if (formData.payment_reference !== undefined) payload.payment_reference = formData.payment_reference;
+       if (formData.bank_account_id !== undefined) payload.bank_account_id = formData.bank_account_id;
+       if (formData.tax_category_code !== undefined) payload.tax_category_code = formData.tax_category_code;
+       if (formData.tax_exemption_reason !== undefined) payload.tax_exemption_reason = formData.tax_exemption_reason;
       const { data, error } = await supabase
         .from("advance_invoices")
         .update(payload)
