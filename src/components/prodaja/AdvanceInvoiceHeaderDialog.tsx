@@ -107,14 +107,28 @@ export function AdvanceInvoiceHeaderDialog({
       setFormData({
         ...DEFAULT_FORM,
         advance_date: today,
-        due_date: format(addDays(new Date(), 15), "yyyy-MM-dd"),
+        due_date: today,
         payment_date: today,
         bank_account_id: defaultBankId,
       });
     }
   }, [open, doc, bankAccounts]);
 
-  const set = (key: string, value: any) => setFormData((prev) => ({ ...prev, [key]: value }));
+  const set = (key: string, value: any) => {
+    setFormData((prev) => {
+      const next = { ...prev, [key]: value };
+      // When advance_date changes, auto-fill due_date and payment_date
+      if (key === "advance_date" && value) {
+        if (!prev.due_date || prev.due_date === prev.advance_date) {
+          next.due_date = value;
+        }
+        if (!prev.payment_date || prev.payment_date === prev.advance_date) {
+          next.payment_date = value;
+        }
+      }
+      return next;
+    });
+  };
 
   const handlePartnerChange = (partnerId: string) => {
     const p = customerPartners.find((x) => x.id === partnerId);
