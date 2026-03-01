@@ -201,10 +201,10 @@ export default function PpPdvList() {
             )}
             <div className="space-y-2">
               <Label>Poveži sa POPDV obrascem (opciono)</Label>
-              <Select value={selectedPopdv} onValueChange={setSelectedPopdv}>
+              <Select value={selectedPopdv || "__none__"} onValueChange={(v) => setSelectedPopdv(v === "__none__" ? "" : v)}>
                 <SelectTrigger><SelectValue placeholder="Bez povezivanja" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Bez povezivanja</SelectItem>
+                  <SelectItem value="__none__">Bez povezivanja</SelectItem>
                   {popdvReports.filter(r => r.status === "finalized").map((r) => (
                     <SelectItem key={r.id} value={r.id}>{r.period_label}</SelectItem>
                   ))}
