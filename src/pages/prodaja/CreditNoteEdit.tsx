@@ -1,13 +1,15 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowLeft, RefreshCw, Plus, Trash2, FileCode, FileDown, FileSpreadsheet, Printer, CheckCircle, Undo2, History } from "lucide-react";
+import { Loader2, ArrowLeft, RefreshCw, Plus, Trash2, FileCode, FileDown, FileSpreadsheet, Printer, CheckCircle, Undo2, History, Pencil } from "lucide-react";
 import { CreditNote, CreditNoteItem, useCreditNoteItems, useCreditNotes } from "@/hooks/useCreditNotes";
+import { CreditNoteHeaderDialog } from "@/components/prodaja/CreditNoteHeaderDialog";
 import { formatDate, formatPrice, parseLocaleNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -54,10 +56,12 @@ export default function CreditNoteEdit() {
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const { updateTotals } = useCreditNotes();
+  const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
+  const { updateTotals, updateCreditNote } = useCreditNotes();
   const { items, addItem, updateItem, deleteItem } = useCreditNoteItems(id || null);
   const { articles } = useArticles(selectedCompany?.id);
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
+  const { units } = useOrganizationalUnits(selectedCompany?.id);
 
   const fetchDoc = async (showLoader = true) => {
     if (!id) return;
@@ -251,6 +255,11 @@ export default function CreditNoteEdit() {
             <Button variant="outline" size="sm" onClick={handlePrint} title="Štampa"><Printer className="w-4 h-4 mr-2" />Štampa</Button>
             <Button variant="outline" size="sm" onClick={handleExportXml} title="eFaktura XML"><FileCode className="w-4 h-4 mr-2" />eFaktura XML</Button>
             {isDraft && (
+              <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+              </Button>
+            )}
+            {isDraft && (
               <Button size="sm" onClick={() => setPostDialogOpen(true)}>
                 <CheckCircle className="h-4 w-4 mr-2" />Proknjiži
               </Button>
@@ -263,17 +272,78 @@ export default function CreditNoteEdit() {
           </div>
         </div>
 
+        {/* Header info */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
           <div><div className="text-muted-foreground">Datum</div><div className="font-medium">{formatDate(doc.credit_note_date)}</div></div>
           <div><div className="text-muted-foreground">Datum valute</div><div className="font-medium">{doc.due_date ? formatDate(doc.due_date) : "-"}</div></div>
-          <div className="col-span-2"><div className="text-muted-foreground">Kupac</div><div className="font-medium">{doc.partner_name ?? doc.partner?.name}</div></div>
+          <div><div className="text-muted-foreground">Org. jedinica</div><div className="font-medium">{doc.org_unit_id ? units.find((u) => u.id === doc.org_unit_id)?.name || "-" : "-"}</div></div>
+          <div><div className="text-muted-foreground">Dokument sastavio</div><div className="font-medium">{doc.composed_by || "-"}</div></div>
+          <div><div className="text-muted-foreground">Tekući račun</div><div className="font-medium">{(doc as any).bank_account_id ? (() => { const ba = bankAccounts.find((b) => b.id === (doc as any).bank_account_id); return ba ? `${ba.account_number} (${ba.bank_name})` : "-"; })() : "-"}</div></div>
+          <div><div className="text-muted-foreground">Datum uplate</div><div className="font-medium">{(doc as any).payment_date ? formatDate((doc as any).payment_date) : "-"}</div></div>
+          <div><div className="text-muted-foreground">Poziv na broj</div><div className="font-medium">{(doc as any).payment_reference || "-"}</div></div>
+          <div><div className="text-muted-foreground">Ugovor/referenca</div><div className="font-medium">{(doc as any).contract_reference || "-"}</div></div>
         </div>
 
+        {/* Partner info */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="col-span-2">
+            <div className="text-muted-foreground">Kupac</div>
+            <div className="font-medium">
+              {doc.partner?.code && <span className="text-muted-foreground mr-1">[{doc.partner.code}]</span>}
+              {doc.partner_name ?? doc.partner?.name}
+            </div>
+            {(doc.partner_address ?? doc.partner?.address) && (
+              <div className="text-xs text-muted-foreground">
+                {doc.partner_address ?? doc.partner?.address}
+                {(doc.partner_city ?? doc.partner?.city) && `, ${doc.partner_postal_code ?? doc.partner?.postal_code ?? ""} ${doc.partner_city ?? doc.partner?.city}`}
+              </div>
+            )}
+          </div>
+          <div><div className="text-muted-foreground">PIB</div><div className="font-medium">{doc.partner_pib ?? doc.partner?.pib ?? "-"}</div></div>
+          <div><div className="text-muted-foreground">Matični broj</div><div className="font-medium">{doc.partner_mb ?? doc.partner?.mb ?? "-"}</div></div>
+        </div>
+
+        {/* Billing reference */}
         {doc.billing_reference_number && (
           <div className="rounded-md bg-muted/50 p-3 text-sm">
             <span className="text-muted-foreground">Referenca: </span>
             <span className="font-medium">Faktura {doc.billing_reference_number}</span>
             {doc.billing_reference_date && <span className="text-muted-foreground"> od {formatDate(doc.billing_reference_date)}</span>}
+          </div>
+        )}
+
+        {/* PDV category */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <div className="text-muted-foreground">PDV kategorija</div>
+            <div className="font-medium">
+              {(doc as any).tax_category_code === "S" && "S - Standardna stopa"}
+              {(doc as any).tax_category_code === "E" && "E - Oslobođeno PDV-a"}
+              {(doc as any).tax_category_code === "O" && "O - Van sistema PDV-a"}
+              {(doc as any).tax_category_code === "AE" && "AE - Obrnuti obračun"}
+              {!(doc as any).tax_category_code && "S - Standardna stopa"}
+            </div>
+          </div>
+          {(doc as any).tax_category_code && (doc as any).tax_category_code !== "S" && (doc as any).tax_exemption_reason && (
+            <div className="col-span-2">
+              <div className="text-muted-foreground">Osnov oslobođenja</div>
+              <div className="font-medium">{(doc as any).tax_exemption_reason}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Notes */}
+        {(doc.note || doc.internal_note || doc.header_note) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            {doc.header_note && (
+              <div><div className="text-muted-foreground mb-1">Napomena u zaglavlju</div><div className="bg-muted p-2 rounded-md">{doc.header_note}</div></div>
+            )}
+            {doc.note && (
+              <div><div className="text-muted-foreground mb-1">Napomena za kupca</div><div className="bg-muted p-2 rounded-md">{doc.note}</div></div>
+            )}
+            {doc.internal_note && (
+              <div><div className="text-muted-foreground mb-1">Interna napomena</div><div className="bg-muted p-2 rounded-md">{doc.internal_note}</div></div>
+            )}
           </div>
         )}
 
@@ -402,6 +472,21 @@ export default function CreditNoteEdit() {
           documentId={doc.id}
           documentName={doc.credit_note_number}
           documentType="credit_note"
+        />
+      )}
+
+      {doc && (
+        <CreditNoteHeaderDialog
+          open={headerDialogOpen}
+          onOpenChange={setHeaderDialogOpen}
+          doc={doc}
+          readOnly={!isDraft}
+          isLoading={updateCreditNote.isPending}
+          onSave={async (data) => {
+            await updateCreditNote.mutateAsync({ id: doc.id, ...data });
+            setHeaderDialogOpen(false);
+            fetchDoc(false);
+          }}
         />
       )}
     </MainLayout>
