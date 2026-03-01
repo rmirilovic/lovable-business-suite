@@ -1175,11 +1175,13 @@ export type Database = {
       }
       credit_notes: {
         Row: {
+          bank_account_id: string | null
           billing_reference_date: string | null
           billing_reference_number: string | null
           business_year_id: string
           company_id: string
           composed_by: string | null
+          contract_reference: string | null
           created_at: string
           created_by: string
           credit_note_date: string
@@ -1201,22 +1203,29 @@ export type Database = {
           partner_name: string | null
           partner_pib: string | null
           partner_postal_code: string | null
+          payment_amount: number
+          payment_date: string | null
           payment_means_code: string
+          payment_reference: string | null
           posted_at: string | null
           posted_by: string | null
           source_invoice_id: string | null
           status: string
           subtotal: number
+          tax_category_code: string
+          tax_exemption_reason: string | null
           total_amount: number
           updated_at: string
           vat_amount: number
         }
         Insert: {
+          bank_account_id?: string | null
           billing_reference_date?: string | null
           billing_reference_number?: string | null
           business_year_id: string
           company_id: string
           composed_by?: string | null
+          contract_reference?: string | null
           created_at?: string
           created_by: string
           credit_note_date?: string
@@ -1238,22 +1247,29 @@ export type Database = {
           partner_name?: string | null
           partner_pib?: string | null
           partner_postal_code?: string | null
+          payment_amount?: number
+          payment_date?: string | null
           payment_means_code?: string
+          payment_reference?: string | null
           posted_at?: string | null
           posted_by?: string | null
           source_invoice_id?: string | null
           status?: string
           subtotal?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
           total_amount?: number
           updated_at?: string
           vat_amount?: number
         }
         Update: {
+          bank_account_id?: string | null
           billing_reference_date?: string | null
           billing_reference_number?: string | null
           business_year_id?: string
           company_id?: string
           composed_by?: string | null
+          contract_reference?: string | null
           created_at?: string
           created_by?: string
           credit_note_date?: string
@@ -1275,17 +1291,29 @@ export type Database = {
           partner_name?: string | null
           partner_pib?: string | null
           partner_postal_code?: string | null
+          payment_amount?: number
+          payment_date?: string | null
           payment_means_code?: string
+          payment_reference?: string | null
           posted_at?: string | null
           posted_by?: string | null
           source_invoice_id?: string | null
           status?: string
           subtotal?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
           total_amount?: number
           updated_at?: string
           vat_amount?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "credit_notes_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "credit_notes_business_year_id_fkey"
             columns: ["business_year_id"]

@@ -9,19 +9,16 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useCreditNotes, CreditNote, CreditNoteFormData, useCreateCreditNoteFromInvoice } from "@/hooks/useCreditNotes";
-import { useInvoices, Invoice } from "@/hooks/useInvoices";
+import { useCreditNotes, CreditNote, useCreateCreditNoteFromInvoice } from "@/hooks/useCreditNotes";
+import { useInvoices } from "@/hooks/useInvoices";
 import { formatNumber } from "@/lib/formatting";
-import { format, addDays } from "date-fns";
+import { format } from "date-fns";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
-import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
-import { usePartners } from "@/hooks/usePartners";
-import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { CreditNoteHeaderDialog } from "@/components/prodaja/CreditNoteHeaderDialog";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -40,8 +37,6 @@ export default function KnjiznaOdobrenja() {
   const { creditNotes, isLoading, createCreditNote, deleteCreditNote } = useCreditNotes();
   const { invoices } = useInvoices();
   const createFromInvoice = useCreateCreditNoteFromInvoice();
-  const { partners } = usePartners();
-  const { units } = useOrganizationalUnits(selectedCompany?.id);
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,16 +48,6 @@ export default function KnjiznaOdobrenja() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<CreditNote | null>(null);
 
-  const [formData, setFormData] = useState<CreditNoteFormData>({
-    credit_note_date: format(new Date(), "yyyy-MM-dd"),
-    due_date: format(addDays(new Date(), 15), "yyyy-MM-dd"),
-    partner_id: "",
-    org_unit_id: null,
-    note: null,
-    internal_note: null,
-  });
-
-  const customerPartners = partners.filter((p) => p.is_customer && p.is_active);
   const postedInvoices = invoices.filter((inv) => inv.status === "posted");
 
   const filteredItems = creditNotes.filter((item) => {
@@ -82,6 +67,7 @@ export default function KnjiznaOdobrenja() {
       case "number": return item.credit_note_number;
       case "date": return item.credit_note_date;
       case "partner": return item.partner?.name || "";
+      case "ref": return item.billing_reference_number || "";
       case "total_amount": return item.total_amount;
       case "status": return item.status;
       default: return "";
@@ -92,9 +78,8 @@ export default function KnjiznaOdobrenja() {
     navigate(`/prodaja/knjizna-odobrenja/${item.id}`, { state: { prefetched: item } });
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const result = await createCreditNote.mutateAsync(formData);
+  const handleCreateSave = async (data: any) => {
+    const result = await createCreditNote.mutateAsync(data);
     setDialogOpen(false);
     navigate(`/prodaja/knjizna-odobrenja/${result.id}`);
   };
@@ -167,7 +152,7 @@ export default function KnjiznaOdobrenja() {
                 <TableHead className="w-[130px]"><SortableHeader column="number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[90px]"><SortableHeader column="date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="min-w-[300px]"><SortableHeader column="partner" label="Kupac" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                <TableHead className="w-[130px]">Ref. faktura</TableHead>
+                <TableHead className="w-[130px]"><SortableHeader column="ref" label="Ref. faktura" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="text-right w-[130px]"><SortableHeader column="total_amount" label="Iznos" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
                 <TableHead className="w-[80px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-16"></TableHead>
@@ -208,58 +193,13 @@ export default function KnjiznaOdobrenja() {
           </Table>
         </div>
 
-        {/* Create dialog */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-2xl" onFocusOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
-            <DialogHeader><DialogTitle>Novo knjižno odobrenje</DialogTitle></DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Datum *</Label>
-                  <LocaleDateInput value={formData.credit_note_date} onChange={(v) => setFormData({ ...formData, credit_note_date: v })} required />
-                </div>
-                <div className="space-y-2">
-                  <Label>Datum valute</Label>
-                  <LocaleDateInput value={formData.due_date || ""} onChange={(v) => setFormData({ ...formData, due_date: v || null })} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Kupac *</Label>
-                  <SearchablePartnerSelect partners={customerPartners} value={formData.partner_id} onValueChange={(v) => setFormData({ ...formData, partner_id: v })} placeholder="Izaberi kupca..." />
-                </div>
-                <div className="space-y-2">
-                  <Label>Org. jedinica</Label>
-                  <Select value={formData.org_unit_id || "none"} onValueChange={(v) => setFormData({ ...formData, org_unit_id: v === "none" ? null : v })}>
-                    <SelectTrigger><SelectValue placeholder="--" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">-- Bez org. jedinice --</SelectItem>
-                      {units.filter((u) => u.is_active).map((u) => (<SelectItem key={u.id} value={u.id}>{u.code} - {u.name}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Ref. broj fakture</Label>
-                  <Input value={formData.billing_reference_number || ""} onChange={(e) => setFormData({ ...formData, billing_reference_number: e.target.value || null })} placeholder="Broj originalne fakture" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Ref. datum fakture</Label>
-                  <LocaleDateInput value={formData.billing_reference_date || ""} onChange={(v) => setFormData({ ...formData, billing_reference_date: v || null })} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Napomena</Label>
-                <Textarea value={formData.note || ""} onChange={(e) => setFormData({ ...formData, note: e.target.value || null })} rows={2} />
-              </div>
-              <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Otkaži</Button>
-                <Button type="submit" disabled={!formData.partner_id || createCreditNote.isPending}>{createCreditNote.isPending ? "Kreiranje..." : "Kreiraj"}</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <CreditNoteHeaderDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          title="Novo knjižno odobrenje"
+          onSave={handleCreateSave}
+          isLoading={createCreditNote.isPending}
+        />
 
         {/* Create from invoice dialog */}
         <Dialog open={fromInvoiceDialogOpen} onOpenChange={setFromInvoiceDialogOpen}>
