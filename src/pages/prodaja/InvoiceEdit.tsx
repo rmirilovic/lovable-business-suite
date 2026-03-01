@@ -217,7 +217,7 @@ export default function InvoiceEdit() {
       bankAccount: defaultBank ? { account_number: defaultBank.account_number, bank_name: defaultBank.bank_name } : null,
     });
 
-    downloadInvoiceXml(xml, invoice.invoice_number);
+    downloadInvoiceXml(xml, invoice.invoice_number, "380");
     toast.success("eFaktura XML je uspešno exportovan");
   };
 
