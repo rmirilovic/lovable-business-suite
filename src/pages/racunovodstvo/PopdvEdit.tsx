@@ -19,7 +19,14 @@ export default function PopdvEdit() {
   const reportQuery = usePopdvReportDetail(id);
   const { cellsQuery, updateCell } = usePopdvReportCells(id);
   const finalizeReport = useFinalizePopdvReport();
-  const [activeSection, setActiveSection] = useState("1");
+  const [activeSection, setActiveSection] = useState(() => {
+    return sessionStorage.getItem(`popdv_active_section_${id}`) || "1";
+  });
+
+  const handleSectionChange = useCallback((value: string) => {
+    setActiveSection(value);
+    sessionStorage.setItem(`popdv_active_section_${id}`, value);
+  }, [id]);
   const [calculating, setCalculating] = useState(false);
 
   const report = reportQuery.data;
@@ -196,7 +203,7 @@ export default function PopdvEdit() {
         </div>
 
         {/* Section Tabs */}
-        <Tabs value={activeSection} onValueChange={setActiveSection}>
+        <Tabs value={activeSection} onValueChange={handleSectionChange}>
           <TabsList className="flex flex-wrap h-auto gap-1">
             {POPDV_SECTIONS.map((s) => (
               <TabsTrigger key={s.id} value={s.id} className="text-xs">
