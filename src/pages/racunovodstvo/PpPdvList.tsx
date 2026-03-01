@@ -1,0 +1,225 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePpPdvReturns } from "@/hooks/usePpPdvReturns";
+import { usePopdvReports } from "@/hooks/usePopdvReports";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Plus, Search, FileText, Trash2 } from "lucide-react";
+import { format, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from "date-fns";
+
+const MONTHS = [
+  "Januar", "Februar", "Mart", "April", "Maj", "Jun",
+  "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"
+];
+const QUARTERS = ["Q1 (Jan-Mar)", "Q2 (Apr-Jun)", "Q3 (Jul-Sep)", "Q4 (Okt-Dec)"];
+
+export default function PpPdvList() {
+  const navigate = useNavigate();
+  const { selectedYear } = useAuth();
+  const { returnsQuery, createReturn, deleteReturn } = usePpPdvReturns();
+  const { reportsQuery } = usePopdvReports();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [periodType, setPeriodType] = useState("monthly");
+  const [selectedMonth, setSelectedMonth] = useState("0");
+  const [selectedQuarter, setSelectedQuarter] = useState("0");
+  const [selectedPopdv, setSelectedPopdv] = useState<string>("");
+
+  const year = selectedYear?.year || new Date().getFullYear();
+  const popdvReports = reportsQuery.data || [];
+
+  const handleCreate = () => {
+    const isMonthly = periodType === "monthly";
+    let periodStart: Date, periodEnd: Date, label: string;
+
+    if (isMonthly) {
+      const monthIdx = parseInt(selectedMonth);
+      periodStart = startOfMonth(new Date(year, monthIdx));
+      periodEnd = endOfMonth(new Date(year, monthIdx));
+      label = `${MONTHS[monthIdx]} ${year}`;
+    } else {
+      const qIdx = parseInt(selectedQuarter);
+      periodStart = startOfQuarter(new Date(year, qIdx * 3));
+      periodEnd = endOfQuarter(new Date(year, qIdx * 3));
+      label = `Q${qIdx + 1} ${year}`;
+    }
+
+    createReturn.mutate({
+      period_type: periodType,
+      period_start: format(periodStart, "yyyy-MM-dd"),
+      period_end: format(periodEnd, "yyyy-MM-dd"),
+      period_label: label,
+      popdv_report_id: selectedPopdv || undefined,
+    }, {
+      onSuccess: (ret) => {
+        setShowCreate(false);
+        navigate(`/racunovodstvo/pp-pdv/${ret.id}`);
+      },
+    });
+  };
+
+  const returns = returnsQuery.data || [];
+  const filtered = returns.filter(r =>
+    r.period_label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <MainLayout title="PP-PDV Prijave">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">PP-PDV Poreske prijave</h1>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Pretraži po periodu..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Button onClick={() => setShowCreate(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Nova PP-PDV prijava
+          </Button>
+        </div>
+
+        <div className="erp-card overflow-hidden">
+          {returnsQuery.isLoading ? (
+            <div className="p-8 text-center text-muted-foreground">Učitavanje...</div>
+          ) : filtered.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Nema PP-PDV prijava za odabranu godinu</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Period</TableHead>
+                  <TableHead className="w-[100px]">Tip</TableHead>
+                  <TableHead className="w-[140px]">PDV za uplatu</TableHead>
+                  <TableHead className="w-[140px]">PDV za povraćaj</TableHead>
+                  <TableHead className="w-[100px]">Status</TableHead>
+                  <TableHead className="w-[130px]">Kreiran</TableHead>
+                  <TableHead className="w-[80px]">Akcije</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((r) => (
+                  <TableRow
+                    key={r.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => navigate(`/racunovodstvo/pp-pdv/${r.id}`)}
+                  >
+                    <TableCell className="font-medium">{r.period_label}</TableCell>
+                    <TableCell>{r.period_type === "monthly" ? "Mesečni" : "Kvartalni"}</TableCell>
+                    <TableCell className="font-mono tabular-nums text-right">
+                      {Number(r.field_201).toLocaleString("sr-RS", { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="font-mono tabular-nums text-right">
+                      {Number(r.field_202).toLocaleString("sr-RS", { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell>
+                      <span className={r.status === "finalized" ? "erp-badge-success" : "erp-badge-warning"}>
+                        {r.status === "finalized" ? "Zaključena" : "Nacrt"}
+                      </span>
+                    </TableCell>
+                    <TableCell>{format(new Date(r.created_at), "dd.MM.yyyy")}</TableCell>
+                    <TableCell>
+                      {r.status === "draft" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm("Obrisati ovu PP-PDV prijavu?")) {
+                              deleteReturn.mutate(r.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      </div>
+
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nova PP-PDV prijava</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Tip perioda</Label>
+              <Select value={periodType} onValueChange={setPeriodType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Mesečni</SelectItem>
+                  <SelectItem value="quarterly">Kvartalni</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {periodType === "monthly" ? (
+              <div className="space-y-2">
+                <Label>Mesec</Label>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {MONTHS.map((m, i) => (
+                      <SelectItem key={i} value={String(i)}>{m} {year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Kvartal</Label>
+                <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {QUARTERS.map((q, i) => (
+                      <SelectItem key={i} value={String(i)}>{q} {year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Poveži sa POPDV obrascem (opciono)</Label>
+              <Select value={selectedPopdv} onValueChange={setSelectedPopdv}>
+                <SelectTrigger><SelectValue placeholder="Bez povezivanja" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Bez povezivanja</SelectItem>
+                  {popdvReports.filter(r => r.status === "finalized").map((r) => (
+                    <SelectItem key={r.id} value={r.id}>{r.period_label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreate(false)}>Otkaži</Button>
+            <Button onClick={handleCreate} disabled={createReturn.isPending}>
+              {createReturn.isPending ? "Kreiranje..." : "Kreiraj"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </MainLayout>
+  );
+}
