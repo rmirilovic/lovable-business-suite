@@ -3784,6 +3784,166 @@ export type Database = {
           },
         ]
       }
+      pp_pdv_returns: {
+        Row: {
+          activity_code: string | null
+          business_year_id: string
+          company_id: string
+          company_name: string | null
+          created_at: string
+          created_by: string
+          email: string | null
+          field_001: number
+          field_002: number
+          field_003: number
+          field_004: number
+          field_005: number
+          field_006: number
+          field_007: number
+          field_008: number
+          field_009: number
+          field_010: number
+          field_011: number
+          field_101: number
+          field_102: number
+          field_103: number
+          field_104: number
+          field_105: number
+          field_106: number
+          field_107: number
+          field_108: number
+          field_201: number
+          field_202: number
+          finalized_at: string | null
+          finalized_by: string | null
+          id: string
+          municipality_code: string | null
+          note: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          period_type: string
+          pib: string | null
+          popdv_report_id: string | null
+          responsible_person_jmbg: string | null
+          responsible_person_name: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activity_code?: string | null
+          business_year_id: string
+          company_id: string
+          company_name?: string | null
+          created_at?: string
+          created_by: string
+          email?: string | null
+          field_001?: number
+          field_002?: number
+          field_003?: number
+          field_004?: number
+          field_005?: number
+          field_006?: number
+          field_007?: number
+          field_008?: number
+          field_009?: number
+          field_010?: number
+          field_011?: number
+          field_101?: number
+          field_102?: number
+          field_103?: number
+          field_104?: number
+          field_105?: number
+          field_106?: number
+          field_107?: number
+          field_108?: number
+          field_201?: number
+          field_202?: number
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          municipality_code?: string | null
+          note?: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          period_type?: string
+          pib?: string | null
+          popdv_report_id?: string | null
+          responsible_person_jmbg?: string | null
+          responsible_person_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          activity_code?: string | null
+          business_year_id?: string
+          company_id?: string
+          company_name?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          field_001?: number
+          field_002?: number
+          field_003?: number
+          field_004?: number
+          field_005?: number
+          field_006?: number
+          field_007?: number
+          field_008?: number
+          field_009?: number
+          field_010?: number
+          field_011?: number
+          field_101?: number
+          field_102?: number
+          field_103?: number
+          field_104?: number
+          field_105?: number
+          field_106?: number
+          field_107?: number
+          field_108?: number
+          field_201?: number
+          field_202?: number
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          municipality_code?: string | null
+          note?: string | null
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          period_type?: string
+          pib?: string | null
+          popdv_report_id?: string | null
+          responsible_person_jmbg?: string | null
+          responsible_person_name?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pp_pdv_returns_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pp_pdv_returns_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pp_pdv_returns_popdv_report_id_fkey"
+            columns: ["popdv_report_id"]
+            isOneToOne: false
+            referencedRelation: "popdv_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       price_adjustment_items: {
         Row: {
           article_id: string
