@@ -178,7 +178,7 @@ export default function AdvanceInvoiceEdit() {
       company: { name: data.company.name, pib: data.company.pib, mb: data.company.mb, address: data.company.address, city: data.company.city, postal_code: data.company.postal_code, municipality: null, municipality_code: null, email: data.company.email, phone: data.company.phone, responsible_person_name: data.company.responsible_person_name },
       bankAccount: data.bankAccount,
     });
-    downloadInvoiceXml(xml, doc!.advance_number);
+    downloadInvoiceXml(xml, doc!.advance_number, "386");
     toast.success("eFaktura XML exportovan");
   };
 

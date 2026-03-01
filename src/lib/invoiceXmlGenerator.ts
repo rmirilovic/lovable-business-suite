@@ -425,14 +425,14 @@ export function generateInvoiceXml(data: InvoiceXmlData): string {
 /**
  * Download the generated XML as a file
  */
-export function downloadInvoiceXml(xml: string, invoiceNumber: string): void {
+export function downloadInvoiceXml(xml: string, invoiceNumber: string, invoiceTypeCode?: string): void {
   const blob = new Blob([xml], { type: "application/xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  // Clean invoice number for filename
   const cleanName = invoiceNumber.replace(/[/\\?%*:|"<>]/g, "-");
-  a.download = `eFaktura-${cleanName}.xml`;
+  const prefix = invoiceTypeCode === "381" ? "KO" : invoiceTypeCode === "386" ? "FA" : "Faktura";
+  a.download = `${prefix}-${cleanName}.xml`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
