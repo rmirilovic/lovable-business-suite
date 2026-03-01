@@ -25,7 +25,7 @@ export interface PopdvReportCell {
   id: string;
   report_id: string;
   company_id: string;
-  section: number;
+  section: string;
   row_code: string;
   column_code: string;
   auto_value: number;
@@ -140,7 +140,7 @@ export function usePopdvReportCells(reportId: string | undefined) {
         .select("*")
         .eq("report_id", reportId);
       if (error) throw error;
-      return data as PopdvReportCell[];
+      return data as unknown as PopdvReportCell[];
     },
     enabled: !!reportId,
   });

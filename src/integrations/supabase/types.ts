@@ -3674,7 +3674,7 @@ export type Database = {
           manual_override: number | null
           report_id: string
           row_code: string
-          section: number
+          section: string
           updated_at: string
         }
         Insert: {
@@ -3686,7 +3686,7 @@ export type Database = {
           manual_override?: number | null
           report_id: string
           row_code: string
-          section: number
+          section: string
           updated_at?: string
         }
         Update: {
@@ -3698,7 +3698,7 @@ export type Database = {
           manual_override?: number | null
           report_id?: string
           row_code?: string
-          section?: number
+          section?: string
           updated_at?: string
         }
         Relationships: [

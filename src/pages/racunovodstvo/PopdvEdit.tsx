@@ -2,11 +2,11 @@ import { useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { usePopdvReportDetail, usePopdvReportCells, useFinalizePopdvReport } from "@/hooks/usePopdvReports";
-import { POPDV_SECTIONS, PopdvSection, PopdvRow } from "@/data/popdvFormStructure";
+import { POPDV_SECTIONS, PopdvSection, PopdvSubTable, PopdvRow, PopdvColumn } from "@/data/popdvFormStructure";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Lock, RefreshCw, Check } from "lucide-react";
+import { ArrowLeft, Lock, RefreshCw } from "lucide-react";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,6 @@ export default function PopdvEdit() {
   const cells = cellsQuery.data || [];
   const isDraft = report?.status === "draft";
 
-  // Build a map for quick cell lookup
   const cellMap = useMemo(() => {
     const map = new Map<string, typeof cells[0]>();
     for (const c of cells) {
@@ -51,7 +50,6 @@ export default function PopdvEdit() {
     if (!report || !selectedCompany) return;
     setCalculating(true);
     try {
-      // Fetch invoices for the period
       const { data: invoices } = await supabase
         .from("invoices")
         .select("subtotal, vat_amount, total_amount, status")
@@ -60,7 +58,6 @@ export default function PopdvEdit() {
         .gte("invoice_date", report.period_start)
         .lte("invoice_date", report.period_end);
 
-      // Fetch advance invoices
       const { data: advances } = await supabase
         .from("advance_invoices")
         .select("subtotal, vat_amount, total_amount, status")
@@ -69,7 +66,6 @@ export default function PopdvEdit() {
         .gte("advance_date", report.period_start)
         .lte("advance_date", report.period_end);
 
-      // Fetch credit notes
       const { data: creditNotes } = await supabase
         .from("credit_notes")
         .select("subtotal, vat_amount, total_amount, status")
@@ -78,7 +74,6 @@ export default function PopdvEdit() {
         .gte("credit_note_date", report.period_start)
         .lte("credit_note_date", report.period_end);
 
-      // Fetch purchase invoices (goods)
       const { data: goodsPurchase } = await supabase
         .from("goods_purchase_invoices")
         .select("subtotal, vat_amount, total_amount, status")
@@ -87,7 +82,6 @@ export default function PopdvEdit() {
         .gte("invoice_date", report.period_start)
         .lte("invoice_date", report.period_end);
 
-      // Fetch purchase invoices (services)
       const { data: servicePurchase } = await supabase
         .from("service_purchase_invoices")
         .select("subtotal, vat_amount, total_amount, status")
@@ -96,41 +90,41 @@ export default function PopdvEdit() {
         .gte("invoice_date", report.period_start)
         .lte("invoice_date", report.period_end);
 
-      // Calculate totals
       const sumField = (arr: any[] | null, field: string) =>
         (arr || []).reduce((sum, item) => sum + (Number(item[field]) || 0), 0);
 
       const updates: { rowCode: string; colCode: string; value: number }[] = [];
 
-      // 1.1 - Promet po opštoj stopi (simplified - all invoices as 20%)
+      // 3.2 - Promet po opštoj stopi
       const invSubtotal = sumField(invoices, "subtotal");
       const invVat = sumField(invoices, "vat_amount");
-      updates.push({ rowCode: "1.1", colCode: "osnov", value: invSubtotal });
-      updates.push({ rowCode: "1.1", colCode: "pdv", value: invVat });
+      updates.push({ rowCode: "3.2", colCode: "opsta_osnov", value: invSubtotal });
+      updates.push({ rowCode: "3.2", colCode: "opsta_pdv", value: invVat });
 
-      // 1.6 - Avansna plaćanja
+      // 3.9 - Avansna plaćanja
       const advSubtotal = sumField(advances, "subtotal");
       const advVat = sumField(advances, "vat_amount");
-      updates.push({ rowCode: "1.6", colCode: "osnov", value: advSubtotal });
-      updates.push({ rowCode: "1.6", colCode: "pdv", value: advVat });
+      updates.push({ rowCode: "3.9", colCode: "opsta_osnov", value: advSubtotal });
+      updates.push({ rowCode: "3.9", colCode: "opsta_pdv", value: advVat });
 
-      // 5.1 - Prethodni porez - dobra
+      // 8a.2 - Nabavka dobara od obveznika PDV
       const gpSubtotal = sumField(goodsPurchase, "subtotal");
       const gpVat = sumField(goodsPurchase, "vat_amount");
-      updates.push({ rowCode: "5.1", colCode: "osnov", value: gpSubtotal });
-      updates.push({ rowCode: "5.1", colCode: "pdv", value: gpVat });
+      updates.push({ rowCode: "8a.2", colCode: "opsta_osnov", value: gpSubtotal });
+      updates.push({ rowCode: "8a.2", colCode: "opsta_pdv", value: gpVat });
 
-      // 5.3 - Prethodni porez - usluge
+      // 8a.2 - Usluge
       const spSubtotal = sumField(servicePurchase, "subtotal");
       const spVat = sumField(servicePurchase, "vat_amount");
-      updates.push({ rowCode: "5.3", colCode: "osnov", value: spSubtotal });
-      updates.push({ rowCode: "5.3", colCode: "pdv", value: spVat });
+      updates.push({ rowCode: "8a.2", colCode: "opsta_osnov", value: (gpSubtotal + spSubtotal) });
+      updates.push({ rowCode: "8a.2", colCode: "opsta_pdv", value: (gpVat + spVat) });
 
-      // 6.2 - Smanjenje prethodnog poreza (knjižna odobrenja)
+      // 3.6 - Smanjenje (knjižna odobrenja)
+      const cnSubtotal = sumField(creditNotes, "subtotal");
       const cnVat = sumField(creditNotes, "vat_amount");
-      updates.push({ rowCode: "6.2", colCode: "iznos", value: cnVat });
+      updates.push({ rowCode: "3.6", colCode: "opsta_osnov", value: -cnSubtotal });
+      updates.push({ rowCode: "3.6", colCode: "opsta_pdv", value: -cnVat });
 
-      // Apply updates
       for (const u of updates) {
         const cell = cellMap.get(`${u.rowCode}:${u.colCode}`);
         if (cell) {
@@ -205,26 +199,31 @@ export default function PopdvEdit() {
         <Tabs value={activeSection} onValueChange={setActiveSection}>
           <TabsList className="flex flex-wrap h-auto gap-1">
             {POPDV_SECTIONS.map((s) => (
-              <TabsTrigger key={s.number} value={String(s.number)} className="text-xs">
-                Deo {s.number}
+              <TabsTrigger key={s.id} value={s.id} className="text-xs">
+                Deo {s.id}
               </TabsTrigger>
             ))}
           </TabsList>
 
           {POPDV_SECTIONS.map((section) => (
-            <TabsContent key={section.number} value={String(section.number)}>
+            <TabsContent key={section.id} value={section.id}>
               <div className="erp-card">
                 <div className="p-4 border-b">
-                  <h2 className="font-semibold">Deo {section.number}: {section.title}</h2>
+                  <h2 className="font-semibold">Deo {section.id}: {section.title}</h2>
                   <p className="text-sm text-muted-foreground">{section.description}</p>
                 </div>
-                <SectionTable
-                  section={section}
-                  cellMap={cellMap}
-                  getCellValue={getCellValue}
-                  onCellChange={handleCellChange}
-                  readonly={!isDraft}
-                />
+                <div className="space-y-4">
+                  {section.subTables.map((subTable) => (
+                    <SubTableView
+                      key={subTable.id}
+                      subTable={subTable}
+                      cellMap={cellMap}
+                      getCellValue={getCellValue}
+                      onCellChange={handleCellChange}
+                      readonly={!isDraft}
+                    />
+                  ))}
+                </div>
               </div>
             </TabsContent>
           ))}
@@ -234,32 +233,34 @@ export default function PopdvEdit() {
   );
 }
 
-interface SectionTableProps {
-  section: PopdvSection;
+interface SubTableViewProps {
+  subTable: PopdvSubTable;
   cellMap: Map<string, any>;
   getCellValue: (row: string, col: string) => number;
   onCellChange: (row: string, col: string, value: number | null) => void;
   readonly: boolean;
 }
 
-function SectionTable({ section, cellMap, getCellValue, onCellChange, readonly }: SectionTableProps) {
-  // Get unique columns from the section
-  const columns = section.rows[0]?.columns || [];
-
+function SubTableView({ subTable, cellMap, getCellValue, onCellChange, readonly }: SubTableViewProps) {
   return (
     <div className="overflow-x-auto">
+      {subTable.title && (
+        <div className="px-4 py-2 bg-muted/30 border-b">
+          <h3 className="text-sm font-medium">{subTable.title}</h3>
+        </div>
+      )}
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[80px]">Šifra</TableHead>
             <TableHead className="min-w-[300px]">Opis</TableHead>
-            {columns.map((col) => (
+            {subTable.columns.map((col) => (
               <TableHead key={col.code} className="w-[160px] text-right">{col.label}</TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {section.rows.map((row) => (
+          {subTable.rows.map((row) => (
             <TableRow key={row.code} className={row.isSummary ? "bg-muted/50 font-semibold" : ""}>
               <TableCell className="font-mono text-xs">{row.code}</TableCell>
               <TableCell className="text-sm">{row.label}</TableCell>
