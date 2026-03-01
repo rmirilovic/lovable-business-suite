@@ -1020,6 +1020,7 @@ export type Database = {
           responsible_person_jmbg: string | null
           responsible_person_name: string | null
           updated_at: string | null
+          vat_period_type: string
         }
         Insert: {
           activity_code?: string | null
@@ -1051,6 +1052,7 @@ export type Database = {
           responsible_person_jmbg?: string | null
           responsible_person_name?: string | null
           updated_at?: string | null
+          vat_period_type?: string
         }
         Update: {
           activity_code?: string | null
@@ -1082,6 +1084,7 @@ export type Database = {
           responsible_person_jmbg?: string | null
           responsible_person_name?: string | null
           updated_at?: string | null
+          vat_period_type?: string
         }
         Relationships: []
       }
@@ -3657,6 +3660,126 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "partner_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      popdv_report_cells: {
+        Row: {
+          auto_value: number
+          column_code: string
+          company_id: string
+          created_at: string
+          id: string
+          manual_override: number | null
+          report_id: string
+          row_code: string
+          section: number
+          updated_at: string
+        }
+        Insert: {
+          auto_value?: number
+          column_code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          manual_override?: number | null
+          report_id: string
+          row_code: string
+          section: number
+          updated_at?: string
+        }
+        Update: {
+          auto_value?: number
+          column_code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          manual_override?: number | null
+          report_id?: string
+          row_code?: string
+          section?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "popdv_report_cells_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "popdv_report_cells_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "popdv_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      popdv_reports: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          finalized_at: string | null
+          finalized_by: string | null
+          id: string
+          note: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          period_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          note?: string | null
+          period_end: string
+          period_label: string
+          period_start: string
+          period_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          note?: string | null
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          period_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "popdv_reports_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "popdv_reports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]

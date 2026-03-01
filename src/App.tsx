@@ -74,6 +74,8 @@ import AvansniRacuni from "./pages/prodaja/AvansniRacuni";
 import AdvanceInvoiceEdit from "./pages/prodaja/AdvanceInvoiceEdit";
 import KnjiznaOdobrenja from "./pages/prodaja/KnjiznaOdobrenja";
 import CreditNoteEdit from "./pages/prodaja/CreditNoteEdit";
+import PopdvList from "./pages/racunovodstvo/PopdvList";
+import PopdvEdit from "./pages/racunovodstvo/PopdvEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -254,6 +256,16 @@ const App = () => (
               <Route path="/prodaja/knjizna-odobrenja/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <CreditNoteEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/popdv" element={
+                <ProtectedRoute>
+                  <PopdvList />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/popdv/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <PopdvEdit />
                 </ProtectedRoute>
               } />
               <Route path="/nabavka/ulazne-fakture-usluge" element={
