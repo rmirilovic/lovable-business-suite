@@ -52,6 +52,7 @@ interface Company {
   logo_text: string | null;
   is_active: boolean | null;
   idle_timeout_hours: number | null;
+  vat_period_type: string;
 }
 
 interface FormData {
@@ -80,6 +81,7 @@ interface FormData {
   logo_url: string;
   logo_text: string;
   idle_timeout_hours: string;
+  vat_period_type: string;
 }
 
 const emptyFormData: FormData = {
@@ -108,6 +110,7 @@ const emptyFormData: FormData = {
   logo_url: "",
   logo_text: "",
   idle_timeout_hours: "",
+  vat_period_type: "monthly",
 };
 
 export function CompaniesTab() {
@@ -210,6 +213,7 @@ export function CompaniesTab() {
       logo_url: logoUrl || null,
       logo_text: formData.logo_text || null,
       idle_timeout_hours: formData.idle_timeout_hours ? parseFloat(formData.idle_timeout_hours) : null,
+      vat_period_type: formData.vat_period_type || "monthly",
     };
 
     if (editingCompany) {
@@ -266,6 +270,7 @@ export function CompaniesTab() {
       logo_url: company.logo_url || "",
       logo_text: company.logo_text || "",
       idle_timeout_hours: company.idle_timeout_hours != null ? String(company.idle_timeout_hours) : "",
+      vat_period_type: (company as any).vat_period_type || "monthly",
     });
     setLogoFile(null);
     setLogoPreview(company.logo_url || null);
@@ -407,15 +412,27 @@ export function CompaniesTab() {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => updateFormField("email", e.target.value)}
-                    />
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="email">Email</Label>
+                     <Input
+                       id="email"
+                       type="email"
+                       value={formData.email}
+                       onChange={(e) => updateFormField("email", e.target.value)}
+                     />
+                   </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="vat_period_type">PDV obveznik</Label>
+                     <select
+                       id="vat_period_type"
+                       value={formData.vat_period_type}
+                       onChange={(e) => updateFormField("vat_period_type", e.target.value)}
+                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                     >
+                       <option value="monthly">Mesečni</option>
+                       <option value="quarterly">Kvartalni</option>
+                     </select>
+                   </div>
                 </TabsContent>
 
                 <TabsContent value="location" className="space-y-4 mt-4">
