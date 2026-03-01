@@ -214,8 +214,8 @@ export default function PopdvEdit() {
 
           {POPDV_SECTIONS.map((section) => (
             <TabsContent key={section.id} value={section.id}>
-              <div className="erp-card">
-                <div className="p-4 border-b">
+              <div className="erp-card max-h-[calc(100vh-280px)] overflow-y-auto">
+                <div className="p-4 border-b sticky top-0 bg-card z-10">
                   <h2 className="font-semibold">Deo {section.id}: {section.title}</h2>
                   <p className="text-sm text-muted-foreground">{section.description}</p>
                 </div>
