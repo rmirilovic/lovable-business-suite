@@ -3730,6 +3730,7 @@ export type Database = {
           report_id: string
           row_code: string
           section: string
+          source_document_id: string | null
           updated_at: string
           values: Json
         }
@@ -3744,6 +3745,7 @@ export type Database = {
           report_id: string
           row_code: string
           section: string
+          source_document_id?: string | null
           updated_at?: string
           values?: Json
         }
@@ -3758,6 +3760,7 @@ export type Database = {
           report_id?: string
           row_code?: string
           section?: string
+          source_document_id?: string | null
           updated_at?: string
           values?: Json
         }
