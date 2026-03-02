@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { format, parseISO } from "date-fns";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { usePopdvReportDetail } from "@/hooks/usePopdvReports";
 import { usePopdvDetailRows, PopdvDetailRow } from "@/hooks/usePopdvDetailRows";
@@ -382,7 +383,7 @@ function RowCodeBlock({
                 onBlur={(e) => onUpdateField(dr.id, "document_date", e.target.value)}
               />
             ) : (
-              <span className="text-xs">{dr.document_date || "—"}</span>
+              <span className="text-xs">{dr.document_date ? format(parseISO(dr.document_date), "dd.MM.yyyy") : "—"}</span>
             )}
           </TableCell>
           <TableCell className="p-1">
