@@ -1,8 +1,8 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { usePopdvReportDetail, usePopdvReportCells, useFinalizePopdvReport } from "@/hooks/usePopdvReports";
-import { POPDV_SECTIONS, PopdvSection, PopdvSubTable, PopdvRow, PopdvColumn } from "@/data/popdvFormStructure";
+import { POPDV_SECTIONS, PopdvSection, PopdvSubTable, PopdvRow, PopdvColumn, getAllCellKeys } from "@/data/popdvFormStructure";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -41,6 +41,34 @@ export default function PopdvEdit() {
     }
     return map;
   }, [cells]);
+
+  // Auto-reinitialize cells if they're missing or incomplete
+  const expectedCellKeys = useMemo(() => getAllCellKeys(), []);
+  useEffect(() => {
+    if (!report || !selectedCompany || cellsQuery.isLoading) return;
+    const missingKeys = expectedCellKeys.filter(
+      (ck) => !cellMap.has(`${ck.rowCode}:${ck.columnCode}`)
+    );
+    if (missingKeys.length === 0) return;
+
+    const reinitCells = async () => {
+      const newCells = missingKeys.map((ck) => ({
+        report_id: report.id,
+        company_id: selectedCompany.id,
+        section: ck.section,
+        row_code: ck.rowCode,
+        column_code: ck.columnCode,
+        auto_value: 0,
+        manual_override: null,
+      }));
+      for (let i = 0; i < newCells.length; i += 100) {
+        const batch = newCells.slice(i, i + 100);
+        await supabase.from("popdv_report_cells").insert(batch);
+      }
+      cellsQuery.refetch();
+    };
+    reinitCells();
+  }, [report, selectedCompany, cellMap, expectedCellKeys, cellsQuery.isLoading]);
 
   const getCellValue = useCallback((rowCode: string, colCode: string) => {
     const cell = cellMap.get(`${rowCode}:${colCode}`);
