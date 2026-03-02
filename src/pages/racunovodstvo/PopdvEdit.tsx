@@ -107,7 +107,7 @@ export default function PopdvEdit() {
         }
       }
 
-      // Update summary cells with aggregated values
+      // Update non-summary cells with aggregated values
       let updatedCount = 0;
       for (const [rowCode, colMap] of aggregated) {
         for (const [colCode, value] of colMap) {
@@ -122,18 +122,78 @@ export default function PopdvEdit() {
         }
       }
 
-      // Zero out cells for row_codes that have no detail rows
+      // Zero out non-summary cells that have no detail rows
       for (const [key, cell] of cellMap) {
         const [rowCode, colCode] = key.split(":");
         const hasDetail = aggregated.has(rowCode) && aggregated.get(rowCode)!.has(colCode);
         if (!hasDetail && cell.auto_value !== 0) {
-          // Only reset auto_value for non-summary rows that had data before
           const section = POPDV_SECTIONS.find(s => s.subTables.some(st => st.rows.some(r => r.code === rowCode && !r.isSummary)));
           if (section) {
             await supabase
               .from("popdv_report_cells")
               .update({ auto_value: 0 })
               .eq("id", cell.id);
+          }
+        }
+      }
+
+      // Build a value map for computing summaries: rowCode -> colCode -> value
+      // Start with aggregated detail values and existing non-summary cell values
+      const valueMap = new Map<string, Map<string, number>>();
+      for (const [key, cell] of cellMap) {
+        const [rowCode, colCode] = key.split(":");
+        if (!valueMap.has(rowCode)) valueMap.set(rowCode, new Map());
+        const aggVal = aggregated.get(rowCode)?.get(colCode);
+        const manualVal = cell.manual_override;
+        // Use aggregated value if available, else keep existing auto_value
+        valueMap.get(rowCode)!.set(colCode, aggVal !== undefined ? aggVal : (cell.auto_value || 0));
+        // If there's a manual override, use that for summary computation
+        if (manualVal !== null && manualVal !== undefined) {
+          valueMap.get(rowCode)!.set(colCode, manualVal);
+        }
+      }
+
+      // Rows where summaryOf means subtraction (first - rest)
+      const subtractionRows = new Set(["4.1.3", "4.2.3", "10"]);
+
+      // Compute summary rows in order (sections are ordered, so dependencies resolve naturally)
+      for (const section of POPDV_SECTIONS) {
+        for (const subTable of section.subTables) {
+          for (const row of subTable.rows) {
+            if (!row.isSummary || !row.summaryOf || row.summaryOf.length === 0) continue;
+
+            const isSubtraction = subtractionRows.has(row.code);
+
+            for (const col of row.columns) {
+              let total = 0;
+              if (isSubtraction) {
+                // first element minus the rest
+                const firstVal = valueMap.get(row.summaryOf[0])?.get(col.code) || 0;
+                let rest = 0;
+                for (let i = 1; i < row.summaryOf.length; i++) {
+                  rest += valueMap.get(row.summaryOf[i])?.get(col.code) || 0;
+                }
+                total = firstVal - rest;
+              } else {
+                for (const srcCode of row.summaryOf) {
+                  total += valueMap.get(srcCode)?.get(col.code) || 0;
+                }
+              }
+
+              // Update value map so dependent summaries can use this
+              if (!valueMap.has(row.code)) valueMap.set(row.code, new Map());
+              valueMap.get(row.code)!.set(col.code, total);
+
+              // Update the cell in DB
+              const cell = cellMap.get(`${row.code}:${col.code}`);
+              if (cell) {
+                await supabase
+                  .from("popdv_report_cells")
+                  .update({ auto_value: total })
+                  .eq("id", cell.id);
+                updatedCount++;
+              }
+            }
           }
         }
       }
