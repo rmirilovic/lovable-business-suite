@@ -3718,6 +3718,66 @@ export type Database = {
           },
         ]
       }
+      popdv_report_detail_rows: {
+        Row: {
+          company_id: string
+          created_at: string
+          document_date: string | null
+          document_type_number: string | null
+          id: string
+          item_order: number
+          partner_info: string | null
+          report_id: string
+          row_code: string
+          section: string
+          updated_at: string
+          values: Json
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          document_date?: string | null
+          document_type_number?: string | null
+          id?: string
+          item_order?: number
+          partner_info?: string | null
+          report_id: string
+          row_code: string
+          section: string
+          updated_at?: string
+          values?: Json
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          document_date?: string | null
+          document_type_number?: string | null
+          id?: string
+          item_order?: number
+          partner_info?: string | null
+          report_id?: string
+          row_code?: string
+          section?: string
+          updated_at?: string
+          values?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "popdv_report_detail_rows_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "popdv_report_detail_rows_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "popdv_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       popdv_reports: {
         Row: {
           business_year_id: string

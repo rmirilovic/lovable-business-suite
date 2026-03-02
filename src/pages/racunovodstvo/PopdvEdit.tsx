@@ -6,7 +6,8 @@ import { POPDV_SECTIONS, PopdvSection, PopdvSubTable, PopdvRow, PopdvColumn } fr
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Lock, RefreshCw } from "lucide-react";
+import { ArrowLeft, Lock, RefreshCw, BarChart3 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -179,6 +180,12 @@ export default function PopdvEdit() {
             </span>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to={`/racunovodstvo/popdv/${id}/analytical`}>
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analitički obrazac
+              </Link>
+            </Button>
             {isDraft && (
               <>
                 <Button variant="outline" size="sm" onClick={handleAutoPopulate} disabled={calculating}>

@@ -76,6 +76,7 @@ import KnjiznaOdobrenja from "./pages/prodaja/KnjiznaOdobrenja";
 import CreditNoteEdit from "./pages/prodaja/CreditNoteEdit";
 import PopdvList from "./pages/racunovodstvo/PopdvList";
 import PopdvEdit from "./pages/racunovodstvo/PopdvEdit";
+import PopdvAnalyticalEdit from "./pages/racunovodstvo/PopdvAnalyticalEdit";
 import PpPdvList from "./pages/racunovodstvo/PpPdvList";
 import PpPdvEdit from "./pages/racunovodstvo/PpPdvEdit";
 import NotFound from "./pages/NotFound";
@@ -268,6 +269,11 @@ const App = () => (
               <Route path="/racunovodstvo/popdv/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <PopdvEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/popdv/:id/analytical" element={
+                <ProtectedRoute requireCompany={false}>
+                  <PopdvAnalyticalEdit />
                 </ProtectedRoute>
               } />
               <Route path="/racunovodstvo/pp-pdv" element={
