@@ -58,95 +58,62 @@ export default function PopdvEdit() {
     if (!report || !selectedCompany) return;
     setCalculating(true);
     try {
-      const { data: invoices } = await supabase
-        .from("invoices")
-        .select("subtotal, vat_amount, total_amount, status")
-        .eq("company_id", selectedCompany.id)
-        .eq("status", "posted")
-        .gte("invoice_date", report.period_start)
-        .lte("invoice_date", report.period_end);
+      // Fetch all analytical detail rows for this report
+      const { data: detailRows, error } = await supabase
+        .from("popdv_report_detail_rows")
+        .select("row_code, values")
+        .eq("report_id", report.id);
 
-      const { data: advances } = await supabase
-        .from("advance_invoices")
-        .select("subtotal, vat_amount, total_amount, status")
-        .eq("company_id", selectedCompany.id)
-        .eq("status", "posted")
-        .gte("advance_date", report.period_start)
-        .lte("advance_date", report.period_end);
+      if (error) throw error;
 
-      const { data: creditNotes } = await supabase
-        .from("credit_notes")
-        .select("subtotal, vat_amount, total_amount, status")
-        .eq("company_id", selectedCompany.id)
-        .eq("status", "posted")
-        .gte("credit_note_date", report.period_start)
-        .lte("credit_note_date", report.period_end);
+      // Aggregate values by row_code and column_code
+      const aggregated = new Map<string, Map<string, number>>();
+      for (const row of (detailRows || [])) {
+        const vals = (row.values || {}) as Record<string, number>;
+        if (!aggregated.has(row.row_code)) {
+          aggregated.set(row.row_code, new Map());
+        }
+        const rowMap = aggregated.get(row.row_code)!;
+        for (const [colCode, val] of Object.entries(vals)) {
+          rowMap.set(colCode, (rowMap.get(colCode) || 0) + (Number(val) || 0));
+        }
+      }
 
-      const { data: goodsPurchase } = await supabase
-        .from("goods_purchase_invoices")
-        .select("subtotal, vat_amount, total_amount, status")
-        .eq("company_id", selectedCompany.id)
-        .eq("status", "posted")
-        .gte("invoice_date", report.period_start)
-        .lte("invoice_date", report.period_end);
+      // Update summary cells with aggregated values
+      let updatedCount = 0;
+      for (const [rowCode, colMap] of aggregated) {
+        for (const [colCode, value] of colMap) {
+          const cell = cellMap.get(`${rowCode}:${colCode}`);
+          if (cell) {
+            await supabase
+              .from("popdv_report_cells")
+              .update({ auto_value: value })
+              .eq("id", cell.id);
+            updatedCount++;
+          }
+        }
+      }
 
-      const { data: servicePurchase } = await supabase
-        .from("service_purchase_invoices")
-        .select("subtotal, vat_amount, total_amount, status")
-        .eq("company_id", selectedCompany.id)
-        .eq("status", "posted")
-        .gte("invoice_date", report.period_start)
-        .lte("invoice_date", report.period_end);
-
-      const sumField = (arr: any[] | null, field: string) =>
-        (arr || []).reduce((sum, item) => sum + (Number(item[field]) || 0), 0);
-
-      const updates: { rowCode: string; colCode: string; value: number }[] = [];
-
-      // 3.2 - Promet po opštoj stopi
-      const invSubtotal = sumField(invoices, "subtotal");
-      const invVat = sumField(invoices, "vat_amount");
-      updates.push({ rowCode: "3.2", colCode: "opsta_osnov", value: invSubtotal });
-      updates.push({ rowCode: "3.2", colCode: "opsta_pdv", value: invVat });
-
-      // 3.9 - Avansna plaćanja
-      const advSubtotal = sumField(advances, "subtotal");
-      const advVat = sumField(advances, "vat_amount");
-      updates.push({ rowCode: "3.9", colCode: "opsta_osnov", value: advSubtotal });
-      updates.push({ rowCode: "3.9", colCode: "opsta_pdv", value: advVat });
-
-      // 8a.2 - Nabavka dobara od obveznika PDV
-      const gpSubtotal = sumField(goodsPurchase, "subtotal");
-      const gpVat = sumField(goodsPurchase, "vat_amount");
-      updates.push({ rowCode: "8a.2", colCode: "opsta_osnov", value: gpSubtotal });
-      updates.push({ rowCode: "8a.2", colCode: "opsta_pdv", value: gpVat });
-
-      // 8a.2 - Usluge
-      const spSubtotal = sumField(servicePurchase, "subtotal");
-      const spVat = sumField(servicePurchase, "vat_amount");
-      updates.push({ rowCode: "8a.2", colCode: "opsta_osnov", value: (gpSubtotal + spSubtotal) });
-      updates.push({ rowCode: "8a.2", colCode: "opsta_pdv", value: (gpVat + spVat) });
-
-      // 3.6 - Smanjenje (knjižna odobrenja)
-      const cnSubtotal = sumField(creditNotes, "subtotal");
-      const cnVat = sumField(creditNotes, "vat_amount");
-      updates.push({ rowCode: "3.6", colCode: "opsta_osnov", value: -cnSubtotal });
-      updates.push({ rowCode: "3.6", colCode: "opsta_pdv", value: -cnVat });
-
-      for (const u of updates) {
-        const cell = cellMap.get(`${u.rowCode}:${u.colCode}`);
-        if (cell) {
-          await supabase
-            .from("popdv_report_cells")
-            .update({ auto_value: u.value })
-            .eq("id", cell.id);
+      // Zero out cells for row_codes that have no detail rows
+      for (const [key, cell] of cellMap) {
+        const [rowCode, colCode] = key.split(":");
+        const hasDetail = aggregated.has(rowCode) && aggregated.get(rowCode)!.has(colCode);
+        if (!hasDetail && cell.auto_value !== 0) {
+          // Only reset auto_value for non-summary rows that had data before
+          const section = POPDV_SECTIONS.find(s => s.subTables.some(st => st.rows.some(r => r.code === rowCode && !r.isSummary)));
+          if (section) {
+            await supabase
+              .from("popdv_report_cells")
+              .update({ auto_value: 0 })
+              .eq("id", cell.id);
+          }
         }
       }
 
       cellsQuery.refetch();
-      toast.success("Automatski podaci preuzeti iz dokumenata");
+      toast.success(`Podaci preuzeti iz analitike (${updatedCount} polja ažurirano)`);
     } catch (err) {
-      toast.error("Greška pri preuzimanju podataka");
+      toast.error("Greška pri preuzimanju podataka iz analitike");
     } finally {
       setCalculating(false);
     }
@@ -190,7 +157,7 @@ export default function PopdvEdit() {
               <>
                 <Button variant="outline" size="sm" onClick={handleAutoPopulate} disabled={calculating}>
                   <RefreshCw className={`w-4 h-4 mr-2 ${calculating ? "animate-spin" : ""}`} />
-                  Preuzmi iz dokumenata
+                  Preuzmi iz analitike
                 </Button>
                 <Button
                   size="sm"
