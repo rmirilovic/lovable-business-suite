@@ -6761,6 +6761,10 @@ export type Database = {
         Args: { _count_id: string; _user_id: string }
         Returns: undefined
       }
+      unpost_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
+        Returns: boolean
+      }
       unpost_journal_entry: {
         Args: { _entry_id: string; _user_id: string }
         Returns: boolean

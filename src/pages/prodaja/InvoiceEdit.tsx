@@ -4,7 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, CheckCircle, ArrowLeft, RefreshCw, History, Pencil, Eye, FileCode, FileDown, FileSpreadsheet, Printer } from "lucide-react";
+import { Loader2, CheckCircle, ArrowLeft, RefreshCw, History, Pencil, Eye, FileCode, FileDown, FileSpreadsheet, Printer, Undo2 } from "lucide-react";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { InvoiceItemsEditor } from "@/components/prodaja/InvoiceItemsEditor";
@@ -50,6 +50,7 @@ export default function InvoiceEdit() {
   const [isLoading, setIsLoading] = useState(!hasMatchingPrefetchedInvoice);
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
+  const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [localTotals, setLocalTotals] = useState({
     subtotal: hasMatchingPrefetchedInvoice ? prefetchedInvoice!.subtotal : 0,
     vat_amount: hasMatchingPrefetchedInvoice ? prefetchedInvoice!.vat_amount : 0,
@@ -62,7 +63,7 @@ export default function InvoiceEdit() {
     quoteNumber?: string;
   }>({});
 
-  const { postInvoice } = useInvoiceMutations();
+  const { postInvoice, unpostInvoice } = useInvoiceMutations();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
   
@@ -159,12 +160,19 @@ export default function InvoiceEdit() {
 
   const handlePostConfirm = async () => {
     if (!invoice) return;
-    
     const canProceed = await checkLock();
     if (!canProceed) return;
-    
     await postInvoice.mutateAsync(invoice.id);
     setPostDialogOpen(false);
+    fetchInvoice();
+  };
+
+  const handleUnpostConfirm = async () => {
+    if (!invoice) return;
+    const canProceed = await checkLock();
+    if (!canProceed) return;
+    await unpostInvoice.mutateAsync(invoice.id);
+    setUnpostDialogOpen(false);
     fetchInvoice();
   };
 
@@ -343,9 +351,16 @@ export default function InvoiceEdit() {
                 </Button>
               </>
             ) : (
-              <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
-                <Eye className="h-4 w-4 mr-2" />Prikaži zaglavlje
-              </Button>
+              <>
+                <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                  <Eye className="h-4 w-4 mr-2" />Prikaži zaglavlje
+                </Button>
+                {invoice.status === "posted" && (
+                  <Button variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
+                    <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -544,6 +559,33 @@ export default function InvoiceEdit() {
             <AlertDialogCancel>Otkaži</AlertDialogCancel>
             <AlertDialogAction onClick={handlePostConfirm}>
               Proknjiži
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={unpostDialogOpen} onOpenChange={setUnpostDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Poništavanje knjiženja</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da poništite knjiženje fakture{" "}
+              <strong>{invoice.invoice_number}</strong>?
+              <br /><br />
+              <strong>Ova akcija će:</strong>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Obrisati nalog za knjiženje iz glavne knjige</li>
+                <li>Vratiti fakturu u status &quot;Nacrt&quot;</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleUnpostConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {unpostInvoice.isPending ? "Poništavanje..." : "Poništi knjiženje"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

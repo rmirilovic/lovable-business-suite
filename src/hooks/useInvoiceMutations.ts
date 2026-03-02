@@ -87,6 +87,26 @@ export function useInvoiceMutations() {
     },
   });
 
+  const unpostInvoice = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user?.id) throw new Error("Korisnik nije prijavljen");
+      const { data, error } = await supabase.rpc("unpost_invoice", {
+        _invoice_id: id,
+        _user_id: user.id,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      toast.success("Knjiženje fakture je uspešno poništeno");
+    },
+    onError: (error) => {
+      toast.error(`Greška pri poništavanju knjiženja: ${error.message}`);
+    },
+  });
+
   const updateInvoiceTotals = useMutation({
     mutationFn: async ({ invoiceId, subtotal, vat_amount, total_amount }: {
       invoiceId: string;
@@ -109,6 +129,7 @@ export function useInvoiceMutations() {
   return {
     updateInvoice,
     postInvoice,
+    unpostInvoice,
     updateInvoiceTotals,
   };
 }
