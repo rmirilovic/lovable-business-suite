@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Plus, Trash2, FileText } from "lucide-react";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -376,11 +377,10 @@ function RowCodeBlock({
           </TableCell>
           <TableCell className="p-1">
             {isDraft ? (
-              <Input
-                type="date"
-                className="h-7 text-xs w-[110px]"
-                defaultValue={dr.document_date || ""}
-                onBlur={(e) => onUpdateField(dr.id, "document_date", e.target.value)}
+              <LocaleDateInput
+                value={dr.document_date || ""}
+                onChange={(v) => onUpdateField(dr.id, "document_date", v)}
+                className="w-[160px]"
               />
             ) : (
               <span className="text-xs">{dr.document_date ? format(parseISO(dr.document_date), "dd.MM.yyyy") : "—"}</span>
