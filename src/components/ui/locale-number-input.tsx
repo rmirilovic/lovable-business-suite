@@ -56,10 +56,15 @@ const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputPr
     // Convert stored value to display value when external value changes
     React.useEffect(() => {
       if (value !== undefined && value !== null) {
-        // Value from form state is in locale format - use as-is
-        setDisplayValue(value.toString());
+        // Try to parse and format with thousand separators
+        const parsed = parseLocaleNumber(value.toString());
+        if (!isNaN(parsed) && value.toString().trim() !== '') {
+          setDisplayValue(formatForEdit(parsed));
+        } else {
+          setDisplayValue(value.toString());
+        }
       }
-    }, [value]);
+    }, [value, formatForEdit]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let inputValue = e.target.value;
