@@ -44,13 +44,14 @@ const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputPr
       return normalized;
     }, [decimalSeparator]);
 
-    // Format number for display (locale string without grouping for editing clarity)
+    // Format number for display (with grouping / thousand separators)
     const formatForEdit = React.useCallback((num: number): string => {
       if (isNaN(num)) return '';
-      // Use toFixed for precision, then replace dot with locale decimal separator
-      const fixed = num.toFixed(decimalPlaces);
-      return fixed.replace('.', decimalSeparator);
-    }, [decimalPlaces, decimalSeparator]);
+      return num.toLocaleString(getUserLocale(), {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+      });
+    }, [decimalPlaces]);
 
     // Convert stored value to display value when external value changes
     React.useEffect(() => {
