@@ -19,6 +19,9 @@ import { Label } from "@/components/ui/label";
 const fmt2 = (v: number) =>
   v.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+const fmt0 = (v: number) =>
+  v.toLocaleString("sr-RS", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
 export default function PopdvAnalyticalEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -297,7 +300,7 @@ function AnalyticalSubTable({
                   </TableCell>
                   {cols.map((col) => (
                     <TableCell key={col.code} className="text-right font-mono tabular-nums text-xs">
-                      {fmt2(summaryTotal(formRow.summaryOf, col.code))}
+                      {fmt0(summaryTotal(formRow.summaryOf, col.code))}
                     </TableCell>
                   ))}
                   {isDraft && <TableCell />}

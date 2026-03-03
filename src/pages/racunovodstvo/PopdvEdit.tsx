@@ -343,7 +343,7 @@ function SubTableView({ subTable, cellMap, getCellValue, onCellChange, readonly 
                 if (row.isSummary || readonly) {
                   return (
                     <TableCell key={col.code} className="text-right font-mono tabular-nums">
-                      {displayVal.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {displayVal.toLocaleString("sr-RS", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     </TableCell>
                   );
                 }
