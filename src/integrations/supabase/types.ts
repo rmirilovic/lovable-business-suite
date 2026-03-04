@@ -680,6 +680,7 @@ export type Database = {
         Row: {
           bank_statement_id: string
           company_id: string
+          cost_center_code: string | null
           created_at: string
           credit_amount: number
           debit_amount: number
@@ -694,6 +695,7 @@ export type Database = {
         Insert: {
           bank_statement_id: string
           company_id: string
+          cost_center_code?: string | null
           created_at?: string
           credit_amount?: number
           debit_amount?: number
@@ -708,6 +710,7 @@ export type Database = {
         Update: {
           bank_statement_id?: string
           company_id?: string
+          cost_center_code?: string | null
           created_at?: string
           credit_amount?: number
           debit_amount?: number
