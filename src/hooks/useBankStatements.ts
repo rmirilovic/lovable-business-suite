@@ -10,6 +10,7 @@ export interface BankStatement {
   statement_number: string;
   statement_date: string;
   bank_account_id: string;
+  bank_serial_number: string | null;
   opening_balance: number;
   closing_balance: number;
   total_debit: number;

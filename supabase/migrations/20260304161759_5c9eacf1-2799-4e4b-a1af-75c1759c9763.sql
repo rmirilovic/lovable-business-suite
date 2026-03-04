@@ -1,0 +1,1 @@
+ALTER TABLE public.bank_statements ADD COLUMN bank_serial_number text;
