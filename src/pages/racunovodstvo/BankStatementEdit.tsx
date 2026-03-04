@@ -462,128 +462,140 @@ export default function BankStatementEdit() {
         )}
 
         {/* Items table */}
-        <div className="border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[50px]">R.br.</TableHead>
-                <TableHead className="w-[350px]">Šifra plaćanja</TableHead>
-                <TableHead className="w-[350px]">Partner</TableHead>
-                <TableHead className="w-[180px]">Konto</TableHead>
-                <TableHead className="w-[140px]">Dokument</TableHead>
-                <TableHead className="max-w-[140px]">Opis</TableHead>
-                <TableHead className="w-[130px] text-right">Isplata (D)</TableHead>
-                <TableHead className="w-[130px] text-right">Uplata (P)</TableHead>
-                {isDraft && <TableHead className="w-[80px]" />}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.length === 0 && !isDraft ? (
+        <div className="border rounded-md flex flex-col" style={{ maxHeight: "calc(100vh - 380px)" }}>
+          <div className="overflow-auto flex-1">
+            <Table>
+              <TableHeader className="sticky top-0 z-10 bg-background">
                 <TableRow>
-                  <TableCell colSpan={isDraft ? 9 : 8} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
+                  <TableHead className="w-[50px]">R.br.</TableHead>
+                  <TableHead className="w-[350px]">Šifra plaćanja</TableHead>
+                  <TableHead className="w-[350px]">Partner</TableHead>
+                  <TableHead className="w-[180px]">Konto</TableHead>
+                  <TableHead className="w-[140px]">Dokument</TableHead>
+                  <TableHead className="max-w-[140px]">Opis</TableHead>
+                  <TableHead className="w-[130px] text-right">Isplata (D)</TableHead>
+                  <TableHead className="w-[130px] text-right">Uplata (P)</TableHead>
+                  {isDraft && <TableHead className="w-[80px]" />}
                 </TableRow>
-              ) : (
-                items.map((item, idx) => renderItemRow(item, idx))
-              )}
-
-              {/* New item row */}
-              {isDraft && (
-                <TableRow className="bg-muted/50">
-                  <TableCell className="text-muted-foreground">{items.length + 1}</TableCell>
-                  <TableCell>
-                    <select
-                      value={newItem.payment_code_id}
-                      onChange={(e) => setNewItem({ ...newItem, payment_code_id: e.target.value })}
-                      className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
-                    >
-                      <option value="">Izaberite...</option>
-                      {activePaymentCodes.map((pc) => (
-                        <option key={pc.id} value={pc.id}>
-                          {pc.code} - {pc.name}
-                        </option>
-                      ))}
-                    </select>
+              </TableHeader>
+              <TableBody>
+                {items.length === 0 && !isDraft ? (
+                  <TableRow>
+                    <TableCell colSpan={isDraft ? 9 : 8} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
+                  </TableRow>
+                ) : (
+                  items.map((item, idx) => renderItemRow(item, idx))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* New item row - outside scroll area */}
+          {isDraft && (
+            <div className="border-t">
+              <Table>
+                <TableBody>
+                  <TableRow className="bg-muted/50">
+                    <TableCell className="w-[50px] text-muted-foreground">{items.length + 1}</TableCell>
+                    <TableCell className="w-[350px]">
+                      <select
+                        value={newItem.payment_code_id}
+                        onChange={(e) => setNewItem({ ...newItem, payment_code_id: e.target.value })}
+                        className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
+                      >
+                        <option value="">Izaberite...</option>
+                        {activePaymentCodes.map((pc) => (
+                          <option key={pc.id} value={pc.id}>
+                            {pc.code} - {pc.name}
+                          </option>
+                        ))}
+                      </select>
+                    </TableCell>
+                    <TableCell className="w-[350px]">
+                      <SearchablePartnerSelect
+                        partners={partners}
+                        value={newItem.partner_id}
+                        onValueChange={(v) => setNewItem({ ...newItem, partner_id: v })}
+                        placeholder="Partner..."
+                      />
+                    </TableCell>
+                    <TableCell className="w-[180px]">
+                      <span className="text-xs text-muted-foreground">
+                        {(() => {
+                          const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
+                          return pc ? getAccountLabel(pc.account_code) : "-";
+                        })()}
+                      </span>
+                    </TableCell>
+                    <TableCell className="w-[140px]">
+                      <Input
+                        value={newItem.document_reference}
+                        onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
+                        placeholder="Dokument"
+                        className="h-8 text-sm"
+                        autoComplete="off"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={newItem.description}
+                        onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                        placeholder="Opis"
+                        className="h-8"
+                        autoComplete="off"
+                      />
+                    </TableCell>
+                    <TableCell className="w-[130px]">
+                      <LocaleNumberInput
+                        value={newItem.debit_amount}
+                        onChange={(val) => setNewItem(prev => {
+                          const num = parseLocaleNumber(val);
+                          return { ...prev, debit_amount: val, ...(num > 0 ? { credit_amount: "0,00" } : {}) };
+                        })}
+                        className="h-8 text-right font-mono"
+                      />
+                    </TableCell>
+                    <TableCell className="w-[130px]">
+                      <LocaleNumberInput
+                        value={newItem.credit_amount}
+                        onChange={(val) => setNewItem(prev => {
+                          const num = parseLocaleNumber(val);
+                          return { ...prev, credit_amount: val, ...(num > 0 ? { debit_amount: "0,00" } : {}) };
+                        })}
+                        className="h-8 text-right font-mono"
+                      />
+                    </TableCell>
+                    <TableCell className="w-[80px]">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleAddItem}
+                        disabled={addItem.isPending}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          {/* Footer totals - outside scroll area */}
+          <div className="border-t">
+            <Table>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={6} className="text-right font-medium">Ukupno:</TableCell>
+                  <TableCell className="w-[130px] text-right font-mono font-bold">
+                    {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell>
-                    <SearchablePartnerSelect
-                      partners={partners}
-                      value={newItem.partner_id}
-                      onValueChange={(v) => setNewItem({ ...newItem, partner_id: v })}
-                      placeholder="Partner..."
-                    />
+                  <TableCell className="w-[130px] text-right font-mono font-bold">
+                    {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell>
-                    <span className="text-xs text-muted-foreground">
-                      {(() => {
-                        const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
-                        return pc ? getAccountLabel(pc.account_code) : "-";
-                      })()}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      value={newItem.document_reference}
-                      onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
-                      placeholder="Dokument"
-                      className="h-8 text-sm"
-                      autoComplete="off"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      value={newItem.description}
-                      onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                      placeholder="Opis"
-                      className="h-8"
-                      autoComplete="off"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <LocaleNumberInput
-                      value={newItem.debit_amount}
-                      onChange={(val) => setNewItem(prev => {
-                        const num = parseLocaleNumber(val);
-                        return { ...prev, debit_amount: val, ...(num > 0 ? { credit_amount: "0,00" } : {}) };
-                      })}
-                      className="h-8 text-right font-mono"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <LocaleNumberInput
-                      value={newItem.credit_amount}
-                      onChange={(val) => setNewItem(prev => {
-                        const num = parseLocaleNumber(val);
-                        return { ...prev, credit_amount: val, ...(num > 0 ? { debit_amount: "0,00" } : {}) };
-                      })}
-                      className="h-8 text-right font-mono"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleAddItem}
-                      disabled={addItem.isPending}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
+                  {isDraft && <TableCell className="w-[80px]" />}
                 </TableRow>
-              )}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                <TableCell colSpan={6} className="text-right font-medium">Ukupno:</TableCell>
-                <TableCell className="text-right font-mono font-bold">
-                  {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </TableCell>
-                <TableCell className="text-right font-mono font-bold">
-                  {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </TableCell>
-                {isDraft && <TableCell />}
-              </TableRow>
-            </TableFooter>
-          </Table>
+              </TableFooter>
+            </Table>
+          </div>
         </div>
       </div>
     </MainLayout>
