@@ -15,7 +15,7 @@ import {
 import { FileDown, Users } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { usePartners } from "@/hooks/usePartners";
+import { usePartnersWithTransactions } from "@/hooks/usePartnersWithTransactions";
 import { usePartnerCard } from "@/hooks/usePartnerCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
@@ -23,7 +23,7 @@ import { formatDecimal } from "@/lib/formatting";
 
 export default function KarticePartnera() {
   const { selectedYear } = useAuth();
-  const { partners } = usePartners();
+  const { data: partners = [] } = usePartnersWithTransactions();
 
   const currentYear = selectedYear?.year || new Date().getFullYear();
   const defaultDateFrom = `${currentYear}-01-01`;
