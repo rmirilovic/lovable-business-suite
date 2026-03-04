@@ -37,6 +37,7 @@ export interface BankStatementItem {
   document_reference: string | null;
   debit_amount: number;
   credit_amount: number;
+  cost_center_code: string | null;
   created_at: string;
   // joined
   payment_code?: string | null;

@@ -41,6 +41,7 @@ interface EditingItemState {
   document_reference: string;
   debit_amount: string;
   credit_amount: string;
+  cost_center_code: string;
 }
 
 const parseLocaleNumber = (value: string): number => {
@@ -75,6 +76,7 @@ export default function BankStatementEdit() {
     document_reference: "",
     debit_amount: "0,00",
     credit_amount: "0,00",
+    cost_center_code: "",
   });
 
   if (isLoading || !statement) {
@@ -108,6 +110,7 @@ export default function BankStatementEdit() {
       document_reference: item.document_reference || "",
       debit_amount: formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       credit_amount: formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      cost_center_code: item.cost_center_code || "",
     });
   };
 
@@ -133,6 +136,7 @@ export default function BankStatementEdit() {
       document_reference: editingData.document_reference || null,
       debit_amount: debit,
       credit_amount: credit,
+      cost_center_code: editingData.cost_center_code || null,
     });
 
     // Update statement totals if amounts changed
@@ -167,9 +171,10 @@ export default function BankStatementEdit() {
       document_reference: newItem.document_reference || null,
       debit_amount: debit,
       credit_amount: credit,
+      cost_center_code: newItem.cost_center_code || null,
     });
 
-    setNewItem({ payment_code_id: "", partner_id: "", reference_number: "", description: "", document_reference: "", debit_amount: "0,00", credit_amount: "0,00" });
+    setNewItem({ payment_code_id: "", partner_id: "", reference_number: "", description: "", document_reference: "", debit_amount: "0,00", credit_amount: "0,00", cost_center_code: "" });
 
     await update.mutateAsync({
       id,
@@ -229,6 +234,15 @@ export default function BankStatementEdit() {
               value={editingData.partner_id}
               onValueChange={(v) => setEditingData({ ...editingData, partner_id: v })}
               placeholder="Partner..."
+            />
+          </TableCell>
+          <TableCell>
+            <Input
+              value={editingData.cost_center_code}
+              onChange={(e) => setEditingData({ ...editingData, cost_center_code: e.target.value })}
+              className="h-8 text-sm font-mono"
+              placeholder="Analitika"
+              autoComplete="off"
             />
           </TableCell>
           <TableCell>
@@ -306,6 +320,7 @@ export default function BankStatementEdit() {
         </TableCell>
         <TableCell>{item.partner_name ? `[${item.partner_code}] ${item.partner_name}` : "-"}</TableCell>
         <TableCell className="text-sm">{getAccountLabel(item.payment_account_code)}</TableCell>
+        <TableCell className="text-sm font-mono">{item.cost_center_code || "-"}</TableCell>
         <TableCell className="text-sm">{item.document_reference || "-"}</TableCell>
         <TableCell className="text-muted-foreground">{item.description || "-"}</TableCell>
         <TableCell className="text-right font-mono">
@@ -470,9 +485,10 @@ export default function BankStatementEdit() {
                   <TableHead className="w-[50px]">R.br.</TableHead>
                   <TableHead className="w-[350px]">Šifra plaćanja</TableHead>
                   <TableHead className="w-[350px]">Partner</TableHead>
-                  <TableHead className="w-[180px]">Konto</TableHead>
-                  <TableHead className="w-[140px]">Dokument</TableHead>
-                  <TableHead className="max-w-[140px]">Opis</TableHead>
+                   <TableHead className="w-[180px]">Konto</TableHead>
+                   <TableHead className="w-[100px]">Analitika</TableHead>
+                   <TableHead className="w-[140px]">Dokument</TableHead>
+                   <TableHead className="max-w-[140px]">Opis</TableHead>
                   <TableHead className="w-[130px] text-right">Isplata (D)</TableHead>
                   <TableHead className="w-[130px] text-right">Uplata (P)</TableHead>
                   {isDraft && <TableHead className="w-[80px]" />}
@@ -481,7 +497,7 @@ export default function BankStatementEdit() {
               <TableBody>
                 {items.length === 0 && !isDraft ? (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 9 : 8} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
+                    <TableCell colSpan={isDraft ? 10 : 9} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
                   </TableRow>
                 ) : (
                   items.map((item, idx) => renderItemRow(item, idx))
@@ -525,6 +541,15 @@ export default function BankStatementEdit() {
                           return pc ? getAccountLabel(pc.account_code) : "-";
                         })()}
                       </span>
+                    </TableCell>
+                    <TableCell className="w-[100px]">
+                      <Input
+                        value={newItem.cost_center_code}
+                        onChange={(e) => setNewItem({ ...newItem, cost_center_code: e.target.value })}
+                        placeholder="Analitika"
+                        className="h-8 text-sm font-mono"
+                        autoComplete="off"
+                      />
                     </TableCell>
                     <TableCell className="w-[140px]">
                       <Input
@@ -584,7 +609,7 @@ export default function BankStatementEdit() {
             <Table>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-right font-medium">Ukupno:</TableCell>
+                  <TableCell colSpan={7} className="text-right font-medium">Ukupno:</TableCell>
                   <TableCell className="w-[130px] text-right font-mono font-bold">
                     {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
