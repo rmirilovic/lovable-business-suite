@@ -282,9 +282,9 @@ export default function BrutoBilans() {
         </div>
 
         {/* Table */}
-        <div className="rounded-md border overflow-x-auto">
+        <div className="rounded-md border overflow-x-auto max-h-[calc(100vh-280px)] overflow-y-auto">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-card">
               <TableRow>
                 <TableHead className="w-[100px]">Konto</TableHead>
                 <TableHead>Naziv</TableHead>
