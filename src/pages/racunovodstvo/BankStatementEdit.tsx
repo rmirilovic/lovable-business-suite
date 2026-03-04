@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, BookCheck, Undo2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X } from "lucide-react";
 import {
   useBankStatement,
   useBankStatementItems,
@@ -24,11 +24,26 @@ import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
+import { toast } from "sonner";
 
 const STATUS_LABELS: Record<string, string> = { draft: "Nacrt", posted: "Proknjižen" };
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
   posted: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+};
+
+interface EditingItemState {
+  payment_code_id: string;
+  partner_id: string;
+  reference_number: string;
+  description: string;
+  debit_amount: string;
+  credit_amount: string;
+}
+
+const parseLocaleNumber = (value: string): number => {
+  if (!value) return 0;
+  return parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
 };
 
 export default function BankStatementEdit() {
@@ -39,8 +54,11 @@ export default function BankStatementEdit() {
   const { data: items = [] } = useBankStatementItems(id || null);
   const { data: paymentCodes = [] } = usePaymentCodes();
   const { post, unpost, update } = useBankStatementMutations();
-  const { addItem, deleteItem } = useBankStatementItemMutations();
+  const { addItem, updateItem, deleteItem } = useBankStatementItemMutations();
   const { partners = [] } = usePartners();
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingData, setEditingData] = useState<EditingItemState | null>(null);
 
   const [newItem, setNewItem] = useState({
     payment_code_id: "",
@@ -64,9 +82,52 @@ export default function BankStatementEdit() {
   const totalCredit = items.reduce((s, i) => s + Number(i.credit_amount), 0);
   const activePaymentCodes = paymentCodes.filter((pc) => pc.is_active);
 
-  const parseLocaleNumber = (value: string): number => {
-    if (!value) return 0;
-    return parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
+  const startEdit = (item: BankStatementItem) => {
+    setEditingId(item.id);
+    setEditingData({
+      payment_code_id: item.payment_code_id || "",
+      partner_id: item.partner_id || "",
+      reference_number: item.reference_number || "",
+      description: item.description || "",
+      debit_amount: formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      credit_amount: formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditingData(null);
+  };
+
+  const saveEdit = async (item: BankStatementItem) => {
+    if (!editingData || !id) return;
+    const debit = parseLocaleNumber(editingData.debit_amount);
+    const credit = parseLocaleNumber(editingData.credit_amount);
+
+    const oldDebit = Number(item.debit_amount);
+    const oldCredit = Number(item.credit_amount);
+
+    await updateItem.mutateAsync({
+      id: item.id,
+      payment_code_id: editingData.payment_code_id || null,
+      partner_id: editingData.partner_id || null,
+      reference_number: editingData.reference_number || null,
+      description: editingData.description || null,
+      debit_amount: debit,
+      credit_amount: credit,
+    });
+
+    // Update statement totals if amounts changed
+    if (debit !== oldDebit || credit !== oldCredit) {
+      await update.mutateAsync({
+        id,
+        total_debit: totalDebit - oldDebit + debit,
+        total_credit: totalCredit - oldCredit + credit,
+      });
+    }
+
+    setEditingId(null);
+    setEditingData(null);
   };
 
   const handleAddItem = async () => {
@@ -88,7 +149,6 @@ export default function BankStatementEdit() {
 
     setNewItem({ payment_code_id: "", partner_id: "", reference_number: "", description: "", debit_amount: "0,00", credit_amount: "0,00" });
 
-    // Update totals
     await update.mutateAsync({
       id,
       total_debit: totalDebit + debit,
@@ -118,6 +178,139 @@ export default function BankStatementEdit() {
     if (confirm("Poništiti knjiženje izvoda?")) {
       await unpost.mutateAsync(id);
     }
+  };
+
+  const renderItemRow = (item: BankStatementItem, idx: number) => {
+    const isEditing = editingId === item.id && editingData;
+
+    if (isEditing && isDraft) {
+      return (
+        <TableRow key={item.id} className="bg-muted/30">
+          <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+          <TableCell>
+            <select
+              value={editingData.payment_code_id}
+              onChange={(e) => setEditingData({ ...editingData, payment_code_id: e.target.value })}
+              className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
+            >
+              <option value="">Izaberite...</option>
+              {activePaymentCodes.map((pc) => (
+                <option key={pc.id} value={pc.id}>
+                  {pc.code} - {pc.name}
+                </option>
+              ))}
+            </select>
+          </TableCell>
+          <TableCell>
+            <SearchablePartnerSelect
+              partners={partners}
+              value={editingData.partner_id}
+              onValueChange={(v) => setEditingData({ ...editingData, partner_id: v })}
+              placeholder="Partner..."
+            />
+          </TableCell>
+          <TableCell>
+            <Input
+              value={editingData.reference_number}
+              onChange={(e) => setEditingData({ ...editingData, reference_number: e.target.value })}
+              className="h-8 font-mono text-sm"
+              autoComplete="off"
+            />
+          </TableCell>
+          <TableCell>
+            <Input
+              value={editingData.description}
+              onChange={(e) => setEditingData({ ...editingData, description: e.target.value })}
+              className="h-8"
+              autoComplete="off"
+            />
+          </TableCell>
+          <TableCell>
+            <LocaleNumberInput
+              value={editingData.debit_amount}
+              onChange={(val) => setEditingData({ ...editingData, debit_amount: val })}
+              className="h-8 text-right font-mono"
+            />
+          </TableCell>
+          <TableCell>
+            <LocaleNumberInput
+              value={editingData.credit_amount}
+              onChange={(val) => setEditingData({ ...editingData, credit_amount: val })}
+              className="h-8 text-right font-mono"
+            />
+          </TableCell>
+          <TableCell>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => saveEdit(item)}
+                disabled={updateItem.isPending}
+                className="h-7 w-7"
+              >
+                <Check className="w-4 h-4 text-primary" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={cancelEdit}
+                className="h-7 w-7"
+              >
+                <X className="w-4 h-4 text-destructive" />
+              </Button>
+            </div>
+          </TableCell>
+        </TableRow>
+      );
+    }
+
+    return (
+      <TableRow
+        key={item.id}
+        className={cn("group", isDraft && "cursor-pointer hover:bg-muted/50")}
+        onDoubleClick={() => isDraft && startEdit(item)}
+      >
+        <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+        <TableCell className="font-mono">
+          {item.payment_code ? `${item.payment_code} - ${item.payment_name}` : "-"}
+        </TableCell>
+        <TableCell>{item.partner_name ? `[${item.partner_code}] ${item.partner_name}` : "-"}</TableCell>
+        <TableCell className="font-mono text-sm">{item.reference_number || "-"}</TableCell>
+        <TableCell className="text-muted-foreground">{item.description || "-"}</TableCell>
+        <TableCell className="text-right font-mono">
+          {Number(item.debit_amount) !== 0 ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
+        </TableCell>
+        <TableCell className="text-right font-mono">
+          {Number(item.credit_amount) !== 0 ? formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
+        </TableCell>
+        {isDraft && (
+          <TableCell>
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); startEdit(item); }}
+                className="h-7 w-7"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm("Obrisati stavku?")) handleDeleteItem(item);
+                }}
+                disabled={deleteItem.isPending}
+                className="h-7 w-7"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+              </Button>
+            </div>
+          </TableCell>
+        )}
+      </TableRow>
+    );
   };
 
   return (
@@ -166,6 +359,10 @@ export default function BankStatementEdit() {
           </div>
         </div>
 
+        {isDraft && (
+          <p className="text-xs text-muted-foreground">Dupli klik na red za izmenu stavke</p>
+        )}
+
         {/* Items table */}
         <div className="border rounded-md">
           <Table>
@@ -178,39 +375,16 @@ export default function BankStatementEdit() {
                 <TableHead>Opis</TableHead>
                 <TableHead className="w-[130px] text-right">Uplata (D)</TableHead>
                 <TableHead className="w-[130px] text-right">Isplata (P)</TableHead>
-                {isDraft && <TableHead className="w-[50px]" />}
+                {isDraft && <TableHead className="w-[80px]" />}
               </TableRow>
             </TableHeader>
             <TableBody>
               {items.length === 0 && !isDraft ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
+                  <TableCell colSpan={isDraft ? 8 : 7} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
                 </TableRow>
               ) : (
-                items.map((item, idx) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                    <TableCell className="font-mono">
-                      {item.payment_code ? `${item.payment_code} - ${item.payment_name}` : "-"}
-                    </TableCell>
-                    <TableCell>{item.partner_name ? `[${item.partner_code}] ${item.partner_name}` : "-"}</TableCell>
-                    <TableCell className="font-mono text-sm">{item.reference_number || "-"}</TableCell>
-                    <TableCell className="text-muted-foreground">{item.description || "-"}</TableCell>
-                    <TableCell className="text-right font-mono">
-                      {Number(item.debit_amount) !== 0 ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {Number(item.credit_amount) !== 0 ? formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
-                    </TableCell>
-                    {isDraft && (
-                      <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item)} disabled={deleteItem.isPending}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))
+                items.map((item, idx) => renderItemRow(item, idx))
               )}
 
               {/* New item row */}
