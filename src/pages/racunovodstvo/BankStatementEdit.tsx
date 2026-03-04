@@ -149,10 +149,13 @@ export default function BankStatementEdit() {
   };
 
   const handleAddItem = async () => {
-    if (!id || !newItem.payment_code_id) return;
+    if (!id) return;
     const debit = parseLocaleNumber(newItem.debit_amount);
     const credit = parseLocaleNumber(newItem.credit_amount);
-    if (debit === 0 && credit === 0) return;
+    if (debit === 0 && credit === 0) {
+      toast.error("Unesite iznos uplate ili isplate");
+      return;
+    }
 
     await addItem.mutateAsync({
       bank_statement_id: id,
@@ -557,14 +560,14 @@ export default function BankStatementEdit() {
                   <TableCell>
                     <LocaleNumberInput
                       value={newItem.debit_amount}
-                      onChange={(val) => setNewItem({ ...newItem, debit_amount: val, credit_amount: "0,00" })}
+                      onChange={(val) => setNewItem(prev => ({ ...prev, debit_amount: val, credit_amount: "0,00" }))}
                       className="h-8 text-right font-mono"
                     />
                   </TableCell>
                   <TableCell>
                     <LocaleNumberInput
                       value={newItem.credit_amount}
-                      onChange={(val) => setNewItem({ ...newItem, credit_amount: val, debit_amount: "0,00" })}
+                      onChange={(val) => setNewItem(prev => ({ ...prev, credit_amount: val, debit_amount: "0,00" }))}
                       className="h-8 text-right font-mono"
                     />
                   </TableCell>
@@ -573,7 +576,7 @@ export default function BankStatementEdit() {
                       variant="ghost"
                       size="icon"
                       onClick={handleAddItem}
-                      disabled={!newItem.payment_code_id || (parseLocaleNumber(newItem.debit_amount) === 0 && parseLocaleNumber(newItem.credit_amount) === 0) || addItem.isPending}
+                      disabled={addItem.isPending}
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
