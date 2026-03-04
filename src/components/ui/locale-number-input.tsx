@@ -14,6 +14,7 @@ export interface LocaleNumberInputProps
 const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputProps>(
   ({ className, value, onChange, decimalPlaces = 2, allowEmpty = false, ...props }, ref) => {
     const [displayValue, setDisplayValue] = React.useState(value);
+    const [isFocused, setIsFocused] = React.useState(false);
     
     // Get locale-specific separators
     const { decimalSeparator, groupSeparator } = React.useMemo(() => {
@@ -53,8 +54,9 @@ const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputPr
       });
     }, [decimalPlaces]);
 
-    // Convert stored value to display value when external value changes
+    // Convert stored value to display value when external value changes — but NOT while focused
     React.useEffect(() => {
+      if (isFocused) return;
       if (value !== undefined && value !== null) {
         // Try to parse and format with thousand separators
         const parsed = parseLocaleNumber(value.toString());
@@ -64,7 +66,7 @@ const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputPr
           setDisplayValue(value.toString());
         }
       }
-    }, [value, formatForEdit]);
+    }, [value, formatForEdit, isFocused]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let inputValue = e.target.value;
@@ -85,7 +87,14 @@ const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputPr
       }
     };
 
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
+      props.onFocus?.(e);
+    };
+
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
+
       if (allowEmpty && (displayValue === '' || displayValue === '-')) {
         setDisplayValue('');
         onChange('');
@@ -132,6 +141,7 @@ const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputPr
         ref={ref}
         value={displayValue}
         onChange={handleChange}
+        onFocus={handleFocus}
         onBlur={handleBlur}
         {...props}
       />
