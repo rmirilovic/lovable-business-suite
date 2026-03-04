@@ -541,14 +541,20 @@ export default function BankStatementEdit() {
                   <TableCell>
                     <LocaleNumberInput
                       value={newItem.debit_amount}
-                      onChange={(val) => setNewItem(prev => ({ ...prev, debit_amount: val, credit_amount: "0,00" }))}
+                      onChange={(val) => setNewItem(prev => {
+                        const num = parseLocaleNumber(val);
+                        return { ...prev, debit_amount: val, ...(num > 0 ? { credit_amount: "0,00" } : {}) };
+                      })}
                       className="h-8 text-right font-mono"
                     />
                   </TableCell>
                   <TableCell>
                     <LocaleNumberInput
                       value={newItem.credit_amount}
-                      onChange={(val) => setNewItem(prev => ({ ...prev, credit_amount: val, debit_amount: "0,00" }))}
+                      onChange={(val) => setNewItem(prev => {
+                        const num = parseLocaleNumber(val);
+                        return { ...prev, credit_amount: val, ...(num > 0 ? { debit_amount: "0,00" } : {}) };
+                      })}
                       className="h-8 text-right font-mono"
                     />
                   </TableCell>
