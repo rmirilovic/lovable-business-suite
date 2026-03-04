@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -424,11 +424,9 @@ function RowCodeBlock({
             }
             return (
               <TableCell key={col.code} className="p-1">
-                <LocaleNumberInput
-                  value={String(val)}
-                  onChange={(v) => onUpdateValue(dr, col.code, parseFloat(v) || 0)}
-                  decimalPlaces={2}
-                  className="text-right h-7 text-xs"
+                <AnalyticalBlurCell
+                  value={val}
+                  onCommit={(num) => onUpdateValue(dr, col.code, num)}
                 />
               </TableCell>
             );
@@ -456,5 +454,38 @@ function RowCodeBlock({
         {isDraft && <TableCell />}
       </TableRow>
     </>
+  );
+}
+
+// ── Blur-commit cell for analytical form ──
+
+interface AnalyticalBlurCellProps {
+  value: number;
+  onCommit: (value: number) => void;
+}
+
+function AnalyticalBlurCell({ value, onCommit }: AnalyticalBlurCellProps) {
+  const [localVal, setLocalVal] = React.useState(String(value));
+  const committedRef = React.useRef(value);
+
+  React.useEffect(() => {
+    if (value !== committedRef.current) {
+      setLocalVal(String(value));
+      committedRef.current = value;
+    }
+  }, [value]);
+
+  return (
+    <LocaleNumberInput
+      value={localVal}
+      onChange={(v) => setLocalVal(v)}
+      onBlur={() => {
+        const parsed = parseFloat(localVal.replace(/\./g, "").replace(",", ".")) || 0;
+        committedRef.current = parsed;
+        onCommit(parsed);
+      }}
+      decimalPlaces={2}
+      className="text-right h-7 text-xs"
+    />
   );
 }

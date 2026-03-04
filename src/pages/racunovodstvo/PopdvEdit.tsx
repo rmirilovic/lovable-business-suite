@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { usePopdvReportDetail, usePopdvReportCells, useFinalizePopdvReport } from "@/hooks/usePopdvReports";
@@ -350,20 +350,12 @@ function SubTableView({ subTable, cellMap, getCellValue, onCellChange, readonly 
 
                 return (
                   <TableCell key={col.code} className="p-1">
-                    <div className="relative">
-                      <LocaleNumberInput
-                        value={String(displayVal)}
-                        onChange={(v) => {
-                          const num = parseFloat(v) || 0;
-                          onCellChange(row.code, col.code, num === autoVal ? null : num);
-                        }}
-                        decimalPlaces={2}
-                        className={`text-right h-8 ${isOverridden ? "border-primary bg-primary/5" : ""}`}
-                      />
-                      {isOverridden && (
-                        <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary" title={`Auto: ${autoVal.toLocaleString("sr-RS", { minimumFractionDigits: 2 })}`} />
-                      )}
-                    </div>
+                    <BlurCommitCell
+                      value={displayVal}
+                      autoVal={autoVal}
+                      isOverridden={isOverridden}
+                      onCommit={(num) => onCellChange(row.code, col.code, num === autoVal ? null : num)}
+                    />
                   </TableCell>
                 );
               })}
@@ -371,6 +363,47 @@ function SubTableView({ subTable, cellMap, getCellValue, onCellChange, readonly 
           ))}
         </TableBody>
       </Table>
+    </div>
+  );
+}
+
+// ── Blur-commit cell for summary form ──
+
+interface BlurCommitCellProps {
+  value: number;
+  autoVal: number;
+  isOverridden: boolean;
+  onCommit: (value: number) => void;
+}
+
+function BlurCommitCell({ value, autoVal, isOverridden, onCommit }: BlurCommitCellProps) {
+  const [localVal, setLocalVal] = React.useState(String(value));
+  const committedRef = React.useRef(value);
+
+  React.useEffect(() => {
+    // Sync from parent when value changes externally
+    if (value !== committedRef.current) {
+      setLocalVal(String(value));
+      committedRef.current = value;
+    }
+  }, [value]);
+
+  return (
+    <div className="relative">
+      <LocaleNumberInput
+        value={localVal}
+        onChange={(v) => setLocalVal(v)}
+        onBlur={() => {
+          const parsed = parseFloat(localVal.replace(/\./g, "").replace(",", ".")) || 0;
+          committedRef.current = parsed;
+          onCommit(parsed);
+        }}
+        decimalPlaces={2}
+        className={`text-right h-8 ${isOverridden ? "border-primary bg-primary/5" : ""}`}
+      />
+      {isOverridden && (
+        <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary" title={`Auto: ${autoVal.toLocaleString("sr-RS", { minimumFractionDigits: 2 })}`} />
+      )}
     </div>
   );
 }
