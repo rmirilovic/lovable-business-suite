@@ -240,6 +240,14 @@ export default function BankStatementEdit() {
             />
           </TableCell>
           <TableCell>
+            <span className="text-xs text-muted-foreground">
+              {(() => {
+                const pc = activePaymentCodes.find(p => p.id === editingData.payment_code_id);
+                return pc ? getAccountLabel(pc.account_code) : "-";
+              })()}
+            </span>
+          </TableCell>
+          <TableCell>
             <Input
               value={editingData.cost_center_code}
               onChange={(e) => setEditingData({ ...editingData, cost_center_code: e.target.value })}
@@ -247,14 +255,6 @@ export default function BankStatementEdit() {
               placeholder="Analitika"
               autoComplete="off"
             />
-          </TableCell>
-          <TableCell>
-            <span className="text-xs text-muted-foreground">
-              {(() => {
-                const pc = activePaymentCodes.find(p => p.id === editingData.payment_code_id);
-                return pc ? getAccountLabel(pc.account_code) : "-";
-              })()}
-            </span>
           </TableCell>
           <TableCell>
             <Input
