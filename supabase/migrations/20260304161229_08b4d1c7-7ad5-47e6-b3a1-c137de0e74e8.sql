@@ -1,0 +1,1 @@
+ALTER TABLE public.bank_statement_items ADD COLUMN document_reference text;

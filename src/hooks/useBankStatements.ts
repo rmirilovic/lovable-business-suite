@@ -33,6 +33,7 @@ export interface BankStatementItem {
   partner_id: string | null;
   reference_number: string | null;
   description: string | null;
+  document_reference: string | null;
   debit_amount: number;
   credit_amount: number;
   created_at: string;

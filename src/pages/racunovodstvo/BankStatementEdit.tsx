@@ -17,6 +17,7 @@ import {
 } from "@/hooks/useBankStatements";
 import { usePaymentCodes } from "@/hooks/usePaymentCodes";
 import { usePartners } from "@/hooks/usePartners";
+import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Partner } from "@/components/ui/searchable-partner-select";
 import { format } from "date-fns";
@@ -37,6 +38,7 @@ interface EditingItemState {
   partner_id: string;
   reference_number: string;
   description: string;
+  document_reference: string;
   debit_amount: string;
   credit_amount: string;
 }
@@ -56,6 +58,7 @@ export default function BankStatementEdit() {
   const { post, unpost, update } = useBankStatementMutations();
   const { addItem, updateItem, deleteItem } = useBankStatementItemMutations();
   const { partners = [] } = usePartners();
+  const { data: accounts = [] } = useChartOfAccounts();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<EditingItemState | null>(null);
@@ -65,6 +68,7 @@ export default function BankStatementEdit() {
     partner_id: "",
     reference_number: "",
     description: "",
+    document_reference: "",
     debit_amount: "0,00",
     credit_amount: "0,00",
   });
@@ -82,6 +86,14 @@ export default function BankStatementEdit() {
   const totalCredit = items.reduce((s, i) => s + Number(i.credit_amount), 0);
   const activePaymentCodes = paymentCodes.filter((pc) => pc.is_active);
 
+  // Build account code -> name map for display
+  const accountMap = new Map(accounts.map((a) => [a.code, a.name]));
+  const getAccountLabel = (accountCode: string | null | undefined) => {
+    if (!accountCode) return "-";
+    const name = accountMap.get(accountCode);
+    return name ? `${accountCode} - ${name}` : accountCode;
+  };
+
   const startEdit = (item: BankStatementItem) => {
     setEditingId(item.id);
     setEditingData({
@@ -89,6 +101,7 @@ export default function BankStatementEdit() {
       partner_id: item.partner_id || "",
       reference_number: item.reference_number || "",
       description: item.description || "",
+      document_reference: item.document_reference || "",
       debit_amount: formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       credit_amount: formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     });
@@ -113,6 +126,7 @@ export default function BankStatementEdit() {
       partner_id: editingData.partner_id || null,
       reference_number: editingData.reference_number || null,
       description: editingData.description || null,
+      document_reference: editingData.document_reference || null,
       debit_amount: debit,
       credit_amount: credit,
     });
@@ -143,11 +157,12 @@ export default function BankStatementEdit() {
       partner_id: newItem.partner_id || null,
       reference_number: newItem.reference_number || null,
       description: newItem.description || null,
+      document_reference: newItem.document_reference || null,
       debit_amount: debit,
       credit_amount: credit,
     });
 
-    setNewItem({ payment_code_id: "", partner_id: "", reference_number: "", description: "", debit_amount: "0,00", credit_amount: "0,00" });
+    setNewItem({ payment_code_id: "", partner_id: "", reference_number: "", description: "", document_reference: "", debit_amount: "0,00", credit_amount: "0,00" });
 
     await update.mutateAsync({
       id,
@@ -218,6 +233,22 @@ export default function BankStatementEdit() {
             />
           </TableCell>
           <TableCell>
+            <span className="text-xs text-muted-foreground">
+              {(() => {
+                const pc = activePaymentCodes.find(p => p.id === editingData.payment_code_id);
+                return pc ? getAccountLabel(pc.account_code) : "-";
+              })()}
+            </span>
+          </TableCell>
+          <TableCell>
+            <Input
+              value={editingData.document_reference}
+              onChange={(e) => setEditingData({ ...editingData, document_reference: e.target.value })}
+              className="h-8 text-sm"
+              autoComplete="off"
+            />
+          </TableCell>
+          <TableCell>
             <Input
               value={editingData.description}
               onChange={(e) => setEditingData({ ...editingData, description: e.target.value })}
@@ -276,6 +307,8 @@ export default function BankStatementEdit() {
         </TableCell>
         <TableCell>{item.partner_name ? `[${item.partner_code}] ${item.partner_name}` : "-"}</TableCell>
         <TableCell className="font-mono text-sm">{item.reference_number || "-"}</TableCell>
+        <TableCell className="text-sm">{getAccountLabel(item.payment_account_code)}</TableCell>
+        <TableCell className="text-sm">{item.document_reference || "-"}</TableCell>
         <TableCell className="text-muted-foreground">{item.description || "-"}</TableCell>
         <TableCell className="text-right font-mono">
           {Number(item.debit_amount) !== 0 ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
@@ -372,6 +405,8 @@ export default function BankStatementEdit() {
                 <TableHead className="w-[140px]">Šifra plaćanja</TableHead>
                 <TableHead>Partner</TableHead>
                 <TableHead className="w-[140px]">Poziv na broj</TableHead>
+                <TableHead className="w-[180px]">Konto</TableHead>
+                <TableHead className="w-[140px]">Dokument</TableHead>
                 <TableHead>Opis</TableHead>
                 <TableHead className="w-[130px] text-right">Uplata (D)</TableHead>
                 <TableHead className="w-[130px] text-right">Isplata (P)</TableHead>
@@ -381,7 +416,7 @@ export default function BankStatementEdit() {
             <TableBody>
               {items.length === 0 && !isDraft ? (
                 <TableRow>
-                  <TableCell colSpan={isDraft ? 8 : 7} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
+                  <TableCell colSpan={isDraft ? 10 : 9} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
                 </TableRow>
               ) : (
                 items.map((item, idx) => renderItemRow(item, idx))
@@ -423,6 +458,23 @@ export default function BankStatementEdit() {
                     />
                   </TableCell>
                   <TableCell>
+                    <span className="text-xs text-muted-foreground">
+                      {(() => {
+                        const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
+                        return pc ? getAccountLabel(pc.account_code) : "-";
+                      })()}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      value={newItem.document_reference}
+                      onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
+                      placeholder="Dokument"
+                      className="h-8 text-sm"
+                      autoComplete="off"
+                    />
+                  </TableCell>
+                  <TableCell>
                     <Input
                       value={newItem.description}
                       onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
@@ -460,7 +512,7 @@ export default function BankStatementEdit() {
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={5} className="text-right font-medium">Ukupno:</TableCell>
+                <TableCell colSpan={7} className="text-right font-medium">Ukupno:</TableCell>
                 <TableCell className="text-right font-mono font-bold">
                   {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </TableCell>

@@ -684,6 +684,7 @@ export type Database = {
           credit_amount: number
           debit_amount: number
           description: string | null
+          document_reference: string | null
           id: string
           item_order: number
           partner_id: string | null
@@ -697,6 +698,7 @@ export type Database = {
           credit_amount?: number
           debit_amount?: number
           description?: string | null
+          document_reference?: string | null
           id?: string
           item_order?: number
           partner_id?: string | null
@@ -710,6 +712,7 @@ export type Database = {
           credit_amount?: number
           debit_amount?: number
           description?: string | null
+          document_reference?: string | null
           id?: string
           item_order?: number
           partner_id?: string | null
