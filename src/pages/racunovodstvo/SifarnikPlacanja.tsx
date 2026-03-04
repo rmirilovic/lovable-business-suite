@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { SortableHeader } from "@/components/ui/sortable-header";
 import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
 import { usePaymentCodes, usePaymentCodeMutations, PaymentCode } from "@/hooks/usePaymentCodes";
-import { cn } from "@/lib/utils";
+import { useTableSort } from "@/hooks/useTableSort";
 
 export default function SifarnikPlacanja() {
   const { data: codes = [], isLoading } = usePaymentCodes();
@@ -25,6 +27,10 @@ export default function SifarnikPlacanja() {
       c.name.toLowerCase().includes(filter.toLowerCase()) ||
       c.account_code.toLowerCase().includes(filter.toLowerCase())
   );
+
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("code", "asc");
+
+  const sortedData = sortItems(filtered, (item, col) => (item as any)[col]);
 
   const handleEdit = (pc: PaymentCode) => {
     setEditId(pc.id);
@@ -61,14 +67,22 @@ export default function SifarnikPlacanja() {
           </Button>
         </div>
 
-        <div className="border rounded-md">
+        <TableScrollContainer>
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                <TableHead className="w-[100px]">Šifra</TableHead>
-                <TableHead>Naziv</TableHead>
-                <TableHead className="w-[140px]">Konto</TableHead>
-                <TableHead className="w-[80px]">Status</TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader label="Šifra" column="code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader label="Naziv" column="name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[140px]">
+                  <SortableHeader label="Konto" column="account_code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[80px]">
+                  <SortableHeader label="Status" column="is_active" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 <TableHead className="w-[100px]" />
               </TableRow>
             </TableHeader>
@@ -101,12 +115,12 @@ export default function SifarnikPlacanja() {
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Učitavanje...</TableCell>
                 </TableRow>
-              ) : filtered.length === 0 ? (
+              ) : sortedData.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nema šifara plaćanja</TableCell>
                 </TableRow>
               ) : (
-                filtered.map((pc) =>
+                sortedData.map((pc) =>
                   editId === pc.id ? (
                     <TableRow key={pc.id} className="bg-muted/50">
                       <TableCell>
@@ -156,7 +170,7 @@ export default function SifarnikPlacanja() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
     </MainLayout>
   );
