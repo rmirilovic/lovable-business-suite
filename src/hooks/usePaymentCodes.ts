@@ -39,18 +39,19 @@ export function usePaymentCodeMutations() {
   const { selectedCompany } = useAuth();
 
   const create = useMutation({
-    mutationFn: async (pc: { code: string; name: string; account_code: string }) => {
-      const { data, error } = await supabase
+    mutationFn: async (pc: { code: string; name: string; account_code: string; silent?: boolean }) => {
+      const { silent, ...data } = pc;
+      const { data: result, error } = await supabase
         .from("payment_codes")
-        .insert({ ...pc, company_id: selectedCompany!.id })
+        .insert({ ...data, company_id: selectedCompany!.id })
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return { result, silent };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["payment_codes"] });
-      toast.success("Šifra plaćanja kreirana");
+      if (!data.silent) toast.success("Šifra plaćanja kreirana");
     },
     onError: (e: Error) => {
       if (e.message.includes("duplicate")) toast.error("Šifra već postoji");
@@ -59,7 +60,7 @@ export function usePaymentCodeMutations() {
   });
 
   const update = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<PaymentCode> & { id: string }) => {
+    mutationFn: async ({ id, silent, ...updates }: Partial<PaymentCode> & { id: string; silent?: boolean }) => {
       const { data, error } = await supabase
         .from("payment_codes")
         .update({ ...updates, updated_at: new Date().toISOString() })
@@ -67,11 +68,11 @@ export function usePaymentCodeMutations() {
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return { data, silent };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["payment_codes"] });
-      toast.success("Šifra plaćanja ažurirana");
+      if (!result.silent) toast.success("Šifra plaćanja ažurirana");
     },
     onError: (e: Error) => toast.error(`Greška: ${e.message}`),
   });

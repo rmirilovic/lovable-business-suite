@@ -115,10 +115,10 @@ export function PaymentCodesImportDialog({ open, onOpenChange }: PaymentCodesImp
 
           try {
             if (existing && updateExisting) {
-              await update.mutateAsync({ id: existing.id, code, name, account_code });
+              await update.mutateAsync({ id: existing.id, code, name, account_code, silent: true });
               updatedCount++;
             } else if (!existing) {
-              await create.mutateAsync({ code, name, account_code });
+              await create.mutateAsync({ code, name, account_code, silent: true });
               createdCount++;
             }
           } catch (error) {
