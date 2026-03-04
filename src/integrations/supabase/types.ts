@@ -676,6 +676,169 @@ export type Database = {
           },
         ]
       }
+      bank_statement_items: {
+        Row: {
+          bank_statement_id: string
+          company_id: string
+          created_at: string
+          credit_amount: number
+          debit_amount: number
+          description: string | null
+          id: string
+          item_order: number
+          partner_id: string | null
+          payment_code_id: string | null
+          reference_number: string | null
+        }
+        Insert: {
+          bank_statement_id: string
+          company_id: string
+          created_at?: string
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          item_order?: number
+          partner_id?: string | null
+          payment_code_id?: string | null
+          reference_number?: string | null
+        }
+        Update: {
+          bank_statement_id?: string
+          company_id?: string
+          created_at?: string
+          credit_amount?: number
+          debit_amount?: number
+          description?: string | null
+          id?: string
+          item_order?: number
+          partner_id?: string | null
+          payment_code_id?: string | null
+          reference_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statement_items_bank_statement_id_fkey"
+            columns: ["bank_statement_id"]
+            isOneToOne: false
+            referencedRelation: "bank_statements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_items_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statement_items_payment_code_id_fkey"
+            columns: ["payment_code_id"]
+            isOneToOne: false
+            referencedRelation: "payment_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_statements: {
+        Row: {
+          bank_account_id: string
+          business_year_id: string
+          closing_balance: number
+          company_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          journal_entry_id: string | null
+          opening_balance: number
+          posted_at: string | null
+          posted_by: string | null
+          statement_date: string
+          statement_number: string
+          status: string
+          total_credit: number
+          total_debit: number
+          updated_at: string
+        }
+        Insert: {
+          bank_account_id: string
+          business_year_id: string
+          closing_balance?: number
+          company_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          opening_balance?: number
+          posted_at?: string | null
+          posted_by?: string | null
+          statement_date?: string
+          statement_number: string
+          status?: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Update: {
+          bank_account_id?: string
+          business_year_id?: string
+          closing_balance?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          opening_balance?: number
+          posted_at?: string | null
+          posted_by?: string | null
+          statement_date?: string
+          statement_number?: string
+          status?: string
+          total_credit?: number
+          total_debit?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statements_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statements_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bank_statements_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_years: {
         Row: {
           company_id: string
@@ -3664,6 +3827,47 @@ export type Database = {
           },
         ]
       }
+      payment_codes: {
+        Row: {
+          account_code: string
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          account_code: string
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          account_code?: string
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_codes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       popdv_report_cells: {
         Row: {
           auto_value: number
@@ -6506,6 +6710,10 @@ export type Database = {
         Args: { _document_id: string; _table_name: string }
         Returns: string
       }
+      get_next_bank_statement_number: {
+        Args: { _company_id: string; _year_id: string }
+        Returns: string
+      }
       get_next_calculation_number: {
         Args: { _company_id: string; _year_id: string }
         Returns: string
@@ -6670,6 +6878,10 @@ export type Database = {
         Args: { _swap_id: string; _user_id: string }
         Returns: string
       }
+      post_bank_statement: {
+        Args: { _statement_id: string; _user_id: string }
+        Returns: string
+      }
       post_credit_note: {
         Args: { _credit_note_id: string; _user_id: string }
         Returns: boolean
@@ -6739,6 +6951,10 @@ export type Database = {
       unpost_article_swap: {
         Args: { _swap_id: string; _user_id: string }
         Returns: string
+      }
+      unpost_bank_statement: {
+        Args: { _statement_id: string; _user_id: string }
+        Returns: undefined
       }
       unpost_credit_note: {
         Args: { _credit_note_id: string }
