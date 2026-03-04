@@ -753,6 +753,7 @@ export type Database = {
       bank_statements: {
         Row: {
           bank_account_id: string
+          bank_serial_number: string | null
           business_year_id: string
           closing_balance: number
           company_id: string
@@ -773,6 +774,7 @@ export type Database = {
         }
         Insert: {
           bank_account_id: string
+          bank_serial_number?: string | null
           business_year_id: string
           closing_balance?: number
           company_id: string
@@ -793,6 +795,7 @@ export type Database = {
         }
         Update: {
           bank_account_id?: string
+          bank_serial_number?: string | null
           business_year_id?: string
           closing_balance?: number
           company_id?: string

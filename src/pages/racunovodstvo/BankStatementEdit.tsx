@@ -62,6 +62,10 @@ export default function BankStatementEdit() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<EditingItemState | null>(null);
+  const [headerSerial, setHeaderSerial] = useState(statement?.bank_serial_number || "");
+  const [headerOpeningBalance, setHeaderOpeningBalance] = useState(
+    statement ? formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00"
+  );
 
   const [newItem, setNewItem] = useState({
     payment_code_id: "",
@@ -380,14 +384,79 @@ export default function BankStatementEdit() {
             <span className="text-muted-foreground">Datum:</span>{" "}
             <span className="font-medium">{format(new Date(statement.statement_date), "dd.MM.yyyy.")}</span>
           </div>
+          <div>
+            <span className="text-muted-foreground">R.br. izvoda banke:</span>{" "}
+            {isDraft ? (
+              <Input
+                value={headerSerial}
+                onChange={(e) => setHeaderSerial(e.target.value)}
+                onBlur={() => {
+                  if (headerSerial !== (statement.bank_serial_number || "")) {
+                    update.mutate({ id: statement.id, bank_serial_number: headerSerial || null });
+                  }
+                }}
+                className="inline-block h-7 w-24 ml-1 font-mono text-sm"
+                placeholder="—"
+                autoComplete="off"
+              />
+            ) : (
+              <span className="font-mono font-medium">{statement.bank_serial_number || "—"}</span>
+            )}
+          </div>
           <div className="col-span-2">
             <span className="text-muted-foreground">Tekući račun:</span>{" "}
             <span className="font-medium">
               {statement.bank_accounts?.account_number} - {statement.bank_accounts?.bank_name}
             </span>
           </div>
+        </div>
+
+        {/* Balances & totals */}
+        <div className="grid grid-cols-6 gap-4 text-sm border rounded-md p-4">
           <div>
-            <span className="text-muted-foreground">Analitika TR:</span>{" "}
+            <span className="text-muted-foreground block">Prethodno stanje</span>
+            {isDraft ? (
+              <LocaleNumberInput
+                value={headerOpeningBalance}
+                onChange={(val) => setHeaderOpeningBalance(val)}
+                onBlur={() => {
+                  const num = parseLocaleNumber(headerOpeningBalance);
+                  if (num !== statement.opening_balance) {
+                    update.mutate({ id: statement.id, opening_balance: num, closing_balance: num + totalDebit - totalCredit });
+                  }
+                }}
+                className="h-7 w-full font-mono text-sm mt-1"
+              />
+            ) : (
+              <span className="font-mono font-medium">{formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            )}
+          </div>
+          <div>
+            <span className="text-muted-foreground block">Duguje</span>
+            <span className="font-mono font-medium text-green-700 dark:text-green-400">
+              {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground block">Potražuje</span>
+            <span className="font-mono font-medium text-red-700 dark:text-red-400">
+              {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground block">Saldo (D-P)</span>
+            <span className={cn("font-mono font-bold", (totalDebit - totalCredit) >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
+              {formatNumber(totalDebit - totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground block">Novo stanje</span>
+            <span className="font-mono font-bold">
+              {formatNumber(statement.opening_balance + totalDebit - totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground block">Analitika TR</span>
             <span className="font-mono font-medium">{statement.bank_accounts?.code}</span>
           </div>
         </div>
