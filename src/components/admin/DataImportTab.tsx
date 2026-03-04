@@ -20,6 +20,7 @@ import { InputCostsApiDialog } from "@/components/sifarnici/InputCostsApiDialog"
 import { InputCostsImportDialog } from "@/components/sifarnici/InputCostsImportDialog";
 import { InputCostsExportDialog } from "@/components/sifarnici/InputCostsExportDialog";
 import { NormImportDialog } from "@/components/proizvodnja/NormImportDialog";
+import { PaymentCodesImportDialog } from "@/components/racunovodstvo/PaymentCodesImportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 
@@ -54,6 +55,9 @@ export function DataImportTab() {
   
   // Dialog states for norms
   const [normImportOpen, setNormImportOpen] = useState(false);
+  
+  // Dialog states for payment codes
+  const [paymentCodesImportOpen, setPaymentCodesImportOpen] = useState(false);
   
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
@@ -370,7 +374,35 @@ export function DataImportTab() {
         </CardContent>
       </Card>
 
-      {/* Partner Dialogs */}
+      <Separator />
+
+      {/* Payment Codes Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Receipt className="w-5 h-5" />
+            Šifarnik plaćanja
+          </CardTitle>
+          <CardDescription>
+            Uvoz šifarnika plaćanja iz Excel fajla
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setPaymentCodesImportOpen(true)}
+            >
+              <Upload className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Šifre plaćanja</div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       <PartnerImportDialog 
         open={partnerImportOpen} 
         onOpenChange={setPartnerImportOpen} 
@@ -450,6 +482,12 @@ export function DataImportTab() {
       <NormImportDialog 
         open={normImportOpen} 
         onOpenChange={setNormImportOpen} 
+      />
+
+      {/* Payment Codes Dialogs */}
+      <PaymentCodesImportDialog 
+        open={paymentCodesImportOpen} 
+        onOpenChange={setPaymentCodesImportOpen} 
       />
     </div>
   );
