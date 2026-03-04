@@ -418,7 +418,7 @@ export default function BankStatementEdit() {
                   const formatted = formatNumber(num, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                   setHeaderOpeningBalance(formatted);
                   if (num !== statement.opening_balance) {
-                    update.mutate({ id: statement.id, opening_balance: num, closing_balance: num + totalDebit - totalCredit });
+                    update.mutate({ id: statement.id, opening_balance: num, closing_balance: num + totalCredit - totalDebit });
                   }
                 }}
                 className="h-7 w-full font-mono text-sm mt-1"
@@ -428,27 +428,27 @@ export default function BankStatementEdit() {
             )}
           </div>
           <div>
-            <span className="text-muted-foreground block">Duguje</span>
-            <span className="font-mono font-medium text-green-700 dark:text-green-400">
+            <span className="text-muted-foreground block">Isplata (D)</span>
+            <span className="font-mono font-medium text-red-700 dark:text-red-400">
               {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div>
-            <span className="text-muted-foreground block">Potražuje</span>
-            <span className="font-mono font-medium text-red-700 dark:text-red-400">
+            <span className="text-muted-foreground block">Uplata (P)</span>
+            <span className="font-mono font-medium text-green-700 dark:text-green-400">
               {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div>
-            <span className="text-muted-foreground block">Saldo (D-P)</span>
-            <span className={cn("font-mono font-bold", (totalDebit - totalCredit) >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
-              {formatNumber(totalDebit - totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <span className="text-muted-foreground block">Saldo (P-D)</span>
+            <span className={cn("font-mono font-bold", (totalCredit - totalDebit) >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
+              {formatNumber(totalCredit - totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div>
             <span className="text-muted-foreground block">Novo stanje</span>
             <span className="font-mono font-bold">
-              {formatNumber(statement.opening_balance + totalDebit - totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatNumber(statement.opening_balance + totalCredit - totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div>
@@ -472,8 +472,8 @@ export default function BankStatementEdit() {
                 <TableHead className="w-[180px]">Konto</TableHead>
                 <TableHead className="w-[140px]">Dokument</TableHead>
                 <TableHead className="max-w-[140px]">Opis</TableHead>
-                <TableHead className="w-[130px] text-right">Uplata (D)</TableHead>
-                <TableHead className="w-[130px] text-right">Isplata (P)</TableHead>
+                <TableHead className="w-[130px] text-right">Isplata (D)</TableHead>
+                <TableHead className="w-[130px] text-right">Uplata (P)</TableHead>
                 {isDraft && <TableHead className="w-[80px]" />}
               </TableRow>
             </TableHeader>
