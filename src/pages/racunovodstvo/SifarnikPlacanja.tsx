@@ -52,7 +52,7 @@ export default function SifarnikPlacanja() {
 
   return (
     <MainLayout title="Šifarnik plaćanja">
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4 h-full min-h-0">
         <div className="flex items-center justify-between gap-4">
           <Input
             placeholder="Pretraži..."
