@@ -265,14 +265,6 @@ export default function BankStatementEdit() {
             />
           </TableCell>
           <TableCell>
-            <Input
-              value={editingData.description}
-              onChange={(e) => setEditingData({ ...editingData, description: e.target.value })}
-              className="h-8"
-              autoComplete="off"
-            />
-          </TableCell>
-          <TableCell>
             <LocaleNumberInput
               value={editingData.debit_amount}
               onChange={(val) => setEditingData({ ...editingData, debit_amount: val })}
@@ -325,7 +317,7 @@ export default function BankStatementEdit() {
         <TableCell className="text-sm">{getAccountLabel(item.payment_account_code)}</TableCell>
         <TableCell className="text-sm font-mono">{item.cost_center_code || "-"}</TableCell>
         <TableCell className="text-sm">{item.document_reference || "-"}</TableCell>
-        <TableCell className="text-muted-foreground">{item.description || "-"}</TableCell>
+        
         <TableCell className="text-right font-mono">
           {Number(item.debit_amount) !== 0 ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
         </TableCell>
@@ -488,10 +480,9 @@ export default function BankStatementEdit() {
                   <TableHead className="w-[50px]">R.br.</TableHead>
                   <TableHead className="w-[350px]">Šifra plaćanja</TableHead>
                   <TableHead className="w-[350px]">Partner</TableHead>
-                   <TableHead className="w-[180px]">Konto</TableHead>
+                   <TableHead className="w-[300px]">Konto</TableHead>
                    <TableHead className="w-[100px]">Analitika</TableHead>
                    <TableHead className="w-[140px]">Dokument</TableHead>
-                   <TableHead className="max-w-[140px]">Opis</TableHead>
                   <TableHead className="w-[130px] text-right">Isplata (D)</TableHead>
                   <TableHead className="w-[130px] text-right">Uplata (P)</TableHead>
                   {isDraft && <TableHead className="w-[80px]" />}
@@ -563,15 +554,6 @@ export default function BankStatementEdit() {
                         onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
                         placeholder="Dokument"
                         className="h-8 text-sm"
-                        autoComplete="off"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={newItem.description}
-                        onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                        placeholder="Opis"
-                        className="h-8"
                         autoComplete="off"
                       />
                     </TableCell>
