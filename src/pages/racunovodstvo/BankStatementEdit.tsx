@@ -476,12 +476,12 @@ export default function BankStatementEdit() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[50px]">R.br.</TableHead>
-                <TableHead className="w-[140px]">Šifra plaćanja</TableHead>
+                <TableHead className="w-[280px]">Šifra plaćanja</TableHead>
                 <TableHead>Partner</TableHead>
                 <TableHead className="w-[140px]">Poziv na broj</TableHead>
                 <TableHead className="w-[180px]">Konto</TableHead>
                 <TableHead className="w-[140px]">Dokument</TableHead>
-                <TableHead>Opis</TableHead>
+                <TableHead className="max-w-[140px]">Opis</TableHead>
                 <TableHead className="w-[130px] text-right">Uplata (D)</TableHead>
                 <TableHead className="w-[130px] text-right">Isplata (P)</TableHead>
                 {isDraft && <TableHead className="w-[80px]" />}
