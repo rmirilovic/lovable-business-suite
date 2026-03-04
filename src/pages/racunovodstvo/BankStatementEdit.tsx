@@ -421,6 +421,8 @@ export default function BankStatementEdit() {
                 onChange={(val) => setHeaderOpeningBalance(val)}
                 onBlur={() => {
                   const num = parseLocaleNumber(headerOpeningBalance);
+                  const formatted = formatNumber(num, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                  setHeaderOpeningBalance(formatted);
                   if (num !== statement.opening_balance) {
                     update.mutate({ id: statement.id, opening_balance: num, closing_balance: num + totalDebit - totalCredit });
                   }
