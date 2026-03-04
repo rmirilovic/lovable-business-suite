@@ -454,7 +454,7 @@ const App = () => (
                   <ReprocessingDeliveryNoteEdit />
                 </ProtectedRoute>
               } />
-              <Route path="/racunovodstvo/sifarnik-placanja" element={
+              <Route path="/sifarnici/sifarnik-placanja" element={
                 <ProtectedRoute>
                   <SifarnikPlacanja />
                 </ProtectedRoute>
