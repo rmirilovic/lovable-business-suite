@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { formatNumber } from "@/lib/formatting";
 import { Plus, Trash2 } from "lucide-react";
 
 interface NormItemsEditorProps {
@@ -200,10 +201,6 @@ function NormItemRow({
   onDelete: (id: string) => void;
   readOnly?: boolean;
 }) {
-  const [kgVal, setKgVal] = useState(formatFlexDecimal(item.qty_per_kg));
-  const [mVal, setMVal] = useState(formatFlexDecimal(item.qty_per_m));
-  const [pcVal, setPcVal] = useState(formatFlexDecimal(item.qty_per_pc));
-
   return (
     <TableRow>
       <TableCell className="text-muted-foreground">{index + 1}</TableCell>
@@ -215,9 +212,9 @@ function NormItemRow({
           <span className="text-sm text-right block">{formatFlexDecimal(item.qty_per_kg)}</span>
         ) : (
           <LocaleNumberInput
-            value={kgVal}
-            onChange={setKgVal}
-            onBlur={() => onUpdateQty(item.id, "qty_per_kg", kgVal)}
+            value={formatNumber(item.qty_per_kg, { minimumFractionDigits: 6, useGrouping: false }).replace('.', ',')}
+            onChange={() => {}}
+            onBlur={(e) => onUpdateQty(item.id, "qty_per_kg", (e.target as HTMLInputElement).value)}
             decimalPlaces={6}
             allowEmpty
             className="h-7 text-sm text-right w-full"
@@ -229,9 +226,9 @@ function NormItemRow({
           <span className="text-sm text-right block">{formatFlexDecimal(item.qty_per_m)}</span>
         ) : (
           <LocaleNumberInput
-            value={mVal}
-            onChange={setMVal}
-            onBlur={() => onUpdateQty(item.id, "qty_per_m", mVal)}
+            value={formatNumber(item.qty_per_m, { minimumFractionDigits: 6, useGrouping: false }).replace('.', ',')}
+            onChange={() => {}}
+            onBlur={(e) => onUpdateQty(item.id, "qty_per_m", (e.target as HTMLInputElement).value)}
             decimalPlaces={6}
             allowEmpty
             className="h-7 text-sm text-right w-full"
@@ -243,9 +240,9 @@ function NormItemRow({
           <span className="text-sm text-right block">{formatFlexDecimal(item.qty_per_pc)}</span>
         ) : (
           <LocaleNumberInput
-            value={pcVal}
-            onChange={setPcVal}
-            onBlur={() => onUpdateQty(item.id, "qty_per_pc", pcVal)}
+            value={formatNumber(item.qty_per_pc, { minimumFractionDigits: 6, useGrouping: false }).replace('.', ',')}
+            onChange={() => {}}
+            onBlur={(e) => onUpdateQty(item.id, "qty_per_pc", (e.target as HTMLInputElement).value)}
             decimalPlaces={6}
             allowEmpty
             className="h-7 text-sm text-right w-full"
