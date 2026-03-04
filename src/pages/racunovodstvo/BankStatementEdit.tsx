@@ -232,7 +232,10 @@ export default function BankStatementEdit() {
             <SearchablePartnerSelect
               partners={partners}
               value={editingData.partner_id}
-              onValueChange={(v) => setEditingData({ ...editingData, partner_id: v })}
+              onValueChange={(v) => {
+                const p = partners.find((pp) => pp.id === v);
+                setEditingData({ ...editingData, partner_id: v, cost_center_code: p?.code || editingData.cost_center_code });
+              }}
               placeholder="Partner..."
             />
           </TableCell>
@@ -530,7 +533,10 @@ export default function BankStatementEdit() {
                       <SearchablePartnerSelect
                         partners={partners}
                         value={newItem.partner_id}
-                        onValueChange={(v) => setNewItem({ ...newItem, partner_id: v })}
+                      onValueChange={(v) => {
+                        const p = partners.find((pp) => pp.id === v);
+                        setNewItem({ ...newItem, partner_id: v, cost_center_code: p?.code || newItem.cost_center_code });
+                      }}
                         placeholder="Partner..."
                       />
                     </TableCell>
