@@ -79,6 +79,9 @@ import PopdvEdit from "./pages/racunovodstvo/PopdvEdit";
 import PopdvAnalyticalEdit from "./pages/racunovodstvo/PopdvAnalyticalEdit";
 import PpPdvList from "./pages/racunovodstvo/PpPdvList";
 import PpPdvEdit from "./pages/racunovodstvo/PpPdvEdit";
+import SifarnikPlacanja from "./pages/racunovodstvo/SifarnikPlacanja";
+import Izvodi from "./pages/racunovodstvo/Izvodi";
+import BankStatementEdit from "./pages/racunovodstvo/BankStatementEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -449,6 +452,21 @@ const App = () => (
               <Route path="/proizvodnja/predajnice-prerada/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <ReprocessingDeliveryNoteEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/sifarnik-placanja" element={
+                <ProtectedRoute>
+                  <SifarnikPlacanja />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/izvodi" element={
+                <ProtectedRoute>
+                  <Izvodi />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/izvodi/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <BankStatementEdit />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
