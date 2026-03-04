@@ -429,25 +429,25 @@ export default function BankStatementEdit() {
           </div>
           <div>
             <span className="text-muted-foreground block">Isplata (D)</span>
-            <span className="font-mono font-medium text-red-700 dark:text-red-400">
+            <span className="font-mono font-semibold text-lg" style={{ color: "hsl(0, 80%, 45%)" }}>
               {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div>
             <span className="text-muted-foreground block">Uplata (P)</span>
-            <span className="font-mono font-medium text-green-700 dark:text-green-400">
+            <span className="font-mono font-semibold text-lg" style={{ color: "hsl(140, 70%, 35%)" }}>
               {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div>
             <span className="text-muted-foreground block">Saldo (P-D)</span>
-            <span className={cn("font-mono font-bold", (totalCredit - totalDebit) >= 0 ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400")}>
+            <span className="font-mono font-bold text-lg" style={{ color: (totalCredit - totalDebit) >= 0 ? "hsl(140, 70%, 35%)" : "hsl(0, 80%, 45%)" }}>
               {formatNumber(totalCredit - totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div>
             <span className="text-muted-foreground block">Novo stanje</span>
-            <span className="font-mono font-bold">
+            <span className="font-mono font-bold text-lg">
               {formatNumber(statement.opening_balance + totalCredit - totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
