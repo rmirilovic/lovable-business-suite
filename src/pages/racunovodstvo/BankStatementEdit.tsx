@@ -468,7 +468,7 @@ export default function BankStatementEdit() {
               <TableRow>
                 <TableHead className="w-[50px]">R.br.</TableHead>
                 <TableHead className="w-[350px]">Šifra plaćanja</TableHead>
-                <TableHead className="w-[200px]">Partner</TableHead>
+                <TableHead className="w-[350px]">Partner</TableHead>
                 <TableHead className="w-[180px]">Konto</TableHead>
                 <TableHead className="w-[140px]">Dokument</TableHead>
                 <TableHead className="max-w-[140px]">Opis</TableHead>
