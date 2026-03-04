@@ -110,17 +110,27 @@ export function useBankStatementMutations() {
     mutationFn: async (data: { statement_date: string; bank_account_id: string; description?: string; opening_balance?: number }) => {
       if (!selectedCompany?.id || !selectedYear?.id || !user?.id) throw new Error("Nedostaju podaci");
 
-      const { data: nextNum } = await supabase.rpc("get_next_bank_statement_number", {
-        _company_id: selectedCompany.id,
-        _year_id: selectedYear.id,
-      });
+      // Fetch the bank account code for the number format
+      const { data: ba, error: baErr } = await supabase
+        .from("bank_accounts")
+        .select("code")
+        .eq("id", data.bank_account_id)
+        .single();
+      if (baErr) throw baErr;
+
+      // Build statement number as YYMMDD.BankCode
+      const d = new Date(data.statement_date);
+      const yy = String(d.getFullYear()).slice(-2);
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const statementNumber = `${yy}${mm}${dd}.${ba.code}`;
 
       const { data: result, error } = await supabase
         .from("bank_statements")
         .insert({
           company_id: selectedCompany.id,
           business_year_id: selectedYear.id,
-          statement_number: nextNum || "I-000001",
+          statement_number: statementNumber,
           created_by: user.id,
           ...data,
         })
