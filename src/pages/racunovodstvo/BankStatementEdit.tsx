@@ -452,6 +452,12 @@ export default function BankStatementEdit() {
             <span className="text-muted-foreground">Datum:</span>{" "}
             <span className="font-medium">{format(new Date(statement.statement_date), "dd.MM.yyyy.")}</span>
           </div>
+          <div className="col-span-2">
+            <span className="text-muted-foreground">Tekući račun:</span>{" "}
+            <span className="font-medium">
+              {statement.bank_accounts?.account_number} - {statement.bank_accounts?.bank_name}
+            </span>
+          </div>
           <div>
             <span className="text-muted-foreground">R.br. izvoda banke:</span>{" "}
             {isDraft ? (
@@ -470,12 +476,6 @@ export default function BankStatementEdit() {
             ) : (
               <span className="font-mono font-medium">{statement.bank_serial_number || "—"}</span>
             )}
-          </div>
-          <div className="col-span-2">
-            <span className="text-muted-foreground">Tekući račun:</span>{" "}
-            <span className="font-medium">
-              {statement.bank_accounts?.account_number} - {statement.bank_accounts?.bank_name}
-            </span>
           </div>
         </div>
 
