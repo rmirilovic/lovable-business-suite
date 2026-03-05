@@ -32,9 +32,9 @@ import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-sele
 import { toast } from "sonner";
 
 const STATUS_LABELS: Record<string, string> = { draft: "Nacrt", posted: "Proknjižen" };
-const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  posted: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
+  draft: "secondary",
+  posted: "default",
 };
 
 interface EditingItemState {
@@ -374,18 +374,21 @@ export default function BankStatementEdit() {
   };
 
   return (
-    <MainLayout title={`Izvod ${statement.statement_number}`}>
+    <MainLayout title="Izvod">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => navigate("/racunovodstvo/izvodi")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Nazad
-          </Button>
-          <div className="flex items-center gap-2">
-            <Badge className={cn("text-xs", STATUS_COLORS[statement.status] || "")}>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={() => navigate("/racunovodstvo/izvodi")}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Nazad
+            </Button>
+            <h1 className="text-xl font-semibold">{statement.statement_number}</h1>
+            <Badge variant={STATUS_VARIANTS[statement.status]}>
               {STATUS_LABELS[statement.status] || statement.status}
             </Badge>
+          </div>
+          <div className="flex items-center gap-2">
             {isDraft && items.length > 0 && (
               <Button onClick={handlePost} disabled={post.isPending}>
                 <BookCheck className="w-4 h-4 mr-2" />
