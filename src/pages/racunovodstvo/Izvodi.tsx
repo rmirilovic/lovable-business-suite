@@ -142,14 +142,14 @@ export default function Izvodi() {
                 <TableHead className="w-[130px]">
                   <SortableHeader column="statement_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead className="w-[80px]">
-                  <SortableHeader column="bank_serial_number" label="R.br." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
                 <TableHead className="w-[110px]">
                   <SortableHeader column="statement_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
                 <TableHead>
                   <SortableHeader column="bank_account" label="Tekući račun" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[80px]">
+                  <SortableHeader column="bank_serial_number" label="R.br." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
                 <TableHead className="w-[130px] text-right">
                   <SortableHeader column="total_debit" label="Duguje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
@@ -185,9 +185,9 @@ export default function Izvodi() {
                       />
                       {s.statement_number}
                     </TableCell>
-                    <TableCell className="font-mono">{s.bank_serial_number || "-"}</TableCell>
                     <TableCell>{formatDate(s.statement_date)}</TableCell>
                     <TableCell>{s.bank_accounts?.account_number} - {s.bank_accounts?.bank_name}</TableCell>
+                    <TableCell className="font-mono">{s.bank_serial_number || "-"}</TableCell>
                     <TableCell className="text-right font-mono">
                       {formatNumber(s.total_debit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
