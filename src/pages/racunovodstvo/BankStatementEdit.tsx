@@ -59,11 +59,11 @@ const TOGGLEABLE_COLUMNS = [
 type ColumnKey = typeof TOGGLEABLE_COLUMNS[number]["key"];
 
 const ALL_COLUMN_KEYS: ColumnKey[] = TOGGLEABLE_COLUMNS.map(c => c.key);
-const SESSION_KEY = "bank_statement_visible_columns";
+const STORAGE_KEY = "bank_statement_visible_columns";
 
 const loadVisibleColumns = (): Set<ColumnKey> => {
   try {
-    const stored = sessionStorage.getItem(SESSION_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const arr = JSON.parse(stored) as ColumnKey[];
       return new Set(arr);
@@ -138,7 +138,7 @@ export default function BankStatementEdit() {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify([...next]));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...next]));
       return next;
     });
   };
