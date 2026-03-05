@@ -11,7 +11,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X, RefreshCw, History, Eye, FileDown, FileSpreadsheet, Printer } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X, RefreshCw, History, Eye, FileDown, FileSpreadsheet, Printer, Columns3 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   useBankStatement,
@@ -40,6 +44,34 @@ const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> =
   draft: "secondary",
   posted: "default",
 };
+
+const TOGGLEABLE_COLUMNS = [
+  { key: "payment_code", label: "Šifra plaćanja", width: 300 },
+  { key: "partner", label: "Partner", width: 120 },
+  { key: "partner_account", label: "TR partnera", width: 180 },
+  { key: "account", label: "Konto", width: 120 },
+  { key: "analytics", label: "Analitika", width: 100 },
+  { key: "document", label: "Dokument", width: 140 },
+  { key: "reference", label: "Poziv na broj", width: 150 },
+  { key: "note", label: "Napomena", width: 150 },
+] as const;
+
+type ColumnKey = typeof TOGGLEABLE_COLUMNS[number]["key"];
+
+const ALL_COLUMN_KEYS: ColumnKey[] = TOGGLEABLE_COLUMNS.map(c => c.key);
+const SESSION_KEY = "bank_statement_visible_columns";
+
+const loadVisibleColumns = (): Set<ColumnKey> => {
+  try {
+    const stored = sessionStorage.getItem(SESSION_KEY);
+    if (stored) {
+      const arr = JSON.parse(stored) as ColumnKey[];
+      return new Set(arr);
+    }
+  } catch {}
+  return new Set(ALL_COLUMN_KEYS);
+};
+
 
 interface EditingItemState {
   payment_code_id: string;
@@ -98,6 +130,21 @@ export default function BankStatementEdit() {
     cost_center_code: "",
     partner_account_number: "",
   });
+
+  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnKey>>(loadVisibleColumns);
+
+  const toggleColumn = (key: ColumnKey) => {
+    setVisibleColumns(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  const isColVisible = (key: ColumnKey) => visibleColumns.has(key);
+
 
   if (isLoading || !statement) {
     return (
@@ -228,6 +275,30 @@ export default function BankStatementEdit() {
     setUnpostDialogOpen(false);
   };
 
+  const visibleToggleableCols = TOGGLEABLE_COLUMNS.filter(c => isColVisible(c.key));
+  const calcMinWidth = () => {
+    const fixed = 50 + 120 + 120 + (isDraft ? 80 : 0); // R.br. + Isplata + Uplata + Akcije
+    const toggled = visibleToggleableCols.reduce((s, c) => s + c.width, 0);
+    return fixed + toggled;
+  };
+
+  const renderColgroup = () => (
+    <colgroup>
+      <col style={{ width: 50 }} />
+      {isColVisible("payment_code") && <col style={{ width: 300 }} />}
+      {isColVisible("partner") && <col style={{ width: 120 }} />}
+      {isColVisible("partner_account") && <col style={{ width: 180 }} />}
+      {isColVisible("account") && <col style={{ width: 120 }} />}
+      {isColVisible("analytics") && <col style={{ width: 100 }} />}
+      {isColVisible("document") && <col style={{ width: 140 }} />}
+      {isColVisible("reference") && <col style={{ width: 150 }} />}
+      {isColVisible("note") && <col style={{ width: 150 }} />}
+      <col style={{ width: 120 }} />
+      <col style={{ width: 120 }} />
+      {isDraft && <col style={{ width: 80 }} />}
+    </colgroup>
+  );
+
   const renderItemRow = (item: BankStatementItem, idx: number) => {
     const isEditing = editingId === item.id && editingData;
 
@@ -235,92 +306,108 @@ export default function BankStatementEdit() {
       return (
         <TableRow key={item.id} className="bg-muted/30">
           <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-          <TableCell>
-            <select
-              value={editingData.payment_code_id}
-              onChange={(e) => setEditingData({ ...editingData, payment_code_id: e.target.value })}
-              className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm truncate"
-            >
-              <option value="">Izaberite...</option>
-              {activePaymentCodes.map((pc) => (
-                <option key={pc.id} value={pc.id}>
-                  {pc.code} - {pc.name}
-                </option>
-              ))}
-            </select>
-          </TableCell>
-          <TableCell>
-            <SearchablePartnerSelect
-              partners={partners}
-              value={editingData.partner_id}
-              onValueChange={(v) => {
-                const p = partners.find((pp) => pp.id === v);
-                setEditingData({ ...editingData, partner_id: v, cost_center_code: p?.code || editingData.cost_center_code });
-              }}
-              placeholder="Partner..."
-            />
-          </TableCell>
-          <TableCell>
-            <Input
-              value={editingData.partner_account_number}
-              onChange={(e) => setEditingData({ ...editingData, partner_account_number: e.target.value })}
-              className="h-8 text-sm font-mono"
-              placeholder="TR partnera"
-              autoComplete="off"
-            />
-          </TableCell>
-          <TableCell>
-            {(() => {
-              const pc = activePaymentCodes.find(p => p.id === editingData.payment_code_id);
-              const code = pc?.account_code;
-              const name = getAccountName(code);
-              return code ? (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="text-xs text-muted-foreground font-mono cursor-default">{code}</span>
-                    </TooltipTrigger>
-                    {name && <TooltipContent side="top"><p>{name}</p></TooltipContent>}
-                  </Tooltip>
-                </TooltipProvider>
-              ) : "-";
-            })()}
-          </TableCell>
-          <TableCell>
-            <Input
-              value={editingData.cost_center_code}
-              onChange={(e) => setEditingData({ ...editingData, cost_center_code: e.target.value })}
-              className="h-8 text-sm font-mono"
-              placeholder="Analitika"
-              autoComplete="off"
-            />
-          </TableCell>
-          <TableCell>
-            <Input
-              value={editingData.document_reference}
-              onChange={(e) => setEditingData({ ...editingData, document_reference: e.target.value })}
-              className="h-8 text-sm"
-              autoComplete="off"
-            />
-          </TableCell>
-          <TableCell>
-            <Input
-              value={editingData.reference_number}
-              onChange={(e) => setEditingData({ ...editingData, reference_number: e.target.value })}
-              className="h-8 text-sm"
-              placeholder="Poziv na broj"
-              autoComplete="off"
-            />
-          </TableCell>
-          <TableCell>
-            <Input
-              value={editingData.description}
-              onChange={(e) => setEditingData({ ...editingData, description: e.target.value })}
-              className="h-8 text-sm"
-              placeholder="Napomena"
-              autoComplete="off"
-            />
-          </TableCell>
+          {isColVisible("payment_code") && (
+            <TableCell>
+              <select
+                value={editingData.payment_code_id}
+                onChange={(e) => setEditingData({ ...editingData, payment_code_id: e.target.value })}
+                className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm truncate"
+              >
+                <option value="">Izaberite...</option>
+                {activePaymentCodes.map((pc) => (
+                  <option key={pc.id} value={pc.id}>
+                    {pc.code} - {pc.name}
+                  </option>
+                ))}
+              </select>
+            </TableCell>
+          )}
+          {isColVisible("partner") && (
+            <TableCell>
+              <SearchablePartnerSelect
+                partners={partners}
+                value={editingData.partner_id}
+                onValueChange={(v) => {
+                  const p = partners.find((pp) => pp.id === v);
+                  setEditingData({ ...editingData, partner_id: v, cost_center_code: p?.code || editingData.cost_center_code });
+                }}
+                placeholder="Partner..."
+              />
+            </TableCell>
+          )}
+          {isColVisible("partner_account") && (
+            <TableCell>
+              <Input
+                value={editingData.partner_account_number}
+                onChange={(e) => setEditingData({ ...editingData, partner_account_number: e.target.value })}
+                className="h-8 text-sm font-mono"
+                placeholder="TR partnera"
+                autoComplete="off"
+              />
+            </TableCell>
+          )}
+          {isColVisible("account") && (
+            <TableCell>
+              {(() => {
+                const pc = activePaymentCodes.find(p => p.id === editingData.payment_code_id);
+                const code = pc?.account_code;
+                const name = getAccountName(code);
+                return code ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="text-xs text-muted-foreground font-mono cursor-default">{code}</span>
+                      </TooltipTrigger>
+                      {name && <TooltipContent side="top"><p>{name}</p></TooltipContent>}
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : "-";
+              })()}
+            </TableCell>
+          )}
+          {isColVisible("analytics") && (
+            <TableCell>
+              <Input
+                value={editingData.cost_center_code}
+                onChange={(e) => setEditingData({ ...editingData, cost_center_code: e.target.value })}
+                className="h-8 text-sm font-mono"
+                placeholder="Analitika"
+                autoComplete="off"
+              />
+            </TableCell>
+          )}
+          {isColVisible("document") && (
+            <TableCell>
+              <Input
+                value={editingData.document_reference}
+                onChange={(e) => setEditingData({ ...editingData, document_reference: e.target.value })}
+                className="h-8 text-sm"
+                autoComplete="off"
+              />
+            </TableCell>
+          )}
+          {isColVisible("reference") && (
+            <TableCell>
+              <Input
+                value={editingData.reference_number}
+                onChange={(e) => setEditingData({ ...editingData, reference_number: e.target.value })}
+                className="h-8 text-sm"
+                placeholder="Poziv na broj"
+                autoComplete="off"
+              />
+            </TableCell>
+          )}
+          {isColVisible("note") && (
+            <TableCell>
+              <Input
+                value={editingData.description}
+                onChange={(e) => setEditingData({ ...editingData, description: e.target.value })}
+                className="h-8 text-sm"
+                placeholder="Napomena"
+                autoComplete="off"
+              />
+            </TableCell>
+          )}
           <TableCell>
             <LocaleNumberInput
               value={editingData.debit_amount}
@@ -367,42 +454,58 @@ export default function BankStatementEdit() {
         onDoubleClick={() => isDraft && startEdit(item)}
       >
         <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-        <TableCell className="font-mono">
-          {item.payment_code ? `${item.payment_code} - ${item.payment_name}` : "-"}
-        </TableCell>
-        <TableCell>
-          {item.partner_code ? (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="font-mono cursor-default">{item.partner_code}</span>
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  <p>{item.partner_name}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : "-"}
-        </TableCell>
-        <TableCell className="text-sm font-mono">{item.partner_account_number || "-"}</TableCell>
-        <TableCell className="text-sm">
-          {item.payment_account_code ? (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="font-mono cursor-default">{item.payment_account_code}</span>
-                </TooltipTrigger>
-                {getAccountName(item.payment_account_code) && (
-                  <TooltipContent side="top"><p>{getAccountName(item.payment_account_code)}</p></TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-          ) : "-"}
-        </TableCell>
-        <TableCell className="text-sm font-mono">{item.cost_center_code || "-"}</TableCell>
-        <TableCell className="text-sm">{item.document_reference || "-"}</TableCell>
-        <TableCell className="text-sm">{item.reference_number || "-"}</TableCell>
-        <TableCell className="text-sm">{item.description || "-"}</TableCell>
+        {isColVisible("payment_code") && (
+          <TableCell className="font-mono">
+            {item.payment_code ? `${item.payment_code} - ${item.payment_name}` : "-"}
+          </TableCell>
+        )}
+        {isColVisible("partner") && (
+          <TableCell>
+            {item.partner_code ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="font-mono cursor-default">{item.partner_code}</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p>{item.partner_name}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : "-"}
+          </TableCell>
+        )}
+        {isColVisible("partner_account") && (
+          <TableCell className="text-sm font-mono">{item.partner_account_number || "-"}</TableCell>
+        )}
+        {isColVisible("account") && (
+          <TableCell className="text-sm">
+            {item.payment_account_code ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="font-mono cursor-default">{item.payment_account_code}</span>
+                  </TooltipTrigger>
+                  {getAccountName(item.payment_account_code) && (
+                    <TooltipContent side="top"><p>{getAccountName(item.payment_account_code)}</p></TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            ) : "-"}
+          </TableCell>
+        )}
+        {isColVisible("analytics") && (
+          <TableCell className="text-sm font-mono">{item.cost_center_code || "-"}</TableCell>
+        )}
+        {isColVisible("document") && (
+          <TableCell className="text-sm">{item.document_reference || "-"}</TableCell>
+        )}
+        {isColVisible("reference") && (
+          <TableCell className="text-sm">{item.reference_number || "-"}</TableCell>
+        )}
+        {isColVisible("note") && (
+          <TableCell className="text-sm">{item.description || "-"}</TableCell>
+        )}
         
         <TableCell className="text-right font-mono">
           {Number(item.debit_amount) !== 0 ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
@@ -593,40 +696,53 @@ export default function BankStatementEdit() {
           </div>
         </div>
 
-        {isDraft && (
-          <p className="text-xs text-muted-foreground">Dupli klik na red za izmenu stavke</p>
-        )}
+        <div className="flex items-center gap-2">
+          {isDraft && (
+            <p className="text-xs text-muted-foreground">Dupli klik na red za izmenu stavke</p>
+          )}
+          <div className="ml-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Columns3 className="w-4 h-4 mr-2" />
+                  Kolone
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="p-2 space-y-1 w-52">
+                {TOGGLEABLE_COLUMNS.map(col => (
+                  <label
+                    key={col.key}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer text-sm"
+                  >
+                    <Checkbox
+                      checked={isColVisible(col.key)}
+                      onCheckedChange={() => toggleColumn(col.key)}
+                    />
+                    {col.label}
+                  </label>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
 
         {/* Items table */}
         <div className="border rounded-md overflow-x-auto" style={{ maxHeight: "calc(100vh - 380px)" }}>
-          <div style={{ minWidth: isDraft ? 1630 : 1550 }}>
+          <div style={{ minWidth: calcMinWidth() }}>
             <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 380px - 90px)" }}>
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: 50 }} />
-                  <col style={{ width: 300 }} />
-                  <col style={{ width: 120 }} />
-                  <col style={{ width: 180 }} />
-                  <col style={{ width: 120 }} />
-                  <col style={{ width: 100 }} />
-                  <col style={{ width: 140 }} />
-                  <col style={{ width: 150 }} />
-                  <col style={{ width: 150 }} />
-                  <col style={{ width: 120 }} />
-                  <col style={{ width: 120 }} />
-                  {isDraft && <col style={{ width: 80 }} />}
-                </colgroup>
+                {renderColgroup()}
                 <TableHeader className="sticky top-0 z-10 bg-background">
                    <TableRow>
                      <TableHead>R.br.</TableHead>
-                     <TableHead>Šifra plaćanja</TableHead>
-                     <TableHead>Partner</TableHead>
-                     <TableHead>TR partnera</TableHead>
-                     <TableHead>Konto</TableHead>
-                     <TableHead>Analitika</TableHead>
-                     <TableHead>Dokument</TableHead>
-                     <TableHead>Poziv na broj</TableHead>
-                     <TableHead>Napomena</TableHead>
+                     {isColVisible("payment_code") && <TableHead>Šifra plaćanja</TableHead>}
+                     {isColVisible("partner") && <TableHead>Partner</TableHead>}
+                     {isColVisible("partner_account") && <TableHead>TR partnera</TableHead>}
+                     {isColVisible("account") && <TableHead>Konto</TableHead>}
+                     {isColVisible("analytics") && <TableHead>Analitika</TableHead>}
+                     {isColVisible("document") && <TableHead>Dokument</TableHead>}
+                     {isColVisible("reference") && <TableHead>Poziv na broj</TableHead>}
+                     {isColVisible("note") && <TableHead>Napomena</TableHead>}
                      <TableHead className="text-right">Isplata (D)</TableHead>
                      <TableHead className="text-right">Uplata (P)</TableHead>
                      {isDraft && <TableHead />}
@@ -635,7 +751,7 @@ export default function BankStatementEdit() {
                 <TableBody>
                   {items.length === 0 && !isDraft ? (
                     <TableRow>
-                      <TableCell colSpan={isDraft ? 12 : 11} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
+                      <TableCell colSpan={visibleToggleableCols.length + 3 + (isDraft ? 1 : 0)} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
                     </TableRow>
                   ) : (
                     items.map((item, idx) => renderItemRow(item, idx))
@@ -647,173 +763,163 @@ export default function BankStatementEdit() {
             {isDraft && (
               <div className="border-t">
                 <Table className="table-fixed">
-                  <colgroup>
-                    <col style={{ width: 50 }} />
-                    <col style={{ width: 300 }} />
-                    <col style={{ width: 120 }} />
-                    <col style={{ width: 180 }} />
-                    <col style={{ width: 120 }} />
-                    <col style={{ width: 100 }} />
-                    <col style={{ width: 140 }} />
-                    <col style={{ width: 150 }} />
-                    <col style={{ width: 150 }} />
-                    <col style={{ width: 120 }} />
-                    <col style={{ width: 120 }} />
-                    <col style={{ width: 80 }} />
-                  </colgroup>
+                  {renderColgroup()}
                   <TableBody>
                     <TableRow className="bg-muted/50">
                       <TableCell className="text-muted-foreground">{items.length + 1}</TableCell>
+                      {isColVisible("payment_code") && (
+                        <TableCell>
+                          <select
+                            value={newItem.payment_code_id}
+                            onChange={(e) => setNewItem({ ...newItem, payment_code_id: e.target.value })}
+                            className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm truncate"
+                          >
+                            <option value="">Izaberite...</option>
+                            {activePaymentCodes.map((pc) => (
+                              <option key={pc.id} value={pc.id}>
+                                {pc.code} - {pc.name}
+                              </option>
+                            ))}
+                          </select>
+                        </TableCell>
+                      )}
+                      {isColVisible("partner") && (
+                        <TableCell>
+                          <SearchablePartnerSelect
+                            partners={partners}
+                            value={newItem.partner_id}
+                            onValueChange={(v) => {
+                              const p = partners.find((pp) => pp.id === v);
+                              setNewItem({ ...newItem, partner_id: v, cost_center_code: p?.code || newItem.cost_center_code });
+                            }}
+                            placeholder="Partner..."
+                          />
+                        </TableCell>
+                      )}
+                      {isColVisible("partner_account") && (
+                        <TableCell>
+                          <Input
+                            value={newItem.partner_account_number}
+                            onChange={(e) => setNewItem({ ...newItem, partner_account_number: e.target.value })}
+                            placeholder="TR partnera"
+                            className="h-8 text-sm font-mono"
+                            autoComplete="off"
+                          />
+                        </TableCell>
+                      )}
+                      {isColVisible("account") && (
+                        <TableCell>
+                          {(() => {
+                            const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
+                            const code = pc?.account_code;
+                            const name = getAccountName(code);
+                            return code ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="text-xs text-muted-foreground font-mono cursor-default">{code}</span>
+                                  </TooltipTrigger>
+                                  {name && <TooltipContent side="top"><p>{name}</p></TooltipContent>}
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : "-";
+                          })()}
+                        </TableCell>
+                      )}
+                      {isColVisible("analytics") && (
+                        <TableCell>
+                          <Input
+                            value={newItem.cost_center_code}
+                            onChange={(e) => setNewItem({ ...newItem, cost_center_code: e.target.value })}
+                            placeholder="Analitika"
+                            className="h-8 text-sm font-mono"
+                            autoComplete="off"
+                          />
+                        </TableCell>
+                      )}
+                      {isColVisible("document") && (
+                        <TableCell>
+                          <Input
+                            value={newItem.document_reference}
+                            onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
+                            placeholder="Dokument"
+                            className="h-8 text-sm"
+                            autoComplete="off"
+                          />
+                        </TableCell>
+                      )}
+                      {isColVisible("reference") && (
+                        <TableCell>
+                          <Input
+                            value={newItem.reference_number}
+                            onChange={(e) => setNewItem({ ...newItem, reference_number: e.target.value })}
+                            placeholder="Poziv na broj"
+                            className="h-8 text-sm"
+                            autoComplete="off"
+                          />
+                        </TableCell>
+                      )}
+                      {isColVisible("note") && (
+                        <TableCell>
+                          <Input
+                            value={newItem.description}
+                            onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                            placeholder="Napomena"
+                            className="h-8 text-sm"
+                            autoComplete="off"
+                          />
+                        </TableCell>
+                      )}
                       <TableCell>
-                        <select
-                          value={newItem.payment_code_id}
-                          onChange={(e) => setNewItem({ ...newItem, payment_code_id: e.target.value })}
-                          className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm truncate"
+                        <LocaleNumberInput
+                          value={newItem.debit_amount}
+                          onChange={(val) => setNewItem(prev => {
+                            const num = parseLocaleNumber(val);
+                            return { ...prev, debit_amount: val, ...(num > 0 ? { credit_amount: "0,00" } : {}) };
+                          })}
+                          className="h-8 text-right font-mono"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <LocaleNumberInput
+                          value={newItem.credit_amount}
+                          onChange={(val) => setNewItem(prev => {
+                            const num = parseLocaleNumber(val);
+                            return { ...prev, credit_amount: val, ...(num > 0 ? { debit_amount: "0,00" } : {}) };
+                          })}
+                          className="h-8 text-right font-mono"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleAddItem}
+                          disabled={addItem.isPending}
                         >
-                          <option value="">Izaberite...</option>
-                          {activePaymentCodes.map((pc) => (
-                            <option key={pc.id} value={pc.id}>
-                              {pc.code} - {pc.name}
-                            </option>
-                          ))}
-                        </select>
+                          <Plus className="w-4 h-4" />
+                        </Button>
                       </TableCell>
-                       <TableCell>
-                        <SearchablePartnerSelect
-                          partners={partners}
-                          value={newItem.partner_id}
-                        onValueChange={(v) => {
-                          const p = partners.find((pp) => pp.id === v);
-                          setNewItem({ ...newItem, partner_id: v, cost_center_code: p?.code || newItem.cost_center_code });
-                        }}
-                          placeholder="Partner..."
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={newItem.partner_account_number}
-                          onChange={(e) => setNewItem({ ...newItem, partner_account_number: e.target.value })}
-                          placeholder="TR partnera"
-                          className="h-8 text-sm font-mono"
-                          autoComplete="off"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {(() => {
-                          const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
-                          const code = pc?.account_code;
-                          const name = getAccountName(code);
-                          return code ? (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="text-xs text-muted-foreground font-mono cursor-default">{code}</span>
-                                </TooltipTrigger>
-                                {name && <TooltipContent side="top"><p>{name}</p></TooltipContent>}
-                              </Tooltip>
-                            </TooltipProvider>
-                          ) : "-";
-                        })()}
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          value={newItem.cost_center_code}
-                          onChange={(e) => setNewItem({ ...newItem, cost_center_code: e.target.value })}
-                          placeholder="Analitika"
-                          className="h-8 text-sm font-mono"
-                          autoComplete="off"
-                        />
-                      </TableCell>
-                      <TableCell>
-                         <Input
-                           value={newItem.document_reference}
-                           onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
-                           placeholder="Dokument"
-                           className="h-8 text-sm"
-                           autoComplete="off"
-                         />
-                       </TableCell>
-                       <TableCell>
-                         <Input
-                           value={newItem.reference_number}
-                           onChange={(e) => setNewItem({ ...newItem, reference_number: e.target.value })}
-                           placeholder="Poziv na broj"
-                           className="h-8 text-sm"
-                           autoComplete="off"
-                         />
-                       </TableCell>
-                       <TableCell>
-                         <Input
-                           value={newItem.description}
-                           onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                           placeholder="Napomena"
-                           className="h-8 text-sm"
-                           autoComplete="off"
-                         />
-                       </TableCell>
-                       <TableCell>
-                         <LocaleNumberInput
-                           value={newItem.debit_amount}
-                           onChange={(val) => setNewItem(prev => {
-                             const num = parseLocaleNumber(val);
-                             return { ...prev, debit_amount: val, ...(num > 0 ? { credit_amount: "0,00" } : {}) };
-                           })}
-                           className="h-8 text-right font-mono"
-                         />
-                       </TableCell>
-                       <TableCell>
-                         <LocaleNumberInput
-                           value={newItem.credit_amount}
-                           onChange={(val) => setNewItem(prev => {
-                             const num = parseLocaleNumber(val);
-                             return { ...prev, credit_amount: val, ...(num > 0 ? { debit_amount: "0,00" } : {}) };
-                           })}
-                           className="h-8 text-right font-mono"
-                         />
-                       </TableCell>
-                       <TableCell>
-                         <Button
-                           variant="ghost"
-                           size="icon"
-                           onClick={handleAddItem}
-                           disabled={addItem.isPending}
-                         >
-                           <Plus className="w-4 h-4" />
-                         </Button>
-                       </TableCell>
-                     </TableRow>
-                   </TableBody>
-                 </Table>
-               </div>
-             )}
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            )}
             {/* Footer totals */}
             <div className="border-t">
               <Table className="table-fixed">
-                <colgroup>
-                  <col style={{ width: 50 }} />
-                  <col style={{ width: 300 }} />
-                  <col style={{ width: 120 }} />
-                  <col style={{ width: 180 }} />
-                  <col style={{ width: 120 }} />
-                  <col style={{ width: 100 }} />
-                  <col style={{ width: 140 }} />
-                  <col style={{ width: 150 }} />
-                  <col style={{ width: 150 }} />
-                  <col style={{ width: 120 }} />
-                  <col style={{ width: 120 }} />
-                  {isDraft && <col style={{ width: 80 }} />}
-                </colgroup>
-                 <TableFooter>
-                   <TableRow>
-                     <TableCell colSpan={9} className="text-right font-medium">Ukupno:</TableCell>
-                     <TableCell className="text-right font-mono font-bold">
-                       {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                     </TableCell>
-                     <TableCell className="text-right font-mono font-bold">
-                       {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                     </TableCell>
-                     {isDraft && <TableCell />}
-                   </TableRow>
+                {renderColgroup()}
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={visibleToggleableCols.length + 1} className="text-right font-medium">Ukupno:</TableCell>
+                    <TableCell className="text-right font-mono font-bold">
+                      {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold">
+                      {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </TableCell>
+                    {isDraft && <TableCell />}
+                  </TableRow>
                 </TableFooter>
               </Table>
             </div>
