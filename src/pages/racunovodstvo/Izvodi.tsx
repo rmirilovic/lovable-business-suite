@@ -20,13 +20,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { formatNumber } from "@/lib/formatting";
-import { cn } from "@/lib/utils";
+
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 
 const STATUS_LABELS: Record<string, string> = { draft: "Nacrt", posted: "Proknjižen" };
-const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  posted: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
+  draft: "secondary",
+  posted: "default",
 };
 
 export default function Izvodi() {
@@ -111,7 +111,7 @@ export default function Izvodi() {
                       {formatNumber(s.total_credit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
-                      <Badge className={cn("text-xs", STATUS_COLORS[s.status] || "")}>
+                      <Badge variant={STATUS_VARIANTS[s.status]}>
                         {STATUS_LABELS[s.status] || s.status}
                       </Badge>
                     </TableCell>
