@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@/components/ui/table";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X } from "lucide-react";
 import {
   useBankStatement,
@@ -64,6 +68,7 @@ export default function BankStatementEdit() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<EditingItemState | null>(null);
+  const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [headerSerial, setHeaderSerial] = useState(statement?.bank_serial_number || "");
   const [headerOpeningBalance, setHeaderOpeningBalance] = useState(
     statement ? formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00"
@@ -207,9 +212,8 @@ export default function BankStatementEdit() {
 
   const handleUnpost = async () => {
     if (!id) return;
-    if (confirm("Poništiti knjiženje izvoda?")) {
-      await unpost.mutateAsync(id);
-    }
+    await unpost.mutateAsync(id);
+    setUnpostDialogOpen(false);
   };
 
   const renderItemRow = (item: BankStatementItem, idx: number) => {
@@ -389,9 +393,9 @@ export default function BankStatementEdit() {
               </Button>
             )}
             {statement.status === "posted" && (
-              <Button variant="outline" onClick={handleUnpost} disabled={unpost.isPending}>
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
                 <Undo2 className="w-4 h-4 mr-2" />
-                Poništi
+                Poništi knjiženje
               </Button>
             )}
           </div>
@@ -636,6 +640,29 @@ export default function BankStatementEdit() {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={unpostDialogOpen} onOpenChange={setUnpostDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Poništavanje knjiženja</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da poništite knjiženje izvoda{" "}
+              <strong>{statement.statement_number}</strong>?
+              <br /><br />
+              Povezani nalog za knjiženje će biti obrisan iz Glavne knjige.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleUnpost}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Poništi knjiženje
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MainLayout>
   );
 }
