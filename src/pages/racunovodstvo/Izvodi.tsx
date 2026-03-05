@@ -47,7 +47,7 @@ const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> =
 
 export default function Izvodi() {
   const navigate = useNavigate();
-  const { selectedCompany } = useAuth();
+  const { selectedCompany, selectedYear } = useAuth();
   const { data: statements = [], isLoading } = useBankStatements();
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
   const { create, remove } = useBankStatementMutations();
@@ -57,6 +57,7 @@ export default function Izvodi() {
   const openingBalanceWasAutofilledRef = useRef(false);
   const previousBalanceLookupRef = useRef(0);
   const previousBalanceDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [duplicateSerialWarning, setDuplicateSerialWarning] = useState("");
   const [filter, setFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -72,10 +73,14 @@ export default function Izvodi() {
   }, []);
 
   const fetchPreviousBalance = useCallback(async (serialNumberRaw: string, bankAccountId: string) => {
-    if (!bankAccountId || !selectedCompany?.id) return;
+    if (!bankAccountId || !selectedCompany?.id || !selectedYear?.id) {
+      setDuplicateSerialWarning("");
+      return;
+    }
 
     const serialNumber = serialNumberRaw.trim();
-    if (!/^\d+$/.test(serialNumber) || Number(serialNumber) <= 1) {
+    if (!/^\d+$/.test(serialNumber)) {
+      setDuplicateSerialWarning("");
       if (openingBalanceWasAutofilledRef.current) {
         openingBalanceWasAutofilledRef.current = false;
         setNewData((prev) => (prev.opening_balance === "0,00" ? prev : { ...prev, opening_balance: "0,00" }));
@@ -84,9 +89,38 @@ export default function Izvodi() {
       return;
     }
 
-    const prevSerial = String(Number(serialNumber) - 1);
     const lookupId = ++previousBalanceLookupRef.current;
 
+    // Check for duplicate serial number in same business year + bank account
+    const { data: existing } = await supabase
+      .from("bank_statements")
+      .select("id")
+      .eq("company_id", selectedCompany.id)
+      .eq("business_year_id", selectedYear.id)
+      .eq("bank_account_id", bankAccountId)
+      .eq("bank_serial_number", serialNumber)
+      .maybeSingle();
+
+    if (lookupId !== previousBalanceLookupRef.current) return;
+
+    if (existing) {
+      setDuplicateSerialWarning(`Izvod sa R.br. ${serialNumber} već postoji za ovaj tekući račun u tekućoj poslovnoj godini.`);
+    } else {
+      setDuplicateSerialWarning("");
+    }
+
+    // Fetch previous balance
+    const serial = Number(serialNumber);
+    if (serial <= 1) {
+      if (openingBalanceWasAutofilledRef.current) {
+        openingBalanceWasAutofilledRef.current = false;
+        setNewData((prev) => (prev.opening_balance === "0,00" ? prev : { ...prev, opening_balance: "0,00" }));
+        setOpeningBalanceInputVersion((v) => v + 1);
+      }
+      return;
+    }
+
+    const prevSerial = String(serial - 1);
     const { data } = await supabase
       .from("bank_statements")
       .select("closing_balance")
@@ -111,7 +145,7 @@ export default function Izvodi() {
       setNewData((prev) => (prev.opening_balance === "0,00" ? prev : { ...prev, opening_balance: "0,00" }));
       setOpeningBalanceInputVersion((v) => v + 1);
     }
-  }, [selectedCompany?.id]);
+  }, [selectedCompany?.id, selectedYear?.id]);
 
   const schedulePreviousBalanceFetch = useCallback((serialNumberRaw: string, bankAccountId: string) => {
     clearPreviousBalanceDebounce();
@@ -366,6 +400,9 @@ export default function Izvodi() {
                 className="font-mono"
                 autoComplete="off"
               />
+              {duplicateSerialWarning && (
+                <p className="text-sm text-destructive mt-1">{duplicateSerialWarning}</p>
+              )}
             </div>
             <div>
               <Label>Prethodno stanje</Label>
@@ -388,7 +425,7 @@ export default function Izvodi() {
                 rows={2}
               />
             </div>
-            <Button onClick={handleCreate} disabled={!newData.bank_account_id || create.isPending} className="w-full">
+            <Button onClick={handleCreate} disabled={!newData.bank_account_id || create.isPending || !!duplicateSerialWarning} className="w-full">
               Kreiraj izvod
             </Button>
           </div>
