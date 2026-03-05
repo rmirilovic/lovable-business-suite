@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,9 @@ export default function Izvodi() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newData, setNewData] = useState({ statement_date: new Date().toISOString().slice(0, 10), bank_account_id: "", opening_balance: "0,00", bank_serial_number: "", description: "" });
   const [openingBalanceInputVersion, setOpeningBalanceInputVersion] = useState(0);
+  const openingBalanceWasAutofilledRef = useRef(false);
+  const previousBalanceLookupRef = useRef(0);
+  const previousBalanceDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [filter, setFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -61,16 +64,29 @@ export default function Izvodi() {
   const [statementToDelete, setStatementToDelete] = useState<any>(null);
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("statement_number", "desc");
 
+  const clearPreviousBalanceDebounce = useCallback(() => {
+    if (previousBalanceDebounceRef.current) {
+      clearTimeout(previousBalanceDebounceRef.current);
+      previousBalanceDebounceRef.current = null;
+    }
+  }, []);
+
   const fetchPreviousBalance = useCallback(async (serialNumberRaw: string, bankAccountId: string) => {
     if (!bankAccountId || !selectedCompany?.id) return;
 
     const serialNumber = serialNumberRaw.trim();
-    if (!/^\d+$/.test(serialNumber)) return;
+    if (!/^\d+$/.test(serialNumber) || Number(serialNumber) <= 1) {
+      if (openingBalanceWasAutofilledRef.current) {
+        openingBalanceWasAutofilledRef.current = false;
+        setNewData((prev) => (prev.opening_balance === "0,00" ? prev : { ...prev, opening_balance: "0,00" }));
+        setOpeningBalanceInputVersion((v) => v + 1);
+      }
+      return;
+    }
 
-    const serial = Number(serialNumber);
-    if (serial <= 1) return;
+    const prevSerial = String(Number(serialNumber) - 1);
+    const lookupId = ++previousBalanceLookupRef.current;
 
-    const prevSerial = String(serial - 1);
     const { data } = await supabase
       .from("bank_statements")
       .select("closing_balance")
@@ -80,12 +96,31 @@ export default function Izvodi() {
       .eq("status", "posted")
       .maybeSingle();
 
+    if (lookupId !== previousBalanceLookupRef.current) return;
+
     if (data) {
       const formatted = formatNumber(data.closing_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      openingBalanceWasAutofilledRef.current = true;
       setNewData((prev) => (prev.opening_balance === formatted ? prev : { ...prev, opening_balance: formatted }));
+      setOpeningBalanceInputVersion((v) => v + 1);
+      return;
+    }
+
+    if (openingBalanceWasAutofilledRef.current) {
+      openingBalanceWasAutofilledRef.current = false;
+      setNewData((prev) => (prev.opening_balance === "0,00" ? prev : { ...prev, opening_balance: "0,00" }));
       setOpeningBalanceInputVersion((v) => v + 1);
     }
   }, [selectedCompany?.id]);
+
+  const schedulePreviousBalanceFetch = useCallback((serialNumberRaw: string, bankAccountId: string) => {
+    clearPreviousBalanceDebounce();
+    previousBalanceDebounceRef.current = setTimeout(() => {
+      void fetchPreviousBalance(serialNumberRaw, bankAccountId);
+    }, 350);
+  }, [clearPreviousBalanceDebounce, fetchPreviousBalance]);
+
+  useEffect(() => () => clearPreviousBalanceDebounce(), [clearPreviousBalanceDebounce]);
 
   const filtered = statements.filter((s: any) => {
     const matchesSearch =
@@ -298,7 +333,7 @@ export default function Izvodi() {
                 onValueChange={(v) => {
                   setNewData((prev) => ({ ...prev, bank_account_id: v }));
                   if (newData.bank_serial_number) {
-                    fetchPreviousBalance(newData.bank_serial_number, v);
+                    void fetchPreviousBalance(newData.bank_serial_number, v);
                   }
                 }}
               >
@@ -321,9 +356,12 @@ export default function Izvodi() {
                 onChange={(e) => {
                   const nextSerial = e.target.value;
                   setNewData((prev) => ({ ...prev, bank_serial_number: nextSerial }));
-                  fetchPreviousBalance(nextSerial, newData.bank_account_id);
+                  schedulePreviousBalanceFetch(nextSerial, newData.bank_account_id);
                 }}
-                onBlur={(e) => fetchPreviousBalance(e.target.value, newData.bank_account_id)}
+                onBlur={(e) => {
+                  clearPreviousBalanceDebounce();
+                  void fetchPreviousBalance(e.target.value, newData.bank_account_id);
+                }}
                 placeholder="—"
                 className="font-mono"
                 autoComplete="off"
@@ -334,7 +372,10 @@ export default function Izvodi() {
               <LocaleNumberInput
                 key={openingBalanceInputVersion}
                 value={newData.opening_balance}
-                onChange={(val) => setNewData({ ...newData, opening_balance: val })}
+                onChange={(val) => {
+                  openingBalanceWasAutofilledRef.current = false;
+                  setNewData((prev) => ({ ...prev, opening_balance: val }));
+                }}
                 className="font-mono"
               />
             </div>
