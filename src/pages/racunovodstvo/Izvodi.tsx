@@ -70,6 +70,7 @@ export default function Izvodi() {
   const sorted = sortItems(filtered, (item: any, column: string) => {
     switch (column) {
       case "statement_number": return item.statement_number;
+      case "bank_serial_number": return item.bank_serial_number || "";
       case "statement_date": return item.statement_date;
       case "bank_account": return `${item.bank_accounts?.account_number || ""} ${item.bank_accounts?.bank_name || ""}`;
       case "total_debit": return Number(item.total_debit);
@@ -141,6 +142,9 @@ export default function Izvodi() {
                 <TableHead className="w-[130px]">
                   <SortableHeader column="statement_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
+                <TableHead className="w-[80px]">
+                  <SortableHeader column="bank_serial_number" label="R.br." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 <TableHead className="w-[110px]">
                   <SortableHeader column="statement_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
@@ -162,11 +166,11 @@ export default function Izvodi() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Učitavanje...</TableCell>
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Učitavanje...</TableCell>
                 </TableRow>
               ) : sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     {filter || dateFrom || dateTo ? "Nema rezultata pretrage" : "Nema izvoda"}
                   </TableCell>
                 </TableRow>
@@ -181,6 +185,7 @@ export default function Izvodi() {
                       />
                       {s.statement_number}
                     </TableCell>
+                    <TableCell className="font-mono">{s.bank_serial_number || "-"}</TableCell>
                     <TableCell>{formatDate(s.statement_date)}</TableCell>
                     <TableCell>{s.bank_accounts?.account_number} - {s.bank_accounts?.bank_name}</TableCell>
                     <TableCell className="text-right font-mono">

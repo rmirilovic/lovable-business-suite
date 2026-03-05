@@ -34,6 +34,7 @@ function fmtDate(d: string | null) {
 function mapRows(items: BankStatementRow[]) {
   return items.map((s) => ({
     "Broj": s.statement_number,
+    "R.br.": (s as any).bank_serial_number || "",
     "Datum": fmtDate(s.statement_date),
     "Tekući račun": `${s.bank_accounts?.account_number || ""} - ${s.bank_accounts?.bank_name || ""}`,
     "Duguje": s.total_debit,
@@ -46,7 +47,7 @@ export function exportBankStatementsToExcel(items: BankStatementRow[], meta: Exp
   const data = mapRows(items);
   const ws = XLSX.utils.json_to_sheet(data);
   ws["!cols"] = [
-    { wch: 16 }, { wch: 14 }, { wch: 35 }, { wch: 16 }, { wch: 16 }, { wch: 14 },
+    { wch: 16 }, { wch: 10 }, { wch: 14 }, { wch: 35 }, { wch: 16 }, { wch: 16 }, { wch: 14 },
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Izvodi");
@@ -77,6 +78,7 @@ async function buildPdf(items: BankStatementRow[], meta: ExportMeta): Promise<js
 
   const rows = items.map((s) => [
     s.statement_number,
+    (s as any).bank_serial_number || "",
     fmtDate(s.statement_date),
     `${s.bank_accounts?.account_number || ""} - ${s.bank_accounts?.bank_name || ""}`,
     formatNumber(s.total_debit, { minimumFractionDigits: 2 }),
@@ -86,13 +88,13 @@ async function buildPdf(items: BankStatementRow[], meta: ExportMeta): Promise<js
 
   autoTable(doc, {
     startY: y,
-    head: [["Broj", "Datum", "Tekući račun", "Duguje", "Potražuje", "Status"]],
+    head: [["Broj", "R.br.", "Datum", "Tekući račun", "Duguje", "Potražuje", "Status"]],
     body: rows,
     styles: { font: "Roboto", fontSize: 8 },
     headStyles: { fillColor: [66, 66, 66] },
     columnStyles: {
-      3: { halign: "right" },
       4: { halign: "right" },
+      5: { halign: "right" },
     },
   });
 
