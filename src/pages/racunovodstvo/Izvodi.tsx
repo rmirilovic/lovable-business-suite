@@ -15,7 +15,15 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Search, FileText, FileSpreadsheet, Printer } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Trash2, Search, FileText, FileSpreadsheet, Printer, MoreHorizontal, Eye } from "lucide-react";
 import { useBankStatements, useBankStatementMutations } from "@/hooks/useBankStatements";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,6 +53,8 @@ export default function Izvodi() {
   const [filter, setFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [statementToDelete, setStatementToDelete] = useState<any>(null);
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("statement_number", "desc");
 
   const filtered = statements.filter((s: any) => {
@@ -146,7 +156,7 @@ export default function Izvodi() {
                 <TableHead className="w-[100px]">
                   <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead className="w-[60px]" />
+                <TableHead className="w-16" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -184,19 +194,34 @@ export default function Izvodi() {
                         {STATUS_LABELS[s.status] || s.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="relative z-10">
-                      {s.status === "draft" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm("Obrisati izvod?")) remove.mutate(s.id);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      )}
+                    <TableCell className="relative z-10" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={`/racunovodstvo/izvodi/${s.id}`}
+                              onClick={(e) => { e.preventDefault(); navigate(`/racunovodstvo/izvodi/${s.id}`); }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Prikaži
+                            </a>
+                          </DropdownMenuItem>
+                          {s.status === "draft" && (
+                            <DropdownMenuItem
+                              onClick={() => { setStatementToDelete(s); setDeleteDialogOpen(true); }}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Obriši
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -241,6 +266,33 @@ export default function Izvodi() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Brisanje izvoda</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite da obrišete izvod{" "}
+              <strong>{statementToDelete?.statement_number}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (statementToDelete) {
+                  remove.mutate(statementToDelete.id);
+                  setDeleteDialogOpen(false);
+                  setStatementToDelete(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Obriši
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MainLayout>
   );
 }
