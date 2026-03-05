@@ -239,7 +239,7 @@ export default function BankStatementEdit() {
             <select
               value={editingData.payment_code_id}
               onChange={(e) => setEditingData({ ...editingData, payment_code_id: e.target.value })}
-              className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
+              className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm truncate"
             >
               <option value="">Izaberite...</option>
               {activePaymentCodes.map((pc) => (
@@ -600,21 +600,35 @@ export default function BankStatementEdit() {
         {/* Items table */}
         <div className="border rounded-md flex flex-col" style={{ maxHeight: "calc(100vh - 380px)" }}>
           <div className="overflow-auto flex-1">
-            <Table>
+             <Table className="table-fixed">
+              <colgroup>
+                <col style={{ width: 50 }} />
+                <col style={{ width: 300 }} />
+                <col style={{ width: 120 }} />
+                <col style={{ width: 180 }} />
+                <col style={{ width: 120 }} />
+                <col style={{ width: 100 }} />
+                <col style={{ width: 140 }} />
+                <col style={{ width: 150 }} />
+                <col style={{ width: 150 }} />
+                <col style={{ width: 120 }} />
+                <col style={{ width: 120 }} />
+                {isDraft && <col style={{ width: 80 }} />}
+              </colgroup>
               <TableHeader className="sticky top-0 z-10 bg-background">
                  <TableRow>
-                   <TableHead className="w-[50px]">R.br.</TableHead>
-                   <TableHead className="w-[300px]">Šifra plaćanja</TableHead>
-                   <TableHead className="w-[120px]">Partner</TableHead>
-                   <TableHead className="w-[180px]">TR partnera</TableHead>
-                   <TableHead className="w-[120px]">Konto</TableHead>
-                   <TableHead className="w-[100px]">Analitika</TableHead>
-                   <TableHead className="w-[140px]">Dokument</TableHead>
-                   <TableHead className="w-[150px]">Poziv na broj</TableHead>
-                   <TableHead className="w-[150px]">Napomena</TableHead>
-                   <TableHead className="w-[120px] text-right">Isplata (D)</TableHead>
-                   <TableHead className="w-[120px] text-right">Uplata (P)</TableHead>
-                   {isDraft && <TableHead className="w-[80px]" />}
+                   <TableHead>R.br.</TableHead>
+                   <TableHead>Šifra plaćanja</TableHead>
+                   <TableHead>Partner</TableHead>
+                   <TableHead>TR partnera</TableHead>
+                   <TableHead>Konto</TableHead>
+                   <TableHead>Analitika</TableHead>
+                   <TableHead>Dokument</TableHead>
+                   <TableHead>Poziv na broj</TableHead>
+                   <TableHead>Napomena</TableHead>
+                   <TableHead className="text-right">Isplata (D)</TableHead>
+                   <TableHead className="text-right">Uplata (P)</TableHead>
+                   {isDraft && <TableHead />}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -631,15 +645,29 @@ export default function BankStatementEdit() {
           {/* New item row - outside scroll area */}
           {isDraft && (
             <div className="border-t">
-              <Table>
+              <Table className="table-fixed">
+                <colgroup>
+                  <col style={{ width: 50 }} />
+                  <col style={{ width: 300 }} />
+                  <col style={{ width: 120 }} />
+                  <col style={{ width: 180 }} />
+                  <col style={{ width: 120 }} />
+                  <col style={{ width: 100 }} />
+                  <col style={{ width: 140 }} />
+                  <col style={{ width: 150 }} />
+                  <col style={{ width: 150 }} />
+                  <col style={{ width: 120 }} />
+                  <col style={{ width: 120 }} />
+                  <col style={{ width: 80 }} />
+                </colgroup>
                 <TableBody>
                   <TableRow className="bg-muted/50">
-                    <TableCell className="w-[50px] text-muted-foreground">{items.length + 1}</TableCell>
-                    <TableCell className="w-[350px]">
+                    <TableCell className="text-muted-foreground">{items.length + 1}</TableCell>
+                    <TableCell>
                       <select
                         value={newItem.payment_code_id}
                         onChange={(e) => setNewItem({ ...newItem, payment_code_id: e.target.value })}
-                        className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm"
+                        className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm truncate"
                       >
                         <option value="">Izaberite...</option>
                         {activePaymentCodes.map((pc) => (
@@ -649,7 +677,7 @@ export default function BankStatementEdit() {
                         ))}
                       </select>
                     </TableCell>
-                     <TableCell className="w-[120px]">
+                     <TableCell>
                       <SearchablePartnerSelect
                         partners={partners}
                         value={newItem.partner_id}
@@ -660,7 +688,7 @@ export default function BankStatementEdit() {
                         placeholder="Partner..."
                       />
                     </TableCell>
-                    <TableCell className="w-[200px]">
+                    <TableCell>
                       <Input
                         value={newItem.partner_account_number}
                         onChange={(e) => setNewItem({ ...newItem, partner_account_number: e.target.value })}
@@ -669,7 +697,7 @@ export default function BankStatementEdit() {
                         autoComplete="off"
                       />
                     </TableCell>
-                    <TableCell className="w-[180px]">
+                    <TableCell>
                       {(() => {
                         const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
                         const code = pc?.account_code;
@@ -686,7 +714,7 @@ export default function BankStatementEdit() {
                         ) : "-";
                       })()}
                     </TableCell>
-                    <TableCell className="w-[100px]">
+                    <TableCell>
                       <Input
                         value={newItem.cost_center_code}
                         onChange={(e) => setNewItem({ ...newItem, cost_center_code: e.target.value })}
@@ -695,7 +723,7 @@ export default function BankStatementEdit() {
                         autoComplete="off"
                       />
                     </TableCell>
-                    <TableCell className="w-[140px]">
+                    <TableCell>
                        <Input
                          value={newItem.document_reference}
                          onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
@@ -704,7 +732,7 @@ export default function BankStatementEdit() {
                          autoComplete="off"
                        />
                      </TableCell>
-                     <TableCell className="w-[150px]">
+                     <TableCell>
                        <Input
                          value={newItem.reference_number}
                          onChange={(e) => setNewItem({ ...newItem, reference_number: e.target.value })}
@@ -713,7 +741,7 @@ export default function BankStatementEdit() {
                          autoComplete="off"
                        />
                      </TableCell>
-                     <TableCell className="w-[150px]">
+                     <TableCell>
                        <Input
                          value={newItem.description}
                          onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
@@ -722,7 +750,7 @@ export default function BankStatementEdit() {
                          autoComplete="off"
                        />
                      </TableCell>
-                     <TableCell className="w-[120px]">
+                     <TableCell>
                        <LocaleNumberInput
                          value={newItem.debit_amount}
                          onChange={(val) => setNewItem(prev => {
@@ -732,7 +760,7 @@ export default function BankStatementEdit() {
                          className="h-8 text-right font-mono"
                        />
                      </TableCell>
-                     <TableCell className="w-[120px]">
+                     <TableCell>
                        <LocaleNumberInput
                          value={newItem.credit_amount}
                          onChange={(val) => setNewItem(prev => {
@@ -742,7 +770,7 @@ export default function BankStatementEdit() {
                          className="h-8 text-right font-mono"
                        />
                      </TableCell>
-                     <TableCell className="w-[80px]">
+                     <TableCell>
                        <Button
                          variant="ghost"
                          size="icon"
