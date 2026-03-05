@@ -727,217 +727,202 @@ export default function BankStatementEdit() {
         </div>
 
         {/* Items table */}
-        <div className="border rounded-md overflow-x-auto" style={{ maxHeight: "calc(100vh - 380px)" }}>
+        <div className="border rounded-md overflow-auto" style={{ maxHeight: "calc(100vh - 380px)" }}>
           <div style={{ minWidth: calcMinWidth() }}>
-            <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 380px - 90px)" }}>
-              <Table className="table-fixed">
-                {renderColgroup()}
-                <TableHeader className="sticky top-0 z-10 bg-background">
-                   <TableRow>
-                     <TableHead>R.br.</TableHead>
-                     {isColVisible("payment_code") && <TableHead>Šifra plaćanja</TableHead>}
-                     {isColVisible("partner") && <TableHead>Partner</TableHead>}
-                     {isColVisible("partner_account") && <TableHead>TR partnera</TableHead>}
-                     {isColVisible("account") && <TableHead>Konto</TableHead>}
-                     {isColVisible("analytics") && <TableHead>Analitika</TableHead>}
-                     {isColVisible("document") && <TableHead>Dokument</TableHead>}
-                     {isColVisible("reference") && <TableHead>Poziv na broj</TableHead>}
-                     {isColVisible("note") && <TableHead>Napomena</TableHead>}
-                     <TableHead className="text-right">Isplata (D)</TableHead>
-                     <TableHead className="text-right">Uplata (P)</TableHead>
-                     {isDraft && <TableHead />}
+            <Table className="table-fixed">
+              {renderColgroup()}
+              <TableHeader className="sticky top-0 z-20 bg-background">
+                 <TableRow>
+                   <TableHead>R.br.</TableHead>
+                   {isColVisible("payment_code") && <TableHead>Šifra plaćanja</TableHead>}
+                   {isColVisible("partner") && <TableHead>Partner</TableHead>}
+                   {isColVisible("partner_account") && <TableHead>TR partnera</TableHead>}
+                   {isColVisible("account") && <TableHead>Konto</TableHead>}
+                   {isColVisible("analytics") && <TableHead>Analitika</TableHead>}
+                   {isColVisible("document") && <TableHead>Dokument</TableHead>}
+                   {isColVisible("reference") && <TableHead>Poziv na broj</TableHead>}
+                   {isColVisible("note") && <TableHead>Napomena</TableHead>}
+                   <TableHead className="text-right">Isplata (D)</TableHead>
+                   <TableHead className="text-right">Uplata (P)</TableHead>
+                   {isDraft && <TableHead />}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.length === 0 && !isDraft ? (
+                  <TableRow>
+                    <TableCell colSpan={visibleToggleableCols.length + 3 + (isDraft ? 1 : 0)} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.length === 0 && !isDraft ? (
-                    <TableRow>
-                      <TableCell colSpan={visibleToggleableCols.length + 3 + (isDraft ? 1 : 0)} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
-                    </TableRow>
-                  ) : (
-                    items.map((item, idx) => renderItemRow(item, idx))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            {/* New item row */}
-            {isDraft && (
-              <div className="border-t">
-                <Table className="table-fixed">
-                  {renderColgroup()}
-                  <TableBody>
-                    <TableRow className="bg-muted/50">
-                      <TableCell className="text-muted-foreground">{items.length + 1}</TableCell>
-                      {isColVisible("payment_code") && (
-                        <TableCell>
-                          <select
-                            value={newItem.payment_code_id}
-                            onChange={(e) => setNewItem({ ...newItem, payment_code_id: e.target.value })}
-                            className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm truncate"
-                          >
-                            <option value="">Izaberite...</option>
-                            {activePaymentCodes.map((pc) => (
-                              <option key={pc.id} value={pc.id}>
-                                {pc.code} - {pc.name}
-                              </option>
-                            ))}
-                          </select>
-                        </TableCell>
-                      )}
-                      {isColVisible("partner") && (
-                        <TableCell>
-                          <SearchablePartnerSelect
-                            partners={partners}
-                            value={newItem.partner_id}
-                            onValueChange={(v) => {
-                              const p = partners.find((pp) => pp.id === v);
-                              setNewItem({ ...newItem, partner_id: v, cost_center_code: p?.code || newItem.cost_center_code });
-                            }}
-                            placeholder="Partner..."
-                          />
-                        </TableCell>
-                      )}
-                      {isColVisible("partner_account") && (
-                        <TableCell>
-                          <Input
-                            value={newItem.partner_account_number}
-                            onChange={(e) => setNewItem({ ...newItem, partner_account_number: e.target.value })}
-                            placeholder="TR partnera"
-                            className="h-8 text-sm font-mono"
-                            autoComplete="off"
-                          />
-                        </TableCell>
-                      )}
-                      {isColVisible("account") && (
-                        <TableCell>
-                          {(() => {
-                            const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
-                            const code = pc?.account_code;
-                            const name = getAccountName(code);
-                            return code ? (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="text-xs text-muted-foreground font-mono cursor-default">{code}</span>
-                                  </TooltipTrigger>
-                                  {name && <TooltipContent side="top"><p>{name}</p></TooltipContent>}
-                                </Tooltip>
-                              </TooltipProvider>
-                            ) : "-";
-                          })()}
-                        </TableCell>
-                      )}
-                      {isColVisible("analytics") && (
-                        <TableCell>
-                          <Input
-                            value={newItem.cost_center_code}
-                            onChange={(e) => setNewItem({ ...newItem, cost_center_code: e.target.value })}
-                            placeholder="Analitika"
-                            className="h-8 text-sm font-mono"
-                            autoComplete="off"
-                          />
-                        </TableCell>
-                      )}
-                      {isColVisible("document") && (
-                        <TableCell>
-                          <Input
-                            value={newItem.document_reference}
-                            onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
-                            placeholder="Dokument"
-                            className="h-8 text-sm"
-                            autoComplete="off"
-                          />
-                        </TableCell>
-                      )}
-                      {isColVisible("reference") && (
-                        <TableCell>
-                          <Input
-                            value={newItem.reference_number}
-                            onChange={(e) => setNewItem({ ...newItem, reference_number: e.target.value })}
-                            placeholder="Poziv na broj"
-                            className="h-8 text-sm"
-                            autoComplete="off"
-                          />
-                        </TableCell>
-                      )}
-                      {isColVisible("note") && (
-                        <TableCell>
-                          <Input
-                            value={newItem.description}
-                            onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                            placeholder="Napomena"
-                            className="h-8 text-sm"
-                            autoComplete="off"
-                          />
-                        </TableCell>
-                      )}
+                ) : (
+                  items.map((item, idx) => renderItemRow(item, idx))
+                )}
+                {/* New item row */}
+                {isDraft && (
+                  <TableRow className="bg-muted/50 border-t-2">
+                    <TableCell className="text-muted-foreground">{items.length + 1}</TableCell>
+                    {isColVisible("payment_code") && (
                       <TableCell>
-                        <LocaleNumberInput
-                          value={newItem.debit_amount}
-                          onChange={(val) => setNewItem(prev => {
-                            const num = parseLocaleNumber(val);
-                            return { ...prev, debit_amount: val, ...(num > 0 ? { credit_amount: "0,00" } : {}) };
-                          })}
-                          className="h-8 text-right font-mono"
+                        <select
+                          value={newItem.payment_code_id}
+                          onChange={(e) => setNewItem({ ...newItem, payment_code_id: e.target.value })}
+                          className="w-full h-8 rounded-md border border-input bg-background px-2 text-sm truncate"
+                        >
+                          <option value="">Izaberite...</option>
+                          {activePaymentCodes.map((pc) => (
+                            <option key={pc.id} value={pc.id}>
+                              {pc.code} - {pc.name}
+                            </option>
+                          ))}
+                        </select>
+                      </TableCell>
+                    )}
+                    {isColVisible("partner") && (
+                      <TableCell>
+                        <SearchablePartnerSelect
+                          partners={partners}
+                          value={newItem.partner_id}
+                          onValueChange={(v) => {
+                            const p = partners.find((pp) => pp.id === v);
+                            setNewItem({ ...newItem, partner_id: v, cost_center_code: p?.code || newItem.cost_center_code });
+                          }}
+                          placeholder="Partner..."
                         />
                       </TableCell>
+                    )}
+                    {isColVisible("partner_account") && (
                       <TableCell>
-                        <LocaleNumberInput
-                          value={newItem.credit_amount}
-                          onChange={(val) => setNewItem(prev => {
-                            const num = parseLocaleNumber(val);
-                            return { ...prev, credit_amount: val, ...(num > 0 ? { debit_amount: "0,00" } : {}) };
-                          })}
-                          className="h-8 text-right font-mono"
+                        <Input
+                          value={newItem.partner_account_number}
+                          onChange={(e) => setNewItem({ ...newItem, partner_account_number: e.target.value })}
+                          placeholder="TR partnera"
+                          className="h-8 text-sm font-mono"
+                          autoComplete="off"
                         />
                       </TableCell>
+                    )}
+                    {isColVisible("account") && (
                       <TableCell>
-                        <div className="flex items-center gap-1">
+                        {(() => {
+                          const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
+                          const code = pc?.account_code;
+                          const name = getAccountName(code);
+                          return code ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="text-xs text-muted-foreground font-mono cursor-default">{code}</span>
+                                </TooltipTrigger>
+                                {name && <TooltipContent side="top"><p>{name}</p></TooltipContent>}
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : "-";
+                        })()}
+                      </TableCell>
+                    )}
+                    {isColVisible("analytics") && (
+                      <TableCell>
+                        <Input
+                          value={newItem.cost_center_code}
+                          onChange={(e) => setNewItem({ ...newItem, cost_center_code: e.target.value })}
+                          placeholder="Analitika"
+                          className="h-8 text-sm font-mono"
+                          autoComplete="off"
+                        />
+                      </TableCell>
+                    )}
+                    {isColVisible("document") && (
+                      <TableCell>
+                        <Input
+                          value={newItem.document_reference}
+                          onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
+                          placeholder="Dokument"
+                          className="h-8 text-sm"
+                          autoComplete="off"
+                        />
+                      </TableCell>
+                    )}
+                    {isColVisible("reference") && (
+                      <TableCell>
+                        <Input
+                          value={newItem.reference_number}
+                          onChange={(e) => setNewItem({ ...newItem, reference_number: e.target.value })}
+                          placeholder="Poziv na broj"
+                          className="h-8 text-sm"
+                          autoComplete="off"
+                        />
+                      </TableCell>
+                    )}
+                    {isColVisible("note") && (
+                      <TableCell>
+                        <Input
+                          value={newItem.description}
+                          onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                          placeholder="Napomena"
+                          className="h-8 text-sm"
+                          autoComplete="off"
+                        />
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      <LocaleNumberInput
+                        value={newItem.debit_amount}
+                        onChange={(val) => setNewItem(prev => {
+                          const num = parseLocaleNumber(val);
+                          return { ...prev, debit_amount: val, ...(num > 0 ? { credit_amount: "0,00" } : {}) };
+                        })}
+                        className="h-8 text-right font-mono"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <LocaleNumberInput
+                        value={newItem.credit_amount}
+                        onChange={(val) => setNewItem(prev => {
+                          const num = parseLocaleNumber(val);
+                          return { ...prev, credit_amount: val, ...(num > 0 ? { debit_amount: "0,00" } : {}) };
+                        })}
+                        className="h-8 text-right font-mono"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleAddItem}
+                          disabled={addItem.isPending}
+                          className="h-7 w-7"
+                          title="Dodaj stavku"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                        {(newItem.payment_code_id || newItem.partner_id || newItem.reference_number || newItem.description || newItem.document_reference || newItem.cost_center_code || newItem.partner_account_number || parseLocaleNumber(newItem.debit_amount) !== 0 || parseLocaleNumber(newItem.credit_amount) !== 0) && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={handleAddItem}
-                            disabled={addItem.isPending}
+                            onClick={() => setNewItem({ payment_code_id: "", partner_id: "", reference_number: "", description: "", document_reference: "", debit_amount: "0,00", credit_amount: "0,00", cost_center_code: "", partner_account_number: "" })}
                             className="h-7 w-7"
-                            title="Dodaj stavku"
+                            title="Poništi unos"
                           >
-                            <Plus className="w-4 h-4" />
+                            <X className="w-4 h-4 text-destructive" />
                           </Button>
-                          {(newItem.payment_code_id || newItem.partner_id || newItem.reference_number || newItem.description || newItem.document_reference || newItem.cost_center_code || newItem.partner_account_number || parseLocaleNumber(newItem.debit_amount) !== 0 || parseLocaleNumber(newItem.credit_amount) !== 0) && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setNewItem({ payment_code_id: "", partner_id: "", reference_number: "", description: "", document_reference: "", debit_amount: "0,00", credit_amount: "0,00", cost_center_code: "", partner_account_number: "" })}
-                              className="h-7 w-7"
-                              title="Poništi unos"
-                            >
-                              <X className="w-4 h-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-            {/* Footer totals */}
-            <div className="border-t">
-              <Table className="table-fixed">
-                {renderColgroup()}
-                <TableFooter>
-                  <TableRow>
-                    <TableCell colSpan={visibleToggleableCols.length + 1} className="text-right font-medium">Ukupno:</TableCell>
-                    <TableCell className="text-right font-mono font-bold">
-                      {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell className="text-right font-mono font-bold">
-                      {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </TableCell>
-                    {isDraft && <TableCell />}
                   </TableRow>
-                </TableFooter>
-              </Table>
-            </div>
+                )}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={visibleToggleableCols.length + 1} className="text-right font-medium">Ukupno:</TableCell>
+                  <TableCell className="text-right font-mono font-bold">
+                    {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </TableCell>
+                  <TableCell className="text-right font-mono font-bold">
+                    {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </TableCell>
+                  {isDraft && <TableCell />}
+                </TableRow>
+              </TableFooter>
+            </Table>
           </div>
         </div>
       </div>
