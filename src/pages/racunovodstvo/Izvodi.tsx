@@ -53,6 +53,7 @@ export default function Izvodi() {
   const { create, remove } = useBankStatementMutations();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newData, setNewData] = useState({ statement_date: new Date().toISOString().slice(0, 10), bank_account_id: "", opening_balance: "0,00", bank_serial_number: "", description: "" });
+  const [openingBalanceInputVersion, setOpeningBalanceInputVersion] = useState(0);
   const [filter, setFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -60,10 +61,16 @@ export default function Izvodi() {
   const [statementToDelete, setStatementToDelete] = useState<any>(null);
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("statement_number", "desc");
 
-  const fetchPreviousBalance = useCallback(async (serialNumber: string, bankAccountId: string) => {
-    if (!serialNumber || !bankAccountId || !selectedCompany?.id) return;
-    const prevSerial = String(Number(serialNumber) - 1);
-    if (isNaN(Number(serialNumber)) || Number(serialNumber) <= 1) return;
+  const fetchPreviousBalance = useCallback(async (serialNumberRaw: string, bankAccountId: string) => {
+    if (!bankAccountId || !selectedCompany?.id) return;
+
+    const serialNumber = serialNumberRaw.trim();
+    if (!/^\d+$/.test(serialNumber)) return;
+
+    const serial = Number(serialNumber);
+    if (serial <= 1) return;
+
+    const prevSerial = String(serial - 1);
     const { data } = await supabase
       .from("bank_statements")
       .select("closing_balance")
@@ -72,11 +79,14 @@ export default function Izvodi() {
       .eq("bank_serial_number", prevSerial)
       .eq("status", "posted")
       .maybeSingle();
+
     if (data) {
       const formatted = formatNumber(data.closing_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      setNewData(prev => ({ ...prev, opening_balance: formatted }));
+      setNewData((prev) => (prev.opening_balance === formatted ? prev : { ...prev, opening_balance: formatted }));
+      setOpeningBalanceInputVersion((v) => v + 1);
     }
   }, [selectedCompany?.id]);
+
   const filtered = statements.filter((s: any) => {
     const matchesSearch =
       s.statement_number.toLowerCase().includes(filter.toLowerCase()) ||
@@ -283,7 +293,15 @@ export default function Izvodi() {
             </div>
             <div>
               <Label>Tekući račun</Label>
-              <Select value={newData.bank_account_id} onValueChange={(v) => setNewData({ ...newData, bank_account_id: v })}>
+              <Select
+                value={newData.bank_account_id}
+                onValueChange={(v) => {
+                  setNewData((prev) => ({ ...prev, bank_account_id: v }));
+                  if (newData.bank_serial_number) {
+                    fetchPreviousBalance(newData.bank_serial_number, v);
+                  }
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Izaberite tekući račun" />
                 </SelectTrigger>
@@ -300,7 +318,11 @@ export default function Izvodi() {
               <Label>R.br. izvoda banke</Label>
               <Input
                 value={newData.bank_serial_number}
-                onChange={(e) => setNewData({ ...newData, bank_serial_number: e.target.value })}
+                onChange={(e) => {
+                  const nextSerial = e.target.value;
+                  setNewData((prev) => ({ ...prev, bank_serial_number: nextSerial }));
+                  fetchPreviousBalance(nextSerial, newData.bank_account_id);
+                }}
                 onBlur={(e) => fetchPreviousBalance(e.target.value, newData.bank_account_id)}
                 placeholder="—"
                 className="font-mono"
@@ -310,6 +332,7 @@ export default function Izvodi() {
             <div>
               <Label>Prethodno stanje</Label>
               <LocaleNumberInput
+                key={openingBalanceInputVersion}
                 value={newData.opening_balance}
                 onChange={(val) => setNewData({ ...newData, opening_balance: val })}
                 className="font-mono"
