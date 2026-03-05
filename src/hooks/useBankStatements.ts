@@ -111,7 +111,7 @@ export function useBankStatementMutations() {
   const { selectedCompany, selectedYear, user } = useAuth();
 
   const create = useMutation({
-    mutationFn: async (data: { statement_date: string; bank_account_id: string; description?: string; opening_balance?: number }) => {
+    mutationFn: async (data: { statement_date: string; bank_account_id: string; description?: string; opening_balance?: number; bank_serial_number?: string }) => {
       if (!selectedCompany?.id || !selectedYear?.id || !user?.id) throw new Error("Nedostaju podaci");
 
       // Fetch the bank account code for the number format
