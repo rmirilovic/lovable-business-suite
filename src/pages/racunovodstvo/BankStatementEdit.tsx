@@ -114,10 +114,9 @@ export default function BankStatementEdit() {
 
   // Build account code -> name map for display
   const accountMap = new Map(accounts.map((a) => [a.code, a.name]));
-  const getAccountLabel = (accountCode: string | null | undefined) => {
-    if (!accountCode) return "-";
-    const name = accountMap.get(accountCode);
-    return name ? `${accountCode} - ${name}` : accountCode;
+  const getAccountName = (accountCode: string | null | undefined) => {
+    if (!accountCode) return null;
+    return accountMap.get(accountCode) || null;
   };
 
   const startEdit = (item: BankStatementItem) => {
@@ -271,12 +270,21 @@ export default function BankStatementEdit() {
             />
           </TableCell>
           <TableCell>
-            <span className="text-xs text-muted-foreground">
-              {(() => {
-                const pc = activePaymentCodes.find(p => p.id === editingData.payment_code_id);
-                return pc ? getAccountLabel(pc.account_code) : "-";
-              })()}
-            </span>
+            {(() => {
+              const pc = activePaymentCodes.find(p => p.id === editingData.payment_code_id);
+              const code = pc?.account_code;
+              const name = getAccountName(code);
+              return code ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-xs text-muted-foreground font-mono cursor-default">{code}</span>
+                    </TooltipTrigger>
+                    {name && <TooltipContent side="top"><p>{name}</p></TooltipContent>}
+                  </Tooltip>
+                </TooltipProvider>
+              ) : "-";
+            })()}
           </TableCell>
           <TableCell>
             <Input
@@ -377,7 +385,20 @@ export default function BankStatementEdit() {
           ) : "-"}
         </TableCell>
         <TableCell className="text-sm font-mono">{item.partner_account_number || "-"}</TableCell>
-        <TableCell className="text-sm">{getAccountLabel(item.payment_account_code)}</TableCell>
+        <TableCell className="text-sm">
+          {item.payment_account_code ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="font-mono cursor-default">{item.payment_account_code}</span>
+                </TooltipTrigger>
+                {getAccountName(item.payment_account_code) && (
+                  <TooltipContent side="top"><p>{getAccountName(item.payment_account_code)}</p></TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+          ) : "-"}
+        </TableCell>
         <TableCell className="text-sm font-mono">{item.cost_center_code || "-"}</TableCell>
         <TableCell className="text-sm">{item.document_reference || "-"}</TableCell>
         <TableCell className="text-sm">{item.reference_number || "-"}</TableCell>
@@ -586,7 +607,7 @@ export default function BankStatementEdit() {
                    <TableHead className="w-[300px]">Šifra plaćanja</TableHead>
                    <TableHead className="w-[120px]">Partner</TableHead>
                    <TableHead className="w-[180px]">TR partnera</TableHead>
-                   <TableHead className="w-[250px]">Konto</TableHead>
+                   <TableHead className="w-[120px]">Konto</TableHead>
                    <TableHead className="w-[100px]">Analitika</TableHead>
                    <TableHead className="w-[140px]">Dokument</TableHead>
                    <TableHead className="w-[150px]">Poziv na broj</TableHead>
@@ -649,12 +670,21 @@ export default function BankStatementEdit() {
                       />
                     </TableCell>
                     <TableCell className="w-[180px]">
-                      <span className="text-xs text-muted-foreground">
-                        {(() => {
-                          const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
-                          return pc ? getAccountLabel(pc.account_code) : "-";
-                        })()}
-                      </span>
+                      {(() => {
+                        const pc = activePaymentCodes.find(p => p.id === newItem.payment_code_id);
+                        const code = pc?.account_code;
+                        const name = getAccountName(code);
+                        return code ? (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-xs text-muted-foreground font-mono cursor-default">{code}</span>
+                              </TooltipTrigger>
+                              {name && <TooltipContent side="top"><p>{name}</p></TooltipContent>}
+                            </Tooltip>
+                          </TooltipProvider>
+                        ) : "-";
+                      })()}
                     </TableCell>
                     <TableCell className="w-[100px]">
                       <Input
