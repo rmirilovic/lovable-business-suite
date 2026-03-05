@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +78,13 @@ export default function BankStatementEdit() {
   const [headerOpeningBalance, setHeaderOpeningBalance] = useState(
     statement ? formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00"
   );
+
+  useEffect(() => {
+    if (statement) {
+      setHeaderSerial(statement.bank_serial_number || "");
+      setHeaderOpeningBalance(formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    }
+  }, [statement?.bank_serial_number, statement?.opening_balance]);
 
   const [newItem, setNewItem] = useState({
     payment_code_id: "",
