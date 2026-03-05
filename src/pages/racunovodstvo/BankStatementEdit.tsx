@@ -12,6 +12,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X, RefreshCw, History, Eye, FileDown, FileSpreadsheet, Printer } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   useBankStatement,
   useBankStatementItems,
@@ -295,6 +296,24 @@ export default function BankStatementEdit() {
             />
           </TableCell>
           <TableCell>
+            <Input
+              value={editingData.reference_number}
+              onChange={(e) => setEditingData({ ...editingData, reference_number: e.target.value })}
+              className="h-8 text-sm"
+              placeholder="Poziv na broj"
+              autoComplete="off"
+            />
+          </TableCell>
+          <TableCell>
+            <Input
+              value={editingData.description}
+              onChange={(e) => setEditingData({ ...editingData, description: e.target.value })}
+              className="h-8 text-sm"
+              placeholder="Napomena"
+              autoComplete="off"
+            />
+          </TableCell>
+          <TableCell>
             <LocaleNumberInput
               value={editingData.debit_amount}
               onChange={(val) => setEditingData({ ...editingData, debit_amount: val })}
@@ -343,11 +362,26 @@ export default function BankStatementEdit() {
         <TableCell className="font-mono">
           {item.payment_code ? `${item.payment_code} - ${item.payment_name}` : "-"}
         </TableCell>
-        <TableCell>{item.partner_name ? `[${item.partner_code}] ${item.partner_name}` : "-"}</TableCell>
+        <TableCell>
+          {item.partner_code ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="font-mono cursor-default">{item.partner_code}</span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>{item.partner_name}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : "-"}
+        </TableCell>
         <TableCell className="text-sm font-mono">{item.partner_account_number || "-"}</TableCell>
         <TableCell className="text-sm">{getAccountLabel(item.payment_account_code)}</TableCell>
         <TableCell className="text-sm font-mono">{item.cost_center_code || "-"}</TableCell>
         <TableCell className="text-sm">{item.document_reference || "-"}</TableCell>
+        <TableCell className="text-sm">{item.reference_number || "-"}</TableCell>
+        <TableCell className="text-sm">{item.description || "-"}</TableCell>
         
         <TableCell className="text-right font-mono">
           {Number(item.debit_amount) !== 0 ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
@@ -547,23 +581,25 @@ export default function BankStatementEdit() {
           <div className="overflow-auto flex-1">
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-background">
-                <TableRow>
-                  <TableHead className="w-[50px]">R.br.</TableHead>
-                  <TableHead className="w-[350px]">Šifra plaćanja</TableHead>
-                  <TableHead className="w-[300px]">Partner</TableHead>
-                  <TableHead className="w-[200px]">TR partnera</TableHead>
-                   <TableHead className="w-[300px]">Konto</TableHead>
+                 <TableRow>
+                   <TableHead className="w-[50px]">R.br.</TableHead>
+                   <TableHead className="w-[300px]">Šifra plaćanja</TableHead>
+                   <TableHead className="w-[120px]">Partner</TableHead>
+                   <TableHead className="w-[180px]">TR partnera</TableHead>
+                   <TableHead className="w-[250px]">Konto</TableHead>
                    <TableHead className="w-[100px]">Analitika</TableHead>
                    <TableHead className="w-[140px]">Dokument</TableHead>
-                  <TableHead className="w-[130px] text-right">Isplata (D)</TableHead>
-                  <TableHead className="w-[130px] text-right">Uplata (P)</TableHead>
-                  {isDraft && <TableHead className="w-[80px]" />}
+                   <TableHead className="w-[150px]">Poziv na broj</TableHead>
+                   <TableHead className="w-[150px]">Napomena</TableHead>
+                   <TableHead className="w-[120px] text-right">Isplata (D)</TableHead>
+                   <TableHead className="w-[120px] text-right">Uplata (P)</TableHead>
+                   {isDraft && <TableHead className="w-[80px]" />}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length === 0 && !isDraft ? (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 11 : 10} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
+                    <TableCell colSpan={isDraft ? 13 : 12} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
                   </TableRow>
                 ) : (
                   items.map((item, idx) => renderItemRow(item, idx))
@@ -592,7 +628,7 @@ export default function BankStatementEdit() {
                         ))}
                       </select>
                     </TableCell>
-                    <TableCell className="w-[350px]">
+                     <TableCell className="w-[120px]">
                       <SearchablePartnerSelect
                         partners={partners}
                         value={newItem.partner_id}
@@ -630,63 +666,81 @@ export default function BankStatementEdit() {
                       />
                     </TableCell>
                     <TableCell className="w-[140px]">
-                      <Input
-                        value={newItem.document_reference}
-                        onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
-                        placeholder="Dokument"
-                        className="h-8 text-sm"
-                        autoComplete="off"
-                      />
-                    </TableCell>
-                    <TableCell className="w-[130px]">
-                      <LocaleNumberInput
-                        value={newItem.debit_amount}
-                        onChange={(val) => setNewItem(prev => {
-                          const num = parseLocaleNumber(val);
-                          return { ...prev, debit_amount: val, ...(num > 0 ? { credit_amount: "0,00" } : {}) };
-                        })}
-                        className="h-8 text-right font-mono"
-                      />
-                    </TableCell>
-                    <TableCell className="w-[130px]">
-                      <LocaleNumberInput
-                        value={newItem.credit_amount}
-                        onChange={(val) => setNewItem(prev => {
-                          const num = parseLocaleNumber(val);
-                          return { ...prev, credit_amount: val, ...(num > 0 ? { debit_amount: "0,00" } : {}) };
-                        })}
-                        className="h-8 text-right font-mono"
-                      />
-                    </TableCell>
-                    <TableCell className="w-[80px]">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleAddItem}
-                        disabled={addItem.isPending}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                       <Input
+                         value={newItem.document_reference}
+                         onChange={(e) => setNewItem({ ...newItem, document_reference: e.target.value })}
+                         placeholder="Dokument"
+                         className="h-8 text-sm"
+                         autoComplete="off"
+                       />
+                     </TableCell>
+                     <TableCell className="w-[150px]">
+                       <Input
+                         value={newItem.reference_number}
+                         onChange={(e) => setNewItem({ ...newItem, reference_number: e.target.value })}
+                         placeholder="Poziv na broj"
+                         className="h-8 text-sm"
+                         autoComplete="off"
+                       />
+                     </TableCell>
+                     <TableCell className="w-[150px]">
+                       <Input
+                         value={newItem.description}
+                         onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                         placeholder="Napomena"
+                         className="h-8 text-sm"
+                         autoComplete="off"
+                       />
+                     </TableCell>
+                     <TableCell className="w-[120px]">
+                       <LocaleNumberInput
+                         value={newItem.debit_amount}
+                         onChange={(val) => setNewItem(prev => {
+                           const num = parseLocaleNumber(val);
+                           return { ...prev, debit_amount: val, ...(num > 0 ? { credit_amount: "0,00" } : {}) };
+                         })}
+                         className="h-8 text-right font-mono"
+                       />
+                     </TableCell>
+                     <TableCell className="w-[120px]">
+                       <LocaleNumberInput
+                         value={newItem.credit_amount}
+                         onChange={(val) => setNewItem(prev => {
+                           const num = parseLocaleNumber(val);
+                           return { ...prev, credit_amount: val, ...(num > 0 ? { debit_amount: "0,00" } : {}) };
+                         })}
+                         className="h-8 text-right font-mono"
+                       />
+                     </TableCell>
+                     <TableCell className="w-[80px]">
+                       <Button
+                         variant="ghost"
+                         size="icon"
+                         onClick={handleAddItem}
+                         disabled={addItem.isPending}
+                       >
+                         <Plus className="w-4 h-4" />
+                       </Button>
+                     </TableCell>
+                   </TableRow>
+                 </TableBody>
+               </Table>
+             </div>
+           )}
           {/* Footer totals - outside scroll area */}
           <div className="border-t">
             <Table>
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={8} className="text-right font-medium">Ukupno:</TableCell>
-                  <TableCell className="w-[130px] text-right font-mono font-bold">
-                    {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </TableCell>
-                  <TableCell className="w-[130px] text-right font-mono font-bold">
-                    {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </TableCell>
-                  {isDraft && <TableCell className="w-[80px]" />}
-                </TableRow>
+               <TableFooter>
+                 <TableRow>
+                   <TableCell colSpan={10} className="text-right font-medium">Ukupno:</TableCell>
+                   <TableCell className="w-[120px] text-right font-mono font-bold">
+                     {formatNumber(totalDebit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                   </TableCell>
+                   <TableCell className="w-[120px] text-right font-mono font-bold">
+                     {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                   </TableCell>
+                   {isDraft && <TableCell className="w-[80px]" />}
+                 </TableRow>
               </TableFooter>
             </Table>
           </div>
