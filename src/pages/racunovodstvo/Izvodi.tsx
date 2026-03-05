@@ -53,7 +53,7 @@ export default function Izvodi() {
   const { create, remove } = useBankStatementMutations();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newData, setNewData] = useState({ statement_date: new Date().toISOString().slice(0, 10), bank_account_id: "", opening_balance: "0,00", bank_serial_number: "", description: "" });
-  const [openingBalanceInputVersion, setOpeningBalanceInputVersion] = useState(0);
+  
   const openingBalanceWasAutofilledRef = useRef(false);
   const previousBalanceLookupRef = useRef(0);
   const previousBalanceDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,7 +84,6 @@ export default function Izvodi() {
       if (openingBalanceWasAutofilledRef.current) {
         openingBalanceWasAutofilledRef.current = false;
         setNewData((prev) => (prev.opening_balance === "0,00" ? prev : { ...prev, opening_balance: "0,00" }));
-        setOpeningBalanceInputVersion((v) => v + 1);
       }
       return;
     }
@@ -115,7 +114,6 @@ export default function Izvodi() {
       if (openingBalanceWasAutofilledRef.current) {
         openingBalanceWasAutofilledRef.current = false;
         setNewData((prev) => (prev.opening_balance === "0,00" ? prev : { ...prev, opening_balance: "0,00" }));
-        setOpeningBalanceInputVersion((v) => v + 1);
       }
       return;
     }
@@ -136,14 +134,13 @@ export default function Izvodi() {
       const formatted = formatNumber(data.closing_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       openingBalanceWasAutofilledRef.current = true;
       setNewData((prev) => (prev.opening_balance === formatted ? prev : { ...prev, opening_balance: formatted }));
-      setOpeningBalanceInputVersion((v) => v + 1);
       return;
     }
 
     if (openingBalanceWasAutofilledRef.current) {
       openingBalanceWasAutofilledRef.current = false;
       setNewData((prev) => (prev.opening_balance === "0,00" ? prev : { ...prev, opening_balance: "0,00" }));
-      setOpeningBalanceInputVersion((v) => v + 1);
+      
     }
   }, [selectedCompany?.id, selectedYear?.id]);
 
@@ -407,7 +404,7 @@ export default function Izvodi() {
             <div>
               <Label>Prethodno stanje</Label>
               <LocaleNumberInput
-                key={openingBalanceInputVersion}
+                
                 value={newData.opening_balance}
                 onChange={(val) => {
                   openingBalanceWasAutofilledRef.current = false;

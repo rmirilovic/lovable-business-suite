@@ -56,13 +56,20 @@ const LocaleNumberInput = React.forwardRef<HTMLInputElement, LocaleNumberInputPr
 
     // Convert stored value to display value when external value changes — but NOT while focused
     React.useEffect(() => {
-      if (isFocused) return;
       if (value !== undefined && value !== null) {
-        // Try to parse and format with thousand separators
         const parsed = parseLocaleNumber(value.toString());
         if (!isNaN(parsed) && value.toString().trim() !== '') {
-          setDisplayValue(formatForEdit(parsed));
-        } else {
+          const newFormatted = formatForEdit(parsed);
+          if (isFocused) {
+            // Only update display if the numeric value actually changed (external/programmatic update)
+            const currentParsed = parseLocaleNumber(displayValue);
+            if (isNaN(currentParsed) || Math.abs(parsed - currentParsed) > 0.0001) {
+              setDisplayValue(newFormatted);
+            }
+          } else {
+            setDisplayValue(newFormatted);
+          }
+        } else if (!isFocused) {
           setDisplayValue(value.toString());
         }
       }
