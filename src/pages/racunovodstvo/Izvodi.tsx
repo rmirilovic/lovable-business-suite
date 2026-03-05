@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -49,7 +51,7 @@ export default function Izvodi() {
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
   const { create, remove } = useBankStatementMutations();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newData, setNewData] = useState({ statement_date: new Date().toISOString().slice(0, 10), bank_account_id: "", opening_balance: 0 });
+  const [newData, setNewData] = useState({ statement_date: new Date().toISOString().slice(0, 10), bank_account_id: "", opening_balance: "0,00", bank_serial_number: "", description: "" });
   const [filter, setFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -80,9 +82,20 @@ export default function Izvodi() {
     }
   });
 
+  const parseLocaleNumber = (value: string): number => {
+    if (!value) return 0;
+    return parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
+  };
+
   const handleCreate = async () => {
     if (!newData.bank_account_id) return;
-    const result = await create.mutateAsync(newData);
+    const result = await create.mutateAsync({
+      statement_date: newData.statement_date,
+      bank_account_id: newData.bank_account_id,
+      opening_balance: parseLocaleNumber(newData.opening_balance),
+      bank_serial_number: newData.bank_serial_number || undefined,
+      description: newData.description || undefined,
+    });
     setDialogOpen(false);
     navigate(`/racunovodstvo/izvodi/${result.id}`);
   };
@@ -238,20 +251,20 @@ export default function Izvodi() {
 
       {/* New statement dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Novi izvod</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Datum izvoda</label>
+              <Label>Datum izvoda</Label>
               <LocaleDateInput
                 value={newData.statement_date}
                 onChange={(v) => setNewData({ ...newData, statement_date: v })}
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Tekući račun</label>
+              <Label>Tekući račun</Label>
               <Select value={newData.bank_account_id} onValueChange={(v) => setNewData({ ...newData, bank_account_id: v })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Izaberite tekući račun" />
@@ -264,6 +277,33 @@ export default function Izvodi() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label>R.br. izvoda banke</Label>
+              <Input
+                value={newData.bank_serial_number}
+                onChange={(e) => setNewData({ ...newData, bank_serial_number: e.target.value })}
+                placeholder="—"
+                className="font-mono"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <Label>Prethodno stanje</Label>
+              <LocaleNumberInput
+                value={newData.opening_balance}
+                onChange={(val) => setNewData({ ...newData, opening_balance: val })}
+                className="font-mono"
+              />
+            </div>
+            <div>
+              <Label>Opis / napomena</Label>
+              <Textarea
+                value={newData.description}
+                onChange={(e) => setNewData({ ...newData, description: e.target.value })}
+                placeholder="Opcioni opis..."
+                rows={2}
+              />
             </div>
             <Button onClick={handleCreate} disabled={!newData.bank_account_id || create.isPending} className="w-full">
               Kreiraj izvod
