@@ -688,6 +688,7 @@ export type Database = {
           document_reference: string | null
           id: string
           item_order: number
+          partner_account_number: string | null
           partner_id: string | null
           payment_code_id: string | null
           reference_number: string | null
@@ -703,6 +704,7 @@ export type Database = {
           document_reference?: string | null
           id?: string
           item_order?: number
+          partner_account_number?: string | null
           partner_id?: string | null
           payment_code_id?: string | null
           reference_number?: string | null
@@ -718,6 +720,7 @@ export type Database = {
           document_reference?: string | null
           id?: string
           item_order?: number
+          partner_account_number?: string | null
           partner_id?: string | null
           payment_code_id?: string | null
           reference_number?: string | null
