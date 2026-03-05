@@ -11,7 +11,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X, RefreshCw, History, Eye, FileDown, FileSpreadsheet, Printer } from "lucide-react";
 import {
   useBankStatement,
   useBankStatementItems,
@@ -30,6 +30,9 @@ import { cn } from "@/lib/utils";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { toast } from "sonner";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { BankStatementHeaderDialog } from "@/components/racunovodstvo/BankStatementHeaderDialog";
+import { exportBankStatementToExcel, exportBankStatementPdf, printBankStatement } from "@/lib/bankStatementExportUtils";
 
 const STATUS_LABELS: Record<string, string> = { draft: "Nacrt", posted: "Proknjižen" };
 const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
@@ -58,7 +61,7 @@ export default function BankStatementEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany } = useAuth();
-  const { data: statement, isLoading } = useBankStatement(id || null);
+  const { data: statement, isLoading, refetch } = useBankStatement(id || null);
   const { data: items = [] } = useBankStatementItems(id || null);
   const { data: paymentCodes = [] } = usePaymentCodes();
   const { post, unpost, update } = useBankStatementMutations();
@@ -69,6 +72,8 @@ export default function BankStatementEdit() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<EditingItemState | null>(null);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
   const [headerSerial, setHeaderSerial] = useState(statement?.bank_serial_number || "");
   const [headerOpeningBalance, setHeaderOpeningBalance] = useState(
     statement ? formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00"
@@ -379,7 +384,7 @@ export default function BankStatementEdit() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate("/racunovodstvo/izvodi")}>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/racunovodstvo/izvodi")}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Nazad
             </Button>
@@ -389,17 +394,51 @@ export default function BankStatementEdit() {
             </Badge>
           </div>
           <div className="flex items-center gap-2">
-            {isDraft && items.length > 0 && (
-              <Button onClick={handlePost} disabled={post.isPending}>
-                <BookCheck className="w-4 h-4 mr-2" />
-                Proknjiži
-              </Button>
-            )}
-            {statement.status === "posted" && (
-              <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
-                <Undo2 className="w-4 h-4 mr-2" />
-                Poništi knjiženje
-              </Button>
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => refetch()} title="Osveži">
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              exportBankStatementToExcel({ statement, items, companyName: selectedCompany?.name ?? "" });
+            }} title="Excel">
+              <FileSpreadsheet className="w-4 h-4 mr-2" />Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={async () => {
+              await exportBankStatementPdf({ statement, items, companyName: selectedCompany?.name ?? "" });
+            }} title="PDF">
+              <FileDown className="w-4 h-4 mr-2" />PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={async () => {
+              await printBankStatement({ statement, items, companyName: selectedCompany?.name ?? "" });
+            }} title="Štampa">
+              <Printer className="w-4 h-4 mr-2" />Štampa
+            </Button>
+            {isDraft ? (
+              <>
+                <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+                </Button>
+                {items.length > 0 && (
+                  <Button size="sm" onClick={handlePost} disabled={post.isPending}>
+                    <BookCheck className="w-4 h-4 mr-2" />
+                    Proknjiži
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                  <Eye className="h-4 w-4 mr-2" />Prikaži zaglavlje
+                </Button>
+                {statement.status === "posted" && (
+                  <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
+                    <Undo2 className="w-4 h-4 mr-2" />
+                    Poništi knjiženje
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -666,6 +705,22 @@ export default function BankStatementEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <BankStatementHeaderDialog
+        open={headerDialogOpen}
+        onOpenChange={setHeaderDialogOpen}
+        statement={statement}
+        readOnly={!isDraft}
+        onSaved={() => refetch()}
+      />
+
+      <DocumentHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        documentId={id || ""}
+        documentType="bank_statement"
+        documentName={`Izvod ${statement.statement_number}`}
+      />
     </MainLayout>
   );
 }
