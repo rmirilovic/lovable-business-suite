@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -59,6 +60,23 @@ export default function Izvodi() {
   const [statementToDelete, setStatementToDelete] = useState<any>(null);
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("statement_number", "desc");
 
+  const fetchPreviousBalance = useCallback(async (serialNumber: string, bankAccountId: string) => {
+    if (!serialNumber || !bankAccountId || !selectedCompany?.id) return;
+    const prevSerial = String(Number(serialNumber) - 1);
+    if (isNaN(Number(serialNumber)) || Number(serialNumber) <= 1) return;
+    const { data } = await supabase
+      .from("bank_statements")
+      .select("closing_balance")
+      .eq("company_id", selectedCompany.id)
+      .eq("bank_account_id", bankAccountId)
+      .eq("bank_serial_number", prevSerial)
+      .eq("status", "posted")
+      .maybeSingle();
+    if (data) {
+      const formatted = formatNumber(data.closing_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      setNewData(prev => ({ ...prev, opening_balance: formatted }));
+    }
+  }, [selectedCompany?.id]);
   const filtered = statements.filter((s: any) => {
     const matchesSearch =
       s.statement_number.toLowerCase().includes(filter.toLowerCase()) ||
@@ -283,6 +301,7 @@ export default function Izvodi() {
               <Input
                 value={newData.bank_serial_number}
                 onChange={(e) => setNewData({ ...newData, bank_serial_number: e.target.value })}
+                onBlur={(e) => fetchPreviousBalance(e.target.value, newData.bank_account_id)}
                 placeholder="—"
                 className="font-mono"
                 autoComplete="off"
