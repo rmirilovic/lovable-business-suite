@@ -389,6 +389,9 @@ export default function BankStatementEdit() {
               Nazad
             </Button>
             <h1 className="text-xl font-semibold">{statement.statement_number}</h1>
+            {statement.bank_serial_number && (
+              <span className="text-sm text-muted-foreground">R.br. {statement.bank_serial_number}</span>
+            )}
             <Badge variant={STATUS_VARIANTS[statement.status]}>
               {STATUS_LABELS[statement.status] || statement.status}
             </Badge>
