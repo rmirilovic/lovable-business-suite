@@ -891,14 +891,29 @@ export default function BankStatementEdit() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={handleAddItem}
-                          disabled={addItem.isPending}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleAddItem}
+                            disabled={addItem.isPending}
+                            className="h-7 w-7"
+                            title="Dodaj stavku"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                          {(newItem.payment_code_id || newItem.partner_id || newItem.reference_number || newItem.description || newItem.document_reference || newItem.cost_center_code || newItem.partner_account_number || parseLocaleNumber(newItem.debit_amount) !== 0 || parseLocaleNumber(newItem.credit_amount) !== 0) && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setNewItem({ payment_code_id: "", partner_id: "", reference_number: "", description: "", document_reference: "", debit_amount: "0,00", credit_amount: "0,00", cost_center_code: "", partner_account_number: "" })}
+                              className="h-7 w-7"
+                              title="Poništi unos"
+                            >
+                              <X className="w-4 h-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   </TableBody>
