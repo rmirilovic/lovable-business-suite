@@ -123,6 +123,7 @@ export default function Izvodi() {
       .from("bank_statements")
       .select("closing_balance")
       .eq("company_id", selectedCompany.id)
+      .eq("business_year_id", selectedYear.id)
       .eq("bank_account_id", bankAccountId)
       .eq("bank_serial_number", prevSerial)
       .eq("status", "posted")
