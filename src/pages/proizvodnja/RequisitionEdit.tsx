@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Save, FileText, AlertTriangle, Printer, FileDown, History } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, FileText, AlertTriangle, Printer, FileDown, History, Undo2 } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useMaterialRequisition, useMaterialRequisitionItems, useMaterialRequisitions,
@@ -216,47 +216,47 @@ export default function RequisitionEdit() {
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/proizvodnja/trebovanja")}>
-              <ArrowLeft className="w-5 h-5" />
+            <Button variant="ghost" size="sm" onClick={() => navigate("/proizvodnja/trebovanja")}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Nazad
             </Button>
-            <h2 className="text-lg font-semibold">TR {requisition.requisition_number}</h2>
+            <h1 className="text-xl font-semibold">{requisition.requisition_number}</h1>
             <Badge className={cn("text-xs", REQ_STATUS_COLORS[requisition.status])}>
               {REQ_STATUS_LABELS[requisition.status]}
             </Badge>
-          </div>
-          <div className="flex gap-2">
-            {isDraft && headerDirty && (
-              <Button onClick={handleSaveHeader} disabled={updateRequisition.isPending}>
-                <Save className="w-4 h-4 mr-2" /> Sačuvaj
-              </Button>
-            )}
-            {isDraft && (
-              <Button variant="outline" onClick={handlePost} disabled={cannotPost}>
-                <FileText className="w-4 h-4 mr-2" /> Proknjiži
-              </Button>
-            )}
             {isDraft && woNotLaunched && (
               <span className="text-xs text-destructive flex items-center gap-1">
                 <AlertTriangle className="w-4 h-4" /> RN nije lansiran
               </span>
             )}
-            {requisition.status === "posted" && (
-              <Button variant="outline" onClick={() => {
-                if (confirm("Poništiti knjiženje?")) unpostRequisition.mutateAsync(requisition.id);
-              }}>
-                Poništi knjiženje
-              </Button>
-            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
             <Button variant="outline" size="sm" onClick={() => exportRequisitionPdf(requisition, items, selectedCompany as any)}>
-              <FileDown className="w-4 h-4 mr-2" /> PDF
+              <FileDown className="h-4 w-4 mr-2" />PDF
             </Button>
             <Button variant="outline" size="sm" onClick={() => printRequisition(requisition, items, selectedCompany as any)}>
-              <Printer className="w-4 h-4 mr-2" /> Štampa
+              <Printer className="h-4 w-4 mr-2" />Štampa
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
-              <History className="w-4 h-4 mr-2" /> Istorija
-            </Button>
-            <Button variant="ghost" onClick={() => navigate("/proizvodnja/trebovanja")}>Zatvori</Button>
+            {isDraft && headerDirty && (
+              <Button size="sm" onClick={handleSaveHeader} disabled={updateRequisition.isPending}>
+                <Save className="w-4 h-4 mr-2" />Sačuvaj
+              </Button>
+            )}
+            {isDraft && (
+              <Button size="sm" onClick={handlePost} disabled={cannotPost}>
+                <FileText className="h-4 w-4 mr-2" />Proknjiži
+              </Button>
+            )}
+            {requisition.status === "posted" && (
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => {
+                if (confirm("Poništiti knjiženje?")) unpostRequisition.mutateAsync(requisition.id);
+              }}>
+                <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
+              </Button>
+            )}
           </div>
         </div>
 
