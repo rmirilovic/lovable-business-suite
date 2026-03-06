@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Save, FileText, AlertTriangle, Printer, FileDown, History, Undo2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, BookCheck, AlertTriangle, Printer, FileDown, History, Undo2 } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useMaterialRequisition, useMaterialRequisitionItems, useMaterialRequisitions,
@@ -247,7 +247,7 @@ export default function RequisitionEdit() {
             )}
             {isDraft && (
               <Button size="sm" onClick={handlePost} disabled={cannotPost}>
-                <FileText className="h-4 w-4 mr-2" />Proknjiži
+                <BookCheck className="h-4 w-4 mr-2" />Proknjiži
               </Button>
             )}
             {requisition.status === "posted" && (
