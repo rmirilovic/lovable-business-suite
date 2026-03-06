@@ -221,7 +221,10 @@ export default function ProductionDeliveryNoteEdit() {
               {PDN_STATUS_LABELS[note.status] ?? note.status}
             </Badge>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
+              <History className="w-4 h-4" />
+            </Button>
             <Button variant="outline" size="sm" onClick={handleExportExcel} title="Excel">
               <FileSpreadsheet className="w-4 h-4 mr-1" /> Excel
             </Button>
@@ -232,27 +235,24 @@ export default function ProductionDeliveryNoteEdit() {
               <Printer className="w-4 h-4 mr-1" /> Štampaj
             </Button>
             {isDraft && headerDirty && (
-              <Button onClick={handleSaveHeader}>
+              <Button size="sm" onClick={handleSaveHeader}>
                 <Save className="w-4 h-4 mr-2" /> Sačuvaj
               </Button>
             )}
             {isDraft && (
-              <Button onClick={() => {
+              <Button size="sm" onClick={() => {
                 if (confirm("Proknjižiti predajnicu?")) postNote.mutateAsync(note.id);
               }}>
                 <Lock className="w-4 h-4 mr-2" /> Proknjiži
               </Button>
             )}
             {!isDraft && (
-              <Button variant="outline" className="text-destructive border-destructive hover:bg-destructive/10" onClick={() => {
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => {
                 if (confirm("Poništiti knjiženje predajnice?")) unpostNote.mutateAsync(note.id);
               }}>
                 <Undo2 className="w-4 h-4 mr-2" /> Poništi knjiženje
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
-              <History className="w-4 h-4 mr-2" /> Istorija
-            </Button>
           </div>
         </div>
 
