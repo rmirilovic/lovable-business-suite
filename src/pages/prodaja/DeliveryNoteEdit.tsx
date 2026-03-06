@@ -238,7 +238,7 @@ export default function DeliveryNoteEdit() {
             )}
             {isPosted && !deliveryNote.invoice_id && (
               <Button variant="outline" size="sm" className="text-destructive border-destructive hover:bg-destructive/10" onClick={() => setRevertDialogOpen(true)}>
-                <Undo2 className="h-4 w-4 mr-2" />Vrati u nacrt
+                <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
               </Button>
             )}
           </div>
