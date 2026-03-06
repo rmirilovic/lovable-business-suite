@@ -185,7 +185,7 @@ export default function Prijemnice() {
   const getStatusBadge = (status: string, sourceInvoiceId: string | null) => {
     if (status === "posted") {
       return (
-        <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+        <Badge variant="default">
           Proknjiženo
         </Badge>
       );
@@ -197,7 +197,7 @@ export default function Prijemnice() {
         </Badge>
       );
     }
-    return <Badge variant="outline">Nacrt</Badge>;
+    return <Badge variant="secondary">Nacrt</Badge>;
   };
 
   if (isLoading) {
