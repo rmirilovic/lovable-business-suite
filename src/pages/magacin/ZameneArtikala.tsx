@@ -193,9 +193,9 @@ export default function ZameneArtikala() {
                     <TableCell className="text-right font-mono">{formatDecimal(swap.swap_value, 2)}</TableCell>
                     <TableCell>
                       {swap.status === "posted" ? (
-                        <Badge variant="default" className="bg-green-600 hover:bg-green-700">Proknjiženo</Badge>
+                        <Badge variant="default">Proknjiženo</Badge>
                       ) : (
-                        <Badge variant="outline">Nacrt</Badge>
+                        <Badge variant="secondary">Nacrt</Badge>
                       )}
                     </TableCell>
                     <TableCell className="relative z-10" onClick={(e) => e.stopPropagation()}>

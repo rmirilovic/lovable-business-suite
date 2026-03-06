@@ -333,9 +333,9 @@ export default function ArticleSwapEdit() {
             </h1>
             {!isNew && (
               isPosted ? (
-                <Badge variant="default" className="bg-green-600 hover:bg-green-700">Proknjiženo</Badge>
+                <Badge variant="default">Proknjiženo</Badge>
               ) : (
-                <Badge variant="outline">Nacrt</Badge>
+                <Badge variant="secondary">Nacrt</Badge>
               )
             )}
           </div>
