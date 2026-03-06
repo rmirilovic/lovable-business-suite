@@ -16,6 +16,13 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -130,9 +137,10 @@ const navigation: NavItem[] = [
 interface SidebarProps {
   mobileOpen?: boolean;
   onMobileClose?: () => void;
+  collapsed?: boolean;
 }
 
-export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin } = useAuth();
@@ -227,17 +235,19 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center shrink-0">
               <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-sidebar-foreground">
-                Mini ERP
-              </h1>
-              <p className="text-xs text-sidebar-foreground/60">
-                Poslovno rešenje
-              </p>
-            </div>
+            {!collapsed && (
+              <div>
+                <h1 className="text-lg font-semibold text-sidebar-foreground">
+                  Mini ERP
+                </h1>
+                <p className="text-xs text-sidebar-foreground/60">
+                  Poslovno rešenje
+                </p>
+              </div>
+            )}
           </div>
           {/* Close button - mobile only */}
           {onMobileClose && (
@@ -251,28 +261,47 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         </div>
 
         {/* Company & Year Selector */}
-        <div className="space-y-2">
-          <button 
-            onClick={handleChangeCompany}
-            className="w-full flex items-center justify-between px-3 py-2 bg-sidebar-accent rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <Building2 className="w-4 h-4" />
-              <span className="truncate">{selectedCompany?.name || "Izaberite firmu"}</span>
-            </span>
-            <ChevronDown className="w-4 h-4 opacity-60" />
-          </button>
-          <button 
-            onClick={handleChangeCompany}
-            className="w-full flex items-center justify-between px-3 py-2 bg-sidebar-accent rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>Godina {selectedYear?.year || "-"}</span>
-            </span>
-            <ChevronDown className="w-4 h-4 opacity-60" />
-          </button>
-        </div>
+        {!collapsed ? (
+          <div className="space-y-2">
+            <button 
+              onClick={handleChangeCompany}
+              className="w-full flex items-center justify-between px-3 py-2 bg-sidebar-accent rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                <span className="truncate">{selectedCompany?.name || "Izaberite firmu"}</span>
+              </span>
+              <ChevronDown className="w-4 h-4 opacity-60" />
+            </button>
+            <button 
+              onClick={handleChangeCompany}
+              className="w-full flex items-center justify-between px-3 py-2 bg-sidebar-accent rounded-md text-sm text-sidebar-foreground hover:bg-sidebar-accent/80 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>Godina {selectedYear?.year || "-"}</span>
+              </span>
+              <ChevronDown className="w-4 h-4 opacity-60" />
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-2 flex flex-col items-center">
+            <button
+              onClick={handleChangeCompany}
+              className="p-2 rounded-md bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors"
+              title={selectedCompany?.name || "Izaberite firmu"}
+            >
+              <Building2 className="w-4 h-4 text-sidebar-foreground" />
+            </button>
+            <button
+              onClick={handleChangeCompany}
+              className="p-2 rounded-md bg-sidebar-accent hover:bg-sidebar-accent/80 transition-colors"
+              title={`Godina ${selectedYear?.year || "-"}`}
+            >
+              <Calendar className="w-4 h-4 text-sidebar-foreground" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}
@@ -280,20 +309,61 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
         {filteredNavigation.map((item) => (
           <div key={item.label}>
             {item.href ? (
-              <a
-                href={item.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate(item.href!);
-                }}
-                className={cn(
-                  "erp-sidebar-link",
-                  isActive(item.href) && "erp-sidebar-link-active"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </a>
+              collapsed ? (
+                <button
+                  onClick={() => navigate(item.href!)}
+                  className={cn(
+                    "w-full flex items-center justify-center p-2 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
+                    isActive(item.href) && "erp-sidebar-link-active"
+                  )}
+                  title={item.label}
+                >
+                  <item.icon className="w-5 h-5" />
+                </button>
+              ) : (
+                <a
+                  href={item.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(item.href!);
+                  }}
+                  className={cn(
+                    "erp-sidebar-link",
+                    isActive(item.href) && "erp-sidebar-link-active"
+                  )}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </a>
+              )
+            ) : collapsed ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "w-full flex items-center justify-center p-2 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
+                      isParentActive(item.children) && "text-sidebar-foreground bg-sidebar-accent"
+                    )}
+                    title={item.label}
+                  >
+                    <item.icon className="w-5 h-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" align="start" className="min-w-48">
+                  <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">{item.label}</DropdownMenuLabel>
+                  {item.children && getFilteredChildren(item.children).map((child) => (
+                    <DropdownMenuItem
+                      key={child.href}
+                      onClick={() => navigate(child.href)}
+                      className={cn(
+                        isActive(child.href) && "bg-accent font-medium"
+                      )}
+                    >
+                      {child.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <>
                 <button
@@ -343,33 +413,44 @@ export function Sidebar({ mobileOpen, onMobileClose }: SidebarProps) {
 
       {/* User Section */}
       <div className="p-3 border-t border-sidebar-border">
-        <button 
-          onClick={handleSignOut}
-          className="erp-sidebar-link w-full text-sidebar-foreground/70 hover:text-destructive"
-        >
-          <LogOut className="w-5 h-5" />
-          <span>Odjavi se</span>
-        </button>
+        {collapsed ? (
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center justify-center p-2 rounded-md text-sidebar-foreground/70 hover:text-destructive transition-colors"
+            title="Odjavi se"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        ) : (
+          <button 
+            onClick={handleSignOut}
+            className="erp-sidebar-link w-full text-sidebar-foreground/70 hover:text-destructive"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Odjavi se</span>
+          </button>
+        )}
       </div>
     </>
   );
 
   return (
     <>
-      {/* Desktop sidebar - always visible */}
-      <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-sidebar-border flex-col">
+      {/* Desktop sidebar */}
+      <aside className={cn(
+        "hidden lg:flex fixed left-0 top-0 z-40 h-screen bg-sidebar border-r border-sidebar-border flex-col transition-[width] duration-200",
+        collapsed ? "w-16" : "w-64"
+      )}>
         {sidebarContent}
       </aside>
 
       {/* Mobile sidebar - overlay */}
       {mobileOpen && (
         <>
-          {/* Backdrop */}
           <div
             className="lg:hidden fixed inset-0 z-40 bg-black/50"
             onClick={onMobileClose}
           />
-          {/* Sidebar panel */}
           <aside className="lg:hidden fixed left-0 top-0 z-50 h-screen w-64 bg-sidebar border-r border-sidebar-border flex flex-col animate-slide-in-left">
             {sidebarContent}
           </aside>

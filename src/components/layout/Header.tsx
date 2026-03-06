@@ -1,4 +1,4 @@
-import { Bell, Search, Settings, LogOut, Menu } from "lucide-react";
+import { Bell, Search, Settings, LogOut, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,14 +12,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HeaderProps {
   title: string;
   userName: string;
   onMobileMenuToggle?: () => void;
+  onSidebarToggle?: () => void;
+  sidebarCollapsed?: boolean;
 }
 
-export function Header({ title, userName, onMobileMenuToggle }: HeaderProps) {
+export function Header({ title, userName, onMobileMenuToggle, onSidebarToggle, sidebarCollapsed }: HeaderProps) {
   const navigate = useNavigate();
   const { signOut, user, isSuperAdmin, isLocalAdmin } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -27,18 +30,15 @@ export function Header({ title, userName, onMobileMenuToggle }: HeaderProps) {
   useEffect(() => {
     const fetchAvatar = async () => {
       if (!user) return;
-      
       const { data } = await supabase
         .from("profiles")
         .select("avatar_url")
         .eq("id", user.id)
         .maybeSingle();
-      
       if (data?.avatar_url) {
         setAvatarUrl(data.avatar_url);
       }
     };
-    
     fetchAvatar();
   }, [user]);
 
@@ -75,6 +75,26 @@ export function Header({ title, userName, onMobileMenuToggle }: HeaderProps) {
           >
             <Menu className="w-5 h-5 text-foreground" />
           </button>
+        )}
+        {/* Sidebar toggle - desktop only */}
+        {onSidebarToggle && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onSidebarToggle}
+                className="hidden lg:flex p-2 -ml-2 rounded-md hover:bg-secondary transition-colors"
+              >
+                {sidebarCollapsed ? (
+                  <PanelLeftOpen className="w-5 h-5 text-muted-foreground" />
+                ) : (
+                  <PanelLeftClose className="w-5 h-5 text-muted-foreground" />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {sidebarCollapsed ? "Prikaži meni" : "Sakrij meni"}
+            </TooltipContent>
+          </Tooltip>
         )}
         <h1 className="text-lg lg:text-xl font-semibold text-foreground truncate">{title}</h1>
       </div>
