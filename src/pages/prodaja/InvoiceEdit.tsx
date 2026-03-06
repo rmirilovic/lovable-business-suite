@@ -389,26 +389,7 @@ export default function InvoiceEdit() {
               <div className="text-muted-foreground">Fakturu sastavio</div>
               <div className="font-medium">{invoice.composed_by || "-"}</div>
             </div>
-            <div>
-              <div className="text-muted-foreground">Mesto prometa</div>
-              <div className="font-medium">{invoice.mesto_prometa || "-"}</div>
             </div>
-            <div>
-              <div className="text-muted-foreground">Datum prometa</div>
-              <div className="font-medium">{invoice.datum_prometa ? formatDate(invoice.datum_prometa) : "-"}</div>
-            </div>
-            <div>
-              <div className="text-muted-foreground">Tekući račun</div>
-              <div className="font-medium">
-                {invoice.bank_account_id
-                  ? (() => {
-                      const ba = bankAccounts.find((b) => b.id === invoice.bank_account_id);
-                      return ba ? `${ba.account_number} (${ba.bank_name})` : "-";
-                    })()
-                  : "-"}
-              </div>
-            </div>
-          </div>
 
           {/* Partner info */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -437,6 +418,28 @@ export default function InvoiceEdit() {
             <div>
               <div className="text-muted-foreground">Matični broj</div>
               <div className="font-medium">{invoice.partner_mb ?? invoice.partner?.mb ?? "-"}</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <div className="text-muted-foreground">Mesto prometa</div>
+              <div className="font-medium">{invoice.mesto_prometa || "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Datum prometa</div>
+              <div className="font-medium">{invoice.datum_prometa ? formatDate(invoice.datum_prometa) : "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Tekući račun</div>
+              <div className="font-medium">
+                {invoice.bank_account_id
+                  ? (() => {
+                      const ba = bankAccounts.find((b) => b.id === invoice.bank_account_id);
+                      return ba ? `${ba.account_number} (${ba.bank_name})` : "-";
+                    })()
+                  : "-"}
+              </div>
             </div>
           </div>
         </div>

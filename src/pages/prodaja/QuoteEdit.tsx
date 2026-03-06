@@ -368,21 +368,6 @@ export default function QuoteEdit() {
               <div className="text-muted-foreground">Ponudu sastavio</div>
               <div className="font-medium">{quote.composed_by || "-"}</div>
             </div>
-            <div>
-              <div className="text-muted-foreground">Tekući račun</div>
-              <div className="font-medium">
-                {quote.bank_account_id
-                  ? (() => {
-                      const ba = bankAccounts.find((b) => b.id === quote.bank_account_id);
-                      return ba ? `${ba.account_number} (${ba.bank_name})` : "-";
-                    })()
-                  : "-"}
-              </div>
-            </div>
-            <div>
-              <div className="text-muted-foreground">Način plaćanja</div>
-              <div className="font-medium">{quote.payment_method || "-"}</div>
-            </div>
           </div>
 
           {/* Partner info */}
@@ -410,8 +395,26 @@ export default function QuoteEdit() {
               <div className="font-medium">{quote.partner_pib ?? quote.partner?.pib ?? "-"}</div>
             </div>
             <div>
-              <div className="text-muted-foreground">Ponudu odobrio</div>
-              <div className="font-medium">{quote.approved_by_name || "-"}</div>
+              <div className="text-muted-foreground">Matični broj</div>
+              <div className="font-medium">{quote.partner_mb ?? quote.partner?.mb ?? "-"}</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <div className="text-muted-foreground">Tekući račun</div>
+              <div className="font-medium">
+                {quote.bank_account_id
+                  ? (() => {
+                      const ba = bankAccounts.find((b) => b.id === quote.bank_account_id);
+                      return ba ? `${ba.account_number} (${ba.bank_name})` : "-";
+                    })()
+                  : "-"}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Način plaćanja</div>
+              <div className="font-medium">{quote.payment_method || "-"}</div>
             </div>
           </div>
         </div>

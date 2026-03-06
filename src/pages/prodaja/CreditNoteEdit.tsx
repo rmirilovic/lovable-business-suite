@@ -279,10 +279,6 @@ export default function CreditNoteEdit() {
             <div><div className="text-muted-foreground">Datum valute</div><div className="font-medium">{doc.due_date ? formatDate(doc.due_date) : "-"}</div></div>
             <div><div className="text-muted-foreground">Org. jedinica</div><div className="font-medium">{doc.org_unit_id ? units.find((u) => u.id === doc.org_unit_id)?.name || "-" : "-"}</div></div>
             <div><div className="text-muted-foreground">Dokument sastavio</div><div className="font-medium">{doc.composed_by || "-"}</div></div>
-            <div><div className="text-muted-foreground">Tekući račun</div><div className="font-medium">{(doc as any).bank_account_id ? (() => { const ba = bankAccounts.find((b) => b.id === (doc as any).bank_account_id); return ba ? `${ba.account_number} (${ba.bank_name})` : "-"; })() : "-"}</div></div>
-            <div><div className="text-muted-foreground">Datum uplate</div><div className="font-medium">{(doc as any).payment_date ? formatDate((doc as any).payment_date) : "-"}</div></div>
-            <div><div className="text-muted-foreground">Poziv na broj</div><div className="font-medium">{(doc as any).payment_reference || "-"}</div></div>
-            <div><div className="text-muted-foreground">Ugovor/referenca</div><div className="font-medium">{(doc as any).contract_reference || "-"}</div></div>
           </div>
 
           {/* Partner info */}
@@ -302,6 +298,13 @@ export default function CreditNoteEdit() {
             </div>
             <div><div className="text-muted-foreground">PIB</div><div className="font-medium">{doc.partner_pib ?? doc.partner?.pib ?? "-"}</div></div>
             <div><div className="text-muted-foreground">Matični broj</div><div className="font-medium">{doc.partner_mb ?? doc.partner?.mb ?? "-"}</div></div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div><div className="text-muted-foreground">Tekući račun</div><div className="font-medium">{(doc as any).bank_account_id ? (() => { const ba = bankAccounts.find((b) => b.id === (doc as any).bank_account_id); return ba ? `${ba.account_number} (${ba.bank_name})` : "-"; })() : "-"}</div></div>
+            <div><div className="text-muted-foreground">Datum uplate</div><div className="font-medium">{(doc as any).payment_date ? formatDate((doc as any).payment_date) : "-"}</div></div>
+            <div><div className="text-muted-foreground">Poziv na broj</div><div className="font-medium">{(doc as any).payment_reference || "-"}</div></div>
+            <div><div className="text-muted-foreground">Ugovor/referenca</div><div className="font-medium">{(doc as any).contract_reference || "-"}</div></div>
           </div>
         </div>
 
