@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, ArrowLeft, RefreshCw, Plus, Trash2, FileCode, FileDown, FileSpreadsheet, Printer, CheckCircle, Undo2, History, Pencil, Eye } from "lucide-react";
+import { PartnerCardButton } from "@/components/shared/PartnerCardDialog";
 import { AdvanceInvoice, AdvanceInvoiceItem, useAdvanceInvoiceItems, useAdvanceInvoices } from "@/hooks/useAdvanceInvoices";
 import { AdvanceInvoiceHeaderDialog } from "@/components/prodaja/AdvanceInvoiceHeaderDialog";
 import { formatDate, formatPrice } from "@/lib/formatting";
@@ -283,8 +284,13 @@ export default function AdvanceInvoiceEdit() {
                  {doc.partner_address ?? doc.partner?.address}
                  {(doc.partner_city ?? doc.partner?.city) && `, ${doc.partner_postal_code ?? doc.partner?.postal_code ?? ""} ${doc.partner_city ?? doc.partner?.city}`}
                </div>
-             )}
-           </div>
+              )}
+              {doc.partner_id && (
+                <div className="mt-1">
+                  <PartnerCardButton partnerId={doc.partner_id} partnerName={doc.partner?.name || doc.partner_name || "Kupac"} />
+                </div>
+              )}
+            </div>
            <div><div className="text-muted-foreground">PIB</div><div className="font-medium">{doc.partner_pib ?? doc.partner?.pib ?? "-"}</div></div>
            <div><div className="text-muted-foreground">Matični broj</div><div className="font-medium">{doc.partner_mb ?? doc.partner?.mb ?? "-"}</div></div>
          </div>
