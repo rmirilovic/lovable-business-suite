@@ -172,6 +172,7 @@ export default function Izvodi() {
       case "bank_account": return `${item.bank_accounts?.account_number || ""} ${item.bank_accounts?.bank_name || ""}`;
       case "total_debit": return Number(item.total_debit);
       case "total_credit": return Number(item.total_credit);
+      case "closing_balance": return Number(item.closing_balance);
       case "status": return item.status;
       default: return null;
     }
@@ -265,6 +266,9 @@ export default function Izvodi() {
                 <TableHead className="w-[130px] text-right">
                   <SortableHeader column="total_credit" label="Potražuje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
                 </TableHead>
+                <TableHead className="w-[130px] text-right">
+                  <SortableHeader column="closing_balance" label="Novo stanje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                </TableHead>
                 <TableHead className="w-[100px]">
                   <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
@@ -274,11 +278,11 @@ export default function Izvodi() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Učitavanje...</TableCell>
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Učitavanje...</TableCell>
                 </TableRow>
               ) : sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     {filter || dateFrom || dateTo ? "Nema rezultata pretrage" : "Nema izvoda"}
                   </TableCell>
                 </TableRow>
@@ -301,6 +305,9 @@ export default function Izvodi() {
                     </TableCell>
                     <TableCell className="text-right font-mono">
                       {formatNumber(s.total_credit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {formatNumber(s.closing_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
                       <Badge variant={STATUS_VARIANTS[s.status]}>
