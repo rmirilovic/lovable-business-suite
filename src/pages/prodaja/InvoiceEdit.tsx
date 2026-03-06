@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, CheckCircle, ArrowLeft, RefreshCw, History, Pencil, Eye, FileCode, FileDown, FileSpreadsheet, Printer, Undo2 } from "lucide-react";
+import { PartnerCardButton } from "@/components/shared/PartnerCardDialog";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { InvoiceItemsEditor } from "@/components/prodaja/InvoiceItemsEditor";
@@ -420,6 +421,11 @@ export default function InvoiceEdit() {
               <div className="text-xs text-muted-foreground">
                 {invoice.partner_address ?? invoice.partner?.address}
                 {(invoice.partner_city ?? invoice.partner?.city) && `, ${invoice.partner_postal_code ?? invoice.partner?.postal_code ?? ""} ${invoice.partner_city ?? invoice.partner?.city}`}
+              </div>
+            )}
+            {invoice.partner_id && (
+              <div className="mt-1">
+                <PartnerCardButton partnerId={invoice.partner_id} partnerName={invoice.partner?.name || invoice.partner_name || "Kupac"} />
               </div>
             )}
           </div>

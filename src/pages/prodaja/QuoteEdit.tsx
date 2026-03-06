@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, FilePlus, ArrowRightLeft, Truck, Pencil, FileText, Undo2 } from "lucide-react";
+import { PartnerCardButton } from "@/components/shared/PartnerCardDialog";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "@/components/prodaja/QuoteItemsEditor";
 import { QuoteHeaderDialog } from "@/components/prodaja/QuoteHeaderDialog";
@@ -395,6 +396,11 @@ export default function QuoteEdit() {
               <div className="text-xs text-muted-foreground">
                 {quote.partner_address ?? quote.partner?.address}
                 {(quote.partner_city ?? quote.partner?.city) && `, ${quote.partner_postal_code ?? quote.partner?.postal_code ?? ""} ${quote.partner_city ?? quote.partner?.city}`}
+              </div>
+            )}
+            {quote.partner_id && (
+              <div className="mt-1">
+                <PartnerCardButton partnerId={quote.partner_id} partnerName={quote.partner?.name || quote.partner_name || "Kupac"} />
               </div>
             )}
           </div>
