@@ -347,7 +347,7 @@ export default function CalculationEdit() {
             {calculation.status === "posted" && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" disabled={unpostCalculation.isPending}>
+                  <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" disabled={unpostCalculation.isPending}>
                     {unpostCalculation.isPending ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
