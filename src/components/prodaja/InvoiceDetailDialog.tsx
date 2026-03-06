@@ -8,6 +8,7 @@ import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { InvoiceItemsEditor } from "./InvoiceItemsEditor";
 import { formatDate, formatPrice } from "@/lib/formatting";
 import { CheckCircle, FileText, BookOpen } from "lucide-react";
+import { PartnerCardButton } from "@/components/shared/PartnerCardDialog";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -107,6 +108,11 @@ export function InvoiceDetailDialog({
               <p className="text-sm text-muted-foreground">Kupac</p>
               <p className="font-medium">{invoice.partner?.name || "-"}</p>
               <p className="text-sm text-muted-foreground">{invoice.partner?.code}</p>
+              {invoice.partner_id && (
+                <div className="mt-2">
+                  <PartnerCardButton partnerId={invoice.partner_id} partnerName={invoice.partner?.name || "Kupac"} />
+                </div>
+              )}
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Datum fakture</p>

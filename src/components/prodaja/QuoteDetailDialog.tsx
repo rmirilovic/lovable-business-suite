@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { FileText, Pencil, ArrowRightLeft, Printer, Check, Truck, Copy, FilePlus } from "lucide-react";
+import { PartnerCardButton } from "@/components/shared/PartnerCardDialog";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "./QuoteItemsEditor";
 import { QuotePartnerEditor } from "./QuotePartnerEditor";
@@ -208,7 +209,14 @@ export function QuoteDetailDialog({
 
         {/* Header info */}
         <div className="grid grid-cols-2 gap-6">
-          <QuotePartnerEditor quote={quote} isEditable={isEditable} />
+          <div>
+            <QuotePartnerEditor quote={quote} isEditable={isEditable} />
+            {quote.partner_id && (
+              <div className="mt-2">
+                <PartnerCardButton partnerId={quote.partner_id} partnerName={quote.partner?.name || quote.partner_name || "Kupac"} />
+              </div>
+            )}
+          </div>
           <div className="space-y-3">
             {quote.valid_until && (
               <div>
