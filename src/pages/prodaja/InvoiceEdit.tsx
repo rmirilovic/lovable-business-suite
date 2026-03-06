@@ -367,75 +367,77 @@ export default function InvoiceEdit() {
         </div>
 
         {/* Header info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
-          <div>
-            <div className="text-muted-foreground">Datum fakture</div>
-            <div className="font-medium">{formatDate(invoice.invoice_date)}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Datum valute</div>
-            <div className="font-medium">{invoice.due_date ? formatDate(invoice.due_date) : "-"}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Org. jedinica</div>
-            <div className="font-medium">
-              {invoice.org_unit_id
-                ? units.find((u) => u.id === invoice.org_unit_id)?.name || "-"
-                : "-"}
+        <div className="space-y-4 bg-muted/30 p-4 rounded-lg text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <div className="text-muted-foreground">Datum fakture</div>
+              <div className="font-medium">{formatDate(invoice.invoice_date)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Datum valute</div>
+              <div className="font-medium">{invoice.due_date ? formatDate(invoice.due_date) : "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Org. jedinica</div>
+              <div className="font-medium">
+                {invoice.org_unit_id
+                  ? units.find((u) => u.id === invoice.org_unit_id)?.name || "-"
+                  : "-"}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Fakturu sastavio</div>
+              <div className="font-medium">{invoice.composed_by || "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Mesto prometa</div>
+              <div className="font-medium">{invoice.mesto_prometa || "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Datum prometa</div>
+              <div className="font-medium">{invoice.datum_prometa ? formatDate(invoice.datum_prometa) : "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Tekući račun</div>
+              <div className="font-medium">
+                {invoice.bank_account_id
+                  ? (() => {
+                      const ba = bankAccounts.find((b) => b.id === invoice.bank_account_id);
+                      return ba ? `${ba.account_number} (${ba.bank_name})` : "-";
+                    })()
+                  : "-"}
+              </div>
             </div>
           </div>
-          <div>
-            <div className="text-muted-foreground">Fakturu sastavio</div>
-            <div className="font-medium">{invoice.composed_by || "-"}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Mesto prometa</div>
-            <div className="font-medium">{invoice.mesto_prometa || "-"}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Datum prometa</div>
-            <div className="font-medium">{invoice.datum_prometa ? formatDate(invoice.datum_prometa) : "-"}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Tekući račun</div>
-            <div className="font-medium">
-              {invoice.bank_account_id
-                ? (() => {
-                    const ba = bankAccounts.find((b) => b.id === invoice.bank_account_id);
-                    return ba ? `${ba.account_number} (${ba.bank_name})` : "-";
-                  })()
-                : "-"}
-            </div>
-          </div>
-        </div>
 
-        {/* Partner info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="col-span-2">
-            <div className="text-muted-foreground">Kupac</div>
-            <div className="font-medium">
-              {invoice.partner?.code && <span className="text-muted-foreground mr-1">[{invoice.partner.code}]</span>}
-              {invoice.partner_name ?? invoice.partner?.name}
+          {/* Partner info */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="col-span-2">
+              <div className="text-muted-foreground">Kupac</div>
+              <div className="font-medium">
+                {invoice.partner?.code && <span className="text-muted-foreground mr-1">[{invoice.partner.code}]</span>}
+                {invoice.partner_name ?? invoice.partner?.name}
+              </div>
+              {(invoice.partner_address ?? invoice.partner?.address) && (
+                <div className="text-xs text-muted-foreground">
+                  {invoice.partner_address ?? invoice.partner?.address}
+                  {(invoice.partner_city ?? invoice.partner?.city) && `, ${invoice.partner_postal_code ?? invoice.partner?.postal_code ?? ""} ${invoice.partner_city ?? invoice.partner?.city}`}
+                </div>
+              )}
+              {invoice.partner_id && (
+                <div className="mt-1">
+                  <PartnerCardButton partnerId={invoice.partner_id} partnerName={invoice.partner?.name || invoice.partner_name || "Kupac"} />
+                </div>
+              )}
             </div>
-            {(invoice.partner_address ?? invoice.partner?.address) && (
-              <div className="text-xs text-muted-foreground">
-                {invoice.partner_address ?? invoice.partner?.address}
-                {(invoice.partner_city ?? invoice.partner?.city) && `, ${invoice.partner_postal_code ?? invoice.partner?.postal_code ?? ""} ${invoice.partner_city ?? invoice.partner?.city}`}
-              </div>
-            )}
-            {invoice.partner_id && (
-              <div className="mt-1">
-                <PartnerCardButton partnerId={invoice.partner_id} partnerName={invoice.partner?.name || invoice.partner_name || "Kupac"} />
-              </div>
-            )}
-          </div>
-          <div>
-            <div className="text-muted-foreground">PIB</div>
-            <div className="font-medium">{invoice.partner_pib ?? invoice.partner?.pib ?? "-"}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Matični broj</div>
-            <div className="font-medium">{invoice.partner_mb ?? invoice.partner?.mb ?? "-"}</div>
+            <div>
+              <div className="text-muted-foreground">PIB</div>
+              <div className="font-medium">{invoice.partner_pib ?? invoice.partner?.pib ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Matični broj</div>
+              <div className="font-medium">{invoice.partner_mb ?? invoice.partner?.mb ?? "-"}</div>
+            </div>
           </div>
         </div>
 
