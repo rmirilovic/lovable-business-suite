@@ -15,6 +15,7 @@ interface DeliveryNoteItemsEditorPageProps {
   companyId: string;
   warehouseId: string | null;
   isReadOnly: boolean;
+  hideStock?: boolean;
   onItemsChanged?: () => void;
 }
 
@@ -36,6 +37,7 @@ export function DeliveryNoteItemsEditorPage({
   companyId,
   warehouseId,
   isReadOnly,
+  hideStock,
   onItemsChanged,
 }: DeliveryNoteItemsEditorPageProps) {
   const { selectedCompany } = useAuth();
@@ -178,7 +180,8 @@ export function DeliveryNoteItemsEditorPage({
     saveItems(newItems);
   };
 
-  const colCount = isReadOnly ? 5 : 6;
+  const stockVisible = !hideStock;
+  const colCount = (isReadOnly ? 4 : 5) + (stockVisible ? 1 : 0);
 
   return (
     <div className="space-y-4">
@@ -207,7 +210,7 @@ export function DeliveryNoteItemsEditorPage({
               <TableHead className="w-[100px]">Šifra</TableHead>
               <TableHead>Naziv</TableHead>
               <TableHead className="w-[80px]">JM</TableHead>
-              <TableHead className="w-[100px] text-right">Zaliha</TableHead>
+              {stockVisible && <TableHead className="w-[100px] text-right">Zaliha</TableHead>}
               <TableHead className="w-[120px] text-right">Količina</TableHead>
               {!isReadOnly && <TableHead className="w-[50px]"></TableHead>}
             </TableRow>
@@ -225,7 +228,7 @@ export function DeliveryNoteItemsEditorPage({
                   <TableCell className="font-medium">{item.item_code}</TableCell>
                   <TableCell>{item.item_name}</TableCell>
                   <TableCell>{item.unit}</TableCell>
-                  <TableCell className="text-right">{formatDecimal(item.available_stock)}</TableCell>
+                  {stockVisible && <TableCell className="text-right">{formatDecimal(item.available_stock)}</TableCell>}
                   <TableCell className="text-right">
                     {isReadOnly ? (
                       formatDecimal(item.quantity)

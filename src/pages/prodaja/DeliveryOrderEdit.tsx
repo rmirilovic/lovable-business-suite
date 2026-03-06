@@ -358,6 +358,7 @@ export default function DeliveryOrderEdit() {
           companyId={order.company_id}
           warehouseId={order.warehouse_id}
           isReadOnly={!isDraft}
+          hideStock={order.status === "shipped"}
           onItemsChanged={fetchOrder}
         />
       </div>
