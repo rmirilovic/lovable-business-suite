@@ -345,72 +345,74 @@ export default function QuoteEdit() {
           </div>
         </div>
 
-        {/* Header info - read-only display */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/30 p-4 rounded-lg">
-          <div>
-            <div className="text-muted-foreground">Datum ponude</div>
-            <div className="font-medium">{formatDate(quote.quote_date)}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Važi do</div>
-            <div className="font-medium">{quote.valid_until ? formatDate(quote.valid_until) : "-"}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Org. jedinica</div>
-            <div className="font-medium">
-              {quote.org_unit_id
-                ? units.find((u) => u.id === quote.org_unit_id)?.name || "-"
-                : "-"}
+        {/* Header info */}
+        <div className="space-y-4 bg-muted/30 p-4 rounded-lg text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <div className="text-muted-foreground">Datum ponude</div>
+              <div className="font-medium">{formatDate(quote.quote_date)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Važi do</div>
+              <div className="font-medium">{quote.valid_until ? formatDate(quote.valid_until) : "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Org. jedinica</div>
+              <div className="font-medium">
+                {quote.org_unit_id
+                  ? units.find((u) => u.id === quote.org_unit_id)?.name || "-"
+                  : "-"}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Ponudu sastavio</div>
+              <div className="font-medium">{quote.composed_by || "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Tekući račun</div>
+              <div className="font-medium">
+                {quote.bank_account_id
+                  ? (() => {
+                      const ba = bankAccounts.find((b) => b.id === quote.bank_account_id);
+                      return ba ? `${ba.account_number} (${ba.bank_name})` : "-";
+                    })()
+                  : "-"}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Način plaćanja</div>
+              <div className="font-medium">{quote.payment_method || "-"}</div>
             </div>
           </div>
-          <div>
-            <div className="text-muted-foreground">Ponudu sastavio</div>
-            <div className="font-medium">{quote.composed_by || "-"}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Tekući račun</div>
-            <div className="font-medium">
-              {quote.bank_account_id
-                ? (() => {
-                    const ba = bankAccounts.find((b) => b.id === quote.bank_account_id);
-                    return ba ? `${ba.account_number} (${ba.bank_name})` : "-";
-                  })()
-                : "-"}
-            </div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Način plaćanja</div>
-            <div className="font-medium">{quote.payment_method || "-"}</div>
-          </div>
-        </div>
 
-        {/* Partner info */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="col-span-2">
-            <div className="text-muted-foreground">Kupac</div>
-            <div className="font-medium">
-              {quote.partner?.code && <span className="text-muted-foreground mr-1">[{quote.partner.code}]</span>}
-              {quote.partner_name ?? quote.partner?.name}
+          {/* Partner info */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="col-span-2">
+              <div className="text-muted-foreground">Kupac</div>
+              <div className="font-medium">
+                {quote.partner?.code && <span className="text-muted-foreground mr-1">[{quote.partner.code}]</span>}
+                {quote.partner_name ?? quote.partner?.name}
+              </div>
+              {(quote.partner_address ?? quote.partner?.address) && (
+                <div className="text-xs text-muted-foreground">
+                  {quote.partner_address ?? quote.partner?.address}
+                  {(quote.partner_city ?? quote.partner?.city) && `, ${quote.partner_postal_code ?? quote.partner?.postal_code ?? ""} ${quote.partner_city ?? quote.partner?.city}`}
+                </div>
+              )}
+              {quote.partner_id && (
+                <div className="mt-1">
+                  <PartnerCardButton partnerId={quote.partner_id} partnerName={quote.partner?.name || quote.partner_name || "Kupac"} />
+                </div>
+              )}
             </div>
-            {(quote.partner_address ?? quote.partner?.address) && (
-              <div className="text-xs text-muted-foreground">
-                {quote.partner_address ?? quote.partner?.address}
-                {(quote.partner_city ?? quote.partner?.city) && `, ${quote.partner_postal_code ?? quote.partner?.postal_code ?? ""} ${quote.partner_city ?? quote.partner?.city}`}
-              </div>
-            )}
-            {quote.partner_id && (
-              <div className="mt-1">
-                <PartnerCardButton partnerId={quote.partner_id} partnerName={quote.partner?.name || quote.partner_name || "Kupac"} />
-              </div>
-            )}
-          </div>
-          <div>
-            <div className="text-muted-foreground">PIB</div>
-            <div className="font-medium">{quote.partner_pib ?? quote.partner?.pib ?? "-"}</div>
-          </div>
-          <div>
-            <div className="text-muted-foreground">Ponudu odobrio</div>
-            <div className="font-medium">{quote.approved_by_name || "-"}</div>
+            <div>
+              <div className="text-muted-foreground">PIB</div>
+              <div className="font-medium">{quote.partner_pib ?? quote.partner?.pib ?? "-"}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground">Ponudu odobrio</div>
+              <div className="font-medium">{quote.approved_by_name || "-"}</div>
+            </div>
           </div>
         </div>
 
