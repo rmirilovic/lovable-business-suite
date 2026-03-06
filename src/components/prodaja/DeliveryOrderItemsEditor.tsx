@@ -15,6 +15,7 @@ interface DeliveryOrderItemsEditorProps {
   companyId: string;
   warehouseId: string | null;
   isReadOnly: boolean;
+  hideStock?: boolean;
   onItemsChanged?: () => void;
 }
 
@@ -33,7 +34,7 @@ interface ItemRow {
 
 const SVK_MATERIAL_GOODS = ["1", "2", "9"];
 
-export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isReadOnly, onItemsChanged }: DeliveryOrderItemsEditorProps) {
+export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isReadOnly, hideStock, onItemsChanged }: DeliveryOrderItemsEditorProps) {
   const { selectedCompany } = useAuth();
   const { articles } = useArticles(selectedCompany?.id);
   const [items, setItems] = useState<ItemRow[]>([]);
@@ -182,7 +183,8 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isRe
   };
 
   const grandTotal = items.reduce((s, i) => s + i.line_total, 0);
-  const colCount = isReadOnly ? 7 : 8;
+  const stockVisible = !hideStock;
+  const colCount = (isReadOnly ? 6 : 7) + (stockVisible ? 1 : 0);
 
   return (
     <div className="space-y-4">
@@ -212,7 +214,7 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isRe
               <TableHead className="w-[100px]">Šifra</TableHead>
               <TableHead>Naziv</TableHead>
               <TableHead className="w-[80px]">JM</TableHead>
-              <TableHead className="w-[100px] text-right">Zaliha</TableHead>
+              {stockVisible && <TableHead className="w-[100px] text-right">Zaliha</TableHead>}
               <TableHead className="w-[120px] text-right">Količina</TableHead>
               <TableHead className="w-[130px] text-right">Cena za fakt.</TableHead>
               <TableHead className="w-[130px] text-right">Iznos za fakt.</TableHead>
@@ -230,7 +232,7 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isRe
                   <TableCell className="font-medium">{item.item_code}</TableCell>
                   <TableCell>{item.item_name}</TableCell>
                   <TableCell>{item.unit}</TableCell>
-                  <TableCell className="text-right">{formatDecimal(item.available_stock)}</TableCell>
+                  {stockVisible && <TableCell className="text-right">{formatDecimal(item.available_stock)}</TableCell>}
                   <TableCell className="text-right">
                     {isReadOnly ? formatDecimal(item.quantity) : (
                       <LocaleNumberInput
@@ -266,7 +268,7 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isRe
           {items.length > 0 && (
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={6} className="text-right font-semibold">Ukupno za fakturisanje:</TableCell>
+                <TableCell colSpan={stockVisible ? 6 : 5} className="text-right font-semibold">Ukupno za fakturisanje:</TableCell>
                 <TableCell className="text-right font-semibold">{formatDecimal(grandTotal, 2)}</TableCell>
                 {!isReadOnly && <TableCell />}
               </TableRow>

@@ -305,6 +305,7 @@ export default function DeliveryNoteEdit() {
           companyId={deliveryNote.company_id}
           warehouseId={deliveryNote.warehouse_id}
           isReadOnly={!isDraft}
+          hideStock={deliveryNote.status === "posted"}
           onItemsChanged={fetchDeliveryNote}
         />
       </div>
