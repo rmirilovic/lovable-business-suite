@@ -173,9 +173,9 @@ export default function Nivelacije() {
                     <TableCell className="text-right text-destructive">{a.total_decrease > 0 ? formatDecimal(a.total_decrease, 2) : ""}</TableCell>
                     <TableCell>
                       {a.status === "posted" ? (
-                        <Badge variant="default" className="bg-green-600 hover:bg-green-700">Proknjiženo</Badge>
+                        <Badge variant="default">Proknjiženo</Badge>
                       ) : (
-                        <Badge variant="outline">Nacrt</Badge>
+                        <Badge variant="secondary">Nacrt</Badge>
                       )}
                     </TableCell>
                     <TableCell className="relative z-10" onClick={(e) => e.stopPropagation()}>

@@ -140,9 +140,9 @@ export default function PriceAdjustmentEdit() {
             </Button>
             <h1 className="text-xl font-semibold">{doc.adjustment_number}</h1>
             {isPosted ? (
-              <Badge variant="default" className="bg-green-600 hover:bg-green-700">Proknjiženo</Badge>
+              <Badge variant="default">Proknjiženo</Badge>
             ) : (
-              <Badge variant="outline">Nacrt</Badge>
+              <Badge variant="secondary">Nacrt</Badge>
             )}
           </div>
           <div className="flex items-center gap-2">
