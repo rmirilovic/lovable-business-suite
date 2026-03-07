@@ -45,6 +45,7 @@ export function useInvoiceMutations() {
       if (formData.mesto_prometa !== undefined) updatePayload.mesto_prometa = formData.mesto_prometa;
       if (formData.datum_prometa !== undefined) updatePayload.datum_prometa = formData.datum_prometa;
       if (formData.bank_account_id !== undefined) updatePayload.bank_account_id = formData.bank_account_id;
+      if (formData.advance_invoice_id !== undefined) updatePayload.advance_invoice_id = formData.advance_invoice_id;
 
       const { data, error } = await supabase
         .from("invoices")

@@ -62,6 +62,8 @@ export default function InvoiceEdit() {
     deliveryNoteNumber?: string;
     deliveryOrderNumber?: string;
     quoteNumber?: string;
+    advanceInvoiceNumber?: string;
+    advanceInvoiceAmount?: number;
   }>({});
 
   const { postInvoice, unpostInvoice } = useInvoiceMutations();
@@ -146,6 +148,19 @@ export default function InvoiceEdit() {
         .eq("id", inv.source_quote_id)
         .single();
       if (q) docs.quoteNumber = q.quote_number;
+    }
+
+    // If invoice has advance deduction
+    if (inv.advance_invoice_id) {
+      const { data: adv } = await supabase
+        .from("advance_invoices")
+        .select("advance_number, total_amount")
+        .eq("id", inv.advance_invoice_id)
+        .single();
+      if (adv) {
+        docs.advanceInvoiceNumber = adv.advance_number;
+        docs.advanceInvoiceAmount = adv.total_amount;
+      }
     }
 
     setLinkedDocs(docs);
@@ -475,6 +490,17 @@ export default function InvoiceEdit() {
             </div>
           )}
         </div>
+
+        {/* Advance invoice deduction info */}
+        {linkedDocs.advanceInvoiceNumber && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/50 border border-accent text-sm">
+            <span className="text-muted-foreground">Avansna faktura:</span>
+            <span className="font-medium">AF {linkedDocs.advanceInvoiceNumber}</span>
+            <span className="text-muted-foreground">—</span>
+            <span className="font-medium">{formatPrice(linkedDocs.advanceInvoiceAmount || 0)}</span>
+            <span className="text-muted-foreground text-xs">(oduzeto od potraživanja, PDV storniran)</span>
+          </div>
+        )}
 
         {/* Notes */}
         {(invoice.note || invoice.internal_note || invoice.header_note) && (

@@ -26,7 +26,8 @@ import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
-import { Eye } from "lucide-react";
+import { Eye, Info } from "lucide-react";
+import { formatPrice } from "@/lib/formatting";
 
 interface InvoiceHeaderDialogProps {
   open: boolean;
@@ -78,7 +79,18 @@ export function InvoiceHeaderDialog({
     mesto_prometa: "" as string | null,
     datum_prometa: "" as string | null,
     bank_account_id: "" as string | null,
+    advance_invoice_id: "" as string | null,
   });
+
+  // Advance invoices for selected partner
+  interface AvailableAdvance {
+    id: string;
+    advance_number: string;
+    total_amount: number;
+    vat_amount: number;
+    advance_date: string;
+  }
+  const [availableAdvances, setAvailableAdvances] = useState<AvailableAdvance[]>([]);
 
   useEffect(() => {
     if (!invoice || !open) return;
@@ -128,10 +140,43 @@ export function InvoiceHeaderDialog({
       mesto_prometa: invoice.mesto_prometa || "",
       datum_prometa: invoice.datum_prometa || "",
       bank_account_id: invoice.bank_account_id || defaultBankId,
+      advance_invoice_id: invoice.advance_invoice_id || "",
     });
+
+    // Fetch available advances for the partner
+    fetchAdvancesForPartner(invoice.partner_id);
 
     loadDefaults();
   }, [invoice, open, bankAccounts, selectedCompany?.id]);
+
+  const fetchAdvancesForPartner = async (partnerId: string) => {
+    if (!partnerId || !selectedCompany?.id) {
+      setAvailableAdvances([]);
+      return;
+    }
+    // Get posted advance invoices for this partner that are not already used by another invoice
+    const { data } = await supabase
+      .from("advance_invoices")
+      .select("id, advance_number, total_amount, vat_amount, advance_date")
+      .eq("company_id", selectedCompany.id)
+      .eq("partner_id", partnerId)
+      .eq("status", "posted")
+      .order("advance_date", { ascending: false });
+
+    if (!data) { setAvailableAdvances([]); return; }
+
+    // Filter out advances already used by other invoices (not this one)
+    const { data: usedAdvances } = await supabase
+      .from("invoices")
+      .select("advance_invoice_id")
+      .eq("company_id", selectedCompany.id)
+      .not("advance_invoice_id", "is", null)
+      .neq("id", invoice?.id || "00000000-0000-0000-0000-000000000000");
+
+    const usedIds = new Set((usedAdvances || []).map((u) => u.advance_invoice_id));
+    const available = data.filter((a) => !usedIds.has(a.id) || a.id === invoice?.advance_invoice_id);
+    setAvailableAdvances(available);
+  };
 
   const handlePartnerChange = (partnerId: string) => {
     const p = customerPartners.find((x) => x.id === partnerId);
@@ -144,7 +189,9 @@ export function InvoiceHeaderDialog({
       partner_postal_code: p?.postal_code ?? "",
       partner_pib: p?.pib ?? "",
       partner_mb: p?.mb ?? "",
+      advance_invoice_id: "", // Reset advance when partner changes
     }));
+    fetchAdvancesForPartner(partnerId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -181,6 +228,7 @@ export function InvoiceHeaderDialog({
       mesto_prometa: formData.mesto_prometa || null,
       datum_prometa: formData.datum_prometa || null,
       bank_account_id: formData.bank_account_id || null,
+      advance_invoice_id: formData.advance_invoice_id || null,
     });
     onOpenChange(false);
     onSaved?.();
@@ -516,6 +564,41 @@ export function InvoiceHeaderDialog({
               </div>
             )}
           </div>
+
+          {/* Advance invoice deduction */}
+          {formData.invoice_type_code === "380" && availableAdvances.length > 0 && (
+            <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <Label className="text-sm font-medium text-blue-700 dark:text-blue-300">Pozivanje na avansnu fakturu</Label>
+              </div>
+              <Select
+                value={formData.advance_invoice_id || "none"}
+                onValueChange={(v) => setFormData({ ...formData, advance_invoice_id: v === "none" ? "" : v })}
+                disabled={readOnly}
+              >
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="-- Bez avansne fakture --" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">-- Bez avansne fakture --</SelectItem>
+                  {availableAdvances.map((adv) => (
+                    <SelectItem key={adv.id} value={adv.id}>
+                      AF {adv.advance_number} — {formatPrice(adv.total_amount)} (PDV: {formatPrice(adv.vat_amount)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formData.advance_invoice_id && (() => {
+                const sel = availableAdvances.find((a) => a.id === formData.advance_invoice_id);
+                return sel ? (
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    Ukupan iznos avansa {formatPrice(sel.total_amount)} će biti oduzet od potraživanja kupca. PDV iz avansa ({formatPrice(sel.vat_amount)}) biće storniran u GK i POPDV.
+                  </p>
+                ) : null;
+              })()}
+            </div>
+          )}
 
           {/* Notes */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
