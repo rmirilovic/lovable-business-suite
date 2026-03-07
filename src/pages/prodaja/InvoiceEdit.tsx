@@ -150,6 +150,19 @@ export default function InvoiceEdit() {
       if (q) docs.quoteNumber = q.quote_number;
     }
 
+    // If invoice has advance deduction
+    if (inv.advance_invoice_id) {
+      const { data: adv } = await supabase
+        .from("advance_invoices")
+        .select("advance_number, total_amount")
+        .eq("id", inv.advance_invoice_id)
+        .single();
+      if (adv) {
+        docs.advanceInvoiceNumber = adv.advance_number;
+        docs.advanceInvoiceAmount = adv.total_amount;
+      }
+    }
+
     setLinkedDocs(docs);
   };
 
