@@ -62,6 +62,8 @@ export default function InvoiceEdit() {
     deliveryNoteNumber?: string;
     deliveryOrderNumber?: string;
     quoteNumber?: string;
+    advanceInvoiceNumber?: string;
+    advanceInvoiceAmount?: number;
   }>({});
 
   const { postInvoice, unpostInvoice } = useInvoiceMutations();
