@@ -374,7 +374,7 @@ export default function AdvanceInvoiceEdit() {
                     </TableCell>
                     <TableCell>
                       {isDraft ? (
-                        <LocaleNumberInput value={String(item.unit_price)} onChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: item.quantity, unit_price: Number(v), vat_rate: item.vat_rate })} className="h-8 text-sm w-[100px]" />
+                        <LocaleNumberInput value={String(item.unit_price)} onChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: item.quantity, unit_price: parseLocaleNumber(v), vat_rate: item.vat_rate })} className="h-8 text-sm w-[100px]" />
                       ) : formatPrice(item.unit_price)}
                     </TableCell>
                     <TableCell>
