@@ -228,6 +228,7 @@ export function InvoiceHeaderDialog({
       mesto_prometa: formData.mesto_prometa || null,
       datum_prometa: formData.datum_prometa || null,
       bank_account_id: formData.bank_account_id || null,
+      advance_invoice_id: formData.advance_invoice_id || null,
     });
     onOpenChange(false);
     onSaved?.();
