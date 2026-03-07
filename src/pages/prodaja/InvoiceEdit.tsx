@@ -491,6 +491,17 @@ export default function InvoiceEdit() {
           )}
         </div>
 
+        {/* Advance invoice deduction info */}
+        {linkedDocs.advanceInvoiceNumber && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-accent/50 border border-accent text-sm">
+            <span className="text-muted-foreground">Avansna faktura:</span>
+            <span className="font-medium">AF {linkedDocs.advanceInvoiceNumber}</span>
+            <span className="text-muted-foreground">—</span>
+            <span className="font-medium">{formatPrice(linkedDocs.advanceInvoiceAmount || 0)}</span>
+            <span className="text-muted-foreground text-xs">(oduzeto od potraživanja, PDV storniran)</span>
+          </div>
+        )}
+
         {/* Notes */}
         {(invoice.note || invoice.internal_note || invoice.header_note) && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
