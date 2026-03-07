@@ -238,6 +238,70 @@ export default function InventoryCountEdit() {
             <Button variant="ghost" size="sm" onClick={fetchCount} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
+            {items.length > 0 && (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />Excel
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => exportInventoryCountToExcel(items, exportMeta, totals)}>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />Excel (puni)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => exportInventoryCountBlankToExcel(items, exportMeta)}>
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />Excel (prazni za popis)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <FileDown className="h-4 w-4 mr-2" />PDF
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => exportInventoryCountPdf(items, exportMeta, totals)}>
+                      <FileDown className="h-4 w-4 mr-2" />PDF (puni)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => exportInventoryCountBlankPdf(items, exportMeta)}>
+                      <FileDown className="h-4 w-4 mr-2" />PDF (prazni za popis)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Printer className="h-4 w-4 mr-2" />Štampa
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => printInventoryCount(items, exportMeta, totals)}>
+                      <Printer className="h-4 w-4 mr-2" />Štampa (puni)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => printInventoryCountBlank(items, exportMeta)}>
+                      <Printer className="h-4 w-4 mr-2" />Štampa (prazni za popis)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+            {isDraft && canEdit && (
+              <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+              </Button>
+            )}
+            {isDraft && canPost && (
+              <Button size="sm" onClick={() => setPostDialogOpen(true)}>
+                <BookCheck className="h-4 w-4 mr-2" />Proknjiži
+              </Button>
+            )}
+            {isPosted && canPost && (
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
+                <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
+              </Button>
+            )}
           </div>
         </div>
 
@@ -267,9 +331,8 @@ export default function InventoryCountEdit() {
           </div>
         )}
 
-        {/* Action bar with search left, post/unpost right */}
-        <div className="flex flex-wrap items-center gap-2 mb-2">
-          {/* Search - far left */}
+        {/* Search bar */}
+        <div className="flex items-center gap-2 mb-2">
           <div className="relative w-56">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -279,76 +342,6 @@ export default function InventoryCountEdit() {
               className="pl-8 h-9 text-sm"
             />
           </div>
-
-          {isDraft && canEdit && (
-            <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
-              <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
-            </Button>
-          )}
-
-          <div className="flex-1" />
-
-          {items.length > 0 && (
-            <>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <FileSpreadsheet className="h-4 w-4 mr-2" />Excel
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => exportInventoryCountToExcel(items, exportMeta, totals)}>
-                    <FileSpreadsheet className="h-4 w-4 mr-2" />Excel (puni)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => exportInventoryCountBlankToExcel(items, exportMeta)}>
-                    <FileSpreadsheet className="h-4 w-4 mr-2" />Excel (prazni za popis)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <FileDown className="h-4 w-4 mr-2" />PDF
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => exportInventoryCountPdf(items, exportMeta, totals)}>
-                    <FileDown className="h-4 w-4 mr-2" />PDF (puni)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => exportInventoryCountBlankPdf(items, exportMeta)}>
-                    <FileDown className="h-4 w-4 mr-2" />PDF (prazni za popis)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Printer className="h-4 w-4 mr-2" />Štampa
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => printInventoryCount(items, exportMeta, totals)}>
-                    <Printer className="h-4 w-4 mr-2" />Štampa (puni)
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => printInventoryCountBlank(items, exportMeta)}>
-                    <Printer className="h-4 w-4 mr-2" />Štampa (prazni za popis)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          )}
-
-          {/* Post/Unpost - far right after Štampa */}
-          {isDraft && canPost && (
-            <Button size="sm" onClick={() => setPostDialogOpen(true)}>
-              <BookCheck className="h-4 w-4 mr-2" />Proknjiži
-            </Button>
-          )}
-          {isPosted && canPost && (
-            <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => setUnpostDialogOpen(true)}>
-              <Undo2 className="h-4 w-4 mr-2" />Poništi knjiženje
-            </Button>
-          )}
         </div>
 
         <Separator className="mb-2" />
