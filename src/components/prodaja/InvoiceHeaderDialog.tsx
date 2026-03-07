@@ -26,7 +26,8 @@ import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
-import { Eye } from "lucide-react";
+import { Eye, Info } from "lucide-react";
+import { formatPrice } from "@/lib/formatting";
 
 interface InvoiceHeaderDialogProps {
   open: boolean;
