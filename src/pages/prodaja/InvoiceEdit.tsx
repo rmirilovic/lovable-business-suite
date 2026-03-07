@@ -279,14 +279,18 @@ export default function InvoiceEdit() {
   const handleExportPdf = async () => {
     const data = await fetchInvoiceDataForExport();
     if (!data || !invoice) return;
-    await generateInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null);
+    const advanceInfo = linkedDocs.advanceInvoiceNumber && linkedDocs.advanceInvoiceAmount
+      ? { number: linkedDocs.advanceInvoiceNumber, amount: linkedDocs.advanceInvoiceAmount } : undefined;
+    await generateInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null, advanceInfo);
     toast.success("PDF je uspešno exportovan");
   };
 
   const handlePrint = async () => {
     const data = await fetchInvoiceDataForExport();
     if (!data || !invoice) return;
-    await printInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null);
+    const advanceInfo = linkedDocs.advanceInvoiceNumber && linkedDocs.advanceInvoiceAmount
+      ? { number: linkedDocs.advanceInvoiceNumber, amount: linkedDocs.advanceInvoiceAmount } : undefined;
+    await printInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null, advanceInfo);
   };
 
   const handleExportExcel = async () => {
