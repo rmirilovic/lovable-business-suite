@@ -565,6 +565,41 @@ export function InvoiceHeaderDialog({
             )}
           </div>
 
+          {/* Advance invoice deduction */}
+          {formData.invoice_type_code === "380" && availableAdvances.length > 0 && (
+            <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <Label className="text-sm font-medium text-blue-700 dark:text-blue-300">Pozivanje na avansnu fakturu</Label>
+              </div>
+              <Select
+                value={formData.advance_invoice_id || "none"}
+                onValueChange={(v) => setFormData({ ...formData, advance_invoice_id: v === "none" ? "" : v })}
+                disabled={readOnly}
+              >
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="-- Bez avansne fakture --" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">-- Bez avansne fakture --</SelectItem>
+                  {availableAdvances.map((adv) => (
+                    <SelectItem key={adv.id} value={adv.id}>
+                      AF {adv.advance_number} — {formatPrice(adv.total_amount)} (PDV: {formatPrice(adv.vat_amount)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formData.advance_invoice_id && (() => {
+                const sel = availableAdvances.find((a) => a.id === formData.advance_invoice_id);
+                return sel ? (
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    Ukupan iznos avansa {formatPrice(sel.total_amount)} će biti oduzet od potraživanja kupca. PDV iz avansa ({formatPrice(sel.vat_amount)}) biće storniran u GK i POPDV.
+                  </p>
+                ) : null;
+              })()}
+            </div>
+          )}
+
           {/* Notes */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
