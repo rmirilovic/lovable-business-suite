@@ -12,6 +12,11 @@ interface MainLayoutProps {
 
 export function MainLayout({ children, title }: MainLayoutProps) {
   const { user } = useAuth();
+
+  useEffect(() => {
+    document.title = title ? `${title} | ERP Mirilo` : "ERP Mirilo";
+    return () => { document.title = "ERP Mirilo"; };
+  }, [title]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
