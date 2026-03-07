@@ -281,9 +281,10 @@ export function useAdvanceInvoiceItems(advanceInvoiceId: string | null) {
   const addItem = useMutation({
     mutationFn: async (item: AdvanceInvoiceItemFormData & { advance_invoice_id: string }) => {
       if (!selectedCompany?.id) throw new Error("Potrebno je izabrati firmu");
-      const lineSubtotal = item.quantity * item.unit_price;
-      const lineVat = lineSubtotal * (item.vat_rate / 100);
-      const lineTotal = lineSubtotal + lineVat;
+      // Calculate subtotal and VAT from the total amount (line_total)
+      const lineTotal = item.line_total ?? (item.quantity * item.unit_price * (1 + item.vat_rate / 100));
+      const lineSubtotal = item.vat_rate > 0 ? lineTotal / (1 + item.vat_rate / 100) : lineTotal;
+      const lineVat = lineTotal - lineSubtotal;
       const { data: existing } = await supabase
         .from("advance_invoice_items")
         .select("item_order")
@@ -299,8 +300,8 @@ export function useAdvanceInvoiceItems(advanceInvoiceId: string | null) {
           item_order: nextOrder,
           description: item.description,
           unit: item.unit,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
+          quantity: 1,
+          unit_price: lineSubtotal,
           vat_rate: item.vat_rate,
           tax_category_code: item.tax_category_code || "S",
           tax_exemption_reason: item.tax_exemption_reason || null,
