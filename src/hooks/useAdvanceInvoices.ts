@@ -107,6 +107,7 @@ export interface AdvanceInvoiceItemFormData {
   quantity: number;
   unit_price: number;
   vat_rate: number;
+  line_total?: number;
   tax_category_code?: string;
   tax_exemption_reason?: string | null;
 }
