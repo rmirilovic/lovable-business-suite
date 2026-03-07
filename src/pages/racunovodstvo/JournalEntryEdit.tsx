@@ -274,9 +274,9 @@ export default function JournalEntryEdit() {
           )}
         </div>
 
-        <div className="rounded-md border">
+        <div className="rounded-md border max-h-[60vh] overflow-auto">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-background">
               <TableRow>
                 <TableHead className="w-[100px]">Konto</TableHead>
                 <TableHead className="w-[200px]">Naziv konta</TableHead>
