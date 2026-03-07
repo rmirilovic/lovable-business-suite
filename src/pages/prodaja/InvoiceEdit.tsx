@@ -298,7 +298,9 @@ export default function InvoiceEdit() {
     const { data: itemsData, error } = await supabase
       .from("invoice_items").select("*").eq("invoice_id", invoice.id).order("item_order");
     if (error || !itemsData) { toast.error("Greška pri učitavanju stavki"); return; }
-    exportInvoiceToExcel(invoice, itemsData as any);
+    const advanceInfo = linkedDocs.advanceInvoiceNumber && linkedDocs.advanceInvoiceAmount
+      ? { number: linkedDocs.advanceInvoiceNumber, amount: linkedDocs.advanceInvoiceAmount } : undefined;
+    exportInvoiceToExcel(invoice, itemsData as any, advanceInfo);
     toast.success("Excel je uspešno exportovan");
   };
 
