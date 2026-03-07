@@ -61,7 +61,8 @@ async function buildInvoicePdf(
   company: CompanyData,
   partner: PartnerData,
   bankAccountText?: string | null,
-  deliveryNoteNumber?: string | null
+  deliveryNoteNumber?: string | null,
+  advanceInfo?: { number: string; amount: number }
 ): Promise<jsPDF> {
   await initializePdfFonts();
 
