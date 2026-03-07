@@ -342,61 +342,53 @@ export default function AdvanceInvoiceEdit() {
             {isDraft && <Button size="sm" variant="outline" onClick={handleAddItem}><Plus className="w-4 h-4 mr-2" />Dodaj stavku</Button>}
           </div>
           <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-8">#</TableHead>
-                  <TableHead className="min-w-[250px]">Opis</TableHead>
-                  <TableHead className="w-[80px]">Kol.</TableHead>
-                  <TableHead className="w-[120px]">Cena</TableHead>
-                  <TableHead className="w-[80px]">PDV %</TableHead>
-                  <TableHead className="text-right w-[120px]">Osnovica</TableHead>
-                  <TableHead className="text-right w-[100px]">PDV</TableHead>
-                  <TableHead className="text-right w-[120px]">Ukupno</TableHead>
-                  {isDraft && <TableHead className="w-10"></TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.length === 0 ? (
-                  <TableRow><TableCell colSpan={isDraft ? 9 : 8} className="text-center py-8 text-muted-foreground">Nema stavki</TableCell></TableRow>
-                ) : items.map((item, idx) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                    <TableCell>
-                      {isDraft ? (
-                        <Input value={item.description} className="h-8 text-sm" onChange={(e) => updateItem.mutate({ id: item.id, description: e.target.value, unit: item.unit, quantity: item.quantity, unit_price: item.unit_price, vat_rate: item.vat_rate })} />
-                      ) : item.description}
-                    </TableCell>
-                    <TableCell>
-                      {isDraft ? (
-                        <LocaleNumberInput value={String(item.quantity)} onChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: parseLocaleNumber(v), unit_price: item.unit_price, vat_rate: item.vat_rate })} className="h-8 text-sm w-[70px]" />
-                      ) : item.quantity}
-                    </TableCell>
-                    <TableCell>
-                      {isDraft ? (
-                        <LocaleNumberInput value={String(item.unit_price)} onChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: item.quantity, unit_price: parseLocaleNumber(v), vat_rate: item.vat_rate })} className="h-8 text-sm w-[100px]" />
-                      ) : formatPrice(item.unit_price)}
-                    </TableCell>
-                    <TableCell>
-                      {isDraft ? (
-                        <Select value={String(item.vat_rate)} onValueChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: item.quantity, unit_price: item.unit_price, vat_rate: Number(v) })}>
-                          <SelectTrigger className="h-8 text-sm w-[70px]"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="20">20%</SelectItem>
-                            <SelectItem value="10">10%</SelectItem>
-                            <SelectItem value="0">0%</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : `${item.vat_rate}%`}
-                    </TableCell>
-                    <TableCell className="text-right">{formatPrice(item.line_subtotal)}</TableCell>
-                    <TableCell className="text-right">{formatPrice(item.line_vat)}</TableCell>
-                    <TableCell className="text-right font-medium">{formatPrice(item.line_total)}</TableCell>
-                    {isDraft && (
-                      <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteItem.mutate(item.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button></TableCell>
-                    )}
-                  </TableRow>
-                ))}
+             <Table>
+               <TableHeader>
+                 <TableRow>
+                   <TableHead className="w-8">#</TableHead>
+                   <TableHead className="min-w-[250px]">Opis</TableHead>
+                   <TableHead className="w-[80px]">PDV %</TableHead>
+                   <TableHead className="text-right w-[120px]">Osnovica</TableHead>
+                   <TableHead className="text-right w-[100px]">PDV</TableHead>
+                   <TableHead className="w-[140px]">Iznos sa PDV</TableHead>
+                   {isDraft && <TableHead className="w-10"></TableHead>}
+                 </TableRow>
+               </TableHeader>
+               <TableBody>
+                 {items.length === 0 ? (
+                   <TableRow><TableCell colSpan={isDraft ? 7 : 6} className="text-center py-8 text-muted-foreground">Nema stavki</TableCell></TableRow>
+                 ) : items.map((item, idx) => (
+                   <TableRow key={item.id}>
+                     <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                     <TableCell>
+                       {isDraft ? (
+                         <Input value={item.description} className="h-8 text-sm" onChange={(e) => updateItem.mutate({ id: item.id, description: e.target.value, unit: item.unit, quantity: 1, unit_price: item.unit_price, vat_rate: item.vat_rate, line_total: item.line_total })} />
+                       ) : item.description}
+                     </TableCell>
+                     <TableCell>
+                       {isDraft ? (
+                         <Select value={String(item.vat_rate)} onValueChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: 1, unit_price: item.unit_price, vat_rate: Number(v), line_total: item.line_total })}>
+                           <SelectTrigger className="h-8 text-sm w-[70px]"><SelectValue /></SelectTrigger>
+                           <SelectContent>
+                             <SelectItem value="20">20%</SelectItem>
+                             <SelectItem value="10">10%</SelectItem>
+                             <SelectItem value="0">0%</SelectItem>
+                           </SelectContent>
+                         </Select>
+                       ) : `${item.vat_rate}%`}
+                     </TableCell>
+                     <TableCell className="text-right">{formatPrice(item.line_subtotal)}</TableCell>
+                     <TableCell className="text-right">{formatPrice(item.line_vat)}</TableCell>
+                     <TableCell>
+                       {isDraft ? (
+                         <LocaleNumberInput value={String(item.line_total)} onChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: 1, unit_price: item.unit_price, vat_rate: item.vat_rate, line_total: parseLocaleNumber(v) })} className="h-8 text-sm w-[120px] text-right" />
+                       ) : formatPrice(item.line_total)}
+                     </TableCell>
+                     {isDraft && (
+                       <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteItem.mutate(item.id)}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button></TableCell>
+                     )}
+                   </TableRow>
+                 ))}
               </TableBody>
             </Table>
           </div>
