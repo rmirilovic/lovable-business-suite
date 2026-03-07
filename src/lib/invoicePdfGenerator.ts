@@ -296,6 +296,20 @@ async function buildInvoicePdf(
   doc.text("UKUPNO:", totalsX - 50, totalsY);
   doc.text(formatPdfNumber(totalForPdf), totalsX, totalsY, { align: "right" });
 
+  // Advance invoice deduction + Amount to pay
+  if (advanceInfo && advanceInfo.amount > 0) {
+    totalsY += 7;
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(10);
+    doc.text(`Avans (AF ${advanceInfo.number}):`, totalsX - 50, totalsY);
+    doc.text(`- ${formatPdfNumber(advanceInfo.amount)}`, totalsX, totalsY, { align: "right" });
+    totalsY += 6;
+    doc.setFont("Roboto", "bold");
+    doc.setFontSize(12);
+    doc.text("IZNOS ZA UPLATU:", totalsX - 50, totalsY);
+    doc.text(formatPdfNumber((totalForPdf || 0) - advanceInfo.amount), totalsX, totalsY, { align: "right" });
+  }
+
   // Tax exemption note
   const taxCat = invoice.tax_category_code || "S";
   if (taxCat !== "S") {
