@@ -79,7 +79,18 @@ export function InvoiceHeaderDialog({
     mesto_prometa: "" as string | null,
     datum_prometa: "" as string | null,
     bank_account_id: "" as string | null,
+    advance_invoice_id: "" as string | null,
   });
+
+  // Advance invoices for selected partner
+  interface AvailableAdvance {
+    id: string;
+    advance_number: string;
+    total_amount: number;
+    vat_amount: number;
+    advance_date: string;
+  }
+  const [availableAdvances, setAvailableAdvances] = useState<AvailableAdvance[]>([]);
 
   useEffect(() => {
     if (!invoice || !open) return;
