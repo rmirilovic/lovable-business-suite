@@ -8,7 +8,7 @@ import { Loader2, ArrowLeft, RefreshCw, Plus, Trash2, FileCode, FileDown, FileSp
 import { PartnerCardButton } from "@/components/shared/PartnerCardDialog";
 import { AdvanceInvoice, AdvanceInvoiceItem, useAdvanceInvoiceItems, useAdvanceInvoices } from "@/hooks/useAdvanceInvoices";
 import { AdvanceInvoiceHeaderDialog } from "@/components/prodaja/AdvanceInvoiceHeaderDialog";
-import { formatDate, formatPrice } from "@/lib/formatting";
+import { formatDate, formatPrice, parseLocaleNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { supabase } from "@/integrations/supabase/client";
@@ -369,12 +369,12 @@ export default function AdvanceInvoiceEdit() {
                     </TableCell>
                     <TableCell>
                       {isDraft ? (
-                        <LocaleNumberInput value={String(item.quantity)} onChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: Number(v), unit_price: item.unit_price, vat_rate: item.vat_rate })} className="h-8 text-sm w-[70px]" />
+                        <LocaleNumberInput value={String(item.quantity)} onChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: parseLocaleNumber(v), unit_price: item.unit_price, vat_rate: item.vat_rate })} className="h-8 text-sm w-[70px]" />
                       ) : item.quantity}
                     </TableCell>
                     <TableCell>
                       {isDraft ? (
-                        <LocaleNumberInput value={String(item.unit_price)} onChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: item.quantity, unit_price: Number(v), vat_rate: item.vat_rate })} className="h-8 text-sm w-[100px]" />
+                        <LocaleNumberInput value={String(item.unit_price)} onChange={(v) => updateItem.mutate({ id: item.id, description: item.description, unit: item.unit, quantity: item.quantity, unit_price: parseLocaleNumber(v), vat_rate: item.vat_rate })} className="h-8 text-sm w-[100px]" />
                       ) : formatPrice(item.unit_price)}
                     </TableCell>
                     <TableCell>
