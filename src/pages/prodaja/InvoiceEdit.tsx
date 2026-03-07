@@ -551,6 +551,19 @@ export default function InvoiceEdit() {
               <span className="font-medium">Ukupno:</span>
               <span className="font-bold">{formatPrice(localTotals.total_amount)}</span>
             </div>
+            {linkedDocs.advanceInvoiceAmount != null && linkedDocs.advanceInvoiceAmount > 0 && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Avans (AF {linkedDocs.advanceInvoiceNumber}):</span>
+                  <span className="font-medium">- {formatPrice(linkedDocs.advanceInvoiceAmount)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between text-base">
+                  <span className="font-semibold text-primary">Iznos za uplatu:</span>
+                  <span className="font-bold text-primary">{formatPrice(localTotals.total_amount - linkedDocs.advanceInvoiceAmount)}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
