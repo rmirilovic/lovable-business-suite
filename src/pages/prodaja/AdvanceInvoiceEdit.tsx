@@ -8,7 +8,7 @@ import { Loader2, ArrowLeft, RefreshCw, Plus, Trash2, FileCode, FileDown, FileSp
 import { PartnerCardButton } from "@/components/shared/PartnerCardDialog";
 import { AdvanceInvoice, AdvanceInvoiceItem, useAdvanceInvoiceItems, useAdvanceInvoices } from "@/hooks/useAdvanceInvoices";
 import { AdvanceInvoiceHeaderDialog } from "@/components/prodaja/AdvanceInvoiceHeaderDialog";
-import { formatDate, formatPrice } from "@/lib/formatting";
+import { formatDate, formatPrice, parseLocaleNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { supabase } from "@/integrations/supabase/client";
