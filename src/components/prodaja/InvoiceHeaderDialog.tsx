@@ -189,7 +189,9 @@ export function InvoiceHeaderDialog({
       partner_postal_code: p?.postal_code ?? "",
       partner_pib: p?.pib ?? "",
       partner_mb: p?.mb ?? "",
+      advance_invoice_id: "", // Reset advance when partner changes
     }));
+    fetchAdvancesForPartner(partnerId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
