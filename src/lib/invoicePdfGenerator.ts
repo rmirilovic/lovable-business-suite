@@ -272,6 +272,7 @@ async function buildInvoicePdf(
 
   // Totals
   const totalsX = pageWidth - 14;
+  const labelsX = totalsX - 70;
   const computedSubtotal = items.reduce((sum, it) => sum + (Number(it.line_subtotal) || 0), 0);
   const computedVat = items.reduce((sum, it) => sum + (Number(it.line_vat) || 0), 0);
   const computedTotal = items.reduce((sum, it) => sum + (Number(it.line_total) || 0), 0);
@@ -283,17 +284,17 @@ async function buildInvoicePdf(
   doc.setFontSize(10);
   doc.setFont("Roboto", "normal");
 
-  doc.text("Osnovica:", totalsX - 50, totalsY);
+  doc.text("Osnovica:", labelsX, totalsY);
   doc.text(formatPdfNumber(subtotalForPdf), totalsX, totalsY, { align: "right" });
   totalsY += 5;
 
-  doc.text("PDV:", totalsX - 50, totalsY);
+  doc.text("PDV:", labelsX, totalsY);
   doc.text(formatPdfNumber(vatForPdf), totalsX, totalsY, { align: "right" });
   totalsY += 6;
 
   doc.setFont("Roboto", "bold");
   doc.setFontSize(11);
-  doc.text("UKUPNO:", totalsX - 50, totalsY);
+  doc.text("UKUPNO:", labelsX, totalsY);
   doc.text(formatPdfNumber(totalForPdf), totalsX, totalsY, { align: "right" });
 
   // Advance invoice deduction + Amount to pay
@@ -301,12 +302,12 @@ async function buildInvoicePdf(
     totalsY += 7;
     doc.setFont("Roboto", "normal");
     doc.setFontSize(10);
-    doc.text(`Avans (AF ${advanceInfo.number}):`, totalsX - 50, totalsY);
+    doc.text(`Avans (AF ${advanceInfo.number}):`, labelsX, totalsY);
     doc.text(`- ${formatPdfNumber(advanceInfo.amount)}`, totalsX, totalsY, { align: "right" });
     totalsY += 6;
     doc.setFont("Roboto", "bold");
     doc.setFontSize(12);
-    doc.text("IZNOS ZA UPLATU:", totalsX - 50, totalsY);
+    doc.text("IZNOS ZA UPLATU:", labelsX, totalsY);
     doc.text(formatPdfNumber((totalForPdf || 0) - advanceInfo.amount), totalsX, totalsY, { align: "right" });
   }
 
