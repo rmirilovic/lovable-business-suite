@@ -61,7 +61,8 @@ async function buildInvoicePdf(
   company: CompanyData,
   partner: PartnerData,
   bankAccountText?: string | null,
-  deliveryNoteNumber?: string | null
+  deliveryNoteNumber?: string | null,
+  advanceInfo?: { number: string; amount: number }
 ): Promise<jsPDF> {
   await initializePdfFonts();
 
@@ -295,6 +296,20 @@ async function buildInvoicePdf(
   doc.text("UKUPNO:", totalsX - 50, totalsY);
   doc.text(formatPdfNumber(totalForPdf), totalsX, totalsY, { align: "right" });
 
+  // Advance invoice deduction + Amount to pay
+  if (advanceInfo && advanceInfo.amount > 0) {
+    totalsY += 7;
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(10);
+    doc.text(`Avans (AF ${advanceInfo.number}):`, totalsX - 50, totalsY);
+    doc.text(`- ${formatPdfNumber(advanceInfo.amount)}`, totalsX, totalsY, { align: "right" });
+    totalsY += 6;
+    doc.setFont("Roboto", "bold");
+    doc.setFontSize(12);
+    doc.text("IZNOS ZA UPLATU:", totalsX - 50, totalsY);
+    doc.text(formatPdfNumber((totalForPdf || 0) - advanceInfo.amount), totalsX, totalsY, { align: "right" });
+  }
+
   // Tax exemption note
   const taxCat = invoice.tax_category_code || "S";
   if (taxCat !== "S") {
@@ -381,9 +396,10 @@ export async function generateInvoicePdf(
   company: CompanyData,
   partner: PartnerData,
   bankAccountText?: string | null,
-  deliveryNoteNumber?: string | null
+  deliveryNoteNumber?: string | null,
+  advanceInfo?: { number: string; amount: number }
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo);
   doc.save(`Faktura_${invoice.invoice_number.replace(/\//g, "-")}.pdf`);
 }
 
@@ -393,9 +409,10 @@ export async function printInvoicePdf(
   company: CompanyData,
   partner: PartnerData,
   bankAccountText?: string | null,
-  deliveryNoteNumber?: string | null
+  deliveryNoteNumber?: string | null,
+  advanceInfo?: { number: string; amount: number }
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo);
   const blob = doc.output("blob");
   printPdfBlob(blob);
 }

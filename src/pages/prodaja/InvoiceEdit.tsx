@@ -279,14 +279,18 @@ export default function InvoiceEdit() {
   const handleExportPdf = async () => {
     const data = await fetchInvoiceDataForExport();
     if (!data || !invoice) return;
-    await generateInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null);
+    const advanceInfo = linkedDocs.advanceInvoiceNumber && linkedDocs.advanceInvoiceAmount
+      ? { number: linkedDocs.advanceInvoiceNumber, amount: linkedDocs.advanceInvoiceAmount } : undefined;
+    await generateInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null, advanceInfo);
     toast.success("PDF je uspešno exportovan");
   };
 
   const handlePrint = async () => {
     const data = await fetchInvoiceDataForExport();
     if (!data || !invoice) return;
-    await printInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null);
+    const advanceInfo = linkedDocs.advanceInvoiceNumber && linkedDocs.advanceInvoiceAmount
+      ? { number: linkedDocs.advanceInvoiceNumber, amount: linkedDocs.advanceInvoiceAmount } : undefined;
+    await printInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null, advanceInfo);
   };
 
   const handleExportExcel = async () => {
@@ -294,7 +298,9 @@ export default function InvoiceEdit() {
     const { data: itemsData, error } = await supabase
       .from("invoice_items").select("*").eq("invoice_id", invoice.id).order("item_order");
     if (error || !itemsData) { toast.error("Greška pri učitavanju stavki"); return; }
-    exportInvoiceToExcel(invoice, itemsData as any);
+    const advanceInfo = linkedDocs.advanceInvoiceNumber && linkedDocs.advanceInvoiceAmount
+      ? { number: linkedDocs.advanceInvoiceNumber, amount: linkedDocs.advanceInvoiceAmount } : undefined;
+    exportInvoiceToExcel(invoice, itemsData as any, advanceInfo);
     toast.success("Excel je uspešno exportovan");
   };
 
@@ -551,6 +557,19 @@ export default function InvoiceEdit() {
               <span className="font-medium">Ukupno:</span>
               <span className="font-bold">{formatPrice(localTotals.total_amount)}</span>
             </div>
+            {linkedDocs.advanceInvoiceAmount != null && linkedDocs.advanceInvoiceAmount > 0 && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Avans (AF {linkedDocs.advanceInvoiceNumber}):</span>
+                  <span className="font-medium">- {formatPrice(linkedDocs.advanceInvoiceAmount)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between text-base">
+                  <span className="font-semibold text-primary">Iznos za uplatu:</span>
+                  <span className="font-bold text-primary">{formatPrice(localTotals.total_amount - linkedDocs.advanceInvoiceAmount)}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
