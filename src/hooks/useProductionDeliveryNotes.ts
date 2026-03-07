@@ -60,7 +60,7 @@ export const PDN_STATUS_LABELS: Record<string, string> = {
 
 export const PDN_STATUS_COLORS: Record<string, string> = {
   draft: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-  posted: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  posted: "bg-primary text-primary-foreground",
 };
 
 export function useProductionDeliveryNotes() {
