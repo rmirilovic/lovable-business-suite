@@ -116,6 +116,7 @@ export interface InvoiceFormData {
   mesto_prometa?: string | null;
   datum_prometa?: string | null;
   bank_account_id?: string | null;
+  advance_invoice_id?: string | null;
 }
 
 export interface InvoiceItemFormData {
