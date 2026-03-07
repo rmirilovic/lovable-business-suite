@@ -2825,6 +2825,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          advance_invoice_id: string | null
           bank_account_id: string | null
           billing_reference_date: string | null
           billing_reference_number: string | null
@@ -2870,6 +2871,7 @@ export type Database = {
           vat_amount: number
         }
         Insert: {
+          advance_invoice_id?: string | null
           bank_account_id?: string | null
           billing_reference_date?: string | null
           billing_reference_number?: string | null
@@ -2915,6 +2917,7 @@ export type Database = {
           vat_amount?: number
         }
         Update: {
+          advance_invoice_id?: string | null
           bank_account_id?: string | null
           billing_reference_date?: string | null
           billing_reference_number?: string | null
@@ -2960,6 +2963,13 @@ export type Database = {
           vat_amount?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_advance_invoice_id_fkey"
+            columns: ["advance_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "advance_invoices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_bank_account_id_fkey"
             columns: ["bank_account_id"]
