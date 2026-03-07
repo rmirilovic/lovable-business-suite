@@ -396,9 +396,10 @@ export async function generateInvoicePdf(
   company: CompanyData,
   partner: PartnerData,
   bankAccountText?: string | null,
-  deliveryNoteNumber?: string | null
+  deliveryNoteNumber?: string | null,
+  advanceInfo?: { number: string; amount: number }
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo);
   doc.save(`Faktura_${invoice.invoice_number.replace(/\//g, "-")}.pdf`);
 }
 
@@ -408,9 +409,10 @@ export async function printInvoicePdf(
   company: CompanyData,
   partner: PartnerData,
   bankAccountText?: string | null,
-  deliveryNoteNumber?: string | null
+  deliveryNoteNumber?: string | null,
+  advanceInfo?: { number: string; amount: number }
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo);
   const blob = doc.output("blob");
   printPdfBlob(blob);
 }
