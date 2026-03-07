@@ -7,7 +7,8 @@ const fmtDate = (d: string | null) =>
 
 export function exportInvoiceToExcel(
   invoice: Invoice,
-  items: InvoiceItem[]
+  items: InvoiceItem[],
+  advanceInfo?: { number: string; amount: number }
 ) {
   const rows = items.map((item, i) => ({
     "#": i + 1,
@@ -25,7 +26,7 @@ export function exportInvoiceToExcel(
 
   const wb = XLSX.utils.book_new();
 
-  const headerData = [
+  const headerData: any[][] = [
     ["FAKTURA"],
     ["Broj fakture", invoice.invoice_number],
     ["Datum fakture", fmtDate(invoice.invoice_date)],
@@ -39,6 +40,14 @@ export function exportInvoiceToExcel(
     ["PDV", invoice.vat_amount],
     ["UKUPNO", invoice.total_amount],
   ];
+
+  if (advanceInfo && advanceInfo.amount > 0) {
+    headerData.push(
+      [`Avans (AF ${advanceInfo.number})`, -advanceInfo.amount],
+      ["IZNOS ZA UPLATU", invoice.total_amount - advanceInfo.amount]
+    );
+  }
+
   const wsHeader = XLSX.utils.aoa_to_sheet(headerData);
   XLSX.utils.book_append_sheet(wb, wsHeader, "Zaglavlje");
 
