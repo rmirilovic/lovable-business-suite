@@ -140,10 +140,43 @@ export function InvoiceHeaderDialog({
       mesto_prometa: invoice.mesto_prometa || "",
       datum_prometa: invoice.datum_prometa || "",
       bank_account_id: invoice.bank_account_id || defaultBankId,
+      advance_invoice_id: invoice.advance_invoice_id || "",
     });
+
+    // Fetch available advances for the partner
+    fetchAdvancesForPartner(invoice.partner_id);
 
     loadDefaults();
   }, [invoice, open, bankAccounts, selectedCompany?.id]);
+
+  const fetchAdvancesForPartner = async (partnerId: string) => {
+    if (!partnerId || !selectedCompany?.id) {
+      setAvailableAdvances([]);
+      return;
+    }
+    // Get posted advance invoices for this partner that are not already used by another invoice
+    const { data } = await supabase
+      .from("advance_invoices")
+      .select("id, advance_number, total_amount, vat_amount, advance_date")
+      .eq("company_id", selectedCompany.id)
+      .eq("partner_id", partnerId)
+      .eq("status", "posted")
+      .order("advance_date", { ascending: false });
+
+    if (!data) { setAvailableAdvances([]); return; }
+
+    // Filter out advances already used by other invoices (not this one)
+    const { data: usedAdvances } = await supabase
+      .from("invoices")
+      .select("advance_invoice_id")
+      .eq("company_id", selectedCompany.id)
+      .not("advance_invoice_id", "is", null)
+      .neq("id", invoice?.id || "00000000-0000-0000-0000-000000000000");
+
+    const usedIds = new Set((usedAdvances || []).map((u) => u.advance_invoice_id));
+    const available = data.filter((a) => !usedIds.has(a.id) || a.id === invoice?.advance_invoice_id);
+    setAvailableAdvances(available);
+  };
 
   const handlePartnerChange = (partnerId: string) => {
     const p = customerPartners.find((x) => x.id === partnerId);
