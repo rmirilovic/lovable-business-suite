@@ -12,7 +12,9 @@ interface Row {
   order_date: string;
   order_number: string;
   launched_qty: number;
+  launched_kg: number;
   delivered_qty: number;
+  delivered_kg: number;
   unit_price: number;
   value: number;
 }
@@ -46,11 +48,10 @@ export function ArticleWorkOrdersDialog({ open, onOpenChange, articleId, article
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch work order items for this article
         let query = supabase
           .from("work_order_items")
           .select(`
-            launched_qty, unit_price, launched_value, work_order_id,
+            launched_qty, launched_kg, unit_price, launched_value, work_order_id,
             work_order:work_orders!inner(
               order_date, order_number, status, company_id, id
             )
@@ -64,15 +65,14 @@ export function ArticleWorkOrdersDialog({ open, onOpenChange, articleId, article
         const { data, error } = await query;
         if (error) throw error;
 
-        // Fetch delivered quantities from production delivery note items for this article
         const workOrderIds = [...new Set((data || []).map((d: any) => d.work_order?.id).filter(Boolean))];
         
-        let deliveredMap: Record<string, number> = {};
+        let deliveredMap: Record<string, { qty: number; kg: number }> = {};
         if (workOrderIds.length > 0) {
           const { data: dnData, error: dnError } = await supabase
             .from("production_delivery_note_items")
             .select(`
-              qty_total, article_id,
+              qty_total, delivered_kg, article_id,
               delivery_note:production_delivery_notes!inner(
                 work_order_id, status, company_id
               )
@@ -85,7 +85,9 @@ export function ArticleWorkOrdersDialog({ open, onOpenChange, articleId, article
             for (const item of dnData as any[]) {
               const woId = item.delivery_note?.work_order_id;
               if (woId && item.delivery_note?.status === "posted") {
-                deliveredMap[woId] = (deliveredMap[woId] || 0) + (item.qty_total || 0);
+                if (!deliveredMap[woId]) deliveredMap[woId] = { qty: 0, kg: 0 };
+                deliveredMap[woId].qty += (item.qty_total || 0);
+                deliveredMap[woId].kg += (item.delivered_kg || 0);
               }
             }
           }
@@ -93,11 +95,14 @@ export function ArticleWorkOrdersDialog({ open, onOpenChange, articleId, article
 
         const mapped: Row[] = (data || []).map((item: any) => {
           const woId = item.work_order?.id;
+          const delivered = deliveredMap[woId] || { qty: 0, kg: 0 };
           return {
             order_date: item.work_order?.order_date ?? "",
             order_number: item.work_order?.order_number ?? "",
             launched_qty: item.launched_qty ?? 0,
-            delivered_qty: deliveredMap[woId] || 0,
+            launched_kg: item.launched_kg ?? 0,
+            delivered_qty: delivered.qty,
+            delivered_kg: delivered.kg,
             unit_price: item.unit_price ?? 0,
             value: item.launched_value ?? 0,
           };
@@ -116,11 +121,22 @@ export function ArticleWorkOrdersDialog({ open, onOpenChange, articleId, article
     fetchData();
   }, [open, articleId, selectedCompany?.id, dateFrom, dateTo]);
 
-  const totalValue = rows.reduce((sum, r) => sum + r.value, 0);
+  const totals = rows.reduce(
+    (acc, r) => ({
+      launched_qty: acc.launched_qty + r.launched_qty,
+      launched_kg: acc.launched_kg + r.launched_kg,
+      delivered_qty: acc.delivered_qty + r.delivered_qty,
+      delivered_kg: acc.delivered_kg + r.delivered_kg,
+      value: acc.value + r.value,
+    }),
+    { launched_qty: 0, launched_kg: 0, delivered_qty: 0, delivered_kg: 0, value: 0 }
+  );
+
+  const colCount = 8;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-5xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             Artikal na radnim nalozima: {articleCode} – {articleName}
@@ -143,23 +159,25 @@ export function ArticleWorkOrdersDialog({ open, onOpenChange, articleId, article
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">Datum</TableHead>
-                <TableHead className="w-[120px]">Broj RN</TableHead>
-                <TableHead className="text-right w-[120px]">Lans. količina</TableHead>
-                <TableHead className="text-right w-[120px]">Predata kol.</TableHead>
-                <TableHead className="text-right w-[120px]">Cena</TableHead>
-                <TableHead className="text-right w-[120px]">Vrednost</TableHead>
+                <TableHead className="w-[110px]">Broj RN</TableHead>
+                <TableHead className="text-right w-[100px]">Lans. kol.</TableHead>
+                <TableHead className="text-right w-[100px]">Lans. kg</TableHead>
+                <TableHead className="text-right w-[100px]">Pred. kol.</TableHead>
+                <TableHead className="text-right w-[100px]">Pred. kg</TableHead>
+                <TableHead className="text-right w-[100px]">Cena</TableHead>
+                <TableHead className="text-right w-[110px]">Vrednost</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={colCount} className="text-center py-8 text-muted-foreground">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={colCount} className="text-center py-8 text-muted-foreground">
                     Nema radnih naloga za ovaj artikal u izabranom periodu.
                   </TableCell>
                 </TableRow>
@@ -170,14 +188,21 @@ export function ArticleWorkOrdersDialog({ open, onOpenChange, articleId, article
                       <TableCell>{row.order_date ? format(new Date(row.order_date), "dd.MM.yyyy") : "-"}</TableCell>
                       <TableCell className="font-medium">{row.order_number}</TableCell>
                       <TableCell className="text-right">{formatNumber(row.launched_qty)}</TableCell>
+                      <TableCell className="text-right">{formatNumber(row.launched_kg, { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-right">{formatNumber(row.delivered_qty)}</TableCell>
+                      <TableCell className="text-right">{formatNumber(row.delivered_kg, { minimumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-right">{formatDecimal(row.unit_price)}</TableCell>
                       <TableCell className="text-right font-medium">{formatDecimal(row.value)}</TableCell>
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/50 font-bold">
-                    <TableCell colSpan={5} className="text-right">Ukupno:</TableCell>
-                    <TableCell className="text-right">{formatDecimal(totalValue)}</TableCell>
+                    <TableCell colSpan={2} className="text-right">Ukupno:</TableCell>
+                    <TableCell className="text-right">{formatNumber(totals.launched_qty)}</TableCell>
+                    <TableCell className="text-right">{formatNumber(totals.launched_kg, { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell className="text-right">{formatNumber(totals.delivered_qty)}</TableCell>
+                    <TableCell className="text-right">{formatNumber(totals.delivered_kg, { minimumFractionDigits: 2 })}</TableCell>
+                    <TableCell />
+                    <TableCell className="text-right">{formatDecimal(totals.value)}</TableCell>
                   </TableRow>
                 </>
               )}
