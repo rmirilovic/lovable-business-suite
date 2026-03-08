@@ -242,6 +242,7 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
               <TableHead className="w-[250px] text-right">Cena</TableHead>
               <TableHead className="w-[250px] text-right">Vrednost</TableHead>
               <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[40px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
