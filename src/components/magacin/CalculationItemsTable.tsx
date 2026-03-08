@@ -18,43 +18,6 @@ interface CalculationItemsTableProps {
   isEditable: boolean;
 }
 
-/** Wrapper that keeps local text state and only commits the parsed number on blur */
-function BlurCommitNumberInput({
-  value,
-  onCommit,
-  decimalPlaces = 2,
-  className,
-}: {
-  value: number;
-  onCommit: (num: number) => void;
-  decimalPlaces?: number;
-  className?: string;
-}) {
-  const [localVal, setLocalVal] = useState(formatDecimal(value, decimalPlaces));
-  const [focused, setFocused] = useState(false);
-
-  // Sync from parent when not focused
-  if (!focused && formatDecimal(value, decimalPlaces) !== localVal) {
-    setLocalVal(formatDecimal(value, decimalPlaces));
-  }
-
-  return (
-    <LocaleNumberInput
-      value={localVal}
-      onChange={setLocalVal}
-      onFocus={() => setFocused(true)}
-      onBlur={() => {
-        setFocused(false);
-        const num = parseLocaleNumber(localVal);
-        if (!isNaN(num)) {
-          onCommit(num);
-        }
-      }}
-      decimalPlaces={decimalPlaces}
-      className={className}
-    />
-  );
-}
 
 export function CalculationItemsTable({
   items,
