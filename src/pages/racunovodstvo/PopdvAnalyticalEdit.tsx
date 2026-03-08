@@ -374,6 +374,7 @@ interface RowCodeBlockProps {
   onUpdateField: (rowId: string, field: "document_date" | "document_type_number" | "partner_info", value: string) => void;
   onUpdateValue: (row: PopdvDetailRow, colCode: string, value: number) => void;
   onDeleteRow: (rowId: string) => void;
+  onReviewDocument: (row: PopdvDetailRow) => void;
 }
 
 function RowCodeBlock({
@@ -385,6 +386,7 @@ function RowCodeBlock({
   onUpdateField,
   onUpdateValue,
   onDeleteRow,
+  onReviewDocument,
 }: RowCodeBlockProps) {
   return (
     <>
