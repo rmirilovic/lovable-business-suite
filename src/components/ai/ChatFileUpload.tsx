@@ -15,13 +15,6 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/bmp", "image/webp"];
 const TEXT_TYPES = ["text/plain"];
 
-function getFileIcon(type: string) {
-  if (IMAGE_TYPES.includes(type)) return <ImageIcon className="w-3.5 h-3.5" />;
-  if (type.includes("spreadsheet") || type.includes("excel") || type.includes(".sheet"))
-    return <FileSpreadsheet className="w-3.5 h-3.5" />;
-  return <FileText className="w-3.5 h-3.5" />;
-}
-
 export function readFileAsAttachment(file: File): Promise<FileAttachment> {
   return new Promise((resolve, reject) => {
     if (file.size > MAX_FILE_SIZE) {
