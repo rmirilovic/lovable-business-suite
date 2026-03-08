@@ -285,7 +285,22 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
-                </TableRow>
+                  <TableCell className="p-0">
+                    {item.article_id && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setTransfersDialogArticle({ id: item.article_id, code: item.item_code || "", name: item.item_name })}>
+                            Na međumagacinskim prenosima
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </TableCell>
               ))
             )}
             {items.length > 0 && (
