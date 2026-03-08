@@ -333,8 +333,9 @@ export default function GoodsReceiptEdit() {
                            </DropdownMenu>
                          )}
                        </TableCell>
-                  ))
-                )}
+                     </TableRow>
+                   ))
+                 )}
               </TableBody>
             </Table>
           </div>
