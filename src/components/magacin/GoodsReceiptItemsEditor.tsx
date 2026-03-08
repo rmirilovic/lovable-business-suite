@@ -298,6 +298,7 @@ export function GoodsReceiptItemsEditor({
                   {formatDecimal(totalValue, 2)} RSD
                 </TableCell>
                 <TableCell></TableCell>
+                <TableCell></TableCell>
               </TableRow>
             )}
           </TableBody>
