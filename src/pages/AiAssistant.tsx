@@ -341,11 +341,11 @@ export default function AiAssistant() {
                         e.stopPropagation();
                         handleDeleteConversation(conv.id);
                       }}
-                      className="shrink-0 ml-2 inline-flex items-center px-2 py-1 rounded-md border border-border text-xs font-medium text-foreground bg-background hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition-colors"
+                      className="shrink-0 ml-2 inline-flex min-w-[74px] justify-center items-center px-2 py-1 rounded-md text-xs font-semibold bg-destructive text-destructive-foreground hover:opacity-90 transition-opacity"
                       title="Obriši konverzaciju"
                       aria-label="Obriši konverzaciju"
                     >
-                      Obriši
+                      🗑 Obriši
                     </button>
                   </div>
                 ))
