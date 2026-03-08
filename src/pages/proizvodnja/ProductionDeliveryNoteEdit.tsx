@@ -422,14 +422,15 @@ export default function ProductionDeliveryNoteEdit() {
                   </TableRow>
                 ) : (
                   items.map((item, idx) => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      idx={idx}
-                      isDraft={isDraft}
-                      onUpdate={handleUpdateItem}
-                    />
-                  ))
+                     <ItemRow
+                       key={item.id}
+                       item={item}
+                       idx={idx}
+                       isDraft={isDraft}
+                       onUpdate={handleUpdateItem}
+                       onShowPdnHistory={(a) => setPdnDialogArticle(a)}
+                     />
+                   ))
                 )}
               </TableBody>
             </Table>
