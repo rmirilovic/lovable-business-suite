@@ -10,8 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, X, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, X, Trash2, MoreHorizontal, Eye } from "lucide-react";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
+import { ArticleGoodsPurchaseInvoicesDialog } from "./ArticleGoodsPurchaseInvoicesDialog";
 import { useArticles } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -95,6 +102,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editItem, setEditItem] = useState<GoodsPurchaseInvoiceItemFormData>(emptyItem);
   const [editText, setEditText] = useState<TextState>(toTextState(emptyItem));
+  const [historyArticle, setHistoryArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const activeArticles = articles.filter((a) => a.is_active);
 
@@ -245,7 +253,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
     />
   );
 
-  const colCount = (isForeign ? 1 : 0) + (isEditable ? 10 : 9);
+  const colCount = (isForeign ? 1 : 0) + 10;
 
   return (
     <div className="space-y-4">
@@ -276,7 +284,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                 <TableHead className="w-[140px] text-right">Cena neto</TableHead>
                 <TableHead className="w-[90px] text-right">PDV%</TableHead>
                 <TableHead className="w-[140px] text-right">Ukupno</TableHead>
-                {isEditable && <TableHead className="w-[80px]"></TableHead>}
+                <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -400,18 +408,29 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs text-right font-medium">
                         {formatNumber(item.line_total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
-                      {isEditable && (
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      )}
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-7 w-7">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {item.article_id && (
+                              <DropdownMenuItem onClick={() => setHistoryArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                                <Eye className="w-4 h-4 mr-2" />
+                                Pregled na UFR
+                              </DropdownMenuItem>
+                            )}
+                            {isEditable && (
+                              <DropdownMenuItem onClick={() => handleDelete(item.id)} className="text-destructive">
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Obriši
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   )
                 )}
@@ -525,6 +544,16 @@ export function GoodsPurchaseInvoiceItemsEditor({
           </Table>
         </div>
       </div>
+
+      {historyArticle && (
+        <ArticleGoodsPurchaseInvoicesDialog
+          open={!!historyArticle}
+          onOpenChange={(open) => { if (!open) setHistoryArticle(null); }}
+          articleId={historyArticle.id}
+          articleCode={historyArticle.code}
+          articleName={historyArticle.name}
+        />
+      )}
     </div>
   );
 }
