@@ -464,6 +464,7 @@ export default function WorkOrderEdit() {
                   <TableHead className="w-[100px] text-right">Lans. kg</TableHead>
                   <TableHead className="w-[100px] text-right">Cena</TableHead>
                   <TableHead className="w-[120px] text-right">Vrednost</TableHead>
+                  <TableHead className="w-[50px]" />
                   {isDraft && <TableHead className="w-[50px]" />}
                 </TableRow>
               </TableHeader>
