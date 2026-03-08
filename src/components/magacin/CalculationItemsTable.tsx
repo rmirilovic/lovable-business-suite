@@ -2,11 +2,13 @@ import { useState, useCallback } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Search } from "lucide-react";
 import { CalculationItem } from "@/hooks/usePurchasePriceCalculations";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { ArticleCalculationsDialog } from "@/components/magacin/ArticleCalculationsDialog";
 
 interface CalculationItemsTableProps {
   items: CalculationItem[];
@@ -63,6 +65,8 @@ export function CalculationItemsTable({
   onUpdateMarkupAmount,
   onUpdateSellingPrice,
 }: CalculationItemsTableProps) {
+  const [calcDialogArticle, setCalcDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
@@ -93,6 +97,8 @@ export function CalculationItemsTable({
               <TableHead className="w-10">#</TableHead>
               <TableHead className="min-w-[60px]">Šifra</TableHead>
               <TableHead className="min-w-[150px]">Naziv</TableHead>
+              <TableHead className="w-[30px]" />
+              <TableHead className="min-w-[150px]">Naziv</TableHead>
               <TableHead className="w-[50px]">JM</TableHead>
               <TableHead className="w-[70px] text-right">Kol.</TableHead>
               <TableHead className="w-[100px] text-right">Nab. cena</TableHead>
@@ -109,7 +115,7 @@ export function CalculationItemsTable({
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">
                   Nema stavki.
                 </TableCell>
               </TableRow>
@@ -122,6 +128,19 @@ export function CalculationItemsTable({
                     <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                     <TableCell className="text-sm">{item.item_code || "—"}</TableCell>
                     <TableCell className="text-sm">{item.item_name}</TableCell>
+                    <TableCell className="p-0">
+                      {item.article_id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          title="Po kalkulacijama"
+                          onClick={() => setCalcDialogArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}
+                        >
+                          <Search className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </TableCell>
                     <TableCell className="text-sm">{item.unit}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.quantity, 3)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.purchase_price, 2)}</TableCell>
@@ -174,7 +193,7 @@ export function CalculationItemsTable({
             )}
             {items.length > 0 && (
               <TableRow className="bg-muted/50 font-semibold">
-                <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
+                <TableCell colSpan={7} className="text-right">Ukupno:</TableCell>
                 <TableCell className="text-right">{formatDecimal(totals.purchaseValue, 2)}</TableCell>
                 <TableCell className="text-right">{formatDecimal(totals.allocatedCosts, 2)}</TableCell>
                 <TableCell />
@@ -188,6 +207,14 @@ export function CalculationItemsTable({
           </TableBody>
         </Table>
       </TableScrollContainer>
+
+      <ArticleCalculationsDialog
+        open={!!calcDialogArticle}
+        onOpenChange={(open) => { if (!open) setCalcDialogArticle(null); }}
+        articleId={calcDialogArticle?.id ?? null}
+        articleCode={calcDialogArticle?.code ?? ""}
+        articleName={calcDialogArticle?.name ?? ""}
+      />
     </div>
   );
 }
