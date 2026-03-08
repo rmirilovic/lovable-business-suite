@@ -83,6 +83,7 @@ export default function ReprocessingDeliveryNoteEdit() {
   const [headerForm, setHeaderForm] = useState({ delivery_date: "", warehouse_id: "", work_order_id: "", production_line: 1, shift_manager_1_id: "", shift_manager_2_id: "", shift_manager_3_id: "", note: "", responsible_person: "" });
   const [headerDirty, setHeaderDirty] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [pdnDialogArticle, setPdnDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   useEffect(() => {
     if (note) {
