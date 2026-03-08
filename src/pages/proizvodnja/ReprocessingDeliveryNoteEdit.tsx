@@ -213,14 +213,15 @@ export default function ReprocessingDeliveryNoteEdit() {
                 <TableHead className="w-[85px] text-right">Pred. kg</TableHead>
                 <TableHead className="w-[75px] text-right">Škart</TableHead>
                 <TableHead className="w-[90px] text-right">Cena</TableHead>
-                <TableHead className="w-[100px] text-right">Vrednost</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {items.length === 0 ? (
-                  <TableRow><TableCell colSpan={14} className="text-center py-6 text-muted-foreground">Nema stavki.</TableCell></TableRow>
-                ) : items.map((item, idx) => (
-                  <ItemRow key={item.id} item={item} idx={idx} isDraft={isDraft} onUpdate={handleUpdateItem} />
-                ))}
+                 <TableHead className="w-[100px] text-right">Vrednost</TableHead>
+                 <TableHead className="w-[40px]"></TableHead>
+               </TableRow></TableHeader>
+               <TableBody>
+                 {items.length === 0 ? (
+                   <TableRow><TableCell colSpan={15} className="text-center py-6 text-muted-foreground">Nema stavki.</TableCell></TableRow>
+                 ) : items.map((item, idx) => (
+                   <ItemRow key={item.id} item={item} idx={idx} isDraft={isDraft} onUpdate={handleUpdateItem} onShowHistory={(a) => setPdnDialogArticle(a)} />
+                 ))}
               </TableBody>
             </Table>
           </TableScrollContainer>
