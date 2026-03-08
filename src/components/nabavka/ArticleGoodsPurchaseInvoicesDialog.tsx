@@ -68,24 +68,21 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
         const { data, error } = await query;
         if (error) throw error;
 
-        const { data: articleData } = await supabase
-          .from("articles")
-          .select("purchase_price")
-          .eq("id", articleId)
-          .single();
-
-        const warehousePrice = articleData?.purchase_price ?? 0;
-
-        const mapped: Row[] = (data || []).map((item: any) => ({
-          invoice_date: item.invoice?.invoice_date ?? "",
-          internal_number: item.invoice?.internal_number ?? "",
-          partner_code: item.invoice?.partner?.code ?? "",
-          partner_name: item.invoice?.supplier_name ?? item.invoice?.partner?.name ?? "",
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          warehouse_price: warehousePrice,
-          line_value: item.quantity * item.unit_price,
-        }));
+        const mapped: Row[] = (data || []).map((item: any) => {
+          const discount = item.discount_percent ?? 0;
+          const discountedPrice = item.unit_price * (1 - discount / 100);
+          return {
+            invoice_date: item.invoice?.invoice_date ?? "",
+            internal_number: item.invoice?.internal_number ?? "",
+            partner_code: item.invoice?.partner?.code ?? "",
+            partner_name: item.invoice?.supplier_name ?? item.invoice?.partner?.name ?? "",
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            discount_percent: discount,
+            discounted_price: discountedPrice,
+            line_value: item.quantity * discountedPrice,
+          };
+        });
 
         mapped.sort((a, b) => a.invoice_date.localeCompare(b.invoice_date) || a.internal_number.localeCompare(b.internal_number));
         setRows(mapped);
