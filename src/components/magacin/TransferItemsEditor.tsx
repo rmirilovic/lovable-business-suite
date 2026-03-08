@@ -301,6 +301,7 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
                       </DropdownMenu>
                     )}
                   </TableCell>
+                </TableRow>
               ))
             )}
             {items.length > 0 && (
