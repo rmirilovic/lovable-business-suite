@@ -2,11 +2,13 @@ import { useState, useCallback } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Search } from "lucide-react";
 import { CalculationItem } from "@/hooks/usePurchasePriceCalculations";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { ArticleCalculationsDialog } from "@/components/magacin/ArticleCalculationsDialog";
 
 interface CalculationItemsTableProps {
   items: CalculationItem[];
