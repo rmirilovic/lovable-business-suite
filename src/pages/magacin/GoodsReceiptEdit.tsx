@@ -402,6 +402,14 @@ export default function GoodsReceiptEdit() {
           documentType="goods_receipt"
         />
       )}
+
+      <ArticleGoodsReceiptsDialog
+        open={!!receiptsDialogArticle}
+        onOpenChange={(open) => { if (!open) setReceiptsDialogArticle(null); }}
+        articleId={receiptsDialogArticle?.id ?? null}
+        articleCode={receiptsDialogArticle?.code ?? ""}
+        articleName={receiptsDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
