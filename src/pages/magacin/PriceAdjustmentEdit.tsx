@@ -46,6 +46,7 @@ export default function PriceAdjustmentEdit() {
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [adjustDialogArticle, setAdjustDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const { items, isLoading: itemsLoading } = usePriceAdjustmentItems(id || null);
   const { updateAdjustment, postAdjustment, unpostAdjustment } = usePriceAdjustments();
