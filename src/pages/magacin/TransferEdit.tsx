@@ -329,6 +329,13 @@ export default function TransferEdit() {
       {transfer && (
         <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={transfer.id} documentName={transfer.transfer_number} documentType="inter_warehouse_transfer" />
       )}
+      <ArticleTransfersDialog
+        open={!!transfersDialogArticle}
+        onOpenChange={(open) => { if (!open) setTransfersDialogArticle(null); }}
+        articleId={transfersDialogArticle?.id ?? null}
+        articleCode={transfersDialogArticle?.code ?? ""}
+        articleName={transfersDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
