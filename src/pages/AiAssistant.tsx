@@ -404,38 +404,63 @@ export default function AiAssistant() {
 
           {/* Input */}
           <div className="p-4 border-t">
-            <div className="flex gap-2 max-w-3xl mx-auto">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Unesite pitanje ili koristite mikrofon..."
-                className="min-h-[44px] max-h-32 resize-none"
-                rows={1}
-                disabled={isStreaming}
-              />
-              <Button
-                onClick={isListening ? stopListening : startListening}
-                disabled={isStreaming}
-                size="icon"
-                variant={isListening ? "destructive" : "outline"}
-                className="shrink-0 h-11 w-11"
-                title={isListening ? "Zaustavi snimanje" : "Govori"}
-              >
-                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </Button>
-              <Button
-                onClick={handleSend}
-                disabled={!input.trim() || isStreaming}
-                size="icon"
-                className="shrink-0 h-11 w-11"
-              >
-                {isStreaming ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
+            <div className="max-w-3xl mx-auto">
+              {attachedFiles.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {attachedFiles.map((file, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted text-xs max-w-[200px]"
+                    >
+                      <span className="truncate">📎 {file.name}</span>
+                      <button
+                        onClick={() => setAttachedFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="ml-0.5 p-0.5 rounded hover:bg-destructive/10 hover:text-destructive text-muted-foreground"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <ChatFileUpload
+                  files={attachedFiles}
+                  onFilesChange={setAttachedFiles}
+                  disabled={isStreaming}
+                />
+                <Textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Unesite pitanje ili priložite fajl..."
+                  className="min-h-[44px] max-h-32 resize-none"
+                  rows={1}
+                  disabled={isStreaming}
+                />
+                <Button
+                  onClick={isListening ? stopListening : startListening}
+                  disabled={isStreaming}
+                  size="icon"
+                  variant={isListening ? "destructive" : "outline"}
+                  className="shrink-0 h-11 w-11"
+                  title={isListening ? "Zaustavi snimanje" : "Govori"}
+                >
+                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
+                <Button
+                  onClick={handleSend}
+                  disabled={(!input.trim() && attachedFiles.length === 0) || isStreaming}
+                  size="icon"
+                  className="shrink-0 h-11 w-11"
+                >
+                  {isStreaming ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </Card>
