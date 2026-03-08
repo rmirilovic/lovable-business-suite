@@ -335,6 +335,13 @@ export default function PriceAdjustmentEdit() {
       {doc && (
         <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={doc.id} documentName={doc.adjustment_number} documentType="price_adjustment" />
       )}
+      <ArticlePriceAdjustmentsDialog
+        open={!!adjustDialogArticle}
+        onOpenChange={(open) => { if (!open) setAdjustDialogArticle(null); }}
+        articleId={adjustDialogArticle?.id ?? null}
+        articleCode={adjustDialogArticle?.code ?? ""}
+        articleName={adjustDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
