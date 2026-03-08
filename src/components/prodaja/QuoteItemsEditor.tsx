@@ -175,7 +175,7 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
               <TableHead className="text-right w-20">Rabat %</TableHead>
               <TableHead className="text-right w-20">PDV %</TableHead>
               <TableHead className="text-right w-36">Iznos bez PDV-a</TableHead>
-              {!isReadOnly && <TableHead className="w-20"></TableHead>}
+              <TableHead className="w-20"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
