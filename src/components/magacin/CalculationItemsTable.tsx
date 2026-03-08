@@ -105,12 +105,8 @@ export function CalculationItemsTable({
               <TableHead className="w-[100px] text-right">Nab. cena</TableHead>
               <TableHead className="w-[110px] text-right">Nab. vredn.</TableHead>
               <TableHead className="w-[100px] text-right">Zav. troš.</TableHead>
-              <TableHead className="w-[100px] text-right">Cena košt.</TableHead>
-              <TableHead className="w-[110px] text-right">Vred. košt.</TableHead>
-              <TableHead className="w-[90px] text-right">Marža %</TableHead>
-              <TableHead className="w-[100px] text-right">Marža izn.</TableHead>
-              <TableHead className="w-[100px] text-right">Prod. cena</TableHead>
-              <TableHead className="w-[110px] text-right">Prod. vred.</TableHead>
+              <TableHead className="w-[100px] text-right">Bruto cena</TableHead>
+              <TableHead className="w-[110px] text-right">Bruto vrednost</TableHead>
               <TableHead className="w-[40px]" />
             </TableRow>
           </TableHeader>
