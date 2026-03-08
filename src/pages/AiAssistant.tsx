@@ -291,6 +291,7 @@ export default function AiAssistant() {
     setActiveConversationId(null);
     setMessages([]);
     setInput("");
+    setAttachedFiles([]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
