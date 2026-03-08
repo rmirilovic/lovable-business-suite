@@ -254,9 +254,24 @@ export default function PriceAdjustmentEdit() {
                         <span className={item.value_difference > 0 ? "text-green-600" : item.value_difference < 0 ? "text-destructive" : ""}>
                           {formatDecimal(item.value_difference, 2)}
                         </span>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                       </TableCell>
+                       <TableCell className="p-0">
+                         {item.article_id && (
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button variant="ghost" size="icon" className="h-7 w-7">
+                                 <MoreHorizontal className="h-4 w-4" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end">
+                               <DropdownMenuItem onClick={() => setAdjustDialogArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                                 Pregled na stavkama nivelacija
+                               </DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         )}
+                       </TableCell>
+                     </TableRow>
                 )}
                 {items.length > 0 && (
                   <TableRow className="bg-muted/50 font-medium">
