@@ -22,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SearchableArticleSelect, Article } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
+import { ArticleGoodsReceiptsDialog } from "@/components/magacin/ArticleGoodsReceiptsDialog";
 
 interface GoodsReceiptItemsEditorProps {
   receiptId: string;
