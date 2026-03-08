@@ -12,8 +12,12 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { ArrowLeft, Lock, Save, Undo2, FileDown, FileSpreadsheet, Printer, History } from "lucide-react";
+import { ArrowLeft, Lock, Save, Undo2, FileDown, FileSpreadsheet, Printer, History, MoreHorizontal, Eye } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { ArticleProductionDeliveryNotesDialog } from "@/components/proizvodnja/ArticleProductionDeliveryNotesDialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   useProductionDeliveryNote,
   useProductionDeliveryNoteItems,
