@@ -483,7 +483,7 @@ function RowCodeBlock({
             {fmt2(subtotal(code, col.code))}
           </TableCell>
         ))}
-        {isDraft && <TableCell />}
+        <TableCell />
       </TableRow>
     </>
   );
