@@ -294,8 +294,8 @@ export default function GoodsReceiptEdit() {
                   <TableHead className="text-right">Količina</TableHead>
                   <TableHead>JM</TableHead>
                   <TableHead className="text-right">Cena</TableHead>
-                  <TableHead className="text-right">Vrednost</TableHead>
-                </TableRow>
+                   <TableHead className="text-right">Vrednost</TableHead>
+                   <TableHead className="w-[40px]"></TableHead>
               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
