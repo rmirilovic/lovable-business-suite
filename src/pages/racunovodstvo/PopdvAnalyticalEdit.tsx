@@ -44,6 +44,7 @@ export default function PopdvAnalyticalEdit() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [addSectionId, setAddSectionId] = useState("");
   const [addRowCode, setAddRowCode] = useState("");
+  const [reviewRow, setReviewRow] = useState<PopdvDetailRow | null>(null);
 
   const report = reportQuery.data;
   const detailRows = detailRowsQuery.data || [];
