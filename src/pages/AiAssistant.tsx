@@ -393,11 +393,21 @@ export default function AiAssistant() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Unesite pitanje..."
+                placeholder="Unesite pitanje ili koristite mikrofon..."
                 className="min-h-[44px] max-h-32 resize-none"
                 rows={1}
                 disabled={isStreaming}
               />
+              <Button
+                onClick={isListening ? stopListening : startListening}
+                disabled={isStreaming}
+                size="icon"
+                variant={isListening ? "destructive" : "outline"}
+                className="shrink-0 h-11 w-11"
+                title={isListening ? "Zaustavi snimanje" : "Govori"}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </Button>
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || isStreaming}
