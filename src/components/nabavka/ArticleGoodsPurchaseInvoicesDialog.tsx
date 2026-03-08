@@ -17,6 +17,8 @@ interface Row {
   unit_price: number;
   discount_percent: number;
   discounted_price: number;
+  vat_rate: number;
+  line_subtotal: number;
   line_value: number;
 }
 
