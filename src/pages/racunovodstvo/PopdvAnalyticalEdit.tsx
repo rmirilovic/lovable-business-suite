@@ -353,6 +353,7 @@ function AnalyticalSubTable({
                 onUpdateField={onUpdateField}
                 onUpdateValue={onUpdateValue}
                 onDeleteRow={onDeleteRow}
+                onReviewDocument={onReviewDocument}
               />
             );
           })}
