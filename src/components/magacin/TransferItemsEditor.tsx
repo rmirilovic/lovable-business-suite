@@ -314,6 +314,14 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
           </TableBody>
         </Table>
       </div>
+
+      <ArticleTransfersDialog
+        open={!!transfersDialogArticle}
+        onOpenChange={(open) => { if (!open) setTransfersDialogArticle(null); }}
+        articleId={transfersDialogArticle?.id ?? null}
+        articleCode={transfersDialogArticle?.code ?? ""}
+        articleName={transfersDialogArticle?.name ?? ""}
+      />
     </div>
   );
 }
