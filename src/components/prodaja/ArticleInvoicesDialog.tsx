@@ -146,21 +146,27 @@ export function ArticleInvoicesDialog({ open, onOpenChange, articleId, articleCo
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((row, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>{row.invoice_date ? format(new Date(row.invoice_date), "dd.MM.yyyy") : "-"}</TableCell>
-                    <TableCell className="font-medium">{row.invoice_number}</TableCell>
-                    <TableCell>
-                      <span className="text-muted-foreground">{row.partner_code}</span>
-                      {row.partner_code && " – "}
-                      {row.partner_name}
-                    </TableCell>
-                    <TableCell className="text-right">{formatNumber(row.quantity)}</TableCell>
-                    <TableCell className="text-right">{formatDecimal(row.unit_price)}</TableCell>
-                    <TableCell className="text-right">{formatDecimal(row.warehouse_price)}</TableCell>
-                    <TableCell className="text-right font-medium">{formatDecimal(row.line_value)}</TableCell>
+                <>
+                  {rows.map((row, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{row.invoice_date ? format(new Date(row.invoice_date), "dd.MM.yyyy") : "-"}</TableCell>
+                      <TableCell className="font-medium">{row.invoice_number}</TableCell>
+                      <TableCell>
+                        <span className="text-muted-foreground">{row.partner_code}</span>
+                        {row.partner_code && " – "}
+                        {row.partner_name}
+                      </TableCell>
+                      <TableCell className="text-right">{formatNumber(row.quantity)}</TableCell>
+                      <TableCell className="text-right">{formatDecimal(row.unit_price)}</TableCell>
+                      <TableCell className="text-right">{formatDecimal(row.warehouse_price)}</TableCell>
+                      <TableCell className="text-right font-medium">{formatDecimal(row.line_value)}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow className="bg-muted/50 font-bold">
+                    <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
+                    <TableCell className="text-right">{formatDecimal(rows.reduce((sum, r) => sum + r.line_value, 0))}</TableCell>
                   </TableRow>
-                ))
+                </>
               )}
             </TableBody>
           </Table>
