@@ -17,9 +17,6 @@ interface CalculationItemsTableProps {
   items: CalculationItem[];
   isLoading: boolean;
   isEditable: boolean;
-  onUpdateMarkup: (itemId: string, markupPercent: number) => void;
-  onUpdateMarkupAmount: (itemId: string, markupAmount: number) => void;
-  onUpdateSellingPrice: (itemId: string, sellingPrice: number) => void;
 }
 
 /** Wrapper that keeps local text state and only commits the parsed number on blur */
