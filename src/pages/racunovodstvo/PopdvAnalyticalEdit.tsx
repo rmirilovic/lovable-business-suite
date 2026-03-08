@@ -8,13 +8,15 @@ import { POPDV_SECTIONS, PopdvSubTable, PopdvColumn } from "@/data/popdvFormStru
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, FileText, MoreHorizontal } from "lucide-react";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { PopdvDocumentReviewDialog } from "@/components/racunovodstvo/PopdvDocumentReviewDialog";
 
 const fmt2 = (v: number) =>
   v.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -42,6 +44,7 @@ export default function PopdvAnalyticalEdit() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [addSectionId, setAddSectionId] = useState("");
   const [addRowCode, setAddRowCode] = useState("");
+  const [reviewRow, setReviewRow] = useState<PopdvDetailRow | null>(null);
 
   const report = reportQuery.data;
   const detailRows = detailRowsQuery.data || [];
@@ -182,6 +185,7 @@ export default function PopdvAnalyticalEdit() {
                       onDeleteRow={(rowId) => {
                         if (confirm("Obrisati ovaj red?")) deleteRow.mutate(rowId);
                       }}
+                      onReviewDocument={setReviewRow}
                     />
                   ))}
                 </div>
@@ -222,6 +226,14 @@ export default function PopdvAnalyticalEdit() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Document Review Dialog */}
+      <PopdvDocumentReviewDialog
+        open={!!reviewRow}
+        onOpenChange={(open) => { if (!open) setReviewRow(null); }}
+        sourceRow={reviewRow}
+        allRows={detailRows}
+      />
     </MainLayout>
   );
 }
@@ -235,6 +247,7 @@ interface AnalyticalSubTableProps {
   onUpdateField: (rowId: string, field: "document_date" | "document_type_number" | "partner_info", value: string) => void;
   onUpdateValue: (row: PopdvDetailRow, colCode: string, value: number) => void;
   onDeleteRow: (rowId: string) => void;
+  onReviewDocument: (row: PopdvDetailRow) => void;
 }
 
 function AnalyticalSubTable({
@@ -244,6 +257,7 @@ function AnalyticalSubTable({
   onUpdateField,
   onUpdateValue,
   onDeleteRow,
+  onReviewDocument,
 }: AnalyticalSubTableProps) {
   const cols = subTable.columns;
 
@@ -276,18 +290,18 @@ function AnalyticalSubTable({
       )}
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-[70px]">Šifra</TableHead>
-            <TableHead className="w-[100px]">Datum</TableHead>
-            <TableHead className="w-[140px]">Dokument</TableHead>
-            <TableHead className="min-w-[180px]">Partner</TableHead>
-            {cols.map((col) => (
-              <TableHead key={col.code} className="w-[130px] text-right">
-                {col.label}
-              </TableHead>
-            ))}
-            {isDraft && <TableHead className="w-[40px]" />}
-          </TableRow>
+           <TableRow>
+              <TableHead className="w-[70px]">Šifra</TableHead>
+              <TableHead className="w-[100px]">Datum</TableHead>
+              <TableHead className="w-[140px]">Dokument</TableHead>
+              <TableHead className="min-w-[180px]">Partner</TableHead>
+              {cols.map((col) => (
+                <TableHead key={col.code} className="w-[130px] text-right">
+                  {col.label}
+                </TableHead>
+              ))}
+              <TableHead className="w-[40px]" />
+            </TableRow>
         </TableHeader>
         <TableBody>
           {subTable.rows.map((formRow) => {
@@ -303,7 +317,7 @@ function AnalyticalSubTable({
                       {fmt0(summaryTotal(formRow.summaryOf, col.code))}
                     </TableCell>
                   ))}
-                  {isDraft && <TableCell />}
+                  <TableCell />
                 </TableRow>
               );
             }
@@ -323,7 +337,7 @@ function AnalyticalSubTable({
                       {fmt2(0)}
                     </TableCell>
                   ))}
-                  {isDraft && <TableCell />}
+                  <TableCell />
                 </TableRow>
               );
             }
@@ -339,6 +353,7 @@ function AnalyticalSubTable({
                 onUpdateField={onUpdateField}
                 onUpdateValue={onUpdateValue}
                 onDeleteRow={onDeleteRow}
+                onReviewDocument={onReviewDocument}
               />
             );
           })}
@@ -359,6 +374,7 @@ interface RowCodeBlockProps {
   onUpdateField: (rowId: string, field: "document_date" | "document_type_number" | "partner_info", value: string) => void;
   onUpdateValue: (row: PopdvDetailRow, colCode: string, value: number) => void;
   onDeleteRow: (rowId: string) => void;
+  onReviewDocument: (row: PopdvDetailRow) => void;
 }
 
 function RowCodeBlock({
@@ -370,6 +386,7 @@ function RowCodeBlock({
   onUpdateField,
   onUpdateValue,
   onDeleteRow,
+  onReviewDocument,
 }: RowCodeBlockProps) {
   return (
     <>
@@ -431,13 +448,28 @@ function RowCodeBlock({
               </TableCell>
             );
           })}
-          {isDraft && (
-            <TableCell className="p-1">
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDeleteRow(dr.id)}>
-                <Trash2 className="w-3 h-3 text-destructive" />
-              </Button>
-            </TableCell>
-          )}
+          <TableCell className="p-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onReviewDocument(dr)}>
+                  Pregled po dokumentu
+                </DropdownMenuItem>
+                {isDraft && (
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={() => onDeleteRow(dr.id)}
+                  >
+                    Obriši
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableCell>
         </TableRow>
       ))}
       {/* Subtotal */}
@@ -451,7 +483,7 @@ function RowCodeBlock({
             {fmt2(subtotal(code, col.code))}
           </TableCell>
         ))}
-        {isDraft && <TableCell />}
+        <TableCell />
       </TableRow>
     </>
   );
