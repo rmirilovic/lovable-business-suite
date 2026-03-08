@@ -54,7 +54,7 @@ export function ArticleTransfersDialog({ open, onOpenChange, articleId, articleC
             transfer:inter_warehouse_transfers!inner(
               transfer_date, transfer_number, status, company_id,
               source_warehouse:warehouses!inter_warehouse_transfers_source_warehouse_id_fkey(code, name),
-              dest_warehouse:warehouses!inter_warehouse_transfers_dest_warehouse_id_fkey(code, name)
+              dest_warehouse:warehouses!inter_warehouse_transfers_destination_warehouse_id_fkey(code, name)
             )
           `)
           .eq("article_id", articleId)
