@@ -14,7 +14,11 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet, History, Download, Undo2, RefreshCw } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Rocket, Lock, Save, FileDown, Printer, FileSpreadsheet, History, Download, Undo2, RefreshCw, MoreHorizontal, ClipboardList } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArticleWorkOrdersDialog } from "@/components/proizvodnja/ArticleWorkOrdersDialog";
 import { DateActionDialog } from "@/components/shared/DateActionDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
@@ -66,6 +70,7 @@ export default function WorkOrderEdit() {
   // Active tab persistence
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem("wo_edit_tab") || "materials");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [woDialogArticle, setWoDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
   const [showLaunchDialog, setShowLaunchDialog] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const isClosed = order?.status === "closed";
@@ -459,13 +464,14 @@ export default function WorkOrderEdit() {
                   <TableHead className="w-[100px] text-right">Lans. kg</TableHead>
                   <TableHead className="w-[100px] text-right">Cena</TableHead>
                   <TableHead className="w-[120px] text-right">Vrednost</TableHead>
+                  <TableHead className="w-[50px]" />
                   {isDraft && <TableHead className="w-[50px]" />}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 11 : 10} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={isDraft ? 12 : 11} className="text-center py-6 text-muted-foreground">
                       Nema stavki. Dodajte gotove proizvode.
                     </TableCell>
                   </TableRow>
@@ -509,6 +515,21 @@ export default function WorkOrderEdit() {
                       </TableCell>
                       <TableCell className="text-right font-mono font-semibold">
                         {formatNumber(item.launched_value, { minimumFractionDigits: 2 })}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setWoDialogArticle({ id: item.article_id, code: item.article_code, name: item.article_name })}>
+                              <ClipboardList className="w-4 h-4 mr-2" />
+                              Pregled na radnim nalozima
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                       {isDraft && (
                         <TableCell>
@@ -874,6 +895,13 @@ export default function WorkOrderEdit() {
         minDateMessage="Datum zaključenja ne može biti pre datuma lansiranja."
         onConfirm={(date) => closeOrder.mutateAsync({ id: order.id, closed_at: new Date(date).toISOString() })}
         isPending={closeOrder.isPending}
+      />
+      <ArticleWorkOrdersDialog
+        open={!!woDialogArticle}
+        onOpenChange={(open) => { if (!open) setWoDialogArticle(null); }}
+        articleId={woDialogArticle?.id ?? null}
+        articleCode={woDialogArticle?.code ?? ""}
+        articleName={woDialogArticle?.name ?? ""}
       />
     </MainLayout>
   );
