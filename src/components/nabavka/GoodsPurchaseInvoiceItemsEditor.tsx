@@ -155,7 +155,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
     const net = p * (1 - d / 100);
     const sub = q * net;
     const vat = supplierIsInPdv ? sub * (v / 100) : 0;
-    return { netPrice: net, total: sub + vat };
+    return { netPrice: net, subtotal: sub, total: sub + vat };
   };
 
   const commitField = (
