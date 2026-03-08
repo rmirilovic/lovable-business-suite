@@ -55,7 +55,7 @@ export function ArticleCalculationsDialog({ open, onOpenChange, articleId, artic
             quantity, purchase_price, allocated_costs,
             calculation:purchase_price_calculations!inner(
               calculation_date, calculation_number, status, company_id,
-              goods_receipt:goods_receipts(
+              goods_receipt:goods_receipts!purchase_price_calculations_goods_receipt_id_fkey(
                 partner:partners(name),
                 warehouse:warehouses(code, name)
               )
