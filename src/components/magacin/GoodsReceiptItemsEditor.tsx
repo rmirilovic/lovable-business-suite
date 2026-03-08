@@ -218,6 +218,7 @@ export function GoodsReceiptItemsEditor({
               <TableHead className="w-[120px] text-right">Cena</TableHead>
               <TableHead className="w-[120px] text-right">Vrednost</TableHead>
               <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[40px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
