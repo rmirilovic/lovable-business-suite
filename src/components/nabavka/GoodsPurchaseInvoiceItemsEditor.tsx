@@ -102,6 +102,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editItem, setEditItem] = useState<GoodsPurchaseInvoiceItemFormData>(emptyItem);
   const [editText, setEditText] = useState<TextState>(toTextState(emptyItem));
+  const [historyArticle, setHistoryArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const activeArticles = articles.filter((a) => a.is_active);
 
