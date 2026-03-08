@@ -77,10 +77,8 @@ export function CalculationItemsTable({
       purchaseValue: acc.purchaseValue + item.purchase_value,
       allocatedCosts: acc.allocatedCosts + item.allocated_costs,
       costValue: acc.costValue + item.cost_value,
-      markupValue: acc.markupValue + (item.markup_amount * item.quantity),
-      sellingValue: acc.sellingValue + item.selling_value,
     }),
-    { purchaseValue: 0, allocatedCosts: 0, costValue: 0, markupValue: 0, sellingValue: 0 }
+    { purchaseValue: 0, allocatedCosts: 0, costValue: 0 }
   );
 
   return (

@@ -481,7 +481,7 @@ export default function CalculationEdit() {
         />
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="border rounded-lg p-3">
             <p className="text-xs text-muted-foreground">Nabavna vrednost</p>
             <p className="text-lg font-semibold">{formatDecimal(calculation.total_purchase_value, 2)}</p>
@@ -490,17 +490,9 @@ export default function CalculationEdit() {
             <p className="text-xs text-muted-foreground">Zavisni troškovi</p>
             <p className="text-lg font-semibold">{formatDecimal(calculation.total_additional_costs, 2)}</p>
           </div>
-          <div className="border rounded-lg p-3">
-            <p className="text-xs text-muted-foreground">Vrednost koštanja</p>
-            <p className="text-lg font-semibold">{formatDecimal(calculation.total_cost_value, 2)}</p>
-          </div>
-          <div className="border rounded-lg p-3">
-            <p className="text-xs text-muted-foreground">Razlika u ceni</p>
-            <p className="text-lg font-semibold">{formatDecimal(calculation.total_markup_value, 2)}</p>
-          </div>
           <div className="border rounded-lg p-3 bg-primary/5">
-            <p className="text-xs text-muted-foreground">Prodajna vrednost</p>
-            <p className="text-lg font-semibold">{formatDecimal(calculation.total_selling_value, 2)}</p>
+            <p className="text-xs text-muted-foreground">Bruto vrednost</p>
+            <p className="text-lg font-semibold">{formatDecimal(calculation.total_cost_value, 2)}</p>
           </div>
         </div>
 
