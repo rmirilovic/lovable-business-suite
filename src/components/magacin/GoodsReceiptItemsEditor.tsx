@@ -44,6 +44,7 @@ export function GoodsReceiptItemsEditor({
   const { items, isLoading, addItem, updateItem, deleteItem } =
     useGoodsReceiptItems(receiptId);
   const { articles } = useArticles(selectedCompany?.id);
+  const [receiptsDialogArticle, setReceiptsDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const [newItem, setNewItem] = useState<GoodsReceiptItemFormData>(emptyItem);
   const [newItemQuantity, setNewItemQuantity] = useState("1");
