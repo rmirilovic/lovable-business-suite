@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Save, BookCheck, AlertTriangle, Printer, FileDown, History, Undo2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, BookCheck, AlertTriangle, Printer, FileDown, History, Undo2, MoreHorizontal, ClipboardList } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArticleRequisitionsDialog } from "@/components/proizvodnja/ArticleRequisitionsDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useMaterialRequisition, useMaterialRequisitionItems, useMaterialRequisitions,
@@ -81,6 +83,7 @@ export default function RequisitionEdit() {
   const [headerDirty, setHeaderDirty] = useState(false);
   const [newArticleId, setNewArticleId] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [reqDialogArticle, setReqDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   useEffect(() => {
     if (requisition) {
@@ -325,13 +328,14 @@ export default function RequisitionEdit() {
                   <TableHead className="w-[100px] text-right">Odobreno RN</TableHead>
                   <TableHead className="w-[130px] text-right">Cena</TableHead>
                   <TableHead className="w-[130px] text-right">Vrednost</TableHead>
+                  <TableHead className="w-[50px]" />
                   {isDraft && <TableHead className="w-[50px]" />}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 10 : 9} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={isDraft ? 11 : 10} className="text-center py-6 text-muted-foreground">
                       Nema stavki. Dodajte materijal.
                     </TableCell>
                   </TableRow>
@@ -390,6 +394,21 @@ export default function RequisitionEdit() {
                       <TableCell className="text-right font-mono font-semibold">
                         {formatNumber(item.item_value, { minimumFractionDigits: 2 })}
                       </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setReqDialogArticle({ id: item.article_id, code: item.article_code, name: item.article_name })}>
+                              <ClipboardList className="w-4 h-4 mr-2" />
+                              Pregled na trebovanjima
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                       {isDraft && (
                         <TableCell>
                           <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.id)}>
@@ -418,6 +437,13 @@ export default function RequisitionEdit() {
         </div>
       </div>
       <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={requisition.id} documentName={requisition.requisition_number} documentType="material_requisition" />
+      <ArticleRequisitionsDialog
+        open={!!reqDialogArticle}
+        onOpenChange={(v) => { if (!v) setReqDialogArticle(null); }}
+        articleId={reqDialogArticle?.id ?? null}
+        articleCode={reqDialogArticle?.code ?? ""}
+        articleName={reqDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
