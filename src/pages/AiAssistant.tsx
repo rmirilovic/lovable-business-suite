@@ -305,10 +305,19 @@ export default function AiAssistant() {
       <div className="flex h-[calc(100vh-8rem)] gap-4">
         {/* Conversations sidebar */}
         <Card className="w-72 shrink-0 flex flex-col">
-          <div className="p-3 border-b">
+          <div className="p-3 border-b space-y-2">
             <Button onClick={handleNewConversation} className="w-full gap-2" size="sm">
               <MessageSquarePlus className="w-4 h-4" />
               Nova konverzacija
+            </Button>
+            <Button
+              onClick={() => activeConversationId && handleDeleteConversation(activeConversationId)}
+              className="w-full"
+              size="sm"
+              variant="destructive"
+              disabled={!activeConversationId}
+            >
+              Obriši aktivnu konverzaciju
             </Button>
           </div>
           <ScrollArea className="flex-1">
