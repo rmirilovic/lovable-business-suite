@@ -65,6 +65,8 @@ export function CalculationItemsTable({
   onUpdateMarkupAmount,
   onUpdateSellingPrice,
 }: CalculationItemsTableProps) {
+  const [calcDialogArticle, setCalcDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
