@@ -133,45 +133,6 @@ export function CalculationItemsTable({
                     <TableCell className="text-right">{formatDecimal(item.allocated_costs, 2)}</TableCell>
                     <TableCell className="text-right font-medium">{formatDecimal(item.cost_price, 2)}</TableCell>
                     <TableCell className="text-right font-medium">{formatDecimal(item.cost_value, 2)}</TableCell>
-                    <TableCell>
-                      {isEditable && isGoods ? (
-                        <BlurCommitNumberInput
-                          value={item.markup_percent}
-                          onCommit={(pct) => onUpdateMarkup(item.id, pct)}
-                          decimalPlaces={2}
-                          className="text-right w-[80px]"
-                        />
-                      ) : (
-                        <span className="block text-right">{formatDecimal(item.markup_percent, 2)}</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isEditable && isGoods ? (
-                        <BlurCommitNumberInput
-                          value={item.markup_amount}
-                          onCommit={(amt) => onUpdateMarkupAmount(item.id, amt)}
-                          decimalPlaces={2}
-                          className="text-right w-[90px]"
-                        />
-                      ) : (
-                        <span className="block text-right">{formatDecimal(item.markup_amount, 2)}</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isEditable && isGoods ? (
-                        <BlurCommitNumberInput
-                          value={item.selling_price}
-                          onCommit={(price) => onUpdateSellingPrice(item.id, price)}
-                          decimalPlaces={2}
-                          className="text-right w-[90px]"
-                        />
-                      ) : (
-                        <span className="block text-right font-medium">{formatDecimal(item.selling_price, 2)}</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatDecimal(item.selling_value, 2)}
-                    </TableCell>
                     <TableCell className="p-0">
                       {item.article_id && (
                         <DropdownMenu>
