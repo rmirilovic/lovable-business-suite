@@ -73,6 +73,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
         const mapped: Row[] = (data || []).map((item: any) => {
           const discount = item.discount_percent ?? 0;
           const discountedPrice = item.unit_price * (1 - discount / 100);
+          const subtotal = item.quantity * discountedPrice;
           return {
             invoice_date: item.invoice?.invoice_date ?? "",
             internal_number: item.invoice?.internal_number ?? "",
@@ -82,7 +83,9 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
             unit_price: item.unit_price,
             discount_percent: discount,
             discounted_price: discountedPrice,
-            line_value: item.quantity * discountedPrice,
+            vat_rate: item.vat_rate ?? 0,
+            line_subtotal: subtotal,
+            line_value: item.line_total ?? subtotal,
           };
         });
 
