@@ -10,8 +10,10 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { ArrowLeft, Lock, Save, Undo2, History } from "lucide-react";
+import { ArrowLeft, Lock, Save, Undo2, History, MoreHorizontal, Eye } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { ArticleReprocessingDeliveryNotesDialog } from "@/components/proizvodnja/ArticleReprocessingDeliveryNotesDialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   useReprocessingDeliveryNote, useReprocessingDeliveryNoteItems, useReprocessingDeliveryNotes,
   ReprocessingDeliveryNoteItem, RDN_STATUS_LABELS, RDN_STATUS_COLORS,
@@ -26,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
 
-function ItemRow({ item, idx, isDraft, onUpdate }: { item: ReprocessingDeliveryNoteItem; idx: number; isDraft: boolean; onUpdate: (item: ReprocessingDeliveryNoteItem, field: string, value: number) => void }) {
+function ItemRow({ item, idx, isDraft, onUpdate, onShowHistory }: { item: ReprocessingDeliveryNoteItem; idx: number; isDraft: boolean; onUpdate: (item: ReprocessingDeliveryNoteItem, field: string, value: number) => void; onShowHistory: (a: { id: string; code: string; name: string }) => void }) {
   return (
     <TableRow>
       <TableCell>{idx + 1}</TableCell>
@@ -43,6 +45,20 @@ function ItemRow({ item, idx, isDraft, onUpdate }: { item: ReprocessingDeliveryN
       <TableCell className="text-right"><LocaleNumberInput value={String(item.scrap_qty ?? 0)} onChange={(v) => onUpdate(item, "scrap_qty", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[70px] text-right h-8" /></TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.unit_price, { minimumFractionDigits: 2 })}</TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.item_value, { minimumFractionDigits: 2 })}</TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onShowHistory({ id: item.article_id, code: item.article_code, name: item.article_name })}>
+              <Eye className="w-4 h-4 mr-2" /> Pregled na predajnicama
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
     </TableRow>
   );
 }
@@ -67,6 +83,7 @@ export default function ReprocessingDeliveryNoteEdit() {
   const [headerForm, setHeaderForm] = useState({ delivery_date: "", warehouse_id: "", work_order_id: "", production_line: 1, shift_manager_1_id: "", shift_manager_2_id: "", shift_manager_3_id: "", note: "", responsible_person: "" });
   const [headerDirty, setHeaderDirty] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [pdnDialogArticle, setPdnDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   useEffect(() => {
     if (note) {
@@ -196,14 +213,15 @@ export default function ReprocessingDeliveryNoteEdit() {
                 <TableHead className="w-[85px] text-right">Pred. kg</TableHead>
                 <TableHead className="w-[75px] text-right">Škart</TableHead>
                 <TableHead className="w-[90px] text-right">Cena</TableHead>
-                <TableHead className="w-[100px] text-right">Vrednost</TableHead>
-              </TableRow></TableHeader>
-              <TableBody>
-                {items.length === 0 ? (
-                  <TableRow><TableCell colSpan={14} className="text-center py-6 text-muted-foreground">Nema stavki.</TableCell></TableRow>
-                ) : items.map((item, idx) => (
-                  <ItemRow key={item.id} item={item} idx={idx} isDraft={isDraft} onUpdate={handleUpdateItem} />
-                ))}
+                 <TableHead className="w-[100px] text-right">Vrednost</TableHead>
+                 <TableHead className="w-[40px]"></TableHead>
+               </TableRow></TableHeader>
+               <TableBody>
+                 {items.length === 0 ? (
+                   <TableRow><TableCell colSpan={15} className="text-center py-6 text-muted-foreground">Nema stavki.</TableCell></TableRow>
+                 ) : items.map((item, idx) => (
+                   <ItemRow key={item.id} item={item} idx={idx} isDraft={isDraft} onUpdate={handleUpdateItem} onShowHistory={(a) => setPdnDialogArticle(a)} />
+                 ))}
               </TableBody>
             </Table>
           </TableScrollContainer>
@@ -212,6 +230,13 @@ export default function ReprocessingDeliveryNoteEdit() {
       {note && (
         <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={note.id} documentName={note.delivery_number} documentType="reprocessing_delivery_note" />
       )}
+      <ArticleReprocessingDeliveryNotesDialog
+        open={!!pdnDialogArticle}
+        onOpenChange={(o) => { if (!o) setPdnDialogArticle(null); }}
+        articleId={pdnDialogArticle?.id ?? null}
+        articleCode={pdnDialogArticle?.code ?? ""}
+        articleName={pdnDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
