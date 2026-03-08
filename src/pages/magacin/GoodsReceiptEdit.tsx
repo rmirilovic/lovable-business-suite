@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft,
-  RefreshCw, Calculator, ExternalLink, History,
+  RefreshCw, Calculator, ExternalLink, History, MoreHorizontal,
 } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
@@ -34,6 +34,10 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArticleGoodsReceiptsDialog } from "@/components/magacin/ArticleGoodsReceiptsDialog";
 
 export default function GoodsReceiptEdit() {
   const { id } = useParams<{ id: string }>();
@@ -48,6 +52,7 @@ export default function GoodsReceiptEdit() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [receiptsDialogArticle, setReceiptsDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const { items, isLoading: itemsLoading } = useGoodsReceiptItems(id || null);
@@ -289,13 +294,14 @@ export default function GoodsReceiptEdit() {
                   <TableHead className="text-right">Količina</TableHead>
                   <TableHead>JM</TableHead>
                   <TableHead className="text-right">Cena</TableHead>
-                  <TableHead className="text-right">Vrednost</TableHead>
-                </TableRow>
-              </TableHeader>
+                   <TableHead className="text-right">Vrednost</TableHead>
+                   <TableHead className="w-[40px]"></TableHead>
+                 </TableRow>
+               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       Nema stavki
                     </TableCell>
                   </TableRow>
@@ -308,12 +314,28 @@ export default function GoodsReceiptEdit() {
                       <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
                       <TableCell>{item.unit}</TableCell>
                       <TableCell className="text-right">{formatDecimal(item.unit_price, 2)}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatDecimal(item.quantity * item.unit_price, 2)}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                       <TableCell className="text-right font-medium">
+                         {formatDecimal(item.quantity * item.unit_price, 2)}
+                       </TableCell>
+                       <TableCell className="p-0">
+                         {item.article_id && (
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button variant="ghost" size="icon" className="h-7 w-7">
+                                 <MoreHorizontal className="h-4 w-4" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end">
+                               <DropdownMenuItem onClick={() => setReceiptsDialogArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                                 Pregled na prijemnicama
+                               </DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         )}
+                       </TableCell>
+                     </TableRow>
+                   ))
+                 )}
               </TableBody>
             </Table>
           </div>
@@ -380,6 +402,14 @@ export default function GoodsReceiptEdit() {
           documentType="goods_receipt"
         />
       )}
+
+      <ArticleGoodsReceiptsDialog
+        open={!!receiptsDialogArticle}
+        onOpenChange={(open) => { if (!open) setReceiptsDialogArticle(null); }}
+        articleId={receiptsDialogArticle?.id ?? null}
+        articleCode={receiptsDialogArticle?.code ?? ""}
+        articleName={receiptsDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
