@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Trash2, Loader2, Upload } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Trash2, Loader2, Upload, MoreHorizontal } from "lucide-react";
 import { usePriceAdjustmentItems, PriceAdjustmentItem } from "@/hooks/usePriceAdjustments";
 import { useArticles } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +15,7 @@ import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ArticlePriceAdjustmentsDialog } from "@/components/magacin/ArticlePriceAdjustmentsDialog";
 
 interface Props {
   adjustmentId: string;
