@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Trash2, Loader2, Upload } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Trash2, Loader2, Upload, MoreHorizontal } from "lucide-react";
 import { usePriceAdjustmentItems, PriceAdjustmentItem } from "@/hooks/usePriceAdjustments";
 import { useArticles } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +15,7 @@ import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ArticlePriceAdjustmentsDialog } from "@/components/magacin/ArticlePriceAdjustmentsDialog";
 
 interface Props {
   adjustmentId: string;
@@ -24,6 +28,7 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
   const { items, isLoading, addItem, updateItem, deleteItem } = usePriceAdjustmentItems(adjustmentId);
   const { articles } = useArticles(selectedCompany?.id);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
+  const [adjustDialogArticle, setAdjustDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   // Only SVK=1 articles (strictly)
   const eligibleArticles = articles.filter((a) => a.is_active && (a.svk === "1" || a.svk === null));
@@ -181,12 +186,13 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
               <TableHead className="w-[140px] text-right">Razlika/jed.</TableHead>
               <TableHead className="w-[160px] text-right">Razlika ukupno</TableHead>
               <TableHead className="w-[40px]"></TableHead>
+              <TableHead className="w-[40px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                   Nema stavki. Učitajte artikle iz magacina ili dodajte ručno.
                 </TableCell>
               </TableRow>
@@ -198,6 +204,7 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
                   index={index}
                   onFieldCommit={handleFieldCommit}
                   onDelete={() => deleteItem.mutateAsync(item.id)}
+                  onShowHistory={setAdjustDialogArticle}
                 />
               ))
             )}
@@ -211,11 +218,20 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
                   {totals.increase === 0 && totals.decrease === 0 && formatDecimal(0, 2)}
                 </TableCell>
                 <TableCell></TableCell>
+                <TableCell></TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      <ArticlePriceAdjustmentsDialog
+        open={!!adjustDialogArticle}
+        onOpenChange={(open) => { if (!open) setAdjustDialogArticle(null); }}
+        articleId={adjustDialogArticle?.id ?? null}
+        articleCode={adjustDialogArticle?.code ?? ""}
+        articleName={adjustDialogArticle?.name ?? ""}
+      />
     </div>
   );
 }
@@ -227,9 +243,10 @@ interface RowProps {
   index: number;
   onFieldCommit: (item: PriceAdjustmentItem, field: string, rawValue: string) => Promise<void>;
   onDelete: () => void;
+  onShowHistory: (article: { id: string; code: string; name: string }) => void;
 }
 
-function PriceAdjustmentRow({ item, index, onFieldCommit, onDelete }: RowProps) {
+function PriceAdjustmentRow({ item, index, onFieldCommit, onDelete, onShowHistory }: RowProps) {
   const [quantity, setQuantity] = useState(formatDecimal(item.quantity, 2));
   const [newPrice, setNewPrice] = useState(formatDecimal(item.new_price, 2));
 
@@ -282,6 +299,22 @@ function PriceAdjustmentRow({ item, index, onFieldCommit, onDelete }: RowProps) 
         <Button variant="ghost" size="icon" onClick={onDelete}>
           <Trash2 className="h-4 w-4 text-destructive" />
         </Button>
+      </TableCell>
+      <TableCell className="p-0">
+        {item.article_id && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onShowHistory({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                Pregled na stavkama nivelacija
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </TableCell>
     </TableRow>
   );

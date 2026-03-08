@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw, History,
+  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw, History, MoreHorizontal,
 } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { PriceAdjustment, usePriceAdjustmentItems, usePriceAdjustments } from "@/hooks/usePriceAdjustments";
@@ -27,6 +27,10 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArticlePriceAdjustmentsDialog } from "@/components/magacin/ArticlePriceAdjustmentsDialog";
 
 export default function PriceAdjustmentEdit() {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +46,7 @@ export default function PriceAdjustmentEdit() {
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
+  const [adjustDialogArticle, setAdjustDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const { items, isLoading: itemsLoading } = usePriceAdjustmentItems(id || null);
   const { updateAdjustment, postAdjustment, unpostAdjustment } = usePriceAdjustments();
@@ -221,13 +226,14 @@ export default function PriceAdjustmentEdit() {
                   <TableHead className="text-right">Stara cena</TableHead>
                   <TableHead className="text-right">Nova cena</TableHead>
                   <TableHead className="text-right">Razlika/jed.</TableHead>
-                  <TableHead className="text-right">Razlika ukupno</TableHead>
+                   <TableHead className="text-right">Razlika ukupno</TableHead>
+                   <TableHead className="w-[40px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Nema stavki</TableCell>
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Nema stavki</TableCell>
                   </TableRow>
                 ) : (
                   items.map((item, i) => (
@@ -248,10 +254,26 @@ export default function PriceAdjustmentEdit() {
                         <span className={item.value_difference > 0 ? "text-green-600" : item.value_difference < 0 ? "text-destructive" : ""}>
                           {formatDecimal(item.value_difference, 2)}
                         </span>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                       </TableCell>
+                       <TableCell className="p-0">
+                         {item.article_id && (
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button variant="ghost" size="icon" className="h-7 w-7">
+                                 <MoreHorizontal className="h-4 w-4" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end">
+                               <DropdownMenuItem onClick={() => setAdjustDialogArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                                 Pregled na stavkama nivelacija
+                               </DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         )}
+                       </TableCell>
+                     </TableRow>
+                   ))
+                 )}
                 {items.length > 0 && (
                   <TableRow className="bg-muted/50 font-medium">
                     <TableCell colSpan={8} className="text-right">Ukupno:</TableCell>
@@ -313,6 +335,13 @@ export default function PriceAdjustmentEdit() {
       {doc && (
         <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={doc.id} documentName={doc.adjustment_number} documentType="price_adjustment" />
       )}
+      <ArticlePriceAdjustmentsDialog
+        open={!!adjustDialogArticle}
+        onOpenChange={(open) => { if (!open) setAdjustDialogArticle(null); }}
+        articleId={adjustDialogArticle?.id ?? null}
+        articleCode={adjustDialogArticle?.code ?? ""}
+        articleName={adjustDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
