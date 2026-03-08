@@ -48,6 +48,7 @@ export default function TransferEdit() {
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [transfersDialogArticle, setTransfersDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const { items, isLoading: itemsLoading } = useInterWarehouseTransferItems(id || null);
   const { updateTransfer, postTransfer, unpostTransfer } = useInterWarehouseTransfers();
