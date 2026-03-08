@@ -282,6 +282,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                 <TableHead className="w-[140px] text-right">Cena (RSD)</TableHead>
                 <TableHead className="w-[80px] text-right">Rabat%</TableHead>
                 <TableHead className="w-[140px] text-right">Cena neto</TableHead>
+                <TableHead className="w-[140px] text-right">Osnovica</TableHead>
                 <TableHead className="w-[90px] text-right">PDV%</TableHead>
                 <TableHead className="w-[140px] text-right">Ukupno</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
