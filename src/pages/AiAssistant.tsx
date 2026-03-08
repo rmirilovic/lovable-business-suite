@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/card";
 import {
   MessageSquarePlus,
   Send,
-  Trash2,
   Loader2,
   Bot,
   User,
