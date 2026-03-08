@@ -169,7 +169,7 @@ export default function GoodsReceiptEdit() {
             </Button>
             <h1 className="text-xl font-semibold">{receipt.receipt_number}</h1>
             {isPosted ? (
-              <Badge variant="default">Proknjižen</Badge>
+              <Badge variant="default">Proknjižena</Badge>
             ) : receipt.source_invoice_id ? (
               <Badge variant="secondary">Iz fakture</Badge>
             ) : (
