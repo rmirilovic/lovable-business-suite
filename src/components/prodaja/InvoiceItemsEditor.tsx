@@ -383,7 +383,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
 
           {items.length === 0 && !isAdding && (
             <TableRow>
-              <TableCell colSpan={readOnly ? 10 : 11} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                 Nema stavki. Dodajte artikal ili uslugu.
               </TableCell>
             </TableRow>
