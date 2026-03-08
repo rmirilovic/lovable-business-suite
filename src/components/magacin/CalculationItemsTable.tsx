@@ -193,7 +193,7 @@ export function CalculationItemsTable({
             )}
             {items.length > 0 && (
               <TableRow className="bg-muted/50 font-semibold">
-                <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
+                <TableCell colSpan={7} className="text-right">Ukupno:</TableCell>
                 <TableCell className="text-right">{formatDecimal(totals.purchaseValue, 2)}</TableCell>
                 <TableCell className="text-right">{formatDecimal(totals.allocatedCosts, 2)}</TableCell>
                 <TableCell />
@@ -207,6 +207,14 @@ export function CalculationItemsTable({
           </TableBody>
         </Table>
       </TableScrollContainer>
+
+      <ArticleCalculationsDialog
+        open={!!calcDialogArticle}
+        onOpenChange={(open) => { if (!open) setCalcDialogArticle(null); }}
+        articleId={calcDialogArticle?.id ?? null}
+        articleCode={calcDialogArticle?.code ?? ""}
+        articleName={calcDialogArticle?.name ?? ""}
+      />
     </div>
   );
 }
