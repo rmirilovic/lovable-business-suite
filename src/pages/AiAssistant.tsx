@@ -170,7 +170,7 @@ export default function AiAssistant() {
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
-    if (!trimmed || isStreaming) return;
+    if ((!trimmed && attachedFiles.length === 0) || isStreaming) return;
 
     let convId = activeConversationId;
     if (!convId) {
