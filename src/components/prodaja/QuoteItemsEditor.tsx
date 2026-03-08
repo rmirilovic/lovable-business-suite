@@ -212,26 +212,35 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
                     <TableCell className="text-right">{formatNumber(item.discount_percent)}%</TableCell>
                     <TableCell className="text-right">{formatNumber(item.vat_rate)}%</TableCell>
                     <TableCell className="text-right font-medium">{formatDecimal(item.line_subtotal)}</TableCell>
-                    {!isReadOnly && (
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleEditItem(item)}
-                          >
-                            <Pencil className="w-4 h-4" />
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost">
+                            <MoreHorizontal className="w-4 h-4" />
                           </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDeleteItem(item.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    )}
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {item.article_id && (
+                            <DropdownMenuItem onClick={() => setHistoryArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Pregled na ponudama
+                            </DropdownMenuItem>
+                          )}
+                          {!isReadOnly && (
+                            <>
+                              <DropdownMenuItem onClick={() => handleEditItem(item)}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Izmeni
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeleteItem(item.id)} className="text-destructive">
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Obriši
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </>
                 )}
               </TableRow>
