@@ -54,7 +54,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
         let query = supabase
           .from("goods_purchase_invoice_items")
           .select(`
-            quantity, unit_price, discount_percent, line_subtotal,
+            quantity, unit_price, discount_percent, vat_rate, line_subtotal, line_total,
             invoice:goods_purchase_invoices!inner(
               invoice_date, internal_number, status,
               partner:partners(code, name),
