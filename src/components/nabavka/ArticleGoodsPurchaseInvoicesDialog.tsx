@@ -132,21 +132,19 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
                 <TableHead className="text-right w-[100px]">Količina</TableHead>
                 <TableHead className="text-right w-[120px]">Nabavna cena</TableHead>
                 <TableHead className="text-right w-[120px]">Rabatirana cena</TableHead>
-                <TableHead className="text-right w-[80px]">PDV%</TableHead>
-                <TableHead className="text-right w-[120px]">Osnovica</TableHead>
-                <TableHead className="text-right w-[120px]">Ukupno</TableHead>
+                <TableHead className="text-right w-[120px]">Vrednost</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                   <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     Nema UFR za ovaj artikal u izabranom periodu.
                   </TableCell>
                 </TableRow>
@@ -163,8 +161,6 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
                     <TableCell className="text-right">{formatNumber(row.quantity)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(row.unit_price)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(row.discounted_price)}</TableCell>
-                    <TableCell className="text-right">{formatDecimal(row.vat_rate, 0)}%</TableCell>
-                    <TableCell className="text-right">{formatDecimal(row.line_subtotal)}</TableCell>
                     <TableCell className="text-right font-medium">{formatDecimal(row.line_value)}</TableCell>
                   </TableRow>
                 ))

@@ -155,7 +155,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
     const net = p * (1 - d / 100);
     const sub = q * net;
     const vat = supplierIsInPdv ? sub * (v / 100) : 0;
-    return { netPrice: net, total: sub + vat };
+    return { netPrice: net, subtotal: sub, total: sub + vat };
   };
 
   const commitField = (
@@ -253,7 +253,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
     />
   );
 
-  const colCount = (isForeign ? 1 : 0) + 10;
+  const colCount = (isForeign ? 1 : 0) + 11;
 
   return (
     <div className="space-y-4">
@@ -282,6 +282,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                 <TableHead className="w-[140px] text-right">Cena (RSD)</TableHead>
                 <TableHead className="w-[80px] text-right">Rabat%</TableHead>
                 <TableHead className="w-[140px] text-right">Cena neto</TableHead>
+                <TableHead className="w-[140px] text-right">Osnovica</TableHead>
                 <TableHead className="w-[90px] text-right">PDV%</TableHead>
                 <TableHead className="w-[140px] text-right">Ukupno</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
@@ -352,6 +353,9 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs text-right">
                         {formatNumber(getTotals(editText).netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
+                      <TableCell className="text-xs text-right">
+                        {formatNumber(getTotals(editText).subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </TableCell>
                       <TableCell>
                         {renderNumericInput(
                           editText.vat_rate,
@@ -404,6 +408,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs text-right">{formatNumber(item.unit_price, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-xs text-right">{item.discount_percent > 0 ? `${formatNumber(item.discount_percent)}%` : "-"}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(calculateNetPrice(item.unit_price, item.discount_percent), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="text-xs text-right">{formatNumber(item.line_subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-xs text-right">{item.vat_rate}%</TableCell>
                       <TableCell className="text-xs text-right font-medium">
                         {formatNumber(item.line_total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -490,6 +495,9 @@ export function GoodsPurchaseInvoiceItemsEditor({
                     </TableCell>
                     <TableCell className="text-xs text-right">
                       {formatNumber(getTotals(newText).netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="text-xs text-right">
+                      {formatNumber(getTotals(newText).subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell>
                       {renderNumericInput(
