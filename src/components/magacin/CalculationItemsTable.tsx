@@ -98,7 +98,6 @@ export function CalculationItemsTable({
               <TableHead className="min-w-[60px]">Šifra</TableHead>
               <TableHead className="min-w-[150px]">Naziv</TableHead>
               <TableHead className="w-[30px]" />
-              <TableHead className="min-w-[150px]">Naziv</TableHead>
               <TableHead className="w-[50px]">JM</TableHead>
               <TableHead className="w-[70px] text-right">Kol.</TableHead>
               <TableHead className="w-[100px] text-right">Nab. cena</TableHead>
