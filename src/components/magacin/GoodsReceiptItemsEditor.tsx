@@ -9,7 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Trash2, Loader2, MoreHorizontal } from "lucide-react";
 import {
   useGoodsReceiptItems,
   GoodsReceiptItemFormData,
