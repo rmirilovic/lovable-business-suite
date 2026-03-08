@@ -328,6 +328,7 @@ export default function RequisitionEdit() {
                   <TableHead className="w-[100px] text-right">Odobreno RN</TableHead>
                   <TableHead className="w-[130px] text-right">Cena</TableHead>
                   <TableHead className="w-[130px] text-right">Vrednost</TableHead>
+                  <TableHead className="w-[50px]" />
                   {isDraft && <TableHead className="w-[50px]" />}
                 </TableRow>
               </TableHeader>
