@@ -408,8 +408,9 @@ export default function ProductionDeliveryNoteEdit() {
                   <TableHead className="w-[95px] text-right">Pred. m</TableHead>
                   <TableHead className="w-[95px] text-right">Pred. kom</TableHead>
                   <TableHead className="w-[85px] text-right">Škart</TableHead>
-                  <TableHead className="w-[100px] text-right">Cena</TableHead>
+                   <TableHead className="w-[100px] text-right">Cena</TableHead>
                    <TableHead className="w-[110px] text-right">Vrednost</TableHead>
+                   <TableHead className="w-[40px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
