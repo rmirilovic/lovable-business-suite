@@ -45,6 +45,52 @@ export default function AiAssistant() {
   const [loadingConversations, setLoadingConversations] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  const startListening = useCallback(() => {
+    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Vaš pretraživač ne podržava glasovni unos");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "sr-Latn-RS";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    let finalTranscript = "";
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interim = transcript;
+        }
+      }
+      setInput(finalTranscript + interim);
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error !== "aborted") {
+        toast.error("Greška pri prepoznavanju govora");
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }, []);
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }, []);
 
   useEffect(() => {
     document.title = "AI Asistent | ERP Mirilo";
