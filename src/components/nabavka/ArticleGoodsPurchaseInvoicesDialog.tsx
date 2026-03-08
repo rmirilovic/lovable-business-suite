@@ -17,6 +17,8 @@ interface Row {
   unit_price: number;
   discount_percent: number;
   discounted_price: number;
+  vat_rate: number;
+  line_subtotal: number;
   line_value: number;
 }
 
@@ -52,7 +54,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
         let query = supabase
           .from("goods_purchase_invoice_items")
           .select(`
-            quantity, unit_price, discount_percent, line_subtotal,
+            quantity, unit_price, discount_percent, vat_rate, line_subtotal, line_total,
             invoice:goods_purchase_invoices!inner(
               invoice_date, internal_number, status,
               partner:partners(code, name),
@@ -71,6 +73,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
         const mapped: Row[] = (data || []).map((item: any) => {
           const discount = item.discount_percent ?? 0;
           const discountedPrice = item.unit_price * (1 - discount / 100);
+          const subtotal = item.quantity * discountedPrice;
           return {
             invoice_date: item.invoice?.invoice_date ?? "",
             internal_number: item.invoice?.internal_number ?? "",
@@ -80,7 +83,9 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
             unit_price: item.unit_price,
             discount_percent: discount,
             discounted_price: discountedPrice,
-            line_value: item.quantity * discountedPrice,
+            vat_rate: item.vat_rate ?? 0,
+            line_subtotal: subtotal,
+            line_value: item.line_total ?? subtotal,
           };
         });
 
@@ -127,19 +132,21 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
                 <TableHead className="text-right w-[100px]">Količina</TableHead>
                 <TableHead className="text-right w-[120px]">Nabavna cena</TableHead>
                 <TableHead className="text-right w-[120px]">Rabatirana cena</TableHead>
-                <TableHead className="text-right w-[120px]">Vrednost</TableHead>
+                <TableHead className="text-right w-[80px]">PDV%</TableHead>
+                <TableHead className="text-right w-[120px]">Osnovica</TableHead>
+                <TableHead className="text-right w-[120px]">Ukupno</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                   <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Nema UFR za ovaj artikal u izabranom periodu.
                   </TableCell>
                 </TableRow>
@@ -156,6 +163,8 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
                     <TableCell className="text-right">{formatNumber(row.quantity)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(row.unit_price)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(row.discounted_price)}</TableCell>
+                    <TableCell className="text-right">{formatDecimal(row.vat_rate, 0)}%</TableCell>
+                    <TableCell className="text-right">{formatDecimal(row.line_subtotal)}</TableCell>
                     <TableCell className="text-right font-medium">{formatDecimal(row.line_value)}</TableCell>
                   </TableRow>
                 ))
