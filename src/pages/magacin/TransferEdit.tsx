@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw, History,
+  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw, History, MoreHorizontal,
 } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
