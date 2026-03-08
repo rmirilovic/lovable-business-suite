@@ -10,8 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, X, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, X, Trash2, MoreHorizontal, Eye } from "lucide-react";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
+import { ArticleGoodsPurchaseInvoicesDialog } from "./ArticleGoodsPurchaseInvoicesDialog";
 import { useArticles } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import {
