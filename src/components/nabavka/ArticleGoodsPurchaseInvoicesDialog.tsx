@@ -132,9 +132,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
                 <TableHead className="text-right w-[100px]">Količina</TableHead>
                 <TableHead className="text-right w-[120px]">Nabavna cena</TableHead>
                 <TableHead className="text-right w-[120px]">Rabatirana cena</TableHead>
-                <TableHead className="text-right w-[80px]">PDV%</TableHead>
-                <TableHead className="text-right w-[120px]">Osnovica</TableHead>
-                <TableHead className="text-right w-[120px]">Ukupno</TableHead>
+                <TableHead className="text-right w-[120px]">Vrednost</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
