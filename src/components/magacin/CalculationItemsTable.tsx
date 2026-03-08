@@ -3,7 +3,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Loader2, MoreHorizontal } from "lucide-react";
 import { CalculationItem } from "@/hooks/usePurchasePriceCalculations";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
@@ -97,7 +100,6 @@ export function CalculationItemsTable({
               <TableHead className="w-10">#</TableHead>
               <TableHead className="min-w-[60px]">Šifra</TableHead>
               <TableHead className="min-w-[150px]">Naziv</TableHead>
-              <TableHead className="w-[30px]" />
               <TableHead className="w-[50px]">JM</TableHead>
               <TableHead className="w-[70px] text-right">Kol.</TableHead>
               <TableHead className="w-[100px] text-right">Nab. cena</TableHead>
@@ -109,6 +111,7 @@ export function CalculationItemsTable({
               <TableHead className="w-[100px] text-right">Marža izn.</TableHead>
               <TableHead className="w-[100px] text-right">Prod. cena</TableHead>
               <TableHead className="w-[110px] text-right">Prod. vred.</TableHead>
+              <TableHead className="w-[40px]" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -127,19 +130,6 @@ export function CalculationItemsTable({
                     <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                     <TableCell className="text-sm">{item.item_code || "—"}</TableCell>
                     <TableCell className="text-sm">{item.item_name}</TableCell>
-                    <TableCell className="p-0">
-                      {item.article_id && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          title="Po kalkulacijama"
-                          onClick={() => setCalcDialogArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}
-                        >
-                          <Search className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                    </TableCell>
                     <TableCell className="text-sm">{item.unit}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.quantity, 3)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.purchase_price, 2)}</TableCell>
@@ -186,6 +176,22 @@ export function CalculationItemsTable({
                     <TableCell className="text-right font-medium">
                       {formatDecimal(item.selling_value, 2)}
                     </TableCell>
+                    <TableCell className="p-0">
+                      {item.article_id && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setCalcDialogArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                              Na kalkulacijama
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })
@@ -201,6 +207,7 @@ export function CalculationItemsTable({
                 <TableCell className="text-right">{formatDecimal(totals.markupValue, 2)}</TableCell>
                 <TableCell />
                 <TableCell className="text-right">{formatDecimal(totals.sellingValue, 2)}</TableCell>
+                <TableCell />
               </TableRow>
             )}
           </TableBody>
