@@ -226,7 +226,8 @@ export default function PriceAdjustmentEdit() {
                   <TableHead className="text-right">Stara cena</TableHead>
                   <TableHead className="text-right">Nova cena</TableHead>
                   <TableHead className="text-right">Razlika/jed.</TableHead>
-                  <TableHead className="text-right">Razlika ukupno</TableHead>
+                   <TableHead className="text-right">Razlika ukupno</TableHead>
+                   <TableHead className="w-[40px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
