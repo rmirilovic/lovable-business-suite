@@ -225,7 +225,7 @@ export function GoodsReceiptItemsEditor({
             {items.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={9}
                   className="text-center py-8 text-muted-foreground"
                 >
                   Nema stavki. Dodajte prvu stavku iznad.
