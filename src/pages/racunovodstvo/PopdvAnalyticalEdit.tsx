@@ -290,18 +290,18 @@ function AnalyticalSubTable({
       )}
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-[70px]">Šifra</TableHead>
-            <TableHead className="w-[100px]">Datum</TableHead>
-            <TableHead className="w-[140px]">Dokument</TableHead>
-            <TableHead className="min-w-[180px]">Partner</TableHead>
-            {cols.map((col) => (
-              <TableHead key={col.code} className="w-[130px] text-right">
-                {col.label}
-              </TableHead>
-            ))}
-            {isDraft && <TableHead className="w-[40px]" />}
-          </TableRow>
+           <TableRow>
+              <TableHead className="w-[70px]">Šifra</TableHead>
+              <TableHead className="w-[100px]">Datum</TableHead>
+              <TableHead className="w-[140px]">Dokument</TableHead>
+              <TableHead className="min-w-[180px]">Partner</TableHead>
+              {cols.map((col) => (
+                <TableHead key={col.code} className="w-[130px] text-right">
+                  {col.label}
+                </TableHead>
+              ))}
+              <TableHead className="w-[40px]" />
+            </TableRow>
         </TableHeader>
         <TableBody>
           {subTable.rows.map((formRow) => {
