@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
-import { ArrowLeft, Plus, Trash2, Save, BookCheck, AlertTriangle, Printer, FileDown, History, Undo2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Save, BookCheck, AlertTriangle, Printer, FileDown, History, Undo2, MoreHorizontal, ClipboardList } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArticleRequisitionsDialog } from "@/components/proizvodnja/ArticleRequisitionsDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   useMaterialRequisition, useMaterialRequisitionItems, useMaterialRequisitions,
