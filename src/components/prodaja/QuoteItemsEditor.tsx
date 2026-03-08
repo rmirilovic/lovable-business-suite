@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Package, Briefcase, Pencil } from "lucide-react";
+import { Plus, Trash2, Package, Briefcase, Pencil, MoreHorizontal, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { useQuoteItems, QuoteItem, QuoteItemFormData } from "@/hooks/useQuotes";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDecimal, formatNumber, parseLocaleNumber } from "@/lib/formatting";
+import { ArticleQuotesDialog } from "./ArticleQuotesDialog";
 
 interface QuoteItemsEditorProps {
   quoteId: string;
