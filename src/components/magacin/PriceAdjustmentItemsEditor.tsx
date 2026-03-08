@@ -185,6 +185,7 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
               <TableHead className="w-[140px] text-right">Razlika/jed.</TableHead>
               <TableHead className="w-[160px] text-right">Razlika ukupno</TableHead>
               <TableHead className="w-[40px]"></TableHead>
+              <TableHead className="w-[40px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
