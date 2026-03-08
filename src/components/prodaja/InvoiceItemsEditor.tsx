@@ -30,6 +30,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
   const [editingItem, setEditingItem] = useState<EditingItem>({});
   const [isAdding, setIsAdding] = useState(false);
   const [itemType, setItemType] = useState<"article" | "service">("article");
+  const [historyArticle, setHistoryArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const { articles } = useArticles(!readOnly && isAdding ? selectedCompany?.id : undefined);
 
