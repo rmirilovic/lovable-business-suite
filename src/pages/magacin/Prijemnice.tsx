@@ -66,7 +66,7 @@ import { toast } from "sonner";
 const STATUS_OPTIONS = [
   { value: "all", label: "Svi statusi" },
   { value: "draft", label: "Nacrt" },
-  { value: "posted", label: "Proknjiženo" },
+  { value: "posted", label: "Proknjižena" },
 ];
 
 export default function Prijemnice() {
