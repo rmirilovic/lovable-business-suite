@@ -896,6 +896,13 @@ export default function WorkOrderEdit() {
         onConfirm={(date) => closeOrder.mutateAsync({ id: order.id, closed_at: new Date(date).toISOString() })}
         isPending={closeOrder.isPending}
       />
+      <ArticleWorkOrdersDialog
+        open={!!woDialogArticle}
+        onOpenChange={(open) => { if (!open) setWoDialogArticle(null); }}
+        articleId={woDialogArticle?.id ?? null}
+        articleCode={woDialogArticle?.code ?? ""}
+        articleName={woDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
