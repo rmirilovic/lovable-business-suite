@@ -98,7 +98,6 @@ export function CalculationItemsTable({
               <TableHead className="min-w-[60px]">Šifra</TableHead>
               <TableHead className="min-w-[150px]">Naziv</TableHead>
               <TableHead className="w-[30px]" />
-              <TableHead className="min-w-[150px]">Naziv</TableHead>
               <TableHead className="w-[50px]">JM</TableHead>
               <TableHead className="w-[70px] text-right">Kol.</TableHead>
               <TableHead className="w-[100px] text-right">Nab. cena</TableHead>
@@ -115,7 +114,7 @@ export function CalculationItemsTable({
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={15} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={14} className="text-center py-8 text-muted-foreground">
                   Nema stavki.
                 </TableCell>
               </TableRow>
@@ -193,7 +192,7 @@ export function CalculationItemsTable({
             )}
             {items.length > 0 && (
               <TableRow className="bg-muted/50 font-semibold">
-                <TableCell colSpan={7} className="text-right">Ukupno:</TableCell>
+                <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
                 <TableCell className="text-right">{formatDecimal(totals.purchaseValue, 2)}</TableCell>
                 <TableCell className="text-right">{formatDecimal(totals.allocatedCosts, 2)}</TableCell>
                 <TableCell />
