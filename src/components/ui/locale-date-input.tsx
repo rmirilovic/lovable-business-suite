@@ -82,32 +82,63 @@ export function LocaleDateInput({
       return;
     }
 
+    // Helper: try to auto-complete partial input (just day, or day.month)
+    const tryAutoComplete = (raw: string): Date | null => {
+      const stripped = raw.trim().replace(/\.$/, ""); // remove trailing dot
+      const now = new Date();
+      const parts = stripped.split(".");
+      
+      if (parts.length === 1 && /^\d{1,2}$/.test(parts[0])) {
+        // Only day entered → use current month & year
+        const d = parseInt(parts[0], 10);
+        const candidate = new Date(now.getFullYear(), now.getMonth(), d);
+        if (isValid(candidate) && candidate.getDate() === d) return candidate;
+      }
+      
+      if (parts.length === 2 && /^\d{1,2}$/.test(parts[0]) && /^\d{1,2}$/.test(parts[1])) {
+        // Day and month entered → use current year
+        const d = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const candidate = new Date(now.getFullYear(), m, d);
+        if (isValid(candidate) && candidate.getDate() === d && candidate.getMonth() === m) return candidate;
+      }
+      
+      return null;
+    };
+
     // Try to parse the input as a date
     try {
       const parsed = parse(inputValue, dateFormat, new Date(), { locale: sr });
       if (isValid(parsed)) {
-        // Convert to ISO format for storage
         onChange(format(parsed, "yyyy-MM-dd"));
-      } else {
-        // Try common Serbian formats
-        const formats = ["dd.MM.yyyy", "d.M.yyyy", "dd.MM.yy", "d.M.yy"];
-        for (const fmt of formats) {
-          const tryParsed = parse(inputValue, fmt, new Date(), { locale: sr });
-          if (isValid(tryParsed)) {
-            onChange(format(tryParsed, "yyyy-MM-dd"));
-            return;
-          }
+        return;
+      }
+      
+      // Try common Serbian formats
+      const formats = ["dd.MM.yyyy", "d.M.yyyy", "dd.MM.yy", "d.M.yy"];
+      for (const fmt of formats) {
+        const tryParsed = parse(inputValue, fmt, new Date(), { locale: sr });
+        if (isValid(tryParsed)) {
+          onChange(format(tryParsed, "yyyy-MM-dd"));
+          return;
         }
-        // Reset to previous valid value if parse fails
-        if (value) {
-          const date = new Date(value);
-          if (isValid(date)) {
-            setInputValue(format(date, dateFormat, { locale: sr }));
-          }
+      }
+      
+      // Try auto-complete partial input
+      const autoCompleted = tryAutoComplete(inputValue);
+      if (autoCompleted) {
+        onChange(format(autoCompleted, "yyyy-MM-dd"));
+        return;
+      }
+      
+      // Reset to previous valid value if parse fails
+      if (value) {
+        const date = new Date(value);
+        if (isValid(date)) {
+          setInputValue(format(date, dateFormat, { locale: sr }));
         }
       }
     } catch {
-      // Reset on error
       if (value) {
         const date = new Date(value);
         if (isValid(date)) {
