@@ -29,6 +29,10 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArticleTransfersDialog } from "@/components/magacin/ArticleTransfersDialog";
 
 export default function TransferEdit() {
   const { id } = useParams<{ id: string }>();
