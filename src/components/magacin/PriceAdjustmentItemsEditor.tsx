@@ -204,6 +204,7 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
                   index={index}
                   onFieldCommit={handleFieldCommit}
                   onDelete={() => deleteItem.mutateAsync(item.id)}
+                  onShowHistory={setAdjustDialogArticle}
                 />
               ))
             )}
