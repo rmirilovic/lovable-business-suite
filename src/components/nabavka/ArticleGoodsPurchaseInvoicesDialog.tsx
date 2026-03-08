@@ -15,7 +15,8 @@ interface Row {
   partner_name: string;
   quantity: number;
   unit_price: number;
-  warehouse_price: number;
+  discount_percent: number;
+  discounted_price: number;
   line_value: number;
 }
 
@@ -51,7 +52,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
         let query = supabase
           .from("goods_purchase_invoice_items")
           .select(`
-            quantity, unit_price, line_subtotal,
+            quantity, unit_price, discount_percent, line_subtotal,
             invoice:goods_purchase_invoices!inner(
               invoice_date, internal_number, status,
               partner:partners(code, name),
@@ -67,24 +68,21 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
         const { data, error } = await query;
         if (error) throw error;
 
-        const { data: articleData } = await supabase
-          .from("articles")
-          .select("purchase_price")
-          .eq("id", articleId)
-          .single();
-
-        const warehousePrice = articleData?.purchase_price ?? 0;
-
-        const mapped: Row[] = (data || []).map((item: any) => ({
-          invoice_date: item.invoice?.invoice_date ?? "",
-          internal_number: item.invoice?.internal_number ?? "",
-          partner_code: item.invoice?.partner?.code ?? "",
-          partner_name: item.invoice?.supplier_name ?? item.invoice?.partner?.name ?? "",
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          warehouse_price: warehousePrice,
-          line_value: item.quantity * item.unit_price,
-        }));
+        const mapped: Row[] = (data || []).map((item: any) => {
+          const discount = item.discount_percent ?? 0;
+          const discountedPrice = item.unit_price * (1 - discount / 100);
+          return {
+            invoice_date: item.invoice?.invoice_date ?? "",
+            internal_number: item.invoice?.internal_number ?? "",
+            partner_code: item.invoice?.partner?.code ?? "",
+            partner_name: item.invoice?.supplier_name ?? item.invoice?.partner?.name ?? "",
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            discount_percent: discount,
+            discounted_price: discountedPrice,
+            line_value: item.quantity * discountedPrice,
+          };
+        });
 
         mapped.sort((a, b) => a.invoice_date.localeCompare(b.invoice_date) || a.internal_number.localeCompare(b.internal_number));
         setRows(mapped);
@@ -128,7 +126,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
                 <TableHead className="min-w-[200px]">Dobavljač</TableHead>
                 <TableHead className="text-right w-[100px]">Količina</TableHead>
                 <TableHead className="text-right w-[120px]">Nabavna cena</TableHead>
-                <TableHead className="text-right w-[120px]">Mag. cena</TableHead>
+                <TableHead className="text-right w-[120px]">Rabatirana cena</TableHead>
                 <TableHead className="text-right w-[120px]">Vrednost</TableHead>
               </TableRow>
             </TableHeader>
@@ -157,7 +155,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
                     </TableCell>
                     <TableCell className="text-right">{formatNumber(row.quantity)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(row.unit_price)}</TableCell>
-                    <TableCell className="text-right">{formatDecimal(row.warehouse_price)}</TableCell>
+                    <TableCell className="text-right">{formatDecimal(row.discounted_price)}</TableCell>
                     <TableCell className="text-right font-medium">{formatDecimal(row.line_value)}</TableCell>
                   </TableRow>
                 ))
