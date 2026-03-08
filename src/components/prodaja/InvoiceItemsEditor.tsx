@@ -246,18 +246,29 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
               </TableCell>
               <TableCell className="text-right">{formatPrice(item.line_subtotal)}</TableCell>
               <TableCell className="text-right font-medium">{formatPrice(item.line_total)}</TableCell>
-              {!readOnly && (
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              )}
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {item.article_id && (
+                      <DropdownMenuItem onClick={() => setHistoryArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Pregled na fakturama
+                      </DropdownMenuItem>
+                    )}
+                    {!readOnly && (
+                      <DropdownMenuItem onClick={() => handleDeleteItem(item.id)} className="text-destructive">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Obriši
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
             </TableRow>
             );
           })}
