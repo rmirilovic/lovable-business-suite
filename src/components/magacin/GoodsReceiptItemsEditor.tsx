@@ -9,7 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Trash2, Loader2, MoreHorizontal } from "lucide-react";
 import {
   useGoodsReceiptItems,
   GoodsReceiptItemFormData,
@@ -19,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SearchableArticleSelect, Article } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
+import { ArticleGoodsReceiptsDialog } from "@/components/magacin/ArticleGoodsReceiptsDialog";
 
 interface GoodsReceiptItemsEditorProps {
   receiptId: string;
@@ -40,6 +44,7 @@ export function GoodsReceiptItemsEditor({
   const { items, isLoading, addItem, updateItem, deleteItem } =
     useGoodsReceiptItems(receiptId);
   const { articles } = useArticles(selectedCompany?.id);
+  const [receiptsDialogArticle, setReceiptsDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const [newItem, setNewItem] = useState<GoodsReceiptItemFormData>(emptyItem);
   const [newItemQuantity, setNewItemQuantity] = useState("1");
@@ -213,13 +218,14 @@ export function GoodsReceiptItemsEditor({
               <TableHead className="w-[120px] text-right">Cena</TableHead>
               <TableHead className="w-[120px] text-right">Vrednost</TableHead>
               <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[40px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={9}
                   className="text-center py-8 text-muted-foreground"
                 >
                   Nema stavki. Dodajte prvu stavku iznad.
@@ -264,6 +270,22 @@ export function GoodsReceiptItemsEditor({
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
+                  <TableCell className="p-0">
+                    {item.article_id && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setReceiptsDialogArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                            Pregled na prijemnicama
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -276,11 +298,20 @@ export function GoodsReceiptItemsEditor({
                   {formatDecimal(totalValue, 2)} RSD
                 </TableCell>
                 <TableCell></TableCell>
+                <TableCell></TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      <ArticleGoodsReceiptsDialog
+        open={!!receiptsDialogArticle}
+        onOpenChange={(open) => { if (!open) setReceiptsDialogArticle(null); }}
+        articleId={receiptsDialogArticle?.id ?? null}
+        articleCode={receiptsDialogArticle?.code ?? ""}
+        articleName={receiptsDialogArticle?.name ?? ""}
+      />
     </div>
   );
 }
