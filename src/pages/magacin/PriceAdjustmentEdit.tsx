@@ -27,6 +27,10 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArticlePriceAdjustmentsDialog } from "@/components/magacin/ArticlePriceAdjustmentsDialog";
 
 export default function PriceAdjustmentEdit() {
   const { id } = useParams<{ id: string }>();
