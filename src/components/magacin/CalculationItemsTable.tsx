@@ -100,7 +100,6 @@ export function CalculationItemsTable({
               <TableHead className="w-10">#</TableHead>
               <TableHead className="min-w-[60px]">Šifra</TableHead>
               <TableHead className="min-w-[150px]">Naziv</TableHead>
-              <TableHead className="w-[30px]" />
               <TableHead className="w-[50px]">JM</TableHead>
               <TableHead className="w-[70px] text-right">Kol.</TableHead>
               <TableHead className="w-[100px] text-right">Nab. cena</TableHead>
@@ -112,6 +111,7 @@ export function CalculationItemsTable({
               <TableHead className="w-[100px] text-right">Marža izn.</TableHead>
               <TableHead className="w-[100px] text-right">Prod. cena</TableHead>
               <TableHead className="w-[110px] text-right">Prod. vred.</TableHead>
+              <TableHead className="w-[40px]" />
             </TableRow>
           </TableHeader>
           <TableBody>
