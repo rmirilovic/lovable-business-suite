@@ -128,6 +128,19 @@ export function CalculationItemsTable({
                     <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                     <TableCell className="text-sm">{item.item_code || "—"}</TableCell>
                     <TableCell className="text-sm">{item.item_name}</TableCell>
+                    <TableCell className="p-0">
+                      {item.article_id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          title="Po kalkulacijama"
+                          onClick={() => setCalcDialogArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}
+                        >
+                          <Search className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                    </TableCell>
                     <TableCell className="text-sm">{item.unit}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.quantity, 3)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(item.purchase_price, 2)}</TableCell>
