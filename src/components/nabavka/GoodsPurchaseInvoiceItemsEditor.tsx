@@ -253,7 +253,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
     />
   );
 
-  const colCount = (isForeign ? 1 : 0) + 10;
+  const colCount = (isForeign ? 1 : 0) + 11;
 
   return (
     <div className="space-y-4">
