@@ -272,7 +272,7 @@ export default function AiAssistant() {
       setIsStreaming(false);
       abortRef.current = null;
     }
-  }, [input, isStreaming, activeConversationId, messages, user, selectedCompany]);
+  }, [input, isStreaming, activeConversationId, messages, user, selectedCompany, attachedFiles]);
 
   const handleDeleteConversation = async (convId: string) => {
     const { error } = await supabase.from("ai_conversations").delete().eq("id", convId);
