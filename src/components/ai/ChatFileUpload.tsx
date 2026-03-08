@@ -77,7 +77,6 @@ export function ChatFileUpload({ files, onFilesChange, disabled }: ChatFileUploa
         const attachment = await readFileAsAttachment(file);
         newFiles.push(attachment);
       } catch (err: any) {
-        // toast is handled by parent
         console.error(err.message);
       }
     }
@@ -85,31 +84,8 @@ export function ChatFileUpload({ files, onFilesChange, disabled }: ChatFileUploa
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const removeFile = (index: number) => {
-    onFilesChange(files.filter((_, i) => i !== index));
-  };
-
   return (
-    <div className="flex flex-col gap-1">
-      {files.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 px-1">
-          {files.map((file, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted text-xs max-w-[200px]"
-            >
-              {getFileIcon(file.type)}
-              <span className="truncate">{file.name}</span>
-              <button
-                onClick={() => removeFile(i)}
-                className="ml-0.5 p-0.5 rounded hover:bg-destructive/10 hover:text-destructive"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+    <>
       <input
         ref={inputRef}
         type="file"
@@ -129,7 +105,7 @@ export function ChatFileUpload({ files, onFilesChange, disabled }: ChatFileUploa
       >
         <Paperclip className="w-4 h-4" />
       </Button>
-    </div>
+    </>
   );
 }
 
