@@ -85,7 +85,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
             discounted_price: discountedPrice,
             vat_rate: item.vat_rate ?? 0,
             line_subtotal: subtotal,
-            line_value: item.line_total ?? subtotal,
+            line_value: subtotal,
           };
         });
 
