@@ -146,7 +146,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
                 </TableRow>
               ) : rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Nema UFR za ovaj artikal u izabranom periodu.
                   </TableCell>
                 </TableRow>
