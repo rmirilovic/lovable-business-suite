@@ -334,14 +334,14 @@ export default function AiAssistant() {
                     onClick={() => setActiveConversationId(conv.id)}
                   >
                     <MessageSquare className="w-4 h-4 shrink-0 opacity-60" />
-                    <span className="truncate flex-1">{conv.title}</span>
+                    <span className="truncate flex-1 min-w-0">{conv.title}</span>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteConversation(conv.id);
                       }}
-                      className="shrink-0 px-2 py-1 rounded-md border border-border text-xs font-medium text-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition-colors"
+                      className="shrink-0 ml-2 inline-flex items-center px-2 py-1 rounded-md border border-border text-xs font-medium text-foreground bg-background hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition-colors"
                       title="Obriši konverzaciju"
                       aria-label="Obriši konverzaciju"
                     >
