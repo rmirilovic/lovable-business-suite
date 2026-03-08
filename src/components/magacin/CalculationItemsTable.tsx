@@ -207,6 +207,7 @@ export function CalculationItemsTable({
                 <TableCell className="text-right">{formatDecimal(totals.markupValue, 2)}</TableCell>
                 <TableCell />
                 <TableCell className="text-right">{formatDecimal(totals.sellingValue, 2)}</TableCell>
+                <TableCell />
               </TableRow>
             )}
           </TableBody>
