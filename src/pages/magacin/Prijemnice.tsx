@@ -186,7 +186,7 @@ export default function Prijemnice() {
     if (status === "posted") {
       return (
         <Badge variant="default">
-          Proknjiženo
+          Proknjižena
         </Badge>
       );
     }
