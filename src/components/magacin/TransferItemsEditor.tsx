@@ -248,7 +248,7 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                   Nema stavki. Dodajte prvu stavku iznad.
                 </TableCell>
               </TableRow>
