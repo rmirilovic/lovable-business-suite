@@ -405,6 +405,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs text-right">{formatNumber(item.unit_price, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-xs text-right">{item.discount_percent > 0 ? `${formatNumber(item.discount_percent)}%` : "-"}</TableCell>
                       <TableCell className="text-xs text-right">{formatNumber(calculateNetPrice(item.unit_price, item.discount_percent), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                      <TableCell className="text-xs text-right">{formatNumber(item.line_subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                       <TableCell className="text-xs text-right">{item.vat_rate}%</TableCell>
                       <TableCell className="text-xs text-right font-medium">
                         {formatNumber(item.line_total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
