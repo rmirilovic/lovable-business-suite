@@ -9,7 +9,6 @@ import { Card } from "@/components/ui/card";
 import {
   MessageSquarePlus,
   Send,
-  Trash2,
   Loader2,
   Bot,
   User,
@@ -337,15 +336,16 @@ export default function AiAssistant() {
                     <MessageSquare className="w-4 h-4 shrink-0 opacity-60" />
                     <span className="truncate flex-1">{conv.title}</span>
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteConversation(conv.id);
                       }}
-                      className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 focus-visible:text-destructive focus-visible:bg-destructive/10 transition-colors"
+                      className="shrink-0 px-2 py-1 rounded-md border border-border text-xs font-medium text-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition-colors"
                       title="Obriši konverzaciju"
                       aria-label="Obriši konverzaciju"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      Obriši
                     </button>
                   </div>
                 ))
