@@ -317,7 +317,7 @@ function AnalyticalSubTable({
                       {fmt0(summaryTotal(formRow.summaryOf, col.code))}
                     </TableCell>
                   ))}
-                  {isDraft && <TableCell />}
+                  <TableCell />
                 </TableRow>
               );
             }
