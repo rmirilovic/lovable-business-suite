@@ -136,7 +136,9 @@ export function ArticleRequisitionsDialog({ open, onOpenChange, articleId, artic
                   </TableRow>
                 ))}
                 <TableRow className="bg-muted/50 font-bold">
-                  <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
+                  <TableCell colSpan={4} className="text-right">Ukupno:</TableCell>
+                  <TableCell className="text-right">{formatNumber(totalQty, { minimumFractionDigits: 3 })}</TableCell>
+                  <TableCell />
                   <TableCell className="text-right">{formatNumber(totalValue, { minimumFractionDigits: 2 })}</TableCell>
                 </TableRow>
               </TableBody>
