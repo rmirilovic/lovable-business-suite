@@ -8,13 +8,15 @@ import { POPDV_SECTIONS, PopdvSubTable, PopdvColumn } from "@/data/popdvFormStru
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Trash2, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, FileText, MoreHorizontal } from "lucide-react";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { PopdvDocumentReviewDialog } from "@/components/racunovodstvo/PopdvDocumentReviewDialog";
 
 const fmt2 = (v: number) =>
   v.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
