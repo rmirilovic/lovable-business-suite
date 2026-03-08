@@ -34,6 +34,10 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArticleGoodsReceiptsDialog } from "@/components/magacin/ArticleGoodsReceiptsDialog";
 
 export default function GoodsReceiptEdit() {
   const { id } = useParams<{ id: string }>();
