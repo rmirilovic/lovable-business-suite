@@ -272,6 +272,14 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
         </Table>
       </div>
 
+
+      <ArticleQuotesDialog
+        open={!!historyArticle}
+        onOpenChange={(open) => { if (!open) setHistoryArticle(null); }}
+        articleId={historyArticle?.id ?? null}
+        articleCode={historyArticle?.code ?? ""}
+        articleName={historyArticle?.name ?? ""}
+      />
     </div>
   );
 }
