@@ -19,6 +19,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  ChatFileUpload,
+  FileAttachment,
+  buildMessageContent,
+  getDisplayText,
+} from "@/components/ai/ChatFileUpload";
 
 interface Conversation {
   id: string;
@@ -42,6 +48,7 @@ export default function AiAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<FileAttachment[]>([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -163,7 +170,7 @@ export default function AiAssistant() {
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim();
-    if (!trimmed || isStreaming) return;
+    if ((!trimmed && attachedFiles.length === 0) || isStreaming) return;
 
     let convId = activeConversationId;
     if (!convId) {
@@ -171,14 +178,25 @@ export default function AiAssistant() {
       if (!convId) return;
     }
 
-    const userMsg: Message = { role: "user", content: trimmed };
+    // Build display text and AI content
+    const displayText = getDisplayText(attachedFiles, trimmed);
+    const aiContent = buildMessageContent(trimmed, attachedFiles);
+
+    const userMsg: Message = { role: "user", content: displayText };
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
     setInput("");
+    setAttachedFiles([]);
     setIsStreaming(true);
 
-    // Save user message
-    await saveMessage(convId, "user", trimmed);
+    // Save user message (text only for DB)
+    await saveMessage(convId, "user", displayText);
+
+    // Build messages for AI - use multimodal content for the current message
+    const aiMessages = [
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
+      { role: "user" as const, content: aiContent },
+    ];
 
     // Stream AI response
     let assistantContent = "";
@@ -192,9 +210,7 @@ export default function AiAssistant() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({
-          messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
-        }),
+        body: JSON.stringify({ messages: aiMessages }),
         signal: controller.signal,
       });
 
@@ -256,7 +272,7 @@ export default function AiAssistant() {
       setIsStreaming(false);
       abortRef.current = null;
     }
-  }, [input, isStreaming, activeConversationId, messages, user, selectedCompany]);
+  }, [input, isStreaming, activeConversationId, messages, user, selectedCompany, attachedFiles]);
 
   const handleDeleteConversation = async (convId: string) => {
     const { error } = await supabase.from("ai_conversations").delete().eq("id", convId);
@@ -275,6 +291,7 @@ export default function AiAssistant() {
     setActiveConversationId(null);
     setMessages([]);
     setInput("");
+    setAttachedFiles([]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -388,38 +405,63 @@ export default function AiAssistant() {
 
           {/* Input */}
           <div className="p-4 border-t">
-            <div className="flex gap-2 max-w-3xl mx-auto">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Unesite pitanje ili koristite mikrofon..."
-                className="min-h-[44px] max-h-32 resize-none"
-                rows={1}
-                disabled={isStreaming}
-              />
-              <Button
-                onClick={isListening ? stopListening : startListening}
-                disabled={isStreaming}
-                size="icon"
-                variant={isListening ? "destructive" : "outline"}
-                className="shrink-0 h-11 w-11"
-                title={isListening ? "Zaustavi snimanje" : "Govori"}
-              >
-                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </Button>
-              <Button
-                onClick={handleSend}
-                disabled={!input.trim() || isStreaming}
-                size="icon"
-                className="shrink-0 h-11 w-11"
-              >
-                {isStreaming ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
+            <div className="max-w-3xl mx-auto">
+              {attachedFiles.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {attachedFiles.map((file, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted text-xs max-w-[200px]"
+                    >
+                      <span className="truncate">📎 {file.name}</span>
+                      <button
+                        onClick={() => setAttachedFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="ml-0.5 p-0.5 rounded hover:bg-destructive/10 hover:text-destructive text-muted-foreground"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <ChatFileUpload
+                  files={attachedFiles}
+                  onFilesChange={setAttachedFiles}
+                  disabled={isStreaming}
+                />
+                <Textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Unesite pitanje ili priložite fajl..."
+                  className="min-h-[44px] max-h-32 resize-none"
+                  rows={1}
+                  disabled={isStreaming}
+                />
+                <Button
+                  onClick={isListening ? stopListening : startListening}
+                  disabled={isStreaming}
+                  size="icon"
+                  variant={isListening ? "destructive" : "outline"}
+                  className="shrink-0 h-11 w-11"
+                  title={isListening ? "Zaustavi snimanje" : "Govori"}
+                >
+                  {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
+                <Button
+                  onClick={handleSend}
+                  disabled={(!input.trim() && attachedFiles.length === 0) || isStreaming}
+                  size="icon"
+                  className="shrink-0 h-11 w-11"
+                >
+                  {isStreaming ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </Card>
