@@ -19,6 +19,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  ChatFileUpload,
+  FileAttachment,
+  buildMessageContent,
+  getDisplayText,
+} from "@/components/ai/ChatFileUpload";
 
 interface Conversation {
   id: string;
