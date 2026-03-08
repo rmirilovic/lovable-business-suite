@@ -155,7 +155,7 @@ export function ArticleGoodsPurchaseInvoicesDialog({ open, onOpenChange, article
                     </TableCell>
                     <TableCell className="text-right">{formatNumber(row.quantity)}</TableCell>
                     <TableCell className="text-right">{formatDecimal(row.unit_price)}</TableCell>
-                    <TableCell className="text-right">{formatDecimal(row.warehouse_price)}</TableCell>
+                    <TableCell className="text-right">{formatDecimal(row.discounted_price)}</TableCell>
                     <TableCell className="text-right font-medium">{formatDecimal(row.line_value)}</TableCell>
                   </TableRow>
                 ))
