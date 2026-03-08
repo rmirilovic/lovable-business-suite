@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Package, Briefcase } from "lucide-react";
+import { Plus, Trash2, Package, Briefcase, MoreHorizontal, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SearchableArticleSelect, type Article as SearchableArticle } from "@/components/ui/searchable-article-select";
 import { useArticles } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import { InvoiceItemFormData, useInvoiceItems } from "@/hooks/useInvoices";
 import { formatDecimal, formatPrice, parseLocaleNumber } from "@/lib/formatting";
+import { ArticleInvoicesDialog } from "./ArticleInvoicesDialog";
 
 interface InvoiceItemsEditorProps {
   invoiceId: string;
