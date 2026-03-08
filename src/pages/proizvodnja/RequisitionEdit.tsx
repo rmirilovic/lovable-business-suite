@@ -437,6 +437,13 @@ export default function RequisitionEdit() {
         </div>
       </div>
       <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={requisition.id} documentName={requisition.requisition_number} documentType="material_requisition" />
+      <ArticleRequisitionsDialog
+        open={!!reqDialogArticle}
+        onOpenChange={(v) => { if (!v) setReqDialogArticle(null); }}
+        articleId={reqDialogArticle?.id ?? null}
+        articleCode={reqDialogArticle?.code ?? ""}
+        articleName={reqDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
