@@ -61,9 +61,6 @@ export function CalculationItemsTable({
   items,
   isLoading,
   isEditable,
-  onUpdateMarkup,
-  onUpdateMarkupAmount,
-  onUpdateSellingPrice,
 }: CalculationItemsTableProps) {
   const [calcDialogArticle, setCalcDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
