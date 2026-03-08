@@ -178,14 +178,25 @@ export default function AiAssistant() {
       if (!convId) return;
     }
 
-    const userMsg: Message = { role: "user", content: trimmed };
+    // Build display text and AI content
+    const displayText = getDisplayText(attachedFiles, trimmed);
+    const aiContent = buildMessageContent(trimmed, attachedFiles);
+
+    const userMsg: Message = { role: "user", content: displayText };
     const updatedMessages = [...messages, userMsg];
     setMessages(updatedMessages);
     setInput("");
+    setAttachedFiles([]);
     setIsStreaming(true);
 
-    // Save user message
-    await saveMessage(convId, "user", trimmed);
+    // Save user message (text only for DB)
+    await saveMessage(convId, "user", displayText);
+
+    // Build messages for AI - use multimodal content for the current message
+    const aiMessages = [
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
+      { role: "user" as const, content: aiContent },
+    ];
 
     // Stream AI response
     let assistantContent = "";
@@ -199,9 +210,7 @@ export default function AiAssistant() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({
-          messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
-        }),
+        body: JSON.stringify({ messages: aiMessages }),
         signal: controller.signal,
       });
 
