@@ -50,11 +50,11 @@ export default function AiAssistant() {
 
   const startListening = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    if (!SR) {
       toast.error("Vaš pretraživač ne podržava glasovni unos");
       return;
     }
-    const recognition = new SpeechRecognition();
+    const recognition = new SR();
     recognition.lang = "sr-Latn-RS";
     recognition.continuous = true;
     recognition.interimResults = true;
