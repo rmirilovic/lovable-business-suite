@@ -14,6 +14,8 @@ import {
   Bot,
   User,
   MessageSquare,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -43,6 +45,52 @@ export default function AiAssistant() {
   const [loadingConversations, setLoadingConversations] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  const startListening = useCallback(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      toast.error("Vaš pretraživač ne podržava glasovni unos");
+      return;
+    }
+    const recognition = new SR();
+    recognition.lang = "sr-Latn-RS";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    let finalTranscript = "";
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interim = transcript;
+        }
+      }
+      setInput(finalTranscript + interim);
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error !== "aborted") {
+        toast.error("Greška pri prepoznavanju govora");
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }, []);
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }, []);
 
   useEffect(() => {
     document.title = "AI Asistent | ERP Mirilo";
@@ -345,11 +393,21 @@ export default function AiAssistant() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Unesite pitanje..."
+                placeholder="Unesite pitanje ili koristite mikrofon..."
                 className="min-h-[44px] max-h-32 resize-none"
                 rows={1}
                 disabled={isStreaming}
               />
+              <Button
+                onClick={isListening ? stopListening : startListening}
+                disabled={isStreaming}
+                size="icon"
+                variant={isListening ? "destructive" : "outline"}
+                className="shrink-0 h-11 w-11"
+                title={isListening ? "Zaustavi snimanje" : "Govori"}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </Button>
               <Button
                 onClick={handleSend}
                 disabled={!input.trim() || isStreaming}
