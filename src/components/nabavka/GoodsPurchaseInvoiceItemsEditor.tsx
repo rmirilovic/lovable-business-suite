@@ -353,6 +353,9 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs text-right">
                         {formatNumber(getTotals(editText).netPrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
+                      <TableCell className="text-xs text-right">
+                        {formatNumber(getTotals(editText).subtotal, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </TableCell>
                       <TableCell>
                         {renderNumericInput(
                           editText.vat_rate,
