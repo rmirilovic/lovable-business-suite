@@ -40,6 +40,7 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
     useInterWarehouseTransferItems(transferId);
   const { articles } = useArticles(selectedCompany?.id);
   const { data: warehouseStock } = useWarehouseStock(selectedCompany?.id, sourceWarehouseId, undefined, transferDate);
+  const [transfersDialogArticle, setTransfersDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   // Build a map of article_id -> stock info for the source warehouse
   const stockMap = useMemo(() => {
