@@ -10,8 +10,10 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { ArrowLeft, Lock, Save, Undo2, History } from "lucide-react";
+import { ArrowLeft, Lock, Save, Undo2, History, MoreHorizontal, Eye } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { ArticleReprocessingDeliveryNotesDialog } from "@/components/proizvodnja/ArticleReprocessingDeliveryNotesDialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   useReprocessingDeliveryNote, useReprocessingDeliveryNoteItems, useReprocessingDeliveryNotes,
   ReprocessingDeliveryNoteItem, RDN_STATUS_LABELS, RDN_STATUS_COLORS,
