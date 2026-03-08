@@ -469,6 +469,17 @@ export default function CalculationEdit() {
           )}
         </div>
 
+        {/* Additional Costs (from UFU - read-only display) */}
+        <CalculationCostsEditor
+          costs={costs}
+          partners={partners}
+          isLoading={costsLoading}
+          isEditable={false}
+          onAdd={handleAddCost}
+          onUpdate={handleUpdateCost}
+          onDelete={handleDeleteCost}
+        />
+
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="border rounded-lg p-3">
@@ -492,19 +503,6 @@ export default function CalculationEdit() {
             <p className="text-lg font-semibold">{formatDecimal(calculation.total_selling_value, 2)}</p>
           </div>
         </div>
-
-        <Separator />
-
-        {/* Additional Costs (from UFU - read-only display) */}
-        <CalculationCostsEditor
-          costs={costs}
-          partners={partners}
-          isLoading={costsLoading}
-          isEditable={false}
-          onAdd={handleAddCost}
-          onUpdate={handleUpdateCost}
-          onDelete={handleDeleteCost}
-        />
 
         <Separator />
 
