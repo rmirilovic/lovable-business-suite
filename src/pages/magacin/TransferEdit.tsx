@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw, History,
+  Loader2, Pencil, BookCheck, Undo2, ArrowLeft, RefreshCw, History, MoreHorizontal,
 } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
@@ -29,6 +29,10 @@ import {
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
   AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArticleTransfersDialog } from "@/components/magacin/ArticleTransfersDialog";
 
 export default function TransferEdit() {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +48,7 @@ export default function TransferEdit() {
   const [postDialogOpen, setPostDialogOpen] = useState(false);
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [transfersDialogArticle, setTransfersDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const { items, isLoading: itemsLoading } = useInterWarehouseTransferItems(id || null);
   const { updateTransfer, postTransfer, unpostTransfer } = useInterWarehouseTransfers();
@@ -230,13 +235,14 @@ export default function TransferEdit() {
                   <TableHead className="text-right">Količina</TableHead>
                   <TableHead>JM</TableHead>
                   <TableHead className="text-right">Cena</TableHead>
-                  <TableHead className="text-right">Vrednost</TableHead>
-                </TableRow>
-              </TableHeader>
+                   <TableHead className="text-right">Vrednost</TableHead>
+                   <TableHead className="w-[40px]"></TableHead>
+                 </TableRow>
+               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       Nema stavki
                     </TableCell>
                   </TableRow>
@@ -249,10 +255,26 @@ export default function TransferEdit() {
                       <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
                       <TableCell>{item.unit}</TableCell>
                       <TableCell className="text-right">{formatDecimal(item.unit_price, 2)}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatDecimal(item.quantity * item.unit_price, 2)}
-                      </TableCell>
-                    </TableRow>
+                       <TableCell className="text-right font-medium">
+                         {formatDecimal(item.quantity * item.unit_price, 2)}
+                       </TableCell>
+                       <TableCell className="p-0">
+                         {item.article_id && (
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button variant="ghost" size="icon" className="h-7 w-7">
+                                 <MoreHorizontal className="h-4 w-4" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end">
+                               <DropdownMenuItem onClick={() => setTransfersDialogArticle({ id: item.article_id, code: item.item_code || "", name: item.item_name })}>
+                                 Na međumagacinskim prenosima
+                               </DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         )}
+                       </TableCell>
+                     </TableRow>
                   ))
                 )}
               </TableBody>
@@ -308,6 +330,13 @@ export default function TransferEdit() {
       {transfer && (
         <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={transfer.id} documentName={transfer.transfer_number} documentType="inter_warehouse_transfer" />
       )}
+      <ArticleTransfersDialog
+        open={!!transfersDialogArticle}
+        onOpenChange={(open) => { if (!open) setTransfersDialogArticle(null); }}
+        articleId={transfersDialogArticle?.id ?? null}
+        articleCode={transfersDialogArticle?.code ?? ""}
+        articleName={transfersDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }

@@ -4,7 +4,10 @@ import { Input } from "@/components/ui/input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Trash2, Loader2, MoreHorizontal } from "lucide-react";
 import {
   useInterWarehouseTransferItems, TransferItemFormData,
 } from "@/hooks/useInterWarehouseTransfers";
@@ -14,6 +17,7 @@ import { SearchableArticleSelect, Article } from "@/components/ui/searchable-art
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { useWarehouseStock } from "@/hooks/useWarehouseStock";
+import { ArticleTransfersDialog } from "@/components/magacin/ArticleTransfersDialog";
 
 interface TransferItemsEditorProps {
   transferId: string;
@@ -36,6 +40,7 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
     useInterWarehouseTransferItems(transferId);
   const { articles } = useArticles(selectedCompany?.id);
   const { data: warehouseStock } = useWarehouseStock(selectedCompany?.id, sourceWarehouseId, undefined, transferDate);
+  const [transfersDialogArticle, setTransfersDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   // Build a map of article_id -> stock info for the source warehouse
   const stockMap = useMemo(() => {
@@ -237,12 +242,13 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
               <TableHead className="w-[250px] text-right">Cena</TableHead>
               <TableHead className="w-[250px] text-right">Vrednost</TableHead>
               <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[40px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                   Nema stavki. Dodajte prvu stavku iznad.
                 </TableCell>
               </TableRow>
@@ -279,6 +285,22 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
+                  <TableCell className="p-0">
+                    {item.article_id && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setTransfersDialogArticle({ id: item.article_id, code: item.item_code || "", name: item.item_name })}>
+                            Na međumagacinskim prenosima
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -287,11 +309,20 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
                 <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
                 <TableCell className="text-right">{formatDecimal(totalValue, 2)}</TableCell>
                 <TableCell></TableCell>
+                <TableCell></TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      <ArticleTransfersDialog
+        open={!!transfersDialogArticle}
+        onOpenChange={(open) => { if (!open) setTransfersDialogArticle(null); }}
+        articleId={transfersDialogArticle?.id ?? null}
+        articleCode={transfersDialogArticle?.code ?? ""}
+        articleName={transfersDialogArticle?.name ?? ""}
+      />
     </div>
   );
 }
