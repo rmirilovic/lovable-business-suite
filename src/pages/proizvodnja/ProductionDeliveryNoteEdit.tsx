@@ -455,11 +455,13 @@ function ItemRow({
   idx,
   isDraft,
   onUpdate,
+  onShowPdnHistory,
 }: {
   item: ProductionDeliveryNoteItem;
   idx: number;
   isDraft: boolean;
   onUpdate: (item: ProductionDeliveryNoteItem, field: string, value: number) => Promise<void>;
+  onShowPdnHistory: (article: { id: string; code: string; name: string }) => void;
 }) {
   const handleNumberBlur = (field: string, rawValue: string) => {
     const num = parseLocaleNumber(rawValue);
