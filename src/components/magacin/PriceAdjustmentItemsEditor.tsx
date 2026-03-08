@@ -218,11 +218,20 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
                   {totals.increase === 0 && totals.decrease === 0 && formatDecimal(0, 2)}
                 </TableCell>
                 <TableCell></TableCell>
+                <TableCell></TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      <ArticlePriceAdjustmentsDialog
+        open={!!adjustDialogArticle}
+        onOpenChange={(open) => { if (!open) setAdjustDialogArticle(null); }}
+        articleId={adjustDialogArticle?.id ?? null}
+        articleCode={adjustDialogArticle?.code ?? ""}
+        articleName={adjustDialogArticle?.name ?? ""}
+      />
     </div>
   );
 }
