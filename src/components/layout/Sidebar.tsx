@@ -132,6 +132,7 @@ const navigation: NavItem[] = [
       { label: "PP-PDV Prijava", href: "/racunovodstvo/pp-pdv", moduleCode: "racunovodstvo.nalozi" },
     ],
   },
+  { label: "AI Asistent", icon: Bot, href: "/ai-asistent", moduleCode: "administracija" },
   { label: "Administracija", icon: Settings, href: "/admin", moduleCode: "administracija" },
 ];
 

@@ -170,6 +170,11 @@ const App = () => (
                   <TekuciRacuni />
                 </ProtectedRoute>
               } />
+              <Route path="/ai-asistent" element={
+                <ProtectedRoute requireAdmin>
+                  <AiAssistant />
+                </ProtectedRoute>
+              } />
               <Route path="/admin" element={
                 <ProtectedRoute requireAdmin>
                   <AdminPanel />
