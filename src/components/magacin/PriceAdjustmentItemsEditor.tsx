@@ -232,6 +232,7 @@ interface RowProps {
   index: number;
   onFieldCommit: (item: PriceAdjustmentItem, field: string, rawValue: string) => Promise<void>;
   onDelete: () => void;
+  onShowHistory: (article: { id: string; code: string; name: string }) => void;
 }
 
 function PriceAdjustmentRow({ item, index, onFieldCommit, onDelete }: RowProps) {
