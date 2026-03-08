@@ -503,9 +503,6 @@ export default function CalculationEdit() {
           items={items}
           isLoading={itemsLoading}
           isEditable={isEditable}
-          onUpdateMarkup={handleUpdateMarkup}
-          onUpdateMarkupAmount={handleUpdateMarkupAmount}
-          onUpdateSellingPrice={handleUpdateSellingPrice}
         />
       </div>
 
