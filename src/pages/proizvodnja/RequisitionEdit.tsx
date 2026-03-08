@@ -83,6 +83,7 @@ export default function RequisitionEdit() {
   const [headerDirty, setHeaderDirty] = useState(false);
   const [newArticleId, setNewArticleId] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [reqDialogArticle, setReqDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   useEffect(() => {
     if (requisition) {
