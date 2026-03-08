@@ -391,6 +391,14 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
         </TableBody>
       </Table>
 
+
+      <ArticleInvoicesDialog
+        open={!!historyArticle}
+        onOpenChange={(open) => { if (!open) setHistoryArticle(null); }}
+        articleId={historyArticle?.id ?? null}
+        articleCode={historyArticle?.code ?? ""}
+        articleName={historyArticle?.name ?? ""}
+      />
     </div>
   );
 }
