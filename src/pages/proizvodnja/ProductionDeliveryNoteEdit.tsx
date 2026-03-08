@@ -76,6 +76,7 @@ export default function ProductionDeliveryNoteEdit() {
   });
   const [headerDirty, setHeaderDirty] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [pdnDialogArticle, setPdnDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   useEffect(() => {
     if (note) {
