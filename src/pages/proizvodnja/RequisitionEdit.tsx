@@ -335,7 +335,7 @@ export default function RequisitionEdit() {
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 10 : 9} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={isDraft ? 11 : 10} className="text-center py-6 text-muted-foreground">
                       Nema stavki. Dodajte materijal.
                     </TableCell>
                   </TableRow>
