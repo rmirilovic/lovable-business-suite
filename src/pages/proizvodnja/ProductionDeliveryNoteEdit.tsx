@@ -12,8 +12,12 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { ArrowLeft, Lock, Save, Undo2, FileDown, FileSpreadsheet, Printer, History } from "lucide-react";
+import { ArrowLeft, Lock, Save, Undo2, FileDown, FileSpreadsheet, Printer, History, MoreHorizontal, Eye } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { ArticleProductionDeliveryNotesDialog } from "@/components/proizvodnja/ArticleProductionDeliveryNotesDialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   useProductionDeliveryNote,
   useProductionDeliveryNoteItems,
@@ -72,6 +76,7 @@ export default function ProductionDeliveryNoteEdit() {
   });
   const [headerDirty, setHeaderDirty] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [pdnDialogArticle, setPdnDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   useEffect(() => {
     if (note) {
@@ -403,27 +408,29 @@ export default function ProductionDeliveryNoteEdit() {
                   <TableHead className="w-[95px] text-right">Pred. m</TableHead>
                   <TableHead className="w-[95px] text-right">Pred. kom</TableHead>
                   <TableHead className="w-[85px] text-right">Škart</TableHead>
-                  <TableHead className="w-[100px] text-right">Cena</TableHead>
+                   <TableHead className="w-[100px] text-right">Cena</TableHead>
                    <TableHead className="w-[110px] text-right">Vrednost</TableHead>
+                   <TableHead className="w-[40px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={16} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={17} className="text-center py-6 text-muted-foreground">
                       Nema stavki.
                     </TableCell>
                   </TableRow>
                 ) : (
                   items.map((item, idx) => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      idx={idx}
-                      isDraft={isDraft}
-                      onUpdate={handleUpdateItem}
-                    />
-                  ))
+                     <ItemRow
+                       key={item.id}
+                       item={item}
+                       idx={idx}
+                       isDraft={isDraft}
+                       onUpdate={handleUpdateItem}
+                       onShowPdnHistory={(a) => setPdnDialogArticle(a)}
+                     />
+                   ))
                 )}
               </TableBody>
             </Table>
@@ -431,6 +438,13 @@ export default function ProductionDeliveryNoteEdit() {
         </div>
       </div>
       <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={note.id} documentName={note.delivery_number} documentType="production_delivery_note" />
+      <ArticleProductionDeliveryNotesDialog
+        open={!!pdnDialogArticle}
+        onOpenChange={(o) => { if (!o) setPdnDialogArticle(null); }}
+        articleId={pdnDialogArticle?.id ?? null}
+        articleCode={pdnDialogArticle?.code ?? ""}
+        articleName={pdnDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
@@ -441,11 +455,13 @@ function ItemRow({
   idx,
   isDraft,
   onUpdate,
+  onShowPdnHistory,
 }: {
   item: ProductionDeliveryNoteItem;
   idx: number;
   isDraft: boolean;
   onUpdate: (item: ProductionDeliveryNoteItem, field: string, value: number) => Promise<void>;
+  onShowPdnHistory: (article: { id: string; code: string; name: string }) => void;
 }) {
   const handleNumberBlur = (field: string, rawValue: string) => {
     const num = parseLocaleNumber(rawValue);
@@ -491,6 +507,20 @@ function ItemRow({
       <TableCell className="text-right">{numCell("unit_price", item.unit_price, 2)}</TableCell>
       <TableCell className="text-right">
         <span className="font-mono text-xs font-semibold">{formatPrice(item.item_value)}</span>
+      </TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onShowPdnHistory({ id: item.article_id, code: item.article_code, name: item.article_name })}>
+              <Eye className="w-4 h-4 mr-2" /> Pregled na predajnicama
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );
