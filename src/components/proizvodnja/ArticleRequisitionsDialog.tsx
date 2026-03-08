@@ -96,6 +96,7 @@ export function ArticleRequisitionsDialog({ open, onOpenChange, articleId, artic
     })();
   }, [open, articleId, selectedCompany?.id]);
 
+  const totalQty = rows.reduce((s, r) => s + r.quantity, 0);
   const totalValue = rows.reduce((s, r) => s + r.item_value, 0);
 
   return (
@@ -135,7 +136,9 @@ export function ArticleRequisitionsDialog({ open, onOpenChange, articleId, artic
                   </TableRow>
                 ))}
                 <TableRow className="bg-muted/50 font-bold">
-                  <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
+                  <TableCell colSpan={4} className="text-right">Ukupno:</TableCell>
+                  <TableCell className="text-right">{formatNumber(totalQty, { minimumFractionDigits: 3 })}</TableCell>
+                  <TableCell />
                   <TableCell className="text-right">{formatNumber(totalValue, { minimumFractionDigits: 2 })}</TableCell>
                 </TableRow>
               </TableBody>
