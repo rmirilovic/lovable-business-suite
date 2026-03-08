@@ -29,6 +29,7 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
   const [editingItem, setEditingItem] = useState<Partial<QuoteItemFormData> & { id?: string; isService?: boolean }>({});
   const [isAdding, setIsAdding] = useState(false);
   const [itemType, setItemType] = useState<'article' | 'service'>('article');
+  const [historyArticle, setHistoryArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   // Avoid infinite re-render loops if parent passes a new onTotalsChange reference each render
   const onTotalsChangeRef = useRef(onTotalsChange);
