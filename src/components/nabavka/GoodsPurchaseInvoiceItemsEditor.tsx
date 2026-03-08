@@ -544,6 +544,16 @@ export function GoodsPurchaseInvoiceItemsEditor({
           </Table>
         </div>
       </div>
+
+      {historyArticle && (
+        <ArticleGoodsPurchaseInvoicesDialog
+          open={!!historyArticle}
+          onOpenChange={(open) => { if (!open) setHistoryArticle(null); }}
+          articleId={historyArticle.id}
+          articleCode={historyArticle.code}
+          articleName={historyArticle.name}
+        />
+      )}
     </div>
   );
 }
