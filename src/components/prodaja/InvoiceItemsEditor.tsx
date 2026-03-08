@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Package, Briefcase } from "lucide-react";
+import { Plus, Trash2, Package, Briefcase, MoreHorizontal, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SearchableArticleSelect, type Article as SearchableArticle } from "@/components/ui/searchable-article-select";
 import { useArticles } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import { InvoiceItemFormData, useInvoiceItems } from "@/hooks/useInvoices";
 import { formatDecimal, formatPrice, parseLocaleNumber } from "@/lib/formatting";
+import { ArticleInvoicesDialog } from "./ArticleInvoicesDialog";
 
 interface InvoiceItemsEditorProps {
   invoiceId: string;
@@ -28,6 +30,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
   const [editingItem, setEditingItem] = useState<EditingItem>({});
   const [isAdding, setIsAdding] = useState(false);
   const [itemType, setItemType] = useState<"article" | "service">("article");
+  const [historyArticle, setHistoryArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   const { articles } = useArticles(!readOnly && isAdding ? selectedCompany?.id : undefined);
 
@@ -174,7 +177,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
             <TableHead className="w-20 text-right">PDV%</TableHead>
             <TableHead className="w-32 text-right">Osnovica</TableHead>
             <TableHead className="w-32 text-right">Ukupno</TableHead>
-            {!readOnly && <TableHead className="w-16"></TableHead>}
+            <TableHead className="w-16"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -243,18 +246,29 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
               </TableCell>
               <TableCell className="text-right">{formatPrice(item.line_subtotal)}</TableCell>
               <TableCell className="text-right font-medium">{formatPrice(item.line_total)}</TableCell>
-              {!readOnly && (
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              )}
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {item.article_id && (
+                      <DropdownMenuItem onClick={() => setHistoryArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        Pregled na fakturama
+                      </DropdownMenuItem>
+                    )}
+                    {!readOnly && (
+                      <DropdownMenuItem onClick={() => handleDeleteItem(item.id)} className="text-destructive">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Obriši
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
             </TableRow>
             );
           })}
@@ -369,7 +383,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
 
           {items.length === 0 && !isAdding && (
             <TableRow>
-              <TableCell colSpan={readOnly ? 10 : 11} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
                 Nema stavki. Dodajte artikal ili uslugu.
               </TableCell>
             </TableRow>
@@ -377,6 +391,14 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
         </TableBody>
       </Table>
 
+
+      <ArticleInvoicesDialog
+        open={!!historyArticle}
+        onOpenChange={(open) => { if (!open) setHistoryArticle(null); }}
+        articleId={historyArticle?.id ?? null}
+        articleCode={historyArticle?.code ?? ""}
+        articleName={historyArticle?.name ?? ""}
+      />
     </div>
   );
 }
