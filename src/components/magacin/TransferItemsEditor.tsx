@@ -4,7 +4,10 @@ import { Input } from "@/components/ui/input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, Trash2, Loader2, MoreHorizontal } from "lucide-react";
 import {
   useInterWarehouseTransferItems, TransferItemFormData,
 } from "@/hooks/useInterWarehouseTransfers";
@@ -14,6 +17,7 @@ import { SearchableArticleSelect, Article } from "@/components/ui/searchable-art
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { useWarehouseStock } from "@/hooks/useWarehouseStock";
+import { ArticleTransfersDialog } from "@/components/magacin/ArticleTransfersDialog";
 
 interface TransferItemsEditorProps {
   transferId: string;
