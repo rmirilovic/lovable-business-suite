@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -8,8 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, MoreHorizontal } from "lucide-react";
 import { CalculationItem } from "@/hooks/usePurchasePriceCalculations";
-import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
+import { formatDecimal } from "@/lib/formatting";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { ArticleCalculationsDialog } from "@/components/magacin/ArticleCalculationsDialog";
 
