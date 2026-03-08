@@ -1,15 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Package, Briefcase, Pencil } from "lucide-react";
+import { Plus, Trash2, Package, Briefcase, Pencil, MoreHorizontal, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { useQuoteItems, QuoteItem, QuoteItemFormData } from "@/hooks/useQuotes";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDecimal, formatNumber, parseLocaleNumber } from "@/lib/formatting";
+import { ArticleQuotesDialog } from "./ArticleQuotesDialog";
 
 interface QuoteItemsEditorProps {
   quoteId: string;
@@ -27,6 +29,7 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
   const [editingItem, setEditingItem] = useState<Partial<QuoteItemFormData> & { id?: string; isService?: boolean }>({});
   const [isAdding, setIsAdding] = useState(false);
   const [itemType, setItemType] = useState<'article' | 'service'>('article');
+  const [historyArticle, setHistoryArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   // Avoid infinite re-render loops if parent passes a new onTotalsChange reference each render
   const onTotalsChangeRef = useRef(onTotalsChange);
@@ -172,7 +175,7 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
               <TableHead className="text-right w-20">Rabat %</TableHead>
               <TableHead className="text-right w-20">PDV %</TableHead>
               <TableHead className="text-right w-36">Iznos bez PDV-a</TableHead>
-              {!isReadOnly && <TableHead className="w-20"></TableHead>}
+              <TableHead className="w-20"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -209,26 +212,35 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
                     <TableCell className="text-right">{formatNumber(item.discount_percent)}%</TableCell>
                     <TableCell className="text-right">{formatNumber(item.vat_rate)}%</TableCell>
                     <TableCell className="text-right font-medium">{formatDecimal(item.line_subtotal)}</TableCell>
-                    {!isReadOnly && (
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleEditItem(item)}
-                          >
-                            <Pencil className="w-4 h-4" />
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost">
+                            <MoreHorizontal className="w-4 h-4" />
                           </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => handleDeleteItem(item.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    )}
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {item.article_id && (
+                            <DropdownMenuItem onClick={() => setHistoryArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Pregled na ponudama
+                            </DropdownMenuItem>
+                          )}
+                          {!isReadOnly && (
+                            <>
+                              <DropdownMenuItem onClick={() => handleEditItem(item)}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Izmeni
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeleteItem(item.id)} className="text-destructive">
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Obriši
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </>
                 )}
               </TableRow>
@@ -260,6 +272,14 @@ export function QuoteItemsEditor({ quoteId, isReadOnly, onTotalsChange }: QuoteI
         </Table>
       </div>
 
+
+      <ArticleQuotesDialog
+        open={!!historyArticle}
+        onOpenChange={(open) => { if (!open) setHistoryArticle(null); }}
+        articleId={historyArticle?.id ?? null}
+        articleCode={historyArticle?.code ?? ""}
+        articleName={historyArticle?.name ?? ""}
+      />
     </div>
   );
 }
