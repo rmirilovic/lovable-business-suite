@@ -438,6 +438,13 @@ export default function ProductionDeliveryNoteEdit() {
         </div>
       </div>
       <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={note.id} documentName={note.delivery_number} documentType="production_delivery_note" />
+      <ArticleProductionDeliveryNotesDialog
+        open={!!pdnDialogArticle}
+        onOpenChange={(o) => { if (!o) setPdnDialogArticle(null); }}
+        articleId={pdnDialogArticle?.id ?? null}
+        articleCode={pdnDialogArticle?.code ?? ""}
+        articleName={pdnDialogArticle?.name ?? ""}
+      />
     </MainLayout>
   );
 }
