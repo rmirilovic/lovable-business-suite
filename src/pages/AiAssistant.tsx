@@ -341,10 +341,11 @@ export default function AiAssistant() {
                         e.stopPropagation();
                         handleDeleteConversation(conv.id);
                       }}
-                      className="opacity-40 hover:opacity-100 p-1 rounded hover:bg-destructive/10 hover:text-destructive transition-all"
-                      title="Obriši"
+                      className="shrink-0 p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 focus-visible:text-destructive focus-visible:bg-destructive/10 transition-colors"
+                      title="Obriši konverzaciju"
+                      aria-label="Obriši konverzaciju"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ))
