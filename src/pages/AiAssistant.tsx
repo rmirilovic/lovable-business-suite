@@ -49,7 +49,7 @@ export default function AiAssistant() {
   const recognitionRef = useRef<any>(null);
 
   const startListening = useCallback(() => {
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast.error("Vaš pretraživač ne podržava glasovni unos");
       return;
