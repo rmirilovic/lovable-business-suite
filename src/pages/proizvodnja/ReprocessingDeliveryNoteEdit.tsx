@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
 
-function ItemRow({ item, idx, isDraft, onUpdate }: { item: ReprocessingDeliveryNoteItem; idx: number; isDraft: boolean; onUpdate: (item: ReprocessingDeliveryNoteItem, field: string, value: number) => void }) {
+function ItemRow({ item, idx, isDraft, onUpdate, onShowHistory }: { item: ReprocessingDeliveryNoteItem; idx: number; isDraft: boolean; onUpdate: (item: ReprocessingDeliveryNoteItem, field: string, value: number) => void; onShowHistory: (a: { id: string; code: string; name: string }) => void }) {
   return (
     <TableRow>
       <TableCell>{idx + 1}</TableCell>
@@ -45,6 +45,20 @@ function ItemRow({ item, idx, isDraft, onUpdate }: { item: ReprocessingDeliveryN
       <TableCell className="text-right"><LocaleNumberInput value={String(item.scrap_qty ?? 0)} onChange={(v) => onUpdate(item, "scrap_qty", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[70px] text-right h-8" /></TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.unit_price, { minimumFractionDigits: 2 })}</TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.item_value, { minimumFractionDigits: 2 })}</TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onShowHistory({ id: item.article_id, code: item.article_code, name: item.article_name })}>
+              <Eye className="w-4 h-4 mr-2" /> Pregled na predajnicama
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
     </TableRow>
   );
 }
