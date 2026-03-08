@@ -471,7 +471,7 @@ export default function WorkOrderEdit() {
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 11 : 10} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={isDraft ? 12 : 11} className="text-center py-6 text-muted-foreground">
                       Nema stavki. Dodajte gotove proizvode.
                     </TableCell>
                   </TableRow>
