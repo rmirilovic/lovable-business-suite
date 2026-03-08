@@ -341,7 +341,7 @@ export default function AiAssistant() {
                         e.stopPropagation();
                         handleDeleteConversation(conv.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 hover:text-destructive transition-all"
+                      className="opacity-40 hover:opacity-100 p-1 rounded hover:bg-destructive/10 hover:text-destructive transition-all"
                       title="Obriši"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
