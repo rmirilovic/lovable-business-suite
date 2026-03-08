@@ -308,6 +308,7 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
                 <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
                 <TableCell className="text-right">{formatDecimal(totalValue, 2)}</TableCell>
                 <TableCell></TableCell>
+                <TableCell></TableCell>
               </TableRow>
             )}
           </TableBody>
