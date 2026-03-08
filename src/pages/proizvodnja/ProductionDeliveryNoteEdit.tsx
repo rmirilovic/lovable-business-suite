@@ -508,6 +508,20 @@ function ItemRow({
       <TableCell className="text-right">
         <span className="font-mono text-xs font-semibold">{formatPrice(item.item_value)}</span>
       </TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onShowPdnHistory({ id: item.article_id, code: item.article_code, name: item.article_name })}>
+              <Eye className="w-4 h-4 mr-2" /> Pregled na predajnicama
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
     </TableRow>
   );
 }
