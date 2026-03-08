@@ -516,6 +516,21 @@ export default function WorkOrderEdit() {
                       <TableCell className="text-right font-mono font-semibold">
                         {formatNumber(item.launched_value, { minimumFractionDigits: 2 })}
                       </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setWoDialogArticle({ id: item.article_id, code: item.article_code, name: item.article_name })}>
+                              <ClipboardList className="w-4 h-4 mr-2" />
+                              Pregled na radnim nalozima
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                       {isDraft && (
                         <TableCell>
                           <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.id)}>
