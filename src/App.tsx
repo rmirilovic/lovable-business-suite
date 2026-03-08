@@ -82,6 +82,7 @@ import PpPdvEdit from "./pages/racunovodstvo/PpPdvEdit";
 import SifarnikPlacanja from "./pages/racunovodstvo/SifarnikPlacanja";
 import Izvodi from "./pages/racunovodstvo/Izvodi";
 import BankStatementEdit from "./pages/racunovodstvo/BankStatementEdit";
+import AiAssistant from "./pages/AiAssistant";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -167,6 +168,11 @@ const App = () => (
               <Route path="/sifarnici/tekuci-racuni" element={
                 <ProtectedRoute>
                   <TekuciRacuni />
+                </ProtectedRoute>
+              } />
+              <Route path="/ai-asistent" element={
+                <ProtectedRoute requireAdmin>
+                  <AiAssistant />
                 </ProtectedRoute>
               } />
               <Route path="/admin" element={
