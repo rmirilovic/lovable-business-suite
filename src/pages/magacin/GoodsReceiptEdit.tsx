@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft,
-  RefreshCw, Calculator, ExternalLink, History,
+  RefreshCw, Calculator, ExternalLink, History, MoreHorizontal,
 } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
