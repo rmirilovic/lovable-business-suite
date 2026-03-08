@@ -177,7 +177,7 @@ export function InvoiceItemsEditor({ invoiceId, readOnly = false, onTotalsChange
             <TableHead className="w-20 text-right">PDV%</TableHead>
             <TableHead className="w-32 text-right">Osnovica</TableHead>
             <TableHead className="w-32 text-right">Ukupno</TableHead>
-            {!readOnly && <TableHead className="w-16"></TableHead>}
+            <TableHead className="w-16"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
