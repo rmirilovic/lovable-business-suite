@@ -296,7 +296,8 @@ export default function GoodsReceiptEdit() {
                   <TableHead className="text-right">Cena</TableHead>
                    <TableHead className="text-right">Vrednost</TableHead>
                    <TableHead className="w-[40px]"></TableHead>
-              </TableHeader>
+                 </TableRow>
+               </TableHeader>
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
