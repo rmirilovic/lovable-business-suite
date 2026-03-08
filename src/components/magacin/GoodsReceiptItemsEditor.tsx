@@ -270,6 +270,22 @@ export function GoodsReceiptItemsEditor({
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </TableCell>
+                  <TableCell className="p-0">
+                    {item.article_id && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setReceiptsDialogArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                            Pregled na prijemnicama
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))
             )}
