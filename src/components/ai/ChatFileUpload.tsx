@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Paperclip, X, FileText, Image as ImageIcon, FileSpreadsheet } from "lucide-react";
+import { Paperclip } from "lucide-react";
 
 export interface FileAttachment {
   name: string;
