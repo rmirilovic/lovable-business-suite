@@ -96,6 +96,7 @@ export function ArticleRequisitionsDialog({ open, onOpenChange, articleId, artic
     })();
   }, [open, articleId, selectedCompany?.id]);
 
+  const totalQty = rows.reduce((s, r) => s + r.quantity, 0);
   const totalValue = rows.reduce((s, r) => s + r.item_value, 0);
 
   return (
