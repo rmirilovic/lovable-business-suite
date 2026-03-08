@@ -253,7 +253,7 @@ export function GoodsPurchaseInvoiceItemsEditor({
     />
   );
 
-  const colCount = (isForeign ? 1 : 0) + (isEditable ? 10 : 9);
+  const colCount = (isForeign ? 1 : 0) + 10;
 
   return (
     <div className="space-y-4">
