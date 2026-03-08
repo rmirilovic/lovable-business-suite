@@ -235,7 +235,7 @@ interface RowProps {
   onShowHistory: (article: { id: string; code: string; name: string }) => void;
 }
 
-function PriceAdjustmentRow({ item, index, onFieldCommit, onDelete }: RowProps) {
+function PriceAdjustmentRow({ item, index, onFieldCommit, onDelete, onShowHistory }: RowProps) {
   const [quantity, setQuantity] = useState(formatDecimal(item.quantity, 2));
   const [newPrice, setNewPrice] = useState(formatDecimal(item.new_price, 2));
 
