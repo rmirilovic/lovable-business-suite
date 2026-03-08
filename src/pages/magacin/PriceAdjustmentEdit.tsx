@@ -272,7 +272,8 @@ export default function PriceAdjustmentEdit() {
                          )}
                        </TableCell>
                      </TableRow>
-                )}
+                   ))
+                 )}
                 {items.length > 0 && (
                   <TableRow className="bg-muted/50 font-medium">
                     <TableCell colSpan={8} className="text-right">Ukupno:</TableCell>
