@@ -408,18 +408,29 @@ export function GoodsPurchaseInvoiceItemsEditor({
                       <TableCell className="text-xs text-right font-medium">
                         {formatNumber(item.line_total, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </TableCell>
-                      {isEditable && (
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7"
-                            onClick={() => handleDelete(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
-                      )}
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-7 w-7">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {item.article_id && (
+                              <DropdownMenuItem onClick={() => setHistoryArticle({ id: item.article_id!, code: item.item_code || "", name: item.item_name })}>
+                                <Eye className="w-4 h-4 mr-2" />
+                                Pregled na UFR
+                              </DropdownMenuItem>
+                            )}
+                            {isEditable && (
+                              <DropdownMenuItem onClick={() => handleDelete(item.id)} className="text-destructive">
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Obriši
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   )
                 )}
