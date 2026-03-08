@@ -185,6 +185,7 @@ export default function PopdvAnalyticalEdit() {
                       onDeleteRow={(rowId) => {
                         if (confirm("Obrisati ovaj red?")) deleteRow.mutate(rowId);
                       }}
+                      onReviewDocument={setReviewRow}
                     />
                   ))}
                 </div>
