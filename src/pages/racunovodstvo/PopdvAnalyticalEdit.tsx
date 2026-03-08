@@ -226,6 +226,14 @@ export default function PopdvAnalyticalEdit() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Document Review Dialog */}
+      <PopdvDocumentReviewDialog
+        open={!!reviewRow}
+        onOpenChange={(open) => { if (!open) setReviewRow(null); }}
+        sourceRow={reviewRow}
+        allRows={detailRows}
+      />
     </MainLayout>
   );
 }
