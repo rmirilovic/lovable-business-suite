@@ -304,6 +304,14 @@ export function GoodsReceiptItemsEditor({
           </TableBody>
         </Table>
       </div>
+
+      <ArticleGoodsReceiptsDialog
+        open={!!receiptsDialogArticle}
+        onOpenChange={(open) => { if (!open) setReceiptsDialogArticle(null); }}
+        articleId={receiptsDialogArticle?.id ?? null}
+        articleCode={receiptsDialogArticle?.code ?? ""}
+        articleName={receiptsDialogArticle?.name ?? ""}
+      />
     </div>
   );
 }
