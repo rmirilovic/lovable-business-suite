@@ -337,7 +337,7 @@ function AnalyticalSubTable({
                       {fmt2(0)}
                     </TableCell>
                   ))}
-                  {isDraft && <TableCell />}
+                  <TableCell />
                 </TableRow>
               );
             }
