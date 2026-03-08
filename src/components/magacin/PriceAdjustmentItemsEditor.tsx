@@ -191,7 +191,7 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                   Nema stavki. Učitajte artikle iz magacina ili dodajte ručno.
                 </TableCell>
               </TableRow>
