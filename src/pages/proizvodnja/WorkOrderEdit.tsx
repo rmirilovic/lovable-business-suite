@@ -70,6 +70,7 @@ export default function WorkOrderEdit() {
   // Active tab persistence
   const [activeTab, setActiveTab] = useState(() => sessionStorage.getItem("wo_edit_tab") || "materials");
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [woDialogArticle, setWoDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
   const [showLaunchDialog, setShowLaunchDialog] = useState(false);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const isClosed = order?.status === "closed";
