@@ -448,13 +448,28 @@ function RowCodeBlock({
               </TableCell>
             );
           })}
-          {isDraft && (
-            <TableCell className="p-1">
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onDeleteRow(dr.id)}>
-                <Trash2 className="w-3 h-3 text-destructive" />
-              </Button>
-            </TableCell>
-          )}
+          <TableCell className="p-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onReviewDocument(dr)}>
+                  Pregled po dokumentu
+                </DropdownMenuItem>
+                {isDraft && (
+                  <DropdownMenuItem
+                    className="text-destructive"
+                    onClick={() => onDeleteRow(dr.id)}
+                  >
+                    Obriši
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableCell>
         </TableRow>
       ))}
       {/* Subtotal */}
