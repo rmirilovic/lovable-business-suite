@@ -28,6 +28,7 @@ export function PriceAdjustmentItemsEditor({ adjustmentId, warehouseId, adjustme
   const { items, isLoading, addItem, updateItem, deleteItem } = usePriceAdjustmentItems(adjustmentId);
   const { articles } = useArticles(selectedCompany?.id);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
+  const [adjustDialogArticle, setAdjustDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   // Only SVK=1 articles (strictly)
   const eligibleArticles = articles.filter((a) => a.is_active && (a.svk === "1" || a.svk === null));
