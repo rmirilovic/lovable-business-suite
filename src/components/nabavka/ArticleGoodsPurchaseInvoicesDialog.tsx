@@ -15,7 +15,8 @@ interface Row {
   partner_name: string;
   quantity: number;
   unit_price: number;
-  warehouse_price: number;
+  discount_percent: number;
+  discounted_price: number;
   line_value: number;
 }
 
