@@ -14,6 +14,7 @@ import {
   Calendar,
   LogOut,
   X,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
