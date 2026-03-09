@@ -180,7 +180,7 @@ export default function ReceivedCreditNoteEdit() {
 
       <ReceivedCreditNoteHeaderDialog open={headerDialogOpen} onOpenChange={setHeaderDialogOpen} doc={doc} onSaved={() => fetchDoc()} readOnly={!isDraft} />
 
-      <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} tableName="received_credit_notes" documentId={doc.id} title={`Istorija: ${doc.internal_number}`} />
+      <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentType="received_credit_note" documentId={doc.id} documentName={doc.internal_number} />
 
       <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
         <AlertDialogContent>
