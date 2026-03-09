@@ -80,6 +80,7 @@ const navigation: NavItem[] = [
     children: [
       { label: "UF za usluge", href: "/nabavka/ulazne-fakture-usluge", moduleCode: "nabavka.ulazne_fakture" },
       { label: "UF za robu", href: "/nabavka/ulazne-fakture-roba", moduleCode: "nabavka.ulazne_fakture" },
+      { label: "UF za avanse", href: "/nabavka/ulazne-fakture-avansi", moduleCode: "nabavka.ulazne_fakture" },
       { label: "Kalkulacije", href: "/magacin/kalkulacije", moduleCode: "robno.prijemnice" },
       { label: "Narudžbenice", href: "/nabavka/narudzbenice", moduleCode: "nabavka.porudzbine" },
     ],
