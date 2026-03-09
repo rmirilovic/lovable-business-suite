@@ -767,6 +767,7 @@ export default function BankStatementEdit() {
                    {isColVisible("note") && <TableHead>Napomena</TableHead>}
                    <TableHead className="text-right">Isplata (D)</TableHead>
                    <TableHead className="text-right">Uplata (P)</TableHead>
+                   <TableHead />
                    {isDraft && <TableHead />}
                 </TableRow>
               </TableHeader>
