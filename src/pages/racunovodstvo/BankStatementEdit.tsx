@@ -298,6 +298,7 @@ export default function BankStatementEdit() {
       {isColVisible("note") && <col style={{ width: 150 }} />}
       <col style={{ width: 120 }} />
       <col style={{ width: 120 }} />
+      <col style={{ width: 40 }} />
       {isDraft && <col style={{ width: 80 }} />}
     </colgroup>
   );
