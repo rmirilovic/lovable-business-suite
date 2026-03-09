@@ -43,6 +43,8 @@ import UlazneFaktureRoba from "./pages/nabavka/UlazneFaktureRoba";
 import GoodsPurchaseInvoiceEdit from "./pages/nabavka/GoodsPurchaseInvoiceEdit";
 import UlazneFaktureAvansi from "./pages/nabavka/UlazneFaktureAvansi";
 import AdvancePurchaseInvoiceEdit from "./pages/nabavka/AdvancePurchaseInvoiceEdit";
+import PrimljenaKnjiznaOdobrenja from "./pages/nabavka/PrimljenaKnjiznaOdobrenja";
+import ReceivedCreditNoteEdit from "./pages/nabavka/ReceivedCreditNoteEdit";
 import Prijemnice from "./pages/magacin/Prijemnice";
 import GoodsReceiptEdit from "./pages/magacin/GoodsReceiptEdit";
 import Kalkulacije from "./pages/magacin/Kalkulacije";
@@ -325,6 +327,16 @@ const App = () => (
               <Route path="/nabavka/ulazne-fakture-avansi/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <AdvancePurchaseInvoiceEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/nabavka/primljena-ko" element={
+                <ProtectedRoute>
+                  <PrimljenaKnjiznaOdobrenja />
+                </ProtectedRoute>
+              } />
+              <Route path="/nabavka/primljena-ko/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <ReceivedCreditNoteEdit />
                 </ProtectedRoute>
               } />
               <Route path="/magacin/prijemnice" element={
