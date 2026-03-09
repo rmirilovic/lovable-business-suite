@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { BankStatementHeaderDialog } from "@/components/racunovodstvo/BankStatementHeaderDialog";
 import { exportBankStatementToExcel, exportBankStatementPdf, printBankStatement } from "@/lib/bankStatementExportUtils";
+import { BankStatementItemReviewDialog } from "@/components/racunovodstvo/BankStatementItemReviewDialog";
 
 const STATUS_LABELS: Record<string, string> = { draft: "Nacrt", posted: "Proknjižen" };
 const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
