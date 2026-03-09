@@ -329,6 +329,16 @@ const App = () => (
                   <AdvancePurchaseInvoiceEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/nabavka/primljena-ko" element={
+                <ProtectedRoute>
+                  <PrimljenaKnjiznaOdobrenja />
+                </ProtectedRoute>
+              } />
+              <Route path="/nabavka/primljena-ko/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <ReceivedCreditNoteEdit />
+                </ProtectedRoute>
+              } />
               <Route path="/magacin/prijemnice" element={
                 <ProtectedRoute>
                   <Prijemnice />
