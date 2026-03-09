@@ -5465,6 +5465,251 @@ export type Database = {
           },
         ]
       }
+      received_credit_note_items: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string | null
+          discount_percent: number
+          foreign_unit_price: number
+          id: string
+          input_cost_id: string | null
+          is_vat_deductible: boolean
+          item_code: string | null
+          item_name: string
+          item_order: number
+          line_subtotal: number
+          line_total: number
+          line_vat: number
+          org_unit_id: string | null
+          quantity: number
+          received_credit_note_id: string
+          unit: string
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          foreign_unit_price?: number
+          id?: string
+          input_cost_id?: string | null
+          is_vat_deductible?: boolean
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          org_unit_id?: string | null
+          quantity?: number
+          received_credit_note_id: string
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          discount_percent?: number
+          foreign_unit_price?: number
+          id?: string
+          input_cost_id?: string | null
+          is_vat_deductible?: boolean
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          org_unit_id?: string | null
+          quantity?: number
+          received_credit_note_id?: string
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "received_credit_note_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_credit_note_items_input_cost_id_fkey"
+            columns: ["input_cost_id"]
+            isOneToOne: false
+            referencedRelation: "input_costs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_credit_note_items_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_credit_note_items_received_credit_note_id_fkey"
+            columns: ["received_credit_note_id"]
+            isOneToOne: false
+            referencedRelation: "received_credit_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      received_credit_notes: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          currency: string
+          document_date: string
+          due_date: string | null
+          exchange_rate: number
+          has_internal_vat_calculation: boolean
+          id: string
+          internal_note: string | null
+          internal_number: string
+          journal_entry_id: string | null
+          note: string | null
+          org_unit_id: string | null
+          partner_id: string
+          payment_reference: string | null
+          posted_at: string | null
+          posted_by: string | null
+          receipt_date: string
+          status: string
+          subtotal: number
+          supplier_address: string | null
+          supplier_bank_account: string | null
+          supplier_city: string | null
+          supplier_document_number: string
+          supplier_is_in_pdv: boolean
+          supplier_mb: string | null
+          supplier_name: string | null
+          supplier_pib: string | null
+          supplier_postal_code: string | null
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          currency?: string
+          document_date?: string
+          due_date?: string | null
+          exchange_rate?: number
+          has_internal_vat_calculation?: boolean
+          id?: string
+          internal_note?: string | null
+          internal_number: string
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id: string
+          payment_reference?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: string
+          subtotal?: number
+          supplier_address?: string | null
+          supplier_bank_account?: string | null
+          supplier_city?: string | null
+          supplier_document_number?: string
+          supplier_is_in_pdv?: boolean
+          supplier_mb?: string | null
+          supplier_name?: string | null
+          supplier_pib?: string | null
+          supplier_postal_code?: string | null
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          currency?: string
+          document_date?: string
+          due_date?: string | null
+          exchange_rate?: number
+          has_internal_vat_calculation?: boolean
+          id?: string
+          internal_note?: string | null
+          internal_number?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id?: string
+          payment_reference?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: string
+          subtotal?: number
+          supplier_address?: string | null
+          supplier_bank_account?: string | null
+          supplier_city?: string | null
+          supplier_document_number?: string
+          supplier_is_in_pdv?: boolean
+          supplier_mb?: string | null
+          supplier_name?: string | null
+          supplier_pib?: string | null
+          supplier_postal_code?: string | null
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "received_credit_notes_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_credit_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_credit_notes_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_credit_notes_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "received_credit_notes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reprocessing_delivery_note_items: {
         Row: {
           article_code: string
@@ -7041,7 +7286,7 @@ export type Database = {
         Returns: string
       }
       get_next_purchase_invoice_number: {
-        Args: { _company_id: string; _invoice_type: string; _year_id: string }
+        Args: { _company_id: string; _invoice_type?: string; _year_id: string }
         Returns: string
       }
       get_next_reprocessing_wo_number: {
@@ -7238,6 +7483,10 @@ export type Database = {
             Args: { _calculation_id: string; _user_id: string }
             Returns: string
           }
+      post_received_credit_note: {
+        Args: { _doc_id: string; _user_id: string }
+        Returns: undefined
+      }
       post_reprocessing_delivery_note: {
         Args: { _note_id: string; _user_id: string }
         Returns: string
@@ -7313,6 +7562,10 @@ export type Database = {
       unpost_purchase_price_calculation: {
         Args: { _calculation_id: string; _user_id: string }
         Returns: boolean
+      }
+      unpost_received_credit_note: {
+        Args: { _doc_id: string; _user_id: string }
+        Returns: undefined
       }
       unpost_reprocessing_delivery_note: {
         Args: { _note_id: string; _user_id: string }
