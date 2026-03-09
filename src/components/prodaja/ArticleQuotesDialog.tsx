@@ -39,7 +39,7 @@ export function ArticleQuotesDialog({ open, onOpenChange, articleId, articleCode
     if (open && selectedYear) {
       const y = selectedYear.year;
       setDateFrom(`${y}-01-01`);
-      setDateTo(`${y}-12-31`);
+      setDateTo(format(new Date(), "yyyy-MM-dd"));
     }
   }, [open, selectedYear]);
 
