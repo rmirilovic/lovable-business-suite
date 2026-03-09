@@ -108,6 +108,8 @@ export default function BankStatementEdit() {
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewItem, setReviewItem] = useState<BankStatementItem | null>(null);
   const [headerSerial, setHeaderSerial] = useState(statement?.bank_serial_number || "");
   const [headerOpeningBalance, setHeaderOpeningBalance] = useState(
     statement ? formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00"
