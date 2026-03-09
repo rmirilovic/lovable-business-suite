@@ -41,6 +41,8 @@ import UlazneFaktureUsluge from "./pages/nabavka/UlazneFaktureUsluge";
 import ServicePurchaseInvoiceEdit from "./pages/nabavka/ServicePurchaseInvoiceEdit";
 import UlazneFaktureRoba from "./pages/nabavka/UlazneFaktureRoba";
 import GoodsPurchaseInvoiceEdit from "./pages/nabavka/GoodsPurchaseInvoiceEdit";
+import UlazneFaktureAvansi from "./pages/nabavka/UlazneFaktureAvansi";
+import AdvancePurchaseInvoiceEdit from "./pages/nabavka/AdvancePurchaseInvoiceEdit";
 import Prijemnice from "./pages/magacin/Prijemnice";
 import GoodsReceiptEdit from "./pages/magacin/GoodsReceiptEdit";
 import Kalkulacije from "./pages/magacin/Kalkulacije";
