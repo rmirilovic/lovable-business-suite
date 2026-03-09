@@ -245,6 +245,219 @@ export type Database = {
           },
         ]
       }
+      advance_purchase_invoice_items: {
+        Row: {
+          advance_purchase_invoice_id: string
+          company_id: string
+          created_at: string
+          description: string
+          id: string
+          item_order: number
+          line_subtotal: number
+          line_total: number
+          line_vat: number
+          quantity: number
+          tax_category_code: string
+          tax_exemption_reason: string | null
+          unit: string
+          unit_price: number
+          vat_rate: number
+        }
+        Insert: {
+          advance_purchase_invoice_id: string
+          company_id: string
+          created_at?: string
+          description?: string
+          id?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Update: {
+          advance_purchase_invoice_id?: string
+          company_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          item_order?: number
+          line_subtotal?: number
+          line_total?: number
+          line_vat?: number
+          quantity?: number
+          tax_category_code?: string
+          tax_exemption_reason?: string | null
+          unit?: string
+          unit_price?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advance_purchase_invoice_items_advance_purchase_invoice_id_fkey"
+            columns: ["advance_purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "advance_purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_purchase_invoice_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advance_purchase_invoices: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          currency: string
+          due_date: string | null
+          exchange_rate: number
+          id: string
+          internal_note: string | null
+          internal_number: string
+          invoice_date: string
+          journal_entry_id: string | null
+          note: string | null
+          org_unit_id: string | null
+          partner_id: string
+          payment_reference: string | null
+          posted_at: string | null
+          posted_by: string | null
+          receipt_date: string
+          status: string
+          subtotal: number
+          supplier_address: string | null
+          supplier_bank_account: string | null
+          supplier_city: string | null
+          supplier_invoice_number: string
+          supplier_is_in_pdv: boolean
+          supplier_mb: string | null
+          supplier_name: string | null
+          supplier_pib: string | null
+          supplier_postal_code: string | null
+          total_amount: number
+          updated_at: string
+          vat_amount: number
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          currency?: string
+          due_date?: string | null
+          exchange_rate?: number
+          id?: string
+          internal_note?: string | null
+          internal_number: string
+          invoice_date?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id: string
+          payment_reference?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: string
+          subtotal?: number
+          supplier_address?: string | null
+          supplier_bank_account?: string | null
+          supplier_city?: string | null
+          supplier_invoice_number?: string
+          supplier_is_in_pdv?: boolean
+          supplier_mb?: string | null
+          supplier_name?: string | null
+          supplier_pib?: string | null
+          supplier_postal_code?: string | null
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          currency?: string
+          due_date?: string | null
+          exchange_rate?: number
+          id?: string
+          internal_note?: string | null
+          internal_number?: string
+          invoice_date?: string
+          journal_entry_id?: string | null
+          note?: string | null
+          org_unit_id?: string | null
+          partner_id?: string
+          payment_reference?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          receipt_date?: string
+          status?: string
+          subtotal?: number
+          supplier_address?: string | null
+          supplier_bank_account?: string | null
+          supplier_city?: string | null
+          supplier_invoice_number?: string
+          supplier_is_in_pdv?: boolean
+          supplier_mb?: string | null
+          supplier_name?: string | null
+          supplier_pib?: string | null
+          supplier_postal_code?: string | null
+          total_amount?: number
+          updated_at?: string
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advance_purchase_invoices_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_purchase_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_purchase_invoices_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_purchase_invoices_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advance_purchase_invoices_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_conversations: {
         Row: {
           company_id: string
@@ -6963,6 +7176,10 @@ export type Database = {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
       }
+      post_advance_purchase_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
+        Returns: boolean
+      }
       post_article_swap: {
         Args: { _swap_id: string; _user_id: string }
         Returns: string
@@ -7035,6 +7252,10 @@ export type Database = {
       }
       unpost_advance_invoice: {
         Args: { _invoice_id: string }
+        Returns: boolean
+      }
+      unpost_advance_purchase_invoice: {
+        Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
       }
       unpost_article_swap: {
