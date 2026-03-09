@@ -774,7 +774,7 @@ export default function BankStatementEdit() {
               <TableBody>
                 {items.length === 0 && !isDraft ? (
                   <TableRow>
-                    <TableCell colSpan={visibleToggleableCols.length + 3 + (isDraft ? 1 : 0)} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
+                    <TableCell colSpan={visibleToggleableCols.length + 4 + (isDraft ? 1 : 0)} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
                   </TableRow>
                 ) : (
                   items.map((item, idx) => renderItemRow(item, idx))
