@@ -943,6 +943,7 @@ export default function BankStatementEdit() {
                   <TableCell className="text-right font-mono font-bold">
                     {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
+                  <TableCell />
                   {isDraft && <TableCell />}
                 </TableRow>
               </TableFooter>
