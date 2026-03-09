@@ -317,6 +317,16 @@ const App = () => (
                   <GoodsPurchaseInvoiceEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/nabavka/ulazne-fakture-avansi" element={
+                <ProtectedRoute>
+                  <UlazneFaktureAvansi />
+                </ProtectedRoute>
+              } />
+              <Route path="/nabavka/ulazne-fakture-avansi/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <AdvancePurchaseInvoiceEdit />
+                </ProtectedRoute>
+              } />
               <Route path="/magacin/prijemnice" element={
                 <ProtectedRoute>
                   <Prijemnice />
