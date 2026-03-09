@@ -240,7 +240,7 @@ export default function AdvancePurchaseInvoiceEdit() {
         onSaved={() => fetchInvoice()}
       />
 
-      <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} tableName="advance_purchase_invoices" documentId={id || ""} />
+      <DocumentHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} documentId={id || ""} documentName={invoice.internal_number} documentType="advance_purchase_invoice" />
 
       <AlertDialog open={postDialogOpen} onOpenChange={setPostDialogOpen}>
         <AlertDialogContent>
