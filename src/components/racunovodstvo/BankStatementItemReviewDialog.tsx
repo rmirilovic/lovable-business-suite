@@ -46,7 +46,7 @@ export function BankStatementItemReviewDialog({ open, onOpenChange, costCenterCo
   }, [selectedYear]);
 
   useEffect(() => {
-    if (!open || !selectedCompany?.id || !costCenterCode) return;
+    if (!open || !selectedCompany?.id || !costCenterCode || !dateFrom || !dateTo) return;
 
     const fetchData = async () => {
       setLoading(true);
