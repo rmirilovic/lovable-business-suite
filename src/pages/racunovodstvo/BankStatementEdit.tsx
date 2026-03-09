@@ -906,6 +906,7 @@ export default function BankStatementEdit() {
                         className="h-8 text-right font-mono"
                       />
                     </TableCell>
+                    <TableCell />
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Button
