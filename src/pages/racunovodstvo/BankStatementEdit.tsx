@@ -280,7 +280,7 @@ export default function BankStatementEdit() {
 
   const visibleToggleableCols = TOGGLEABLE_COLUMNS.filter(c => isColVisible(c.key));
   const calcMinWidth = () => {
-    const fixed = 50 + 120 + 120 + (isDraft ? 80 : 0); // R.br. + Isplata + Uplata + Akcije
+    const fixed = 50 + 120 + 120 + 40 + (isDraft ? 80 : 0); // R.br. + Isplata + Uplata + ... + Akcije
     const toggled = visibleToggleableCols.reduce((s, c) => s + c.width, 0);
     return fixed + toggled;
   };
