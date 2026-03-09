@@ -39,7 +39,7 @@ export function ArticleQuotesDialog({ open, onOpenChange, articleId, articleCode
     if (open && selectedYear) {
       const y = selectedYear.year;
       setDateFrom(`${y}-01-01`);
-      setDateTo(`${y}-12-31`);
+      setDateTo(format(new Date(), "yyyy-MM-dd"));
     }
   }, [open, selectedYear]);
 
@@ -171,7 +171,9 @@ export function ArticleQuotesDialog({ open, onOpenChange, articleId, articleCode
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/50 font-bold">
-                    <TableCell colSpan={6} className="text-right">Ukupno:</TableCell>
+                    <TableCell colSpan={3} className="text-right">Ukupno:</TableCell>
+                    <TableCell className="text-right">{formatNumber(rows.reduce((sum, r) => sum + r.quantity, 0))}</TableCell>
+                    <TableCell colSpan={2} />
                     <TableCell className="text-right">{formatDecimal(rows.reduce((sum, r) => sum + r.line_value, 0))}</TableCell>
                   </TableRow>
                 </>
