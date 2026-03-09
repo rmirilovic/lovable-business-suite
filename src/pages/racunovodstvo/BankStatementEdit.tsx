@@ -15,7 +15,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X, RefreshCw, History, Eye, FileDown, FileSpreadsheet, Printer, Columns3 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X, RefreshCw, History, Eye, FileDown, FileSpreadsheet, Printer, Columns3, MoreHorizontal } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   useBankStatement,
