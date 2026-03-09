@@ -154,7 +154,7 @@ export function BankStatementItemReviewDialog({ open, onOpenChange, costCenterCo
                 <>
                   {rows.map((row) => (
                     <TableRow key={row.id}>
-                      <TableCell className="text-xs">{row.statement_date}</TableCell>
+                      <TableCell className="text-xs">{row.statement_date ? formatDate(row.statement_date) : ""}</TableCell>
                       <TableCell className="text-xs font-mono">{row.statement_number}</TableCell>
                       <TableCell className="text-xs font-mono">{row.account_code || "-"}</TableCell>
                       <TableCell className="text-xs font-mono">{row.partner_account_number || "-"}</TableCell>
