@@ -38,7 +38,7 @@ export function ArticleInvoicesDialog({ open, onOpenChange, articleId, articleCo
     if (open && selectedYear) {
       const y = selectedYear.year;
       setDateFrom(`${y}-01-01`);
-      setDateTo(format(new Date(), "yyyy-MM-dd"));
+      setDateTo(`${y}-12-31`);
     }
   }, [open, selectedYear]);
 
