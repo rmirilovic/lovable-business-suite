@@ -991,6 +991,19 @@ export default function BankStatementEdit() {
         documentType="bank_statement"
         documentName={`Izvod ${statement.statement_number}`}
       />
+
+      {reviewItem && (
+        <BankStatementItemReviewDialog
+          open={reviewDialogOpen}
+          onOpenChange={(open) => {
+            setReviewDialogOpen(open);
+            if (!open) setReviewItem(null);
+          }}
+          costCenterCode={reviewItem.cost_center_code || ""}
+          partnerId={reviewItem.partner_id}
+          partnerName={reviewItem.partner_name || null}
+        />
+      )}
     </MainLayout>
   );
 }
