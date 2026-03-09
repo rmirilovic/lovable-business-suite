@@ -12,10 +12,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X, RefreshCw, History, Eye, FileDown, FileSpreadsheet, Printer, Columns3 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, BookCheck, Undo2, Pencil, Check, X, RefreshCw, History, Eye, FileDown, FileSpreadsheet, Printer, Columns3, MoreHorizontal } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   useBankStatement,
@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { BankStatementHeaderDialog } from "@/components/racunovodstvo/BankStatementHeaderDialog";
 import { exportBankStatementToExcel, exportBankStatementPdf, printBankStatement } from "@/lib/bankStatementExportUtils";
+import { BankStatementItemReviewDialog } from "@/components/racunovodstvo/BankStatementItemReviewDialog";
 
 const STATUS_LABELS: Record<string, string> = { draft: "Nacrt", posted: "Proknjižen" };
 const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive"> = {
@@ -107,6 +108,8 @@ export default function BankStatementEdit() {
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewItem, setReviewItem] = useState<BankStatementItem | null>(null);
   const [headerSerial, setHeaderSerial] = useState(statement?.bank_serial_number || "");
   const [headerOpeningBalance, setHeaderOpeningBalance] = useState(
     statement ? formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00"
@@ -277,7 +280,7 @@ export default function BankStatementEdit() {
 
   const visibleToggleableCols = TOGGLEABLE_COLUMNS.filter(c => isColVisible(c.key));
   const calcMinWidth = () => {
-    const fixed = 50 + 120 + 120 + (isDraft ? 80 : 0); // R.br. + Isplata + Uplata + Akcije
+    const fixed = 50 + 120 + 120 + 40 + (isDraft ? 80 : 0); // R.br. + Isplata + Uplata + ... + Akcije
     const toggled = visibleToggleableCols.reduce((s, c) => s + c.width, 0);
     return fixed + toggled;
   };
@@ -295,6 +298,7 @@ export default function BankStatementEdit() {
       {isColVisible("note") && <col style={{ width: 150 }} />}
       <col style={{ width: 120 }} />
       <col style={{ width: 120 }} />
+      <col style={{ width: 40 }} />
       {isDraft && <col style={{ width: 80 }} />}
     </colgroup>
   );
@@ -422,6 +426,7 @@ export default function BankStatementEdit() {
               className="h-8 text-right font-mono"
             />
           </TableCell>
+          <TableCell />
           <TableCell>
             <div className="flex items-center gap-1">
               <Button
@@ -512,6 +517,25 @@ export default function BankStatementEdit() {
         </TableCell>
         <TableCell className="text-right font-mono">
           {Number(item.credit_amount) !== 0 ? formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
+        </TableCell>
+        <TableCell className="p-0">
+          {item.cost_center_code && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => {
+                  setReviewItem(item);
+                  setReviewDialogOpen(true);
+                }}>
+                  Pregled na svim dokumentima
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </TableCell>
         {isDraft && (
           <TableCell>
@@ -744,13 +768,14 @@ export default function BankStatementEdit() {
                    {isColVisible("note") && <TableHead>Napomena</TableHead>}
                    <TableHead className="text-right">Isplata (D)</TableHead>
                    <TableHead className="text-right">Uplata (P)</TableHead>
+                   <TableHead />
                    {isDraft && <TableHead />}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.length === 0 && !isDraft ? (
                   <TableRow>
-                    <TableCell colSpan={visibleToggleableCols.length + 3 + (isDraft ? 1 : 0)} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
+                    <TableCell colSpan={visibleToggleableCols.length + 4 + (isDraft ? 1 : 0)} className="text-center py-4 text-muted-foreground">Nema stavki</TableCell>
                   </TableRow>
                 ) : (
                   items.map((item, idx) => renderItemRow(item, idx))
@@ -882,6 +907,7 @@ export default function BankStatementEdit() {
                         className="h-8 text-right font-mono"
                       />
                     </TableCell>
+                    <TableCell />
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Button
@@ -919,6 +945,7 @@ export default function BankStatementEdit() {
                   <TableCell className="text-right font-mono font-bold">
                     {formatNumber(totalCredit, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </TableCell>
+                  <TableCell />
                   {isDraft && <TableCell />}
                 </TableRow>
               </TableFooter>
@@ -965,6 +992,19 @@ export default function BankStatementEdit() {
         documentType="bank_statement"
         documentName={`Izvod ${statement.statement_number}`}
       />
+
+      {reviewItem && (
+        <BankStatementItemReviewDialog
+          open={reviewDialogOpen}
+          onOpenChange={(open) => {
+            setReviewDialogOpen(open);
+            if (!open) setReviewItem(null);
+          }}
+          costCenterCode={reviewItem.cost_center_code || ""}
+          partnerId={reviewItem.partner_id}
+          partnerName={reviewItem.partner_name || null}
+        />
+      )}
     </MainLayout>
   );
 }
