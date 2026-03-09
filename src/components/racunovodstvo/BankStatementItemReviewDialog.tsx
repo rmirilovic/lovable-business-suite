@@ -5,7 +5,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, formatDate } from "@/lib/formatting";
 
 interface Props {
   open: boolean;
