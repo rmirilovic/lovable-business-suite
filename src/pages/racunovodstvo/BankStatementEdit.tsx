@@ -517,6 +517,25 @@ export default function BankStatementEdit() {
         <TableCell className="text-right font-mono">
           {Number(item.credit_amount) !== 0 ? formatNumber(item.credit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
         </TableCell>
+        <TableCell className="p-0">
+          {item.cost_center_code && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => {
+                  setReviewItem(item);
+                  setReviewDialogOpen(true);
+                }}>
+                  Pregled na svim dokumentima
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </TableCell>
         {isDraft && (
           <TableCell>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
