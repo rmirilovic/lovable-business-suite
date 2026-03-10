@@ -12,6 +12,7 @@ import { formatNumber } from "@/lib/formatting";
 import { BankStatement, useBankStatementMutations, useBankStatements } from "@/hooks/useBankStatements";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { AlertCircle } from "lucide-react";
 
 interface BankStatementHeaderDialogProps {
