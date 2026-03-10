@@ -15,6 +15,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { usePartners, usePartnerBankAccounts } from "@/hooks/usePartners";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useAdvancePurchaseInvoices,
