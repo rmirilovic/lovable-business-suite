@@ -39,6 +39,7 @@ export function GoodsReceiptDialog({
   onSave,
 }: GoodsReceiptDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { warehouses } = useWarehouses(selectedCompany?.id);
   const { partners } = usePartners();
 
