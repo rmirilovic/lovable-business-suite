@@ -195,10 +195,10 @@ export function ServicePurchaseInvoiceDetailDialog({
             </Badge>
           </div>
           <div>
-            <div className="text-muted-foreground">Obračun PDV-a</div>
-            <div className="font-medium">
-              {invoice.vat_calculation_type === "standard" ? "Standardni" : "Bez obračuna (8v.2)"}
-            </div>
+            <div className="text-muted-foreground">Bez obračuna PDV (8v.2)</div>
+            <Badge variant={invoice.vat_calculation_type === "no_vat_8v2" ? "default" : "outline"}>
+              {invoice.vat_calculation_type === "no_vat_8v2" ? "Da" : "Ne"}
+            </Badge>
           </div>
           <div>
             <div className="text-muted-foreground">Interni obračun PDV</div>
