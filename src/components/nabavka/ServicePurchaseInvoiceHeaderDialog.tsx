@@ -47,6 +47,7 @@ export function ServicePurchaseInvoiceHeaderDialog({
   readOnly = false,
 }: ServicePurchaseInvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { createInvoice, updateInvoice } = useServicePurchaseInvoices();
 
