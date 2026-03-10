@@ -24,6 +24,7 @@ interface Props {
 
 export function PriceAdjustmentDialog({ open, onOpenChange, adjustment, onSave }: Props) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { warehouses } = useWarehouses(selectedCompany?.id);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<PriceAdjustmentFormData>({
