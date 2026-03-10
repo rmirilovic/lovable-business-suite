@@ -10,6 +10,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
