@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
