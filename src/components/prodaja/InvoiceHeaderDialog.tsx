@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { Eye, Info } from "lucide-react";
@@ -45,6 +46,7 @@ export function InvoiceHeaderDialog({
   onSaved,
 }: InvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
@@ -255,6 +257,8 @@ export function InvoiceHeaderDialog({
                 onChange={(v) => setFormData({ ...formData, invoice_date: v })}
                 required
                 disabled={readOnly}
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
             <div className="space-y-2">

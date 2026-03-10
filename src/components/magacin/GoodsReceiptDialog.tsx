@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { usePartners } from "@/hooks/usePartners";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +39,7 @@ export function GoodsReceiptDialog({
   onSave,
 }: GoodsReceiptDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { warehouses } = useWarehouses(selectedCompany?.id);
   const { partners } = usePartners();
 
@@ -121,6 +123,8 @@ export function GoodsReceiptDialog({
                   setFormData((prev) => ({ ...prev, receipt_date: val }))
                 }
                 required
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
           </div>

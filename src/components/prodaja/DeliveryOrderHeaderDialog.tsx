@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { usePartners } from "@/hooks/usePartners";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,6 +45,7 @@ interface DeliveryOrderHeaderDialogProps {
 
 export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, isLoading }: DeliveryOrderHeaderDialogProps) {
   const { selectedCompany, selectedYear, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { warehouses } = useWarehouses(selectedCompany?.id);
   const { partners } = usePartners();
   const activeWarehouses = warehouses.filter((w) => w.is_active);
@@ -263,7 +265,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
 
           <div className="space-y-1">
             <Label>Datum naloga *</Label>
-            <LocaleDateInput value={formData.order_date} onChange={(v) => setFormData((p) => ({ ...p, order_date: v }))} />
+            <LocaleDateInput value={formData.order_date} onChange={(v) => setFormData((p) => ({ ...p, order_date: v }))} minDate={minDate} maxDate={maxDate} />
           </div>
           <div className="space-y-1">
             <Label>Rok isporuke</Label>

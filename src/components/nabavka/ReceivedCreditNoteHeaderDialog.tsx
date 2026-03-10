@@ -11,6 +11,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { usePartners, usePartnerBankAccounts } from "@/hooks/usePartners";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { supabase } from "@/integrations/supabase/client";
 import { useReceivedCreditNotes, ReceivedCreditNote, ReceivedCreditNoteFormData } from "@/hooks/useReceivedCreditNotes";
 import { CURRENCIES, isForeignCurrency } from "@/lib/currencies";
@@ -39,6 +40,7 @@ const defaultForm = (): ReceivedCreditNoteFormData => ({
 
 export function ReceivedCreditNoteHeaderDialog({ open, onOpenChange, doc, onSaved, readOnly = false }: Props) {
   const { partners } = usePartners();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { createDoc, updateDoc } = useReceivedCreditNotes();
   const [formData, setFormData] = useState<ReceivedCreditNoteFormData>(defaultForm());
   const [exchangeRateText, setExchangeRateText] = useState("1");
@@ -111,7 +113,7 @@ export function ReceivedCreditNoteHeaderDialog({ open, onOpenChange, doc, onSave
               </div>
               <div className="space-y-2">
                 <Label>Datum dokumenta *</Label>
-                <LocaleDateInput value={formData.document_date} onChange={(v) => setFormData({ ...formData, document_date: v })} />
+                <LocaleDateInput value={formData.document_date} onChange={(v) => setFormData({ ...formData, document_date: v })} minDate={minDate} maxDate={maxDate} />
               </div>
               <div className="space-y-2">
                 <Label>Datum prijema *</Label>

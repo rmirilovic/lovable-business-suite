@@ -12,6 +12,7 @@ import { formatNumber } from "@/lib/formatting";
 import { BankStatement, useBankStatementMutations, useBankStatements } from "@/hooks/useBankStatements";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { AlertCircle } from "lucide-react";
 
 interface BankStatementHeaderDialogProps {
@@ -35,6 +36,7 @@ export function BankStatementHeaderDialog({
   onSaved,
 }: BankStatementHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
   const { update } = useBankStatementMutations();
   const { data: allStatements } = useBankStatements();
@@ -135,6 +137,8 @@ export function BankStatementHeaderDialog({
               <LocaleDateInput
                 value={formData.statement_date}
                 onChange={(v) => setFormData({ ...formData, statement_date: v })}
+                minDate={minDate}
+                maxDate={maxDate}
               />
             )}
           </div>

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
@@ -65,6 +66,7 @@ export function CreditNoteHeaderDialog({
   title,
 }: CreditNoteHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
@@ -187,7 +189,7 @@ export function CreditNoteHeaderDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Datum dokumenta *</Label>
-              <LocaleDateInput value={formData.credit_note_date || ""} onChange={(v) => set("credit_note_date", v)} required disabled={readOnly} />
+              <LocaleDateInput value={formData.credit_note_date || ""} onChange={(v) => set("credit_note_date", v)} required disabled={readOnly} minDate={minDate} maxDate={maxDate} />
             </div>
             <div className="space-y-2">
               <Label>Datum valute</Label>

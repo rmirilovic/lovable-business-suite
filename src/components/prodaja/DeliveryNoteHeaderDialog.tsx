@@ -20,6 +20,7 @@ import {
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { usePartners } from "@/hooks/usePartners";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
@@ -44,6 +45,7 @@ export function DeliveryNoteHeaderDialog({
   readOnly,
 }: DeliveryNoteHeaderDialogProps) {
   const { selectedCompany, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const companyId = selectedCompany?.id;
   const { partners } = usePartners();
   const { warehouses } = useWarehouses(companyId);
@@ -160,6 +162,8 @@ export function DeliveryNoteHeaderDialog({
               value={formData.delivery_date}
               onChange={(v) => setFormData((p) => ({ ...p, delivery_date: v }))}
               disabled={readOnly}
+              minDate={minDate}
+              maxDate={maxDate}
             />
           </div>
 

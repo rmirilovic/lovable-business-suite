@@ -22,6 +22,7 @@ import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { Quote, QuoteFormData, useQuotes } from "@/hooks/useQuotes";
 
 interface QuoteHeaderDialogProps {
@@ -38,6 +39,7 @@ export function QuoteHeaderDialog({
   onSaved,
 }: QuoteHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
@@ -147,6 +149,8 @@ export function QuoteHeaderDialog({
                 value={formData.quote_date}
                 onChange={(v) => setFormData({ ...formData, quote_date: v })}
                 required
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
             <div className="space-y-2">

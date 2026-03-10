@@ -10,6 +10,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { usePartners } from "@/hooks/usePartners";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
@@ -64,6 +65,7 @@ export function AdvanceInvoiceHeaderDialog({
   title,
 }: AdvanceInvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
@@ -183,7 +185,7 @@ export function AdvanceInvoiceHeaderDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Datum fakture *</Label>
-              <LocaleDateInput value={formData.advance_date || ""} onChange={(v) => set("advance_date", v)} required disabled={readOnly} />
+              <LocaleDateInput value={formData.advance_date || ""} onChange={(v) => set("advance_date", v)} required disabled={readOnly} minDate={minDate} maxDate={maxDate} />
             </div>
             <div className="space-y-2">
               <Label>Datum valute</Label>

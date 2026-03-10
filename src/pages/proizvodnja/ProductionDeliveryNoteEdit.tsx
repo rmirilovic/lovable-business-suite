@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -44,6 +45,7 @@ export default function ProductionDeliveryNoteEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const companyId = selectedCompany?.id;
   const queryClient = useQueryClient();
 
@@ -269,6 +271,8 @@ export default function ProductionDeliveryNoteEdit() {
               value={headerForm.delivery_date}
               onChange={(v) => updateHeaderField("delivery_date", v)}
               disabled={!isDraft}
+              minDate={minDate}
+              maxDate={maxDate}
             />
           </div>
           <div className="space-y-1">

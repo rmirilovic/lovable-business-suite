@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
@@ -34,6 +35,7 @@ export default function ReprocessingWorkOrderEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const companyId = selectedCompany?.id;
   const queryClient = useQueryClient();
 
@@ -342,7 +344,7 @@ export default function ReprocessingWorkOrderEdit() {
 
         {/* Header */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-card">
-          <div className="space-y-1"><Label className="text-xs">Datum RN</Label><LocaleDateInput value={headerForm.order_date} onChange={(v) => updateHeaderField("order_date", v)} disabled={!isDraft} /></div>
+          <div className="space-y-1"><Label className="text-xs">Datum RN</Label><LocaleDateInput value={headerForm.order_date} onChange={(v) => updateHeaderField("order_date", v)} disabled={!isDraft} minDate={minDate} maxDate={maxDate} /></div>
           <div className="space-y-1"><Label className="text-xs">Rok završetka</Label><LocaleDateInput value={headerForm.deadline_date} onChange={(v) => updateHeaderField("deadline_date", v)} disabled={!isDraft} /></div>
           <div className="space-y-1">
             <Label className="text-xs">Magacin GP</Label>

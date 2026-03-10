@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useAuth } from "@/contexts/AuthContext";
 import { PriceAdjustment, PriceAdjustmentFormData } from "@/hooks/usePriceAdjustments";
@@ -23,6 +24,7 @@ interface Props {
 
 export function PriceAdjustmentDialog({ open, onOpenChange, adjustment, onSave }: Props) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { warehouses } = useWarehouses(selectedCompany?.id);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<PriceAdjustmentFormData>({
@@ -92,6 +94,8 @@ export function PriceAdjustmentDialog({ open, onOpenChange, adjustment, onSave }
                 value={formData.adjustment_date}
                 onChange={(val) => setFormData((p) => ({ ...p, adjustment_date: val }))}
                 required
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
           </div>

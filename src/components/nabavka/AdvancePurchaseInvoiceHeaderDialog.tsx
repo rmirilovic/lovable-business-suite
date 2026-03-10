@@ -15,6 +15,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { usePartners, usePartnerBankAccounts } from "@/hooks/usePartners";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { supabase } from "@/integrations/supabase/client";
 import {
   useAdvancePurchaseInvoices,
@@ -35,6 +36,7 @@ export function AdvancePurchaseInvoiceHeaderDialog({
   open, onOpenChange, invoice, onSaved, readOnly = false,
 }: Props) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { createInvoice, updateInvoice } = useAdvancePurchaseInvoices();
 
@@ -174,7 +176,7 @@ export function AdvancePurchaseInvoiceHeaderDialog({
               </div>
               <div className="space-y-2">
                 <Label>Datum fakture *</Label>
-                <LocaleDateInput value={formData.invoice_date} onChange={(v) => setFormData({ ...formData, invoice_date: v })} />
+                <LocaleDateInput value={formData.invoice_date} onChange={(v) => setFormData({ ...formData, invoice_date: v })} minDate={minDate} maxDate={maxDate} />
               </div>
               <div className="space-y-2">
                 <Label>Datum prijema *</Label>

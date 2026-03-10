@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useAuth } from "@/contexts/AuthContext";
 import { InterWarehouseTransfer, TransferFormData } from "@/hooks/useInterWarehouseTransfers";
@@ -23,6 +24,7 @@ interface TransferDialogProps {
 
 export function TransferDialog({ open, onOpenChange, transfer, onSave }: TransferDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { warehouses } = useWarehouses(selectedCompany?.id);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -147,6 +149,8 @@ export function TransferDialog({ open, onOpenChange, transfer, onSave }: Transfe
               value={formData.transfer_date}
               onChange={(val) => setFormData((prev) => ({ ...prev, transfer_date: val }))}
               required
+              minDate={minDate}
+              maxDate={maxDate}
             />
           </div>
 

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -35,6 +36,7 @@ export default function RequisitionEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const companyId = selectedCompany?.id;
 
   const { data: requisition, isLoading: reqLoading } = useMaterialRequisition(id);
@@ -267,7 +269,7 @@ export default function RequisitionEdit() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 border rounded-lg bg-card">
           <div className="space-y-1">
             <Label className="text-xs">Datum</Label>
-            <LocaleDateInput value={headerForm.requisition_date} onChange={(v) => updateHeaderField("requisition_date", v)} disabled={!isDraft} />
+            <LocaleDateInput value={headerForm.requisition_date} onChange={(v) => updateHeaderField("requisition_date", v)} disabled={!isDraft} minDate={minDate} maxDate={maxDate} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Magacin repromaterijala</Label>

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -50,6 +51,7 @@ export default function WorkOrderEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const companyId = selectedCompany?.id;
 
   const { data: order, isLoading: orderLoading } = useWorkOrder(id);
@@ -379,6 +381,8 @@ export default function WorkOrderEdit() {
               value={headerForm.order_date}
               onChange={(v) => updateHeaderField("order_date", v)}
               disabled={!isDraft}
+              minDate={minDate}
+              maxDate={maxDate}
             />
           </div>
           <div className="space-y-1">
