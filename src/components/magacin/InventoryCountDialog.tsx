@@ -93,6 +93,8 @@ export function InventoryCountDialog({ open, onOpenChange, count, onSave }: Prop
                 value={formData.count_date}
                 onChange={(val) => setFormData((p) => ({ ...p, count_date: val }))}
                 required
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
           </div>

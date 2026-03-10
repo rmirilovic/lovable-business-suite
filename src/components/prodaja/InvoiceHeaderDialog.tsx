@@ -257,6 +257,8 @@ export function InvoiceHeaderDialog({
                 onChange={(v) => setFormData({ ...formData, invoice_date: v })}
                 required
                 disabled={readOnly}
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
             <div className="space-y-2">

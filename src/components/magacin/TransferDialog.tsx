@@ -149,6 +149,8 @@ export function TransferDialog({ open, onOpenChange, transfer, onSave }: Transfe
               value={formData.transfer_date}
               onChange={(val) => setFormData((prev) => ({ ...prev, transfer_date: val }))}
               required
+              minDate={minDate}
+              maxDate={maxDate}
             />
           </div>
 

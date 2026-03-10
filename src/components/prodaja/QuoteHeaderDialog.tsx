@@ -149,6 +149,8 @@ export function QuoteHeaderDialog({
                 value={formData.quote_date}
                 onChange={(v) => setFormData({ ...formData, quote_date: v })}
                 required
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
             <div className="space-y-2">

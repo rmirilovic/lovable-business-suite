@@ -123,6 +123,8 @@ export function GoodsReceiptDialog({
                   setFormData((prev) => ({ ...prev, receipt_date: val }))
                 }
                 required
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
           </div>

@@ -94,6 +94,8 @@ export function PriceAdjustmentDialog({ open, onOpenChange, adjustment, onSave }
                 value={formData.adjustment_date}
                 onChange={(val) => setFormData((p) => ({ ...p, adjustment_date: val }))}
                 required
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
           </div>
