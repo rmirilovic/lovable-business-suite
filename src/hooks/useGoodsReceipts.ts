@@ -126,7 +126,8 @@ export function useGoodsReceipts() {
         .select(`
           *,
           warehouse:warehouses(id, code, name),
-          partner:partners(id, code, name)
+          partner:partners(id, code, name),
+          source_invoice:goods_purchase_invoices!goods_receipts_source_invoice_id_fkey(internal_number)
         `)
         .single();
 
