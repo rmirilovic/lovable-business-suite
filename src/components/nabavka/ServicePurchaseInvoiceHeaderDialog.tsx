@@ -194,7 +194,7 @@ export function ServicePurchaseInvoiceHeaderDialog({
                 id="supplier_invoice_number"
                 value={formData.supplier_invoice_number}
                 onChange={(e) =>
-                  setFormData({ ...formData, supplier_invoice_number: e.target.value })
+                  setFormData((prev) => ({ ...prev, supplier_invoice_number: e.target.value }))
                 }
                 required
                 autoComplete="off"
