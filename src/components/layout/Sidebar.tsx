@@ -124,6 +124,7 @@ const navigation: NavItem[] = [
     moduleCode: "sifarnici.partneri",
     children: [
       { label: "Partneri", href: "/sifarnici/partneri", moduleCode: "sifarnici.partneri" },
+      { label: "Kartice partnera", href: "/racunovodstvo/kartice-partnera", moduleCode: "racunovodstvo.kartice_partnera" },
     ],
   },
   {
