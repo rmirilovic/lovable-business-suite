@@ -179,7 +179,7 @@ export function CalculationCostsEditor({
                 </TableRow>
               ))}
               <TableRow className="bg-muted/50 font-medium">
-                <TableCell colSpan={3} className="text-right">
+                <TableCell colSpan={5} className="text-right">
                   Ukupno zavisni troškovi:
                 </TableCell>
                 <TableCell className="text-right">

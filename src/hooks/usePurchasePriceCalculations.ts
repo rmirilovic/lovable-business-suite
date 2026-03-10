@@ -400,7 +400,7 @@ export function useCalculationCosts(calculationId: string | null) {
       if (!calculationId) return [];
       const { data, error } = await (supabase as any)
         .from("calculation_additional_costs")
-        .select("*")
+        .select("*, source_ufu:service_purchase_invoices!calculation_additional_costs_source_ufu_id_fkey(internal_number, supplier_invoice_number)")
         .eq("calculation_id", calculationId)
         .order("item_order");
       if (error) throw error;
