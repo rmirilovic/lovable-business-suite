@@ -167,15 +167,15 @@ export default function ServicePurchaseInvoiceEdit() {
       }).then((result) => {
         if (result?.updated_at) {
           updateLockTimestamp(result.updated_at);
+          setInvoice(prev => prev ? {
+            ...prev,
+            subtotal,
+            vat_amount: vatAmount,
+            total_amount: totalAmount,
+            updated_at: result.updated_at,
+          } : null);
         }
       });
-      // Update local state
-      setInvoice(prev => prev ? {
-        ...prev,
-        subtotal,
-        vat_amount: vatAmount,
-        total_amount: totalAmount,
-      } : null);
     }
   }, [items, invoice?.id, invoice?.status]);
 
