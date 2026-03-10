@@ -118,7 +118,14 @@ const navigation: NavItem[] = [
       { label: "Recepture", href: "/proizvodnja/recepture", moduleCode: "proizvodnja.sastavnice" },
     ],
   },
-  { label: "Partneri", icon: Users, href: "/partneri", moduleCode: "sifarnici.partneri" },
+  {
+    label: "Partneri",
+    icon: Users,
+    moduleCode: "sifarnici.partneri",
+    children: [
+      { label: "Partneri", href: "/sifarnici/partneri", moduleCode: "sifarnici.partneri" },
+    ],
+  },
   {
     label: "Računovodstvo",
     icon: FileText,
