@@ -7233,6 +7233,15 @@ export type Database = {
         Args: { _order_id: string; _user_id: string }
         Returns: string
       }
+      ensure_popdv_report: {
+        Args: {
+          _business_year_id: string
+          _company_id: string
+          _document_date: string
+          _user_id: string
+        }
+        Returns: string
+      }
       get_article_warehouse_card: {
         Args: {
           p_article_id: string
