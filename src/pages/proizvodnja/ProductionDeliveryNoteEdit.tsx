@@ -45,6 +45,7 @@ export default function ProductionDeliveryNoteEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const companyId = selectedCompany?.id;
   const queryClient = useQueryClient();
 
