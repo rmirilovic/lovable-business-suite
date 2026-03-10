@@ -159,7 +159,7 @@ export default function ReprocessingDeliveryNoteEdit() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-card">
-          <div className="space-y-1"><Label className="text-xs">Datum</Label><LocaleDateInput value={headerForm.delivery_date} onChange={(v) => updateHeaderField("delivery_date", v)} disabled={!isDraft} /></div>
+          <div className="space-y-1"><Label className="text-xs">Datum</Label><LocaleDateInput value={headerForm.delivery_date} onChange={(v) => updateHeaderField("delivery_date", v)} disabled={!isDraft} minDate={minDate} maxDate={maxDate} /></div>
           <div className="space-y-1">
             <Label className="text-xs">Radni nalog</Label>
             <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50" value={headerForm.work_order_id} onChange={(e) => updateHeaderField("work_order_id", e.target.value)} disabled={!isDraft}>

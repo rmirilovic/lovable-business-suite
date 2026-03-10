@@ -271,6 +271,8 @@ export default function ProductionDeliveryNoteEdit() {
               value={headerForm.delivery_date}
               onChange={(v) => updateHeaderField("delivery_date", v)}
               disabled={!isDraft}
+              minDate={minDate}
+              maxDate={maxDate}
             />
           </div>
           <div className="space-y-1">

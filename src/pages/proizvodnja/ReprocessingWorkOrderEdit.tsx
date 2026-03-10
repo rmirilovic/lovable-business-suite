@@ -344,7 +344,7 @@ export default function ReprocessingWorkOrderEdit() {
 
         {/* Header */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-card">
-          <div className="space-y-1"><Label className="text-xs">Datum RN</Label><LocaleDateInput value={headerForm.order_date} onChange={(v) => updateHeaderField("order_date", v)} disabled={!isDraft} /></div>
+          <div className="space-y-1"><Label className="text-xs">Datum RN</Label><LocaleDateInput value={headerForm.order_date} onChange={(v) => updateHeaderField("order_date", v)} disabled={!isDraft} minDate={minDate} maxDate={maxDate} /></div>
           <div className="space-y-1"><Label className="text-xs">Rok završetka</Label><LocaleDateInput value={headerForm.deadline_date} onChange={(v) => updateHeaderField("deadline_date", v)} disabled={!isDraft} /></div>
           <div className="space-y-1">
             <Label className="text-xs">Magacin GP</Label>
