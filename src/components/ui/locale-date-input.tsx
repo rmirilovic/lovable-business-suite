@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 export interface LocaleDateInputProps {
   value: string; // ISO format: YYYY-MM-DD
@@ -15,6 +16,8 @@ export interface LocaleDateInputProps {
   disabled?: boolean;
   className?: string;
   required?: boolean;
+  minDate?: string; // ISO format: YYYY-MM-DD
+  maxDate?: string; // ISO format: YYYY-MM-DD
 }
 
 // Get user's preferred date format from system locale
@@ -48,10 +51,42 @@ export function LocaleDateInput({
   disabled,
   className,
   required,
+  minDate,
+  maxDate,
 }: LocaleDateInputProps) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
   const { format: dateFormat, placeholder: defaultPlaceholder } = React.useMemo(getLocaleDateFormat, []);
+
+  const parsedMinDate = React.useMemo(() => {
+    if (!minDate) return undefined;
+    const d = new Date(minDate);
+    return isValid(d) ? d : undefined;
+  }, [minDate]);
+
+  const parsedMaxDate = React.useMemo(() => {
+    if (!maxDate) return undefined;
+    const d = new Date(maxDate);
+    return isValid(d) ? d : undefined;
+  }, [maxDate]);
+
+  const isDateInRange = React.useCallback((date: Date): boolean => {
+    if (parsedMinDate && date < parsedMinDate) return false;
+    if (parsedMaxDate && date > parsedMaxDate) return false;
+    return true;
+  }, [parsedMinDate, parsedMaxDate]);
+
+  const showRangeError = React.useCallback(() => {
+    if (parsedMinDate && parsedMaxDate) {
+      const minStr = format(parsedMinDate, "dd.MM.yyyy");
+      const maxStr = format(parsedMaxDate, "dd.MM.yyyy");
+      toast.error(`Datum mora biti u opsegu ${minStr} - ${maxStr}`);
+    } else if (parsedMinDate) {
+      toast.error(`Datum ne može biti pre ${format(parsedMinDate, "dd.MM.yyyy")}`);
+    } else if (parsedMaxDate) {
+      toast.error(`Datum ne može biti posle ${format(parsedMaxDate, "dd.MM.yyyy")}`);
+    }
+  }, [parsedMinDate, parsedMaxDate]);
 
   // Convert ISO value to display format
   React.useEffect(() => {
@@ -72,6 +107,24 @@ export function LocaleDateInput({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
+  };
+
+  const tryAcceptDate = (date: Date): boolean => {
+    if (!isDateInRange(date)) {
+      showRangeError();
+      // Reset to previous valid value
+      if (value) {
+        const prev = new Date(value);
+        if (isValid(prev)) {
+          setInputValue(format(prev, dateFormat, { locale: sr }));
+        }
+      } else {
+        setInputValue("");
+      }
+      return false;
+    }
+    onChange(format(date, "yyyy-MM-dd"));
+    return true;
   };
 
   const handleInputBlur = () => {
@@ -110,7 +163,7 @@ export function LocaleDateInput({
     try {
       const parsed = parse(inputValue, dateFormat, new Date(), { locale: sr });
       if (isValid(parsed)) {
-        onChange(format(parsed, "yyyy-MM-dd"));
+        tryAcceptDate(parsed);
         return;
       }
       
@@ -119,7 +172,7 @@ export function LocaleDateInput({
       for (const fmt of formats) {
         const tryParsed = parse(inputValue, fmt, new Date(), { locale: sr });
         if (isValid(tryParsed)) {
-          onChange(format(tryParsed, "yyyy-MM-dd"));
+          tryAcceptDate(tryParsed);
           return;
         }
       }
@@ -127,7 +180,7 @@ export function LocaleDateInput({
       // Try auto-complete partial input
       const autoCompleted = tryAutoComplete(inputValue);
       if (autoCompleted) {
-        onChange(format(autoCompleted, "yyyy-MM-dd"));
+        tryAcceptDate(autoCompleted);
         return;
       }
       
@@ -150,8 +203,9 @@ export function LocaleDateInput({
 
   const handleCalendarSelect = (date: Date | undefined) => {
     if (date && isValid(date)) {
-      onChange(format(date, "yyyy-MM-dd"));
-      setOpen(false);
+      if (tryAcceptDate(date)) {
+        setOpen(false);
+      }
     }
   };
 
@@ -193,6 +247,8 @@ export function LocaleDateInput({
               onSelect={handleCalendarSelect}
               locale={sr}
               initialFocus
+              fromDate={parsedMinDate}
+              toDate={parsedMaxDate}
             />
           </PopoverContent>
         </Popover>
