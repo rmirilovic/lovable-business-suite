@@ -250,7 +250,7 @@ export default function GoodsReceiptEdit() {
               <div className="text-muted-foreground">Izvor</div>
               <div className="font-medium flex items-center gap-1">
                 <ExternalLink className="h-4 w-4" />
-                Ulazna faktura za robu
+                UFR: {receipt.source_invoice?.internal_number || receipt.source_invoice_id}
               </div>
             </div>
           )}
