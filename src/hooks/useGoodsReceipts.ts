@@ -29,6 +29,9 @@ export interface GoodsReceipt {
     code: string;
     name: string;
   };
+  source_invoice?: {
+    internal_number: string;
+  } | null;
 }
 
 export interface GoodsReceiptItem {
