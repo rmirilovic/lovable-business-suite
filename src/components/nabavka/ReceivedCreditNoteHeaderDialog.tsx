@@ -40,6 +40,7 @@ const defaultForm = (): ReceivedCreditNoteFormData => ({
 
 export function ReceivedCreditNoteHeaderDialog({ open, onOpenChange, doc, onSaved, readOnly = false }: Props) {
   const { partners } = usePartners();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { createDoc, updateDoc } = useReceivedCreditNotes();
   const [formData, setFormData] = useState<ReceivedCreditNoteFormData>(defaultForm());
   const [exchangeRateText, setExchangeRateText] = useState("1");
