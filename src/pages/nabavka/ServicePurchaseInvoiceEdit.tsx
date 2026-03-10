@@ -370,12 +370,12 @@ export default function ServicePurchaseInvoiceEdit() {
               {invoice.supplier_is_in_pdv ? "Da" : "Ne"}
             </Badge>
           </div>
-          {invoice.vat_calculation_type === "no_vat_8v2" && (
-            <div>
-              <div className="text-muted-foreground">Bez obračuna PDV (8v.2)</div>
-              <Badge variant="default">Da</Badge>
-            </div>
-          )}
+          <div>
+            <div className="text-muted-foreground">Bez obračuna PDV (8v.2)</div>
+            <Badge variant={invoice.vat_calculation_type === "no_vat_8v2" ? "default" : "outline"}>
+              {invoice.vat_calculation_type === "no_vat_8v2" ? "Da" : "Ne"}
+            </Badge>
+          </div>
           <div>
             <div className="text-muted-foreground">Interni obračun PDV</div>
             <Badge variant={invoice.has_internal_vat_calculation ? "default" : "outline"}>
