@@ -50,6 +50,10 @@ export interface CalculationAdditionalCost {
   source_ufu_item_id: string | null;
   item_order: number;
   created_at: string;
+  source_ufu?: {
+    internal_number: string;
+    supplier_invoice_number: string;
+  } | null;
 }
 
 export interface CalculationUfuLink {
