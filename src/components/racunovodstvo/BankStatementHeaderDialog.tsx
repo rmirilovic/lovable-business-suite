@@ -36,6 +36,7 @@ export function BankStatementHeaderDialog({
   onSaved,
 }: BankStatementHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
   const { update } = useBankStatementMutations();
   const { data: allStatements } = useBankStatements();
