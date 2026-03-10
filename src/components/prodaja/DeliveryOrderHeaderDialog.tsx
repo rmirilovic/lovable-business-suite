@@ -45,6 +45,7 @@ interface DeliveryOrderHeaderDialogProps {
 
 export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, isLoading }: DeliveryOrderHeaderDialogProps) {
   const { selectedCompany, selectedYear, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { warehouses } = useWarehouses(selectedCompany?.id);
   const { partners } = usePartners();
   const activeWarehouses = warehouses.filter((w) => w.is_active);
