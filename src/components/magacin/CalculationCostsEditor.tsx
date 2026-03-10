@@ -144,6 +144,8 @@ export function CalculationCostsEditor({
                 <TableHead className="w-12">#</TableHead>
                 <TableHead>Opis</TableHead>
                 <TableHead>Poverilac</TableHead>
+                <TableHead className="w-[120px]">Interni br. UFU</TableHead>
+                <TableHead className="w-[140px]">Br. fakture dob.</TableHead>
                 <TableHead className="w-[130px] text-right">Iznos</TableHead>
                 <TableHead className="w-[140px]">Raspodela</TableHead>
                 {isEditable && <TableHead className="w-[50px]" />}
@@ -155,6 +157,8 @@ export function CalculationCostsEditor({
                   <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                   <TableCell>{cost.description}</TableCell>
                   <TableCell className="text-sm">{getPartnerName(cost.partner_id)}</TableCell>
+                  <TableCell className="text-sm">{cost.source_ufu?.internal_number || "—"}</TableCell>
+                  <TableCell className="text-sm">{cost.source_ufu?.supplier_invoice_number || "—"}</TableCell>
                   <TableCell className="text-right font-medium">
                     {formatDecimal(cost.amount, 2)}
                   </TableCell>
@@ -175,7 +179,7 @@ export function CalculationCostsEditor({
                 </TableRow>
               ))}
               <TableRow className="bg-muted/50 font-medium">
-                <TableCell colSpan={3} className="text-right">
+                <TableCell colSpan={5} className="text-right">
                   Ukupno zavisni troškovi:
                 </TableCell>
                 <TableCell className="text-right">
