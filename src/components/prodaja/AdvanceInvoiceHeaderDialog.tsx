@@ -65,6 +65,7 @@ export function AdvanceInvoiceHeaderDialog({
   title,
 }: AdvanceInvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
   const { bankAccounts } = useBankAccounts(selectedCompany?.id);
