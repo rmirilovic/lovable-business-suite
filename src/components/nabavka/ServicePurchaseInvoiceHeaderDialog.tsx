@@ -205,7 +205,13 @@ export function ServicePurchaseInvoiceHeaderDialog({
               <Label htmlFor="invoice_date">Datum fakture *</Label>
               <LocaleDateInput
                 value={formData.invoice_date}
-                onChange={(value) => setFormData({ ...formData, invoice_date: value })}
+                onChange={(value) => {
+                  if (!invoice) {
+                    setFormData((prev) => ({ ...prev, invoice_date: value, receipt_date: value, due_date: value || null }));
+                  } else {
+                    setFormData((prev) => ({ ...prev, invoice_date: value }));
+                  }
+                }}
               />
             </div>
 
