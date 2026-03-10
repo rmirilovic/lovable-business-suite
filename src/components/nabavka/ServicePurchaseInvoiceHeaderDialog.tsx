@@ -319,37 +319,30 @@ export function ServicePurchaseInvoiceHeaderDialog({
           </div>
 
           {/* PDV opcije */}
-          <div className="grid grid-cols-2 gap-4 p-3 border rounded-lg">
-            <div className="space-y-2">
-              <Label>Obračun PDV-a</Label>
-              <Select
-                value={formData.vat_calculation_type}
-                onValueChange={(value: 'standard' | 'no_vat_8v2') =>
-                  setFormData({ ...formData, vat_calculation_type: value })
+          <div className="flex flex-wrap gap-6 p-3 border rounded-lg">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="vat_no_calc_8v2"
+                checked={formData.vat_calculation_type === "no_vat_8v2"}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, vat_calculation_type: checked ? "no_vat_8v2" : "standard" })
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="standard">Standardni obračun PDV-a</SelectItem>
-                  <SelectItem value="no_vat_8v2">Bez obračuna PDV po tački 8v.2</SelectItem>
-                </SelectContent>
-              </Select>
+              />
+              <Label htmlFor="vat_no_calc_8v2" className="text-sm">
+                Bez obračuna PDV (8v.2)
+              </Label>
             </div>
-            <div className="space-y-2 flex items-end">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="has_internal_vat_calculation"
-                  checked={formData.has_internal_vat_calculation}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, has_internal_vat_calculation: checked as boolean })
-                  }
-                />
-                <Label htmlFor="has_internal_vat_calculation" className="text-sm">
-                  Interni obračun PDV-a
-                </Label>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="has_internal_vat_calculation"
+                checked={formData.has_internal_vat_calculation}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, has_internal_vat_calculation: checked as boolean })
+                }
+              />
+              <Label htmlFor="has_internal_vat_calculation" className="text-sm">
+                Interni obračun PDV-a
+              </Label>
             </div>
           </div>
 
