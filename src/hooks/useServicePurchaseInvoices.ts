@@ -375,12 +375,12 @@ export function useServicePurchaseInvoiceItems(invoiceId: string | null) {
       let lineSubtotal: number;
       let lineVat: number;
       let lineTotal: number;
-      if (supplierInPdv) {
+      if (supplierInPdv && item.is_vat_deductible) {
         lineSubtotal = grossAmount / (1 + item.vat_rate / 100);
         lineVat = grossAmount - lineSubtotal;
         lineTotal = grossAmount;
       } else {
-        // Dobavljač nije u PDV sistemu - cena je neto, PDV = 0
+        // PDV nije odbitni ili dobavljač nije u PDV sistemu - PDV = 0, osnovica = ukupno
         lineSubtotal = grossAmount;
         lineVat = 0;
         lineTotal = grossAmount;
