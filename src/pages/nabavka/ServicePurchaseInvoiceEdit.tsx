@@ -223,8 +223,18 @@ export default function ServicePurchaseInvoiceEdit() {
     fetchInvoice(); // Refresh to get new status
   };
 
-  const handleHeaderSaved = () => {
-    fetchInvoice(); // Refresh after header edit
+  const handleHeaderSaved = (savedInvoice: ServicePurchaseInvoice) => {
+    updateLockTimestamp(savedInvoice.updated_at);
+    setInvoice((prev) =>
+      prev
+        ? {
+            ...prev,
+            ...savedInvoice,
+            updated_at: savedInvoice.updated_at,
+          }
+        : savedInvoice
+    );
+    fetchInvoice();
   };
 
   if (isLoading || !selectedCompany || !selectedYear) {
