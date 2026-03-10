@@ -36,6 +36,7 @@ export function AdvancePurchaseInvoiceHeaderDialog({
   open, onOpenChange, invoice, onSaved, readOnly = false,
 }: Props) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { createInvoice, updateInvoice } = useAdvancePurchaseInvoices();
 
