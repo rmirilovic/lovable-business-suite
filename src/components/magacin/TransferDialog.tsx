@@ -24,6 +24,7 @@ interface TransferDialogProps {
 
 export function TransferDialog({ open, onOpenChange, transfer, onSave }: TransferDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { warehouses } = useWarehouses(selectedCompany?.id);
 
   const [isSaving, setIsSaving] = useState(false);
