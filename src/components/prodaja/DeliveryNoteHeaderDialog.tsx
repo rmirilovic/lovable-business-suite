@@ -162,6 +162,8 @@ export function DeliveryNoteHeaderDialog({
               value={formData.delivery_date}
               onChange={(v) => setFormData((p) => ({ ...p, delivery_date: v }))}
               disabled={readOnly}
+              minDate={minDate}
+              maxDate={maxDate}
             />
           </div>
 

@@ -185,7 +185,7 @@ export function AdvanceInvoiceHeaderDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Datum fakture *</Label>
-              <LocaleDateInput value={formData.advance_date || ""} onChange={(v) => set("advance_date", v)} required disabled={readOnly} />
+              <LocaleDateInput value={formData.advance_date || ""} onChange={(v) => set("advance_date", v)} required disabled={readOnly} minDate={minDate} maxDate={maxDate} />
             </div>
             <div className="space-y-2">
               <Label>Datum valute</Label>

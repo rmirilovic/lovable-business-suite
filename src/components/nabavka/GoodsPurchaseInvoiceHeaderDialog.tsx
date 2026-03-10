@@ -223,6 +223,8 @@ export function GoodsPurchaseInvoiceHeaderDialog({
               <LocaleDateInput
                 value={formData.invoice_date}
                 onChange={(value) => setFormData({ ...formData, invoice_date: value })}
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
 

@@ -265,7 +265,7 @@ export function DeliveryOrderHeaderDialog({ open, onOpenChange, order, onSave, i
 
           <div className="space-y-1">
             <Label>Datum naloga *</Label>
-            <LocaleDateInput value={formData.order_date} onChange={(v) => setFormData((p) => ({ ...p, order_date: v }))} />
+            <LocaleDateInput value={formData.order_date} onChange={(v) => setFormData((p) => ({ ...p, order_date: v }))} minDate={minDate} maxDate={maxDate} />
           </div>
           <div className="space-y-1">
             <Label>Rok isporuke</Label>

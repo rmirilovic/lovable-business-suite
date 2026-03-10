@@ -217,6 +217,8 @@ export function ServicePurchaseInvoiceHeaderDialog({
                     setFormData((prev) => ({ ...prev, invoice_date: value }));
                   }
                 }}
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
 

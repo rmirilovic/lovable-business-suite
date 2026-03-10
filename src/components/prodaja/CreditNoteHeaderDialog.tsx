@@ -189,7 +189,7 @@ export function CreditNoteHeaderDialog({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Datum dokumenta *</Label>
-              <LocaleDateInput value={formData.credit_note_date || ""} onChange={(v) => set("credit_note_date", v)} required disabled={readOnly} />
+              <LocaleDateInput value={formData.credit_note_date || ""} onChange={(v) => set("credit_note_date", v)} required disabled={readOnly} minDate={minDate} maxDate={maxDate} />
             </div>
             <div className="space-y-2">
               <Label>Datum valute</Label>
