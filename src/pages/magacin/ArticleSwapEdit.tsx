@@ -389,7 +389,7 @@ export default function ArticleSwapEdit() {
           </div>
           <div className="space-y-2">
             <Label>Datum zamene *</Label>
-            <LocaleDateInput value={swapDate} onChange={setSwapDate} required disabled={!isEditable} />
+            <LocaleDateInput value={swapDate} onChange={setSwapDate} required disabled={!isEditable} minDate={minDate} maxDate={maxDate} />
           </div>
           <div className="space-y-2">
             <Label>Napomena</Label>

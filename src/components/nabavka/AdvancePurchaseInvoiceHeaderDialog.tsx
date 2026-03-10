@@ -176,7 +176,7 @@ export function AdvancePurchaseInvoiceHeaderDialog({
               </div>
               <div className="space-y-2">
                 <Label>Datum fakture *</Label>
-                <LocaleDateInput value={formData.invoice_date} onChange={(v) => setFormData({ ...formData, invoice_date: v })} />
+                <LocaleDateInput value={formData.invoice_date} onChange={(v) => setFormData({ ...formData, invoice_date: v })} minDate={minDate} maxDate={maxDate} />
               </div>
               <div className="space-y-2">
                 <Label>Datum prijema *</Label>

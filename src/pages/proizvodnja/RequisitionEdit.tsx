@@ -269,7 +269,7 @@ export default function RequisitionEdit() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 border rounded-lg bg-card">
           <div className="space-y-1">
             <Label className="text-xs">Datum</Label>
-            <LocaleDateInput value={headerForm.requisition_date} onChange={(v) => updateHeaderField("requisition_date", v)} disabled={!isDraft} />
+            <LocaleDateInput value={headerForm.requisition_date} onChange={(v) => updateHeaderField("requisition_date", v)} disabled={!isDraft} minDate={minDate} maxDate={maxDate} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Magacin repromaterijala</Label>

@@ -113,7 +113,7 @@ export function ReceivedCreditNoteHeaderDialog({ open, onOpenChange, doc, onSave
               </div>
               <div className="space-y-2">
                 <Label>Datum dokumenta *</Label>
-                <LocaleDateInput value={formData.document_date} onChange={(v) => setFormData({ ...formData, document_date: v })} />
+                <LocaleDateInput value={formData.document_date} onChange={(v) => setFormData({ ...formData, document_date: v })} minDate={minDate} maxDate={maxDate} />
               </div>
               <div className="space-y-2">
                 <Label>Datum prijema *</Label>

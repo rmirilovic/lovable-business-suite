@@ -137,6 +137,8 @@ export function BankStatementHeaderDialog({
               <LocaleDateInput
                 value={formData.statement_date}
                 onChange={(v) => setFormData({ ...formData, statement_date: v })}
+                minDate={minDate}
+                maxDate={maxDate}
               />
             )}
           </div>

@@ -381,6 +381,8 @@ export default function WorkOrderEdit() {
               value={headerForm.order_date}
               onChange={(v) => updateHeaderField("order_date", v)}
               disabled={!isDraft}
+              minDate={minDate}
+              maxDate={maxDate}
             />
           </div>
           <div className="space-y-1">
