@@ -161,6 +161,9 @@ export function ServicePurchaseInvoiceHeaderDialog({
     if (invoice) {
       const updated = await updateInvoice.mutateAsync({ id: invoice.id, ...formData });
       onOpenChange(false);
+      if (onSaved && updated) {
+        onSaved(updated);
+      }
     } else {
       const created = await createInvoice.mutateAsync(formData);
       onOpenChange(false);
