@@ -29,6 +29,9 @@ export interface GoodsReceipt {
     code: string;
     name: string;
   };
+  source_invoice?: {
+    internal_number: string;
+  } | null;
 }
 
 export interface GoodsReceiptItem {
@@ -81,7 +84,8 @@ export function useGoodsReceipts() {
         .select(`
           *,
           warehouse:warehouses(id, code, name),
-          partner:partners(id, code, name)
+          partner:partners(id, code, name),
+          source_invoice:goods_purchase_invoices!goods_receipts_source_invoice_id_fkey(internal_number)
         `)
         .eq("company_id", selectedCompany.id)
         .eq("business_year_id", selectedYear.id)
@@ -122,7 +126,8 @@ export function useGoodsReceipts() {
         .select(`
           *,
           warehouse:warehouses(id, code, name),
-          partner:partners(id, code, name)
+          partner:partners(id, code, name),
+          source_invoice:goods_purchase_invoices!goods_receipts_source_invoice_id_fkey(internal_number)
         `)
         .single();
 
@@ -150,7 +155,8 @@ export function useGoodsReceipts() {
         .select(`
           *,
           warehouse:warehouses(id, code, name),
-          partner:partners(id, code, name)
+          partner:partners(id, code, name),
+          source_invoice:goods_purchase_invoices!goods_receipts_source_invoice_id_fkey(internal_number)
         `)
         .single();
 

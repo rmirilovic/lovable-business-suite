@@ -247,7 +247,7 @@ export function GoodsReceiptDetailDialog({
                     </h4>
                     <p className="flex items-center gap-1">
                       <ExternalLink className="h-4 w-4" />
-                      Ulazna faktura za robu
+                      UFR: {receipt.source_invoice?.internal_number || receipt.source_invoice_id}
                     </p>
                   </div>
                 )}
