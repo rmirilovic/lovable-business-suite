@@ -74,19 +74,36 @@ export default function UlazneFaktureRoba() {
     }
   }, [invoices, selectedInvoice]);
 
-  const filteredInvoices = invoices.filter(
-    (invoice) => {
-      const matchesSearch =
-        invoice.internal_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.supplier_invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.partner?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.warehouse?.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesDateFrom = !dateFrom || invoice.invoice_date >= dateFrom;
-      const matchesDateTo = !dateTo || invoice.invoice_date <= dateTo;
-      return matchesSearch && matchesDateFrom && matchesDateTo;
-    }
-  );
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+
+  const filteredInvoices = useMemo(() => {
+    const filtered = invoices.filter(
+      (invoice) => {
+        const matchesSearch =
+          invoice.internal_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          invoice.supplier_invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          invoice.supplier_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          invoice.partner?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          invoice.warehouse?.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesDateFrom = !dateFrom || invoice.invoice_date >= dateFrom;
+        const matchesDateTo = !dateTo || invoice.invoice_date <= dateTo;
+        return matchesSearch && matchesDateFrom && matchesDateTo;
+      }
+    );
+    return sortItems(filtered, (item, col) => {
+      switch (col) {
+        case 'internal_number': return item.internal_number;
+        case 'supplier_invoice_number': return item.supplier_invoice_number;
+        case 'invoice_date': return item.invoice_date;
+        case 'supplier_name': return item.supplier_name || item.partner?.name || '';
+        case 'warehouse': return item.warehouse?.name || '';
+        case 'supplier_is_in_pdv': return item.supplier_is_in_pdv;
+        case 'total_amount': return item.total_amount;
+        case 'status': return item.status;
+        default: return '';
+      }
+    });
+  }, [invoices, searchTerm, dateFrom, dateTo, sortItems]);
 
   const handleCreate = () => {
     setSelectedInvoice(null);
