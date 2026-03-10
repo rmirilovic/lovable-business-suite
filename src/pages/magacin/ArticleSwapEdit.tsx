@@ -38,6 +38,7 @@ export default function ArticleSwapEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany, selectedYear, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { hasAccess } = usePermissions();
   const canEdit = hasAccess("robno.prijemnice", "write");
   const canPost = hasAccess("robno.prijemnice", "admin");
