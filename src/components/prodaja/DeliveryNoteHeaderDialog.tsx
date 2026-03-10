@@ -45,6 +45,7 @@ export function DeliveryNoteHeaderDialog({
   readOnly,
 }: DeliveryNoteHeaderDialogProps) {
   const { selectedCompany, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const companyId = selectedCompany?.id;
   const { partners } = usePartners();
   const { warehouses } = useWarehouses(companyId);
