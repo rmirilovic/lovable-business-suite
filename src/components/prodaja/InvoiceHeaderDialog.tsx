@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
 import { Eye, Info } from "lucide-react";
