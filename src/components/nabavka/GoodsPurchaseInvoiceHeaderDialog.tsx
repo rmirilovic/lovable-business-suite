@@ -49,6 +49,7 @@ export function GoodsPurchaseInvoiceHeaderDialog({
   readOnly = false,
 }: GoodsPurchaseInvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { warehouses } = useWarehouses(selectedCompany?.id);
   const { receipts } = useGoodsReceipts();
