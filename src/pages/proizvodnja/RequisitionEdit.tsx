@@ -36,6 +36,7 @@ export default function RequisitionEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany, user } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const companyId = selectedCompany?.id;
 
   const { data: requisition, isLoading: reqLoading } = useMaterialRequisition(id);
