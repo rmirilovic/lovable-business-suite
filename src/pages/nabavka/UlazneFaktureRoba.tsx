@@ -234,14 +234,14 @@ export default function UlazneFaktureRoba() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Interni broj</TableHead>
-                <TableHead>Broj fakture dobavljača</TableHead>
-                <TableHead>Datum fakture</TableHead>
-                <TableHead>Dobavljač</TableHead>
-                <TableHead>Magacin</TableHead>
-                <TableHead>PDV</TableHead>
-                <TableHead className="text-right">Ukupno</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead><SortableHeader column="internal_number" label="Interni broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="supplier_invoice_number" label="Broj fakture dobavljača" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="invoice_date" label="Datum fakture" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="supplier_name" label="Dobavljač" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="warehouse" label="Magacin" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="supplier_is_in_pdv" label="PDV" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="text-right"><SortableHeader column="total_amount" label="Ukupno" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                <TableHead><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
