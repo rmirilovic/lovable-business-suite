@@ -311,7 +311,7 @@ export default function PopdvDocumentsReport() {
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/50 font-semibold border-t-2 sticky bottom-0">
-                    <TableCell colSpan={6} className="text-xs text-right pr-4">Ukupno:</TableCell>
+                    <TableCell colSpan={5} className="text-xs text-right pr-4">Ukupno:</TableCell>
                     {ALL_VALUE_COLUMNS.map((col) => (
                       <TableCell key={col.code} className="text-right font-mono tabular-nums text-xs font-semibold">
                         {totals[col.code] !== 0 ? fmt2(totals[col.code]) : ""}
