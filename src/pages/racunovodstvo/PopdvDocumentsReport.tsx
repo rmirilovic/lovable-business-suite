@@ -55,7 +55,7 @@ interface FlatRow {
   row_code: string;
   document_type_number: string | null;
   partner_info: string | null;
-  supplier_document_number: string | null;
+  
   values: Record<string, number>;
   [key: string]: any; // for dynamic value column access in sorting
 }
