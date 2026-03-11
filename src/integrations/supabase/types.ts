@@ -3851,6 +3851,27 @@ export type Database = {
           },
         ]
       }
+      nbs_payment_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       organizational_units: {
         Row: {
           code: string
