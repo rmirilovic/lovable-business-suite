@@ -106,7 +106,7 @@ export default function PopdvDocumentsReport() {
       if (!companyId) return [];
       const { data, error } = await supabase
         .from("popdv_report_detail_rows")
-        .select("id, document_date, section, row_code, document_type_number, partner_info, supplier_document_number, values")
+        .select("id, document_date, section, row_code, document_type_number, partner_info, values")
         .eq("company_id", companyId)
         .gte("document_date", effectiveDateFrom)
         .lte("document_date", effectiveDateTo)
