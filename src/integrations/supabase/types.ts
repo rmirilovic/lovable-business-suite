@@ -4237,6 +4237,7 @@ export type Database = {
           row_code: string
           section: string
           source_document_id: string | null
+          supplier_document_number: string | null
           updated_at: string
           values: Json
         }
@@ -4252,6 +4253,7 @@ export type Database = {
           row_code: string
           section: string
           source_document_id?: string | null
+          supplier_document_number?: string | null
           updated_at?: string
           values?: Json
         }
@@ -4267,6 +4269,7 @@ export type Database = {
           row_code?: string
           section?: string
           source_document_id?: string | null
+          supplier_document_number?: string | null
           updated_at?: string
           values?: Json
         }

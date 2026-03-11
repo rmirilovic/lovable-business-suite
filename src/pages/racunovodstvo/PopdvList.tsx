@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, Search, FileText, Trash2 } from "lucide-react";
+import { Plus, Search, FileText, Trash2, ListChecks } from "lucide-react";
 import { format, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter } from "date-fns";
 import { sr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -84,10 +84,16 @@ export default function PopdvList() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => setShowCreate(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Novi POPDV
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/racunovodstvo/popdv/documents-report")} className="gap-2">
+              <ListChecks className="w-4 h-4" />
+              Pregled dokumenata
+            </Button>
+            <Button onClick={() => setShowCreate(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Novi POPDV
+            </Button>
+          </div>
         </div>
 
         <div className="erp-card overflow-hidden">

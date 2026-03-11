@@ -81,6 +81,7 @@ import CreditNoteEdit from "./pages/prodaja/CreditNoteEdit";
 import PopdvList from "./pages/racunovodstvo/PopdvList";
 import PopdvEdit from "./pages/racunovodstvo/PopdvEdit";
 import PopdvAnalyticalEdit from "./pages/racunovodstvo/PopdvAnalyticalEdit";
+import PopdvDocumentsReport from "./pages/racunovodstvo/PopdvDocumentsReport";
 import PpPdvList from "./pages/racunovodstvo/PpPdvList";
 import PpPdvEdit from "./pages/racunovodstvo/PpPdvEdit";
 import SifarnikPlacanja from "./pages/racunovodstvo/SifarnikPlacanja";
@@ -287,6 +288,11 @@ const App = () => (
               <Route path="/racunovodstvo/popdv/:id/analytical" element={
                 <ProtectedRoute requireCompany={false}>
                   <PopdvAnalyticalEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/popdv/documents-report" element={
+                <ProtectedRoute>
+                  <PopdvDocumentsReport />
                 </ProtectedRoute>
               } />
               <Route path="/racunovodstvo/pp-pdv" element={
