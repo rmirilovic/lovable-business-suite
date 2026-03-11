@@ -21,12 +21,12 @@ export default function PopdvEdit() {
   const { cellsQuery, updateCell } = usePopdvReportCells(id);
   const finalizeReport = useFinalizePopdvReport();
   const [activeSection, setActiveSection] = useState(() => {
-    return sessionStorage.getItem(`popdv_active_section_${id}`) || "1";
+    return sessionStorage.getItem(`popdv_section_${id}`) || "1";
   });
 
   const handleSectionChange = useCallback((value: string) => {
     setActiveSection(value);
-    sessionStorage.setItem(`popdv_active_section_${id}`, value);
+    sessionStorage.setItem(`popdv_section_${id}`, value);
   }, [id]);
   const [calculating, setCalculating] = useState(false);
 
