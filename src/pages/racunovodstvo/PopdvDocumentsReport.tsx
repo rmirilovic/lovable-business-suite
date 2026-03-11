@@ -261,9 +261,6 @@ export default function PopdvDocumentsReport() {
                 <TableHead className="min-w-[200px]">
                   <SortableHeader column="partner_info" label="Partner" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead className="w-[140px]">
-                  <SortableHeader column="supplier_document_number" label="Dok. partnera" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
                 {ALL_VALUE_COLUMNS.map((col) => (
                   <TableHead key={col.code} className="w-[120px]">
                     <SortableHeader
