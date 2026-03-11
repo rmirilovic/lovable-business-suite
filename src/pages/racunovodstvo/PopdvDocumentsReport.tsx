@@ -299,7 +299,7 @@ export default function PopdvDocumentsReport() {
                       <TableCell className="text-xs font-mono">{row.row_code}</TableCell>
                       <TableCell className="text-xs">{row.document_type_number || "—"}</TableCell>
                       <TableCell className="text-xs truncate max-w-[250px]">{row.partner_info || "—"}</TableCell>
-                      <TableCell className="text-xs">{row.supplier_document_number || "—"}</TableCell>
+                      
                       {ALL_VALUE_COLUMNS.map((col) => {
                         const val = row.values[col.code] || 0;
                         return (
