@@ -31,12 +31,12 @@ export default function PopdvAnalyticalEdit() {
   const { detailRowsQuery, addRow, updateRow, deleteRow } = usePopdvDetailRows(id);
 
   const [activeSection, setActiveSection] = useState(() =>
-    sessionStorage.getItem(`popdv_analytical_section_${id}`) || "1"
+    sessionStorage.getItem(`popdv_section_${id}`) || "1"
   );
   const handleSectionChange = useCallback(
     (value: string) => {
       setActiveSection(value);
-      sessionStorage.setItem(`popdv_analytical_section_${id}`, value);
+      sessionStorage.setItem(`popdv_section_${id}`, value);
     },
     [id]
   );
