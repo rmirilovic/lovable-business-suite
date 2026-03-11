@@ -145,7 +145,7 @@ export default function PopdvDocumentsReport() {
         (r) =>
           (r.document_type_number || "").toLowerCase().includes(term) ||
           (r.partner_info || "").toLowerCase().includes(term) ||
-          (r.supplier_document_number || "").toLowerCase().includes(term) ||
+          
           r.row_code.toLowerCase().includes(term) ||
           r.section_label.toLowerCase().includes(term)
       );
