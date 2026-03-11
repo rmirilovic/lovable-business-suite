@@ -122,7 +122,7 @@ export default function PopdvDocumentsReport() {
           row_code: r.row_code,
           document_type_number: r.document_type_number,
           partner_info: r.partner_info,
-          supplier_document_number: r.supplier_document_number,
+          
           values: vals,
         };
         // Flatten value columns for sorting
