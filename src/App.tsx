@@ -496,6 +496,11 @@ const App = () => (
                   <SifarnikPlacanja />
                 </ProtectedRoute>
               } />
+              <Route path="/sifarnici/nbs-sifre-placanja" element={
+                <ProtectedRoute>
+                  <NbsSifrePlacanja />
+                </ProtectedRoute>
+              } />
               <Route path="/racunovodstvo/izvodi" element={
                 <ProtectedRoute>
                   <Izvodi />
