@@ -55,7 +55,7 @@ interface FlatRow {
   row_code: string;
   document_type_number: string | null;
   partner_info: string | null;
-  supplier_document_number: string | null;
+  
   values: Record<string, number>;
   [key: string]: any; // for dynamic value column access in sorting
 }
@@ -106,7 +106,7 @@ export default function PopdvDocumentsReport() {
       if (!companyId) return [];
       const { data, error } = await supabase
         .from("popdv_report_detail_rows")
-        .select("id, document_date, section, row_code, document_type_number, partner_info, supplier_document_number, values")
+        .select("id, document_date, section, row_code, document_type_number, partner_info, values")
         .eq("company_id", companyId)
         .gte("document_date", effectiveDateFrom)
         .lte("document_date", effectiveDateTo)
@@ -122,7 +122,7 @@ export default function PopdvDocumentsReport() {
           row_code: r.row_code,
           document_type_number: r.document_type_number,
           partner_info: r.partner_info,
-          supplier_document_number: r.supplier_document_number,
+          
           values: vals,
         };
         // Flatten value columns for sorting
@@ -145,7 +145,7 @@ export default function PopdvDocumentsReport() {
         (r) =>
           (r.document_type_number || "").toLowerCase().includes(term) ||
           (r.partner_info || "").toLowerCase().includes(term) ||
-          (r.supplier_document_number || "").toLowerCase().includes(term) ||
+          
           r.row_code.toLowerCase().includes(term) ||
           r.section_label.toLowerCase().includes(term)
       );
@@ -261,9 +261,6 @@ export default function PopdvDocumentsReport() {
                 <TableHead className="min-w-[200px]">
                   <SortableHeader column="partner_info" label="Partner" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead className="w-[140px]">
-                  <SortableHeader column="supplier_document_number" label="Dok. partnera" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
                 {ALL_VALUE_COLUMNS.map((col) => (
                   <TableHead key={col.code} className="w-[120px]">
                     <SortableHeader
@@ -302,7 +299,7 @@ export default function PopdvDocumentsReport() {
                       <TableCell className="text-xs font-mono">{row.row_code}</TableCell>
                       <TableCell className="text-xs">{row.document_type_number || "—"}</TableCell>
                       <TableCell className="text-xs truncate max-w-[250px]">{row.partner_info || "—"}</TableCell>
-                      <TableCell className="text-xs">{row.supplier_document_number || "—"}</TableCell>
+                      
                       {ALL_VALUE_COLUMNS.map((col) => {
                         const val = row.values[col.code] || 0;
                         return (
@@ -314,7 +311,7 @@ export default function PopdvDocumentsReport() {
                     </TableRow>
                   ))}
                   <TableRow className="bg-muted/50 font-semibold border-t-2 sticky bottom-0">
-                    <TableCell colSpan={6} className="text-xs text-right pr-4">Ukupno:</TableCell>
+                    <TableCell colSpan={5} className="text-xs text-right pr-4">Ukupno:</TableCell>
                     {ALL_VALUE_COLUMNS.map((col) => (
                       <TableCell key={col.code} className="text-right font-mono tabular-nums text-xs font-semibold">
                         {totals[col.code] !== 0 ? fmt2(totals[col.code]) : ""}
