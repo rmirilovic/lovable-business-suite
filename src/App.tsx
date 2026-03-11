@@ -290,6 +290,11 @@ const App = () => (
                   <PopdvAnalyticalEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/racunovodstvo/popdv/documents-report" element={
+                <ProtectedRoute>
+                  <PopdvDocumentsReport />
+                </ProtectedRoute>
+              } />
               <Route path="/racunovodstvo/pp-pdv" element={
                 <ProtectedRoute>
                   <PpPdvList />
