@@ -84,10 +84,16 @@ export default function PopdvList() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => setShowCreate(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Novi POPDV
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/racunovodstvo/popdv/documents-report")} className="gap-2">
+              <ListChecks className="w-4 h-4" />
+              Pregled dokumenata
+            </Button>
+            <Button onClick={() => setShowCreate(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Novi POPDV
+            </Button>
+          </div>
         </div>
 
         <div className="erp-card overflow-hidden">
