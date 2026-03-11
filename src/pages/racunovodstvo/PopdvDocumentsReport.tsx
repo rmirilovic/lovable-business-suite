@@ -1,20 +1,19 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format, startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, parseISO } from "date-fns";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { useTableSort } from "@/hooks/useTableSort";
-import { ArrowLeft, Search, FileDown } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { POPDV_SECTIONS } from "@/data/popdvFormStructure";
 
-// All unique value column codes from the POPDV form
 const ALL_VALUE_COLUMNS = [
   { code: "opsta_osnov", label: "Opšta - Osnovica" },
   { code: "opsta_pdv", label: "Opšta - PDV" },
@@ -30,26 +29,13 @@ const ALL_VALUE_COLUMNS = [
 const fmt2 = (v: number) =>
   v.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-function getDefaultPeriod(vatPeriodType: string | undefined): { start: string; end: string } {
-  const now = new Date();
-  if (vatPeriodType === "quarterly") {
-    const qs = startOfQuarter(now);
-    const qe = endOfQuarter(now);
-    return { start: format(qs, "yyyy-MM-dd"), end: format(qe, "yyyy-MM-dd") };
-  }
-  const ms = startOfMonth(now);
-  const me = endOfMonth(now);
-  return { start: format(ms, "yyyy-MM-dd"), end: format(me, "yyyy-MM-dd") };
-}
-
-// Build a map: row_code -> section label (e.g. "8v")
+// Build map: row_code -> section label (e.g. "8a", "3", "6")
 function buildSectionMap(): Map<string, string> {
   const map = new Map<string, string>();
   for (const section of POPDV_SECTIONS) {
     for (const st of section.subTables) {
       for (const row of st.rows) {
         if (!row.isSummary) {
-          // Find the sub-table prefix: e.g. for "8a.2" the section is "8a"
           const dotIdx = row.code.indexOf(".");
           const sectionCode = dotIdx > 0 ? row.code.substring(0, dotIdx) : section.id;
           map.set(row.code, sectionCode);
@@ -71,49 +57,65 @@ interface FlatRow {
   partner_info: string | null;
   supplier_document_number: string | null;
   values: Record<string, number>;
-  // Flatten value columns for sorting
-  opsta_osnov: number;
-  opsta_pdv: number;
-  posebna_osnov: number;
-  posebna_pdv: number;
-  iznos: number;
-  osnov: number;
-  pdv: number;
-  vrednost: number;
-  pdv_naknada: number;
+  [key: string]: any; // for dynamic value column access in sorting
 }
 
 export default function PopdvDocumentsReport() {
   const navigate = useNavigate();
   const { selectedCompany } = useAuth();
   const companyId = selectedCompany?.id;
-  const vatPeriodType = selectedCompany?.vat_period_type;
 
-  const defaultPeriod = useMemo(() => getDefaultPeriod(vatPeriodType), [vatPeriodType]);
-  const [dateFrom, setDateFrom] = useState(defaultPeriod.start);
-  const [dateTo, setDateTo] = useState(defaultPeriod.end);
+  // Fetch company vat_period_type for default dates
+  const companyQuery = useQuery({
+    queryKey: ["company_vat_period", companyId],
+    queryFn: async () => {
+      if (!companyId) return null;
+      const { data } = await supabase
+        .from("companies")
+        .select("vat_period_type")
+        .eq("id", companyId)
+        .single();
+      return data;
+    },
+    enabled: !!companyId,
+  });
 
-  // Filters
+  const defaultPeriod = useMemo(() => {
+    const now = new Date();
+    const isQuarterly = companyQuery.data?.vat_period_type === "quarterly";
+    if (isQuarterly) {
+      return { start: format(startOfQuarter(now), "yyyy-MM-dd"), end: format(endOfQuarter(now), "yyyy-MM-dd") };
+    }
+    return { start: format(startOfMonth(now), "yyyy-MM-dd"), end: format(endOfMonth(now), "yyyy-MM-dd") };
+  }, [companyQuery.data]);
+
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
+
+  // Use default period once loaded
+  const effectiveDateFrom = dateFrom || defaultPeriod.start;
+  const effectiveDateTo = dateTo || defaultPeriod.end;
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSection, setFilterSection] = useState("");
   const [filterRowCode, setFilterRowCode] = useState("");
 
   const dataQuery = useQuery({
-    queryKey: ["popdv_documents_report", companyId, dateFrom, dateTo],
+    queryKey: ["popdv_documents_report", companyId, effectiveDateFrom, effectiveDateTo],
     queryFn: async () => {
       if (!companyId) return [];
       const { data, error } = await supabase
         .from("popdv_report_detail_rows")
         .select("id, document_date, section, row_code, document_type_number, partner_info, supplier_document_number, values")
         .eq("company_id", companyId)
-        .gte("document_date", dateFrom)
-        .lte("document_date", dateTo)
+        .gte("document_date", effectiveDateFrom)
+        .lte("document_date", effectiveDateTo)
         .order("document_date")
         .order("row_code");
       if (error) throw error;
       return (data as any[]).map((r): FlatRow => {
         const vals = r.values || {};
-        return {
+        const flat: FlatRow = {
           id: r.id,
           document_date: r.document_date,
           section_label: sectionMap.get(r.row_code) || r.section,
@@ -122,24 +124,19 @@ export default function PopdvDocumentsReport() {
           partner_info: r.partner_info,
           supplier_document_number: r.supplier_document_number,
           values: vals,
-          opsta_osnov: vals.opsta_osnov || 0,
-          opsta_pdv: vals.opsta_pdv || 0,
-          posebna_osnov: vals.posebna_osnov || 0,
-          posebna_pdv: vals.posebna_pdv || 0,
-          iznos: vals.iznos || 0,
-          osnov: vals.osnov || 0,
-          pdv: vals.pdv || 0,
-          vrednost: vals.vrednost || 0,
-          pdv_naknada: vals.pdv_naknada || 0,
         };
+        // Flatten value columns for sorting
+        for (const col of ALL_VALUE_COLUMNS) {
+          flat[col.code] = vals[col.code] || 0;
+        }
+        return flat;
       });
     },
-    enabled: !!companyId && !!dateFrom && !!dateTo,
+    enabled: !!companyId && !!effectiveDateFrom && !!effectiveDateTo,
   });
 
   const rows = dataQuery.data || [];
 
-  // Apply text filters
   const filtered = useMemo(() => {
     let result = rows;
     if (searchTerm) {
@@ -162,18 +159,16 @@ export default function PopdvDocumentsReport() {
     return result;
   }, [rows, searchTerm, filterSection, filterRowCode]);
 
-  // Sorting
-  const { sortedData, sortColumn, sortDirection, handleSort } = useTableSort<FlatRow>(
-    filtered,
-    "document_date",
-    "asc"
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("document_date", "asc");
+
+  const sortedData = useMemo(
+    () => sortItems(filtered, (item, col) => item[col]),
+    [filtered, sortItems]
   );
 
-  // Unique sections and row codes for filters
   const uniqueSections = useMemo(() => [...new Set(rows.map((r) => r.section_label))].sort(), [rows]);
   const uniqueRowCodes = useMemo(() => [...new Set(rows.map((r) => r.row_code))].sort(), [rows]);
 
-  // Totals
   const totals = useMemo(() => {
     const t: Record<string, number> = {};
     for (const col of ALL_VALUE_COLUMNS) {
@@ -185,7 +180,6 @@ export default function PopdvDocumentsReport() {
   return (
     <MainLayout title="POPDV — Pregled uknjiženih dokumenata">
       <div className="space-y-4">
-        {/* Header */}
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/racunovodstvo/popdv")}>
             <ArrowLeft className="w-5 h-5" />
@@ -196,15 +190,14 @@ export default function PopdvDocumentsReport() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Datum od</label>
-            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[150px]" />
+            <LocaleDateInput value={effectiveDateFrom} onChange={setDateFrom} className="w-[150px]" />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Datum do</label>
-            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[150px]" />
+            <LocaleDateInput value={effectiveDateTo} onChange={setDateTo} className="w-[150px]" />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-medium text-muted-foreground">Pretraga</label>
@@ -249,27 +242,39 @@ export default function PopdvDocumentsReport() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="erp-card overflow-x-auto max-h-[calc(100vh-260px)] overflow-y-auto">
           <Table>
             <TableHeader className="sticky top-0 bg-card z-10">
               <TableRow>
-                <SortableHeader column="document_date" label="Datum" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[90px]" />
-                <SortableHeader column="section_label" label="Deo" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[60px]" />
-                <SortableHeader column="row_code" label="Tačka" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[70px]" />
-                <SortableHeader column="document_type_number" label="Interni dokument" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[160px]" />
-                <SortableHeader column="partner_info" label="Partner" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} className="min-w-[200px]" />
-                <SortableHeader column="supplier_document_number" label="Dokument partnera" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} className="w-[140px]" />
+                <TableHead className="w-[90px]">
+                  <SortableHeader column="document_date" label="Datum" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[60px]">
+                  <SortableHeader column="section_label" label="Deo" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[70px]">
+                  <SortableHeader column="row_code" label="Tačka" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[160px]">
+                  <SortableHeader column="document_type_number" label="Interni dokument" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="min-w-[200px]">
+                  <SortableHeader column="partner_info" label="Partner" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[140px]">
+                  <SortableHeader column="supplier_document_number" label="Dok. partnera" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 {ALL_VALUE_COLUMNS.map((col) => (
-                  <SortableHeader
-                    key={col.code}
-                    column={col.code}
-                    label={col.label}
-                    currentSort={sortColumn}
-                    direction={sortDirection}
-                    onSort={handleSort}
-                    className="w-[120px] text-right"
-                  />
+                  <TableHead key={col.code} className="w-[120px]">
+                    <SortableHeader
+                      column={col.code}
+                      label={col.label}
+                      sortColumn={sortColumn}
+                      sortDirection={sortDirection}
+                      onSort={handleSort}
+                      className="justify-end"
+                    />
+                  </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
@@ -308,7 +313,6 @@ export default function PopdvDocumentsReport() {
                       })}
                     </TableRow>
                   ))}
-                  {/* Totals row */}
                   <TableRow className="bg-muted/50 font-semibold border-t-2 sticky bottom-0">
                     <TableCell colSpan={6} className="text-xs text-right pr-4">Ukupno:</TableCell>
                     {ALL_VALUE_COLUMNS.map((col) => (
