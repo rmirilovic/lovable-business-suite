@@ -122,6 +122,15 @@ export default function NaloziZaPlacanja() {
   const { data: orders = [], isLoading, refetch } = usePaymentOrders();
   const { createMutation, updateMutation, deleteMutation, updateStatusMutation } = usePaymentOrderMutations();
   const { isSuperAdmin, isLocalAdmin, selectedCompany } = useAuth();
+  const { partners } = usePartners();
+
+  const partnerPriorityMap = useMemo(() => {
+    const map: Record<string, number | null> = {};
+    for (const p of partners) {
+      map[p.id] = p.payment_priority;
+    }
+    return map;
+  }, [partners]);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
