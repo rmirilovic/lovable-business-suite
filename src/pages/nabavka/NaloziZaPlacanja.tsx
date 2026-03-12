@@ -399,6 +399,7 @@ export default function NaloziZaPlacanja() {
                 {visibleColumns.includes("previously_paid") && <TableHead style={{ width: 110 }} className="text-right">{renderSortHeader("previously_paid", "Preth. isplaćeno")}</TableHead>}
                 {visibleColumns.includes("approved_amount") && <TableHead style={{ width: 110 }} className="text-right">{renderSortHeader("approved_amount", "Plaća se")}</TableHead>}
                 {visibleColumns.includes("partner_bank_account") && <TableHead>{renderSortHeader("partner_bank_account", "TR dobavljača")}</TableHead>}
+                {visibleColumns.includes("bank_account_id") && <TableHead style={{ minWidth: 180 }}>{renderSortHeader("bank_account_id", "Naš TR")}</TableHead>}
                 {visibleColumns.includes("payment_reference") && <TableHead>{renderSortHeader("payment_reference", "Poziv na broj")}</TableHead>}
                 {visibleColumns.includes("nbs_payment_code") && <TableHead style={{ width: 80 }}>{renderSortHeader("nbs_payment_code", "NBS")}</TableHead>}
                 {visibleColumns.includes("status") && <TableHead style={{ width: 90 }}>{renderSortHeader("status", "Status")}</TableHead>}
