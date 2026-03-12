@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import {
   Select,
   SelectContent,
@@ -22,7 +24,7 @@ import { usePartners } from "@/hooks/usePartners";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import { PaymentOrder } from "@/hooks/usePaymentOrders";
-import { formatPrice } from "@/lib/formatting";
+import { formatPrice, parseLocaleNumber } from "@/lib/formatting";
 
 interface PaymentOrderDialogProps {
   open: boolean;
@@ -145,10 +147,9 @@ export function PaymentOrderDialog({
 
           <div>
             <Label>Datum knjiženja</Label>
-            <Input
-              type="date"
+            <LocaleDateInput
               value={form.booking_date || ""}
-              onChange={(e) => setForm((f) => ({ ...f, booking_date: e.target.value }))}
+              onChange={(v) => setForm((f) => ({ ...f, booking_date: v }))}
               disabled={readOnly}
             />
           </div>
@@ -164,64 +165,59 @@ export function PaymentOrderDialog({
 
           <div>
             <Label>Datum dokumenta dobavljača</Label>
-            <Input
-              type="date"
+            <LocaleDateInput
               value={form.supplier_document_date || ""}
-              onChange={(e) => setForm((f) => ({ ...f, supplier_document_date: e.target.value }))}
+              onChange={(v) => setForm((f) => ({ ...f, supplier_document_date: v }))}
               disabled={readOnly}
             />
           </div>
 
           <div>
             <Label>Valuta plaćanja</Label>
-            <Input
-              type="date"
+            <LocaleDateInput
               value={form.due_date || ""}
-              onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
+              onChange={(v) => setForm((f) => ({ ...f, due_date: v }))}
               disabled={readOnly}
             />
           </div>
 
           <div>
             <Label>Iznos po dokumentu</Label>
-            <Input
-              type="number"
-              step="0.01"
-              value={form.document_amount || 0}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value) || 0;
+            <LocaleNumberInput
+              value={String(form.document_amount || 0)}
+              onChange={(val) => {
+                const num = parseLocaleNumber(val);
                 setForm((f) => ({
                   ...f,
-                  document_amount: val,
-                  approved_amount: Math.min(f.approved_amount || 0, val - (f.previously_paid || 0)),
+                  document_amount: num,
+                  approved_amount: Math.min(f.approved_amount || 0, num - (f.previously_paid || 0)),
                 }));
               }}
               disabled={readOnly}
+              decimalPlaces={2}
             />
           </div>
 
           <div>
             <Label>Prethodno isplaćeno</Label>
-            <Input
-              type="number"
-              step="0.01"
-              value={form.previously_paid || 0}
-              onChange={(e) => setForm((f) => ({ ...f, previously_paid: parseFloat(e.target.value) || 0 }))}
+            <LocaleNumberInput
+              value={String(form.previously_paid || 0)}
+              onChange={(val) => setForm((f) => ({ ...f, previously_paid: parseLocaleNumber(val) }))}
               disabled={readOnly}
+              decimalPlaces={2}
             />
           </div>
 
           <div>
             <Label>Plaća se (odobren iznos)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              value={form.approved_amount || 0}
-              onChange={(e) => {
-                const val = Math.min(parseFloat(e.target.value) || 0, remaining);
-                setForm((f) => ({ ...f, approved_amount: val }));
+            <LocaleNumberInput
+              value={String(form.approved_amount || 0)}
+              onChange={(val) => {
+                const clamped = Math.min(parseLocaleNumber(val), remaining);
+                setForm((f) => ({ ...f, approved_amount: clamped }));
               }}
               disabled={readOnly}
+              decimalPlaces={2}
             />
             {remaining > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
@@ -293,25 +289,25 @@ export function PaymentOrderDialog({
               {form.approved_date && (
                 <div>
                   <Label>Odobren za datum</Label>
-                  <Input type="date" value={form.approved_date} disabled />
+                  <LocaleDateInput value={form.approved_date} onChange={() => {}} disabled />
                 </div>
               )}
               {form.sent_date && (
                 <div>
                   <Label>Datum slanja</Label>
-                  <Input type="date" value={form.sent_date} disabled />
+                  <LocaleDateInput value={form.sent_date} onChange={() => {}} disabled />
                 </div>
               )}
               {form.paid_date && (
                 <div>
                   <Label>Datum plaćanja</Label>
-                  <Input type="date" value={form.paid_date} disabled />
+                  <LocaleDateInput value={form.paid_date} onChange={() => {}} disabled />
                 </div>
               )}
               {form.paid_amount !== null && form.paid_amount !== undefined && form.status === "paid" && (
                 <div>
                   <Label>Plaćen iznos</Label>
-                  <Input type="number" value={form.paid_amount} disabled />
+                  <LocaleNumberInput value={String(form.paid_amount)} onChange={() => {}} disabled decimalPlaces={2} />
                 </div>
               )}
             </>
