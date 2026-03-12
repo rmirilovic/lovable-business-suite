@@ -174,10 +174,9 @@ export function PaymentOrderDialog({
 
           <div>
             <Label>Valuta plaćanja</Label>
-            <Input
-              type="date"
+            <LocaleDateInput
               value={form.due_date || ""}
-              onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
+              onChange={(v) => setForm((f) => ({ ...f, due_date: v }))}
               disabled={readOnly}
             />
           </div>
