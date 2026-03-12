@@ -45,6 +45,13 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive"> = 
   cancelled: "destructive",
 };
 
+const paymentOrderStatusLabels: Record<string, string> = {
+  draft: "Nacrt",
+  approved: "Odobren",
+  sent: "Poslat",
+  paid: "Plaćen",
+};
+
 export default function ServicePurchaseInvoiceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
