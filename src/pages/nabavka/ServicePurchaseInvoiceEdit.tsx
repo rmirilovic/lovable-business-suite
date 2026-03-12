@@ -521,10 +521,18 @@ export default function ServicePurchaseInvoiceEdit() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Proknjiženje ulazne fakture</AlertDialogTitle>
-            <AlertDialogDescription>
-              Da li ste sigurni da želite da proknjižite ulaznu fakturu{" "}
-              <strong>{invoice.internal_number}</strong>? 
-              Proknjižena faktura se više ne može menjati.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Da li ste sigurni da želite da proknjižite ulaznu fakturu{" "}
+                  <strong>{invoice.internal_number}</strong>? 
+                  Proknjižena faktura se više ne može menjati.
+                </p>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={createPaymentOrder} onCheckedChange={(v) => setCreatePaymentOrder(!!v)} />
+                  <span className="text-sm font-medium text-foreground">Kreiraj nalog za plaćanje</span>
+                </label>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
