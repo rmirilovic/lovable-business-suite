@@ -147,10 +147,9 @@ export function PaymentOrderDialog({
 
           <div>
             <Label>Datum knjiženja</Label>
-            <Input
-              type="date"
+            <LocaleDateInput
               value={form.booking_date || ""}
-              onChange={(e) => setForm((f) => ({ ...f, booking_date: e.target.value }))}
+              onChange={(v) => setForm((f) => ({ ...f, booking_date: v }))}
               disabled={readOnly}
             />
           </div>
