@@ -291,25 +291,25 @@ export function PaymentOrderDialog({
               {form.approved_date && (
                 <div>
                   <Label>Odobren za datum</Label>
-                  <Input type="date" value={form.approved_date} disabled />
+                  <LocaleDateInput value={form.approved_date} onChange={() => {}} disabled />
                 </div>
               )}
               {form.sent_date && (
                 <div>
                   <Label>Datum slanja</Label>
-                  <Input type="date" value={form.sent_date} disabled />
+                  <LocaleDateInput value={form.sent_date} onChange={() => {}} disabled />
                 </div>
               )}
               {form.paid_date && (
                 <div>
                   <Label>Datum plaćanja</Label>
-                  <Input type="date" value={form.paid_date} disabled />
+                  <LocaleDateInput value={form.paid_date} onChange={() => {}} disabled />
                 </div>
               )}
               {form.paid_amount !== null && form.paid_amount !== undefined && form.status === "paid" && (
                 <div>
                   <Label>Plaćen iznos</Label>
-                  <Input type="number" value={form.paid_amount} disabled />
+                  <LocaleNumberInput value={form.paid_amount} onChange={() => {}} disabled minimumFractionDigits={2} maximumFractionDigits={2} />
                 </div>
               )}
             </>
