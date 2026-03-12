@@ -40,7 +40,7 @@ import {
   Role,
   RolePermission,
 } from "@/hooks/useRoles";
-import { useModuleTree, Module } from "@/hooks/useModules";
+import { useModuleTree, Module, ModuleWithChildren } from "@/hooks/useModules";
 
 const ACCESS_LEVELS = [
   { value: "none", label: "Bez pristupa", color: "bg-muted text-muted-foreground" },
