@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History, Eye } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   ServicePurchaseInvoice,
@@ -56,6 +57,7 @@ export default function ServicePurchaseInvoiceEdit() {
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [createPaymentOrder, setCreatePaymentOrder] = useState(true);
   const [userAccessLevel, setUserAccessLevel] = useState<string | null>(null);
   const [companyData, setCompanyData] = useState<{
     name: string;
@@ -211,8 +213,41 @@ export default function ServicePurchaseInvoiceEdit() {
     if (!canProceed) return;
     
     await postInvoice.mutateAsync(invoice.id);
+    
+    // Create payment order if checkbox is checked
+    if (createPaymentOrder && selectedCompany && user) {
+      try {
+        await supabase
+          .from("payment_orders" as any)
+          .insert({
+            company_id: selectedCompany.id,
+            source_document_type: "UFU",
+            source_document_id: invoice.id,
+            source_document_number: `UFU-${invoice.internal_number}`,
+            partner_id: invoice.partner_id,
+            partner_name: invoice.supplier_name || invoice.partner?.name || null,
+            partner_code: invoice.partner?.code || null,
+            booking_date: invoice.invoice_date,
+            supplier_document_number: invoice.supplier_invoice_number,
+            supplier_document_date: invoice.invoice_date,
+            due_date: invoice.due_date,
+            document_amount: invoice.total_amount,
+            previously_paid: 0,
+            approved_amount: invoice.total_amount,
+            partner_bank_account: invoice.supplier_bank_account,
+            payment_reference: invoice.payment_reference,
+            nbs_payment_code: "221",
+            status: "draft",
+            created_by: user.id,
+          } as any);
+        toast.success("Nalog za plaćanje kreiran");
+      } catch (e: any) {
+        toast.error("Greška pri kreiranju naloga za plaćanje: " + e.message);
+      }
+    }
+    
     setPostDialogOpen(false);
-    fetchInvoice(); // Refresh to get new status
+    fetchInvoice();
   };
 
   const handleUnpostConfirm = async () => {
@@ -486,10 +521,18 @@ export default function ServicePurchaseInvoiceEdit() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Proknjiženje ulazne fakture</AlertDialogTitle>
-            <AlertDialogDescription>
-              Da li ste sigurni da želite da proknjižite ulaznu fakturu{" "}
-              <strong>{invoice.internal_number}</strong>? 
-              Proknjižena faktura se više ne može menjati.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Da li ste sigurni da želite da proknjižite ulaznu fakturu{" "}
+                  <strong>{invoice.internal_number}</strong>? 
+                  Proknjižena faktura se više ne može menjati.
+                </p>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={createPaymentOrder} onCheckedChange={(v) => setCreatePaymentOrder(!!v)} />
+                  <span className="text-sm font-medium text-foreground">Kreiraj nalog za plaćanje</span>
+                </label>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
