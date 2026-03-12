@@ -42,6 +42,7 @@ import { PaymentOrderDialog } from "@/components/nabavka/PaymentOrderDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, formatDate } from "@/lib/formatting";
 import { usePartners, PAYMENT_PRIORITY_LABELS } from "@/hooks/usePartners";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   exportPaymentOrdersToExcel,
   exportPaymentOrdersToPdf,
@@ -202,12 +203,14 @@ export default function NaloziZaPlacanja() {
     return (item as any)[col];
   });
 
+  const { hasAccess, getAccessLevel } = usePermissions();
   const isAdmin = isSuperAdmin || isLocalAdmin;
-  const canApprove = isAdmin || roleView === "approver" || roleView === "all";
-  const canSend = isAdmin || roleView === "sender" || roleView === "all";
-  const canPay = isAdmin || roleView === "payer" || roleView === "all";
-  const canDelete = isAdmin || roleView === "approver" || roleView === "all";
-  const isViewOnly = roleView === "viewer";
+  const canApprove = isAdmin || hasAccess("nabavka.nalozi_placanja.odobravanje", "write");
+  const canSend = isAdmin || hasAccess("nabavka.nalozi_placanja.slanje", "write");
+  const canPay = isAdmin || hasAccess("nabavka.nalozi_placanja.placanje", "write");
+  const canEdit = isAdmin || hasAccess("nabavka.nalozi_placanja", "write");
+  const canDelete = isAdmin || hasAccess("nabavka.nalozi_placanja", "admin");
+  const isViewOnly = !canEdit && !canApprove && !canSend && !canPay;
 
   const handleCreate = () => {
     setSelectedOrder(null);
@@ -217,7 +220,7 @@ export default function NaloziZaPlacanja() {
 
   const handleEdit = (order: PaymentOrder) => {
     setSelectedOrder(order);
-    setReadOnly(order.status === "paid" || isViewOnly);
+    setReadOnly(order.status === "paid" || !canEdit);
     setDialogOpen(true);
   };
 
@@ -327,7 +330,7 @@ export default function NaloziZaPlacanja() {
             <Button variant="outline" size="sm" onClick={() => printPaymentOrders(sortedData, { companyName: selectedCompany?.name ?? "" })}>
               <Printer className="w-4 h-4 mr-2" /> Štampa
             </Button>
-            {!isViewOnly && (
+            {canEdit && (
               <Button size="sm" onClick={handleCreate}>
                 <Plus className="w-4 h-4 mr-1" />
                 Novi nalog
@@ -461,7 +464,7 @@ export default function NaloziZaPlacanja() {
                             <DropdownMenuItem onClick={() => handleView(order)}>
                               <Eye className="w-4 h-4 mr-2" />Pregled
                             </DropdownMenuItem>
-                            {!isViewOnly && order.status !== "paid" && (
+                            {canEdit && order.status !== "paid" && (
                               <DropdownMenuItem onClick={() => handleEdit(order)}>
                                 <Edit className="w-4 h-4 mr-2" />Izmeni
                               </DropdownMenuItem>
