@@ -109,6 +109,7 @@ const ALL_COLUMNS = [
   { key: "previously_paid", label: "Preth. isplaćeno", defaultVisible: false },
   { key: "approved_amount", label: "Plaća se", defaultVisible: true },
   { key: "partner_bank_account", label: "TR dobavljača", defaultVisible: false },
+  { key: "bank_account_id", label: "Naš TR", defaultVisible: true },
   { key: "payment_reference", label: "Poziv na broj", defaultVisible: false },
   { key: "nbs_payment_code", label: "Šifra NBS", defaultVisible: false },
   { key: "status", label: "Status", defaultVisible: true },
