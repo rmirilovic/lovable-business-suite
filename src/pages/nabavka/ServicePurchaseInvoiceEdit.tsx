@@ -468,6 +468,29 @@ export default function ServicePurchaseInvoiceEdit() {
           </div>
         </div>
 
+        {/* Payment order info */}
+        {invoice.status === "posted" && (
+          <div className="flex items-center gap-3 text-sm p-3 rounded-lg border bg-muted/20">
+            <CreditCard className="w-4 h-4 text-muted-foreground shrink-0" />
+            {linkedPaymentOrder ? (
+              <>
+                <span className="text-muted-foreground">Nalog za plaćanje:</span>
+                <Link
+                  to="/racunovodstvo/nalozi-placanja"
+                  className="font-medium text-primary hover:underline"
+                >
+                  {linkedPaymentOrder.status === "draft" ? "Nacrt" :
+                   linkedPaymentOrder.status === "approved" ? "Odobren" :
+                   linkedPaymentOrder.status === "sent" ? "Poslat" :
+                   linkedPaymentOrder.status === "paid" ? "Plaćen" : linkedPaymentOrder.status}
+                </Link>
+              </>
+            ) : (
+              <span className="text-muted-foreground">Nalog za plaćanje nije kreiran</span>
+            )}
+          </div>
+        )}
+
         <Separator />
 
         {/* Items editor */}
