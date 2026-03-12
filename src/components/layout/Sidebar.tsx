@@ -84,7 +84,6 @@ const navigation: NavItem[] = [
       { label: "UF za avanse", href: "/nabavka/ulazne-fakture-avansi", moduleCode: "nabavka.ulazne_fakture" },
       { label: "Primljena KO", href: "/nabavka/primljena-ko", moduleCode: "nabavka.ulazne_fakture" },
       { label: "Kalkulacije", href: "/magacin/kalkulacije", moduleCode: "robno.prijemnice" },
-      { label: "Nalozi za plaćanja", href: "/nabavka/nalozi-placanja", moduleCode: "nabavka.nalozi_placanja" },
       { label: "Narudžbenice", href: "/nabavka/narudzbenice", moduleCode: "nabavka.porudzbine" },
     ],
   },
@@ -136,7 +135,7 @@ const navigation: NavItem[] = [
     children: [
       { label: "Nalozi za knjiženje", href: "/racunovodstvo/nalozi", moduleCode: "racunovodstvo.nalozi" },
       { label: "Izvodi", href: "/racunovodstvo/izvodi", moduleCode: "racunovodstvo.nalozi" },
-      
+      { label: "Nalozi za plaćanja", href: "/racunovodstvo/nalozi-placanja", moduleCode: "racunovodstvo.nalozi_placanja" },
       { label: "Glavna knjiga", href: "/racunovodstvo/glavna-knjiga", moduleCode: "racunovodstvo.glavna_knjiga" },
       { label: "Bruto bilans", href: "/racunovodstvo/bruto-bilans", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "POPDV", href: "/racunovodstvo/popdv", moduleCode: "racunovodstvo.nalozi" },
