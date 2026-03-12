@@ -24,7 +24,7 @@ import { usePartners } from "@/hooks/usePartners";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import { PaymentOrder } from "@/hooks/usePaymentOrders";
-import { formatPrice } from "@/lib/formatting";
+import { formatPrice, parseLocaleNumber } from "@/lib/formatting";
 
 interface PaymentOrderDialogProps {
   open: boolean;
