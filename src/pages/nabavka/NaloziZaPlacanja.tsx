@@ -414,8 +414,21 @@ export default function NaloziZaPlacanja() {
                       {visibleColumns.includes("source_document_number") && <TableCell className="font-medium">{order.source_document_number || "-"}</TableCell>}
                       {visibleColumns.includes("partner_name") && (
                         <TableCell>
-                          <span className="font-medium">{order.partner_name}</span>
-                          {order.partner_code && <span className="text-xs text-muted-foreground ml-1">({order.partner_code})</span>}
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-medium">{order.partner_name}</span>
+                            {order.partner_code && <span className="text-xs text-muted-foreground">({order.partner_code})</span>}
+                            {order.partner_id && partnerPriorityMap[order.partner_id] && (
+                              <Badge variant="outline" className={
+                                partnerPriorityMap[order.partner_id] === 1
+                                  ? "text-red-600 border-red-300 bg-red-50 dark:bg-red-950 dark:border-red-800 dark:text-red-400 text-[10px] px-1.5 py-0"
+                                  : partnerPriorityMap[order.partner_id] === 2
+                                  ? "text-orange-600 border-orange-300 bg-orange-50 dark:bg-orange-950 dark:border-orange-800 dark:text-orange-400 text-[10px] px-1.5 py-0"
+                                  : "text-yellow-600 border-yellow-300 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-400 text-[10px] px-1.5 py-0"
+                              }>
+                                {PAYMENT_PRIORITY_LABELS[partnerPriorityMap[order.partner_id]!]}
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                       {visibleColumns.includes("booking_date") && <TableCell>{formatDate(order.booking_date)}</TableCell>}
