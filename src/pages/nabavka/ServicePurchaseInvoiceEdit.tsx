@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History, Eye } from "lucide-react";
+import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History, Eye, CreditCard } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
@@ -58,6 +58,7 @@ export default function ServicePurchaseInvoiceEdit() {
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [createPaymentOrder, setCreatePaymentOrder] = useState(true);
+  const [linkedPaymentOrder, setLinkedPaymentOrder] = useState<{ id: string; status: string } | null>(null);
   const [userAccessLevel, setUserAccessLevel] = useState<string | null>(null);
   const [companyData, setCompanyData] = useState<{
     name: string;
@@ -145,6 +146,21 @@ export default function ServicePurchaseInvoiceEdit() {
     
     fetchCompanyData();
   }, [selectedCompany?.id]);
+
+  // Fetch linked payment order
+  const fetchLinkedPaymentOrder = useCallback(async () => {
+    if (!id) return;
+    const { data } = await supabase
+      .from("payment_orders" as any)
+      .select("id, status")
+      .eq("source_document_id", id)
+      .maybeSingle();
+    setLinkedPaymentOrder(data as any);
+  }, [id]);
+
+  useEffect(() => {
+    fetchLinkedPaymentOrder();
+  }, [fetchLinkedPaymentOrder]);
 
   // Recalculate totals when items change
   useEffect(() => {
@@ -248,6 +264,7 @@ export default function ServicePurchaseInvoiceEdit() {
     
     setPostDialogOpen(false);
     fetchInvoice();
+    fetchLinkedPaymentOrder();
   };
 
   const handleUnpostConfirm = async () => {
@@ -450,6 +467,29 @@ export default function ServicePurchaseInvoiceEdit() {
             <div className="font-medium">{invoice.payment_reference || "-"}</div>
           </div>
         </div>
+
+        {/* Payment order info */}
+        {invoice.status === "posted" && (
+          <div className="flex items-center gap-3 text-sm p-3 rounded-lg border bg-muted/20">
+            <CreditCard className="w-4 h-4 text-muted-foreground shrink-0" />
+            {linkedPaymentOrder ? (
+              <>
+                <span className="text-muted-foreground">Nalog za plaćanje:</span>
+                <Link
+                  to="/racunovodstvo/nalozi-placanja"
+                  className="font-medium text-primary hover:underline"
+                >
+                  {linkedPaymentOrder.status === "draft" ? "Nacrt" :
+                   linkedPaymentOrder.status === "approved" ? "Odobren" :
+                   linkedPaymentOrder.status === "sent" ? "Poslat" :
+                   linkedPaymentOrder.status === "paid" ? "Plaćen" : linkedPaymentOrder.status}
+                </Link>
+              </>
+            ) : (
+              <span className="text-muted-foreground">Nalog za plaćanje nije kreiran</span>
+            )}
+          </div>
+        )}
 
         <Separator />
 

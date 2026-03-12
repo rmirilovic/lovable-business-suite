@@ -4191,6 +4191,121 @@ export type Database = {
           },
         ]
       }
+      payment_orders: {
+        Row: {
+          approved_amount: number
+          approved_date: string | null
+          bank_account_id: string | null
+          booking_date: string
+          company_id: string
+          created_at: string
+          created_by: string
+          document_amount: number
+          due_date: string | null
+          id: string
+          nbs_payment_code: string | null
+          note: string | null
+          paid_amount: number | null
+          paid_date: string | null
+          partner_bank_account: string | null
+          partner_code: string | null
+          partner_id: string | null
+          partner_name: string | null
+          payment_reference: string | null
+          previously_paid: number
+          sent_date: string | null
+          source_document_id: string | null
+          source_document_number: string | null
+          source_document_type: string | null
+          status: string
+          supplier_document_date: string | null
+          supplier_document_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_amount?: number
+          approved_date?: string | null
+          bank_account_id?: string | null
+          booking_date?: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          document_amount?: number
+          due_date?: string | null
+          id?: string
+          nbs_payment_code?: string | null
+          note?: string | null
+          paid_amount?: number | null
+          paid_date?: string | null
+          partner_bank_account?: string | null
+          partner_code?: string | null
+          partner_id?: string | null
+          partner_name?: string | null
+          payment_reference?: string | null
+          previously_paid?: number
+          sent_date?: string | null
+          source_document_id?: string | null
+          source_document_number?: string | null
+          source_document_type?: string | null
+          status?: string
+          supplier_document_date?: string | null
+          supplier_document_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_amount?: number
+          approved_date?: string | null
+          bank_account_id?: string | null
+          booking_date?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          document_amount?: number
+          due_date?: string | null
+          id?: string
+          nbs_payment_code?: string | null
+          note?: string | null
+          paid_amount?: number | null
+          paid_date?: string | null
+          partner_bank_account?: string | null
+          partner_code?: string | null
+          partner_id?: string | null
+          partner_name?: string | null
+          payment_reference?: string | null
+          previously_paid?: number
+          sent_date?: string | null
+          source_document_id?: string | null
+          source_document_number?: string | null
+          source_document_type?: string | null
+          status?: string
+          supplier_document_date?: string | null
+          supplier_document_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_orders_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_orders_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       popdv_report_cells: {
         Row: {
           auto_value: number
