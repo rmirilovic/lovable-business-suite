@@ -183,12 +183,9 @@ export function PaymentOrderDialog({
 
           <div>
             <Label>Iznos po dokumentu</Label>
-            <Input
-              type="number"
-              step="0.01"
+            <LocaleNumberInput
               value={form.document_amount || 0}
-              onChange={(e) => {
-                const val = parseFloat(e.target.value) || 0;
+              onChange={(val) => {
                 setForm((f) => ({
                   ...f,
                   document_amount: val,
@@ -196,31 +193,33 @@ export function PaymentOrderDialog({
                 }));
               }}
               disabled={readOnly}
+              minimumFractionDigits={2}
+              maximumFractionDigits={2}
             />
           </div>
 
           <div>
             <Label>Prethodno isplaćeno</Label>
-            <Input
-              type="number"
-              step="0.01"
+            <LocaleNumberInput
               value={form.previously_paid || 0}
-              onChange={(e) => setForm((f) => ({ ...f, previously_paid: parseFloat(e.target.value) || 0 }))}
+              onChange={(val) => setForm((f) => ({ ...f, previously_paid: val }))}
               disabled={readOnly}
+              minimumFractionDigits={2}
+              maximumFractionDigits={2}
             />
           </div>
 
           <div>
             <Label>Plaća se (odobren iznos)</Label>
-            <Input
-              type="number"
-              step="0.01"
+            <LocaleNumberInput
               value={form.approved_amount || 0}
-              onChange={(e) => {
-                const val = Math.min(parseFloat(e.target.value) || 0, remaining);
-                setForm((f) => ({ ...f, approved_amount: val }));
+              onChange={(val) => {
+                const clamped = Math.min(val, remaining);
+                setForm((f) => ({ ...f, approved_amount: clamped }));
               }}
               disabled={readOnly}
+              minimumFractionDigits={2}
+              maximumFractionDigits={2}
             />
             {remaining > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
