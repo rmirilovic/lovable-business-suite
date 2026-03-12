@@ -220,7 +220,7 @@ export default function NaloziZaPlacanja() {
 
   const handleEdit = (order: PaymentOrder) => {
     setSelectedOrder(order);
-    setReadOnly(order.status === "paid" || isViewOnly);
+    setReadOnly(order.status === "paid" || !canEdit);
     setDialogOpen(true);
   };
 
