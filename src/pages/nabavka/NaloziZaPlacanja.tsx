@@ -42,6 +42,11 @@ import { PaymentOrderDialog } from "@/components/nabavka/PaymentOrderDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, formatDate } from "@/lib/formatting";
 import {
+  exportPaymentOrdersToExcel,
+  exportPaymentOrdersToPdf,
+  printPaymentOrders,
+} from "@/lib/paymentOrderListExportUtils";
+import {
   Plus,
   Search,
   MoreHorizontal,
@@ -115,7 +120,7 @@ const STORAGE_KEY = "payment_orders_visible_columns";
 export default function NaloziZaPlacanja() {
   const { data: orders = [], isLoading, refetch } = usePaymentOrders();
   const { createMutation, updateMutation, deleteMutation, updateStatusMutation } = usePaymentOrderMutations();
-  const { isSuperAdmin, isLocalAdmin } = useAuth();
+  const { isSuperAdmin, isLocalAdmin, selectedCompany } = useAuth();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -303,9 +308,15 @@ export default function NaloziZaPlacanja() {
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm"><FileSpreadsheet className="w-4 h-4" /></Button>
-            <Button variant="outline" size="sm"><FileText className="w-4 h-4" /></Button>
-            <Button variant="outline" size="sm"><Printer className="w-4 h-4" /></Button>
+            <Button variant="outline" size="sm" onClick={() => exportPaymentOrdersToExcel(sortedData, { companyName: selectedCompany?.name ?? "" })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportPaymentOrdersToPdf(sortedData, { companyName: selectedCompany?.name ?? "" })}>
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printPaymentOrders(sortedData, { companyName: selectedCompany?.name ?? "" })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
             {!isViewOnly && (
               <Button size="sm" onClick={handleCreate}>
                 <Plus className="w-4 h-4 mr-1" />
