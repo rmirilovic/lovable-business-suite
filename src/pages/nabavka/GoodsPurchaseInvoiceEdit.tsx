@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History, Eye } from "lucide-react";
+import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History, Eye, CreditCard } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { GoodsPurchaseInvoice, useGoodsPurchaseInvoiceItems, useGoodsPurchaseInvoices } from "@/hooks/useGoodsPurchaseInvoices";
@@ -41,6 +41,13 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive"> = 
   cancelled: "destructive",
 };
 
+const paymentOrderStatusLabels: Record<string, string> = {
+  draft: "Nacrt",
+  approved: "Odobren",
+  sent: "Poslat",
+  paid: "Plaćen",
+};
+
 export default function GoodsPurchaseInvoiceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -55,6 +62,7 @@ export default function GoodsPurchaseInvoiceEdit() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [createPaymentOrder, setCreatePaymentOrder] = useState(true);
+  const [linkedPaymentOrder, setLinkedPaymentOrder] = useState<{ id: string; status: string } | null>(null);
   const [companyData, setCompanyData] = useState<{
     name: string;
     address?: string | null;
@@ -140,6 +148,34 @@ export default function GoodsPurchaseInvoiceEdit() {
     fetchCompData();
   }, [selectedCompany?.id]);
 
+  // Fetch linked payment order
+  const fetchLinkedPaymentOrder = useCallback(async () => {
+    if (!id || !selectedCompany?.id) {
+      setLinkedPaymentOrder(null);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("payment_orders" as any)
+      .select("id, status, created_at")
+      .eq("company_id", selectedCompany.id)
+      .eq("source_document_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      setLinkedPaymentOrder(null);
+      return;
+    }
+
+    setLinkedPaymentOrder(data ? ({ id: (data as any).id, status: (data as any).status } as any) : null);
+  }, [id, selectedCompany?.id]);
+
+  useEffect(() => {
+    fetchLinkedPaymentOrder();
+  }, [fetchLinkedPaymentOrder]);
+
   // Recalculate totals when items change
   useEffect(() => {
     if (!invoice || invoice.status !== "draft") return;
@@ -182,10 +218,30 @@ export default function GoodsPurchaseInvoiceEdit() {
     
     await postInvoice.mutateAsync(invoice.id);
     
+    // Always remove previous payment orders linked to this UFR to avoid duplicates on repost
+    if (selectedCompany?.id) {
+      const { error: cleanupError } = await supabase
+        .from("payment_orders" as any)
+        .delete()
+        .eq("company_id", selectedCompany.id)
+        .eq("source_document_type", "UFR")
+        .eq("source_document_id", invoice.id);
+
+      if (cleanupError) {
+        toast.error("Greška pri brisanju prethodnog naloga: " + cleanupError.message);
+        setPostDialogOpen(false);
+        fetchInvoice();
+        fetchLinkedPaymentOrder();
+        return;
+      }
+
+      setLinkedPaymentOrder(null);
+    }
+
     // Create payment order if checkbox is checked
     if (createPaymentOrder && selectedCompany && user) {
       try {
-        await supabase
+        const { data: createdOrder, error: createOrderError } = await supabase
           .from("payment_orders" as any)
           .insert({
             company_id: selectedCompany.id,
@@ -207,7 +263,13 @@ export default function GoodsPurchaseInvoiceEdit() {
             nbs_payment_code: "220",
             status: "draft",
             created_by: user.id,
-          } as any);
+          } as any)
+          .select("id, status")
+          .single();
+
+        if (createOrderError) throw createOrderError;
+
+        setLinkedPaymentOrder(createdOrder as any);
         toast.success("Nalog za plaćanje kreiran");
       } catch (e: any) {
         toast.error("Greška pri kreiranju naloga za plaćanje: " + e.message);
@@ -216,12 +278,14 @@ export default function GoodsPurchaseInvoiceEdit() {
     
     setPostDialogOpen(false);
     fetchInvoice();
+    fetchLinkedPaymentOrder();
   };
 
   const handleUnpostConfirm = async () => {
     if (!invoice) return;
     
     await unpostInvoice.mutateAsync(invoice.id);
+    setLinkedPaymentOrder(null);
     setUnpostDialogOpen(false);
     fetchInvoice();
   };
@@ -296,6 +360,21 @@ export default function GoodsPurchaseInvoiceEdit() {
             <Badge variant={statusVariants[invoice.status]}>
               {statusLabels[invoice.status]}
             </Badge>
+            {isPosted && (
+              linkedPaymentOrder ? (
+                <Link to="/racunovodstvo/nalozi-placanja" className="inline-flex">
+                  <Badge variant="outline" className="gap-1.5 hover:bg-muted">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    Nalog: {paymentOrderStatusLabels[linkedPaymentOrder.status] || linkedPaymentOrder.status}
+                  </Badge>
+                </Link>
+              ) : (
+                <Badge variant="secondary" className="gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Nalog nije kreiran
+                </Badge>
+              )
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
@@ -416,6 +495,26 @@ export default function GoodsPurchaseInvoiceEdit() {
             <div className="font-medium">{invoice.payment_reference || "-"}</div>
           </div>
         </div>
+
+        {/* Payment order info */}
+        {invoice.status === "posted" && (
+          <div className="flex items-center gap-3 text-sm p-3 rounded-lg border bg-muted/20">
+            <CreditCard className="w-4 h-4 text-muted-foreground shrink-0" />
+            {linkedPaymentOrder ? (
+              <>
+                <span className="text-muted-foreground">Nalog za plaćanje:</span>
+                <Link
+                  to="/racunovodstvo/nalozi-placanja"
+                  className="font-medium text-primary hover:underline"
+                >
+                  {paymentOrderStatusLabels[linkedPaymentOrder.status] || linkedPaymentOrder.status}
+                </Link>
+              </>
+            ) : (
+              <span className="text-muted-foreground">Nalog za plaćanje nije kreiran</span>
+            )}
+          </div>
+        )}
 
         <Separator />
 

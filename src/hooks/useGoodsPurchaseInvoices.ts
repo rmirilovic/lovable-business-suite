@@ -314,6 +314,17 @@ export function useGoodsPurchaseInvoices() {
   const unpostInvoice = useMutation({
     mutationFn: async (invoiceId: string) => {
       if (!user?.id) throw new Error("Niste prijavljeni");
+      if (!selectedCompany?.id) throw new Error("Potrebno je izabrati firmu");
+
+      // Remove all payment orders linked to this UFR before unposting
+      const { error: paymentOrderDeleteError } = await supabase
+        .from("payment_orders" as any)
+        .delete()
+        .eq("company_id", selectedCompany.id)
+        .eq("source_document_type", "UFR")
+        .eq("source_document_id", invoiceId);
+
+      if (paymentOrderDeleteError) throw paymentOrderDeleteError;
 
       const { data, error } = await supabase
         .rpc("unpost_goods_purchase_invoice", {
@@ -327,6 +338,7 @@ export function useGoodsPurchaseInvoices() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goods-purchase-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["payment_orders", selectedCompany?.id] });
       toast.success("Knjiženje je poništeno - dokument je vraćen u nacrt");
     },
     onError: (error) => {
