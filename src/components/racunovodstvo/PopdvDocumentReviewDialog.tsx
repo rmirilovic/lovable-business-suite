@@ -40,9 +40,12 @@ export function PopdvDocumentReviewDialog({ open, onOpenChange, sourceRow, allRo
     const map = new Map<string, { title: string; rowLabel: string }>();
     for (const section of POPDV_SECTIONS) {
       for (const st of section.subTables) {
+        // Use subTable id as key (e.g. "8a") since detail rows store subTable id in section field
+        const sectionKey = st.id || section.id;
+        const title = st.title || section.title;
         for (const row of st.rows) {
-          map.set(`${section.id}|${row.code}`, {
-            title: section.title,
+          map.set(`${sectionKey}|${row.code}`, {
+            title,
             rowLabel: row.label,
           });
         }
