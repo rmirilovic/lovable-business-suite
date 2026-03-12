@@ -175,7 +175,7 @@ export default function ServicePurchaseInvoiceEdit() {
       return;
     }
 
-    setLinkedPaymentOrder(data ? ({ id: data.id, status: data.status } as any) : null);
+    setLinkedPaymentOrder(data ? ({ id: (data as any).id, status: (data as any).status } as any) : null);
   }, [id, selectedCompany?.id]);
 
   useEffect(() => {
