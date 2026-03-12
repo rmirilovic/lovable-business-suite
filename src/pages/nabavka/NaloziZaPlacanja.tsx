@@ -40,6 +40,7 @@ import { useTableSort } from "@/hooks/useTableSort";
 import { usePaymentOrders, usePaymentOrderMutations, PaymentOrder } from "@/hooks/usePaymentOrders";
 import { PaymentOrderDialog } from "@/components/nabavka/PaymentOrderDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { formatPrice, formatDate } from "@/lib/formatting";
 import { usePartners, PAYMENT_PRIORITY_LABELS } from "@/hooks/usePartners";
 import { usePermissions } from "@/hooks/usePermissions";
