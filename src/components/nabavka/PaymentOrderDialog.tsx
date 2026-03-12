@@ -248,7 +248,7 @@ export function PaymentOrderDialog({
               <SelectContent>
                 {(bankAccounts || []).map((ba) => (
                   <SelectItem key={ba.id} value={ba.id}>
-                    {ba.bank_name} - {ba.account_number}
+                    {ba.account_number}
                   </SelectItem>
                 ))}
               </SelectContent>

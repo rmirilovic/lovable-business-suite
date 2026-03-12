@@ -131,7 +131,7 @@ export default function NaloziZaPlacanja() {
   const bankAccountMap = useMemo(() => {
     const map: Record<string, string> = {};
     for (const ba of bankAccounts || []) {
-      map[ba.id] = `${ba.bank_name} - ${ba.account_number}`;
+      map[ba.id] = ba.account_number;
     }
     return map;
   }, [bankAccounts]);
