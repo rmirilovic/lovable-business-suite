@@ -155,11 +155,19 @@ export default function NaloziZaPlacanja() {
   const [splitConfirm, setSplitConfirm] = useState<{ order: PaymentOrder; newAmount: number } | null>(null);
 
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+    const defaultCols = ALL_COLUMNS.filter((c) => c.defaultVisible).map((c) => c.key);
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved) as string[];
+        // Add any new defaultVisible columns that weren't in the saved list
+        const allKeys = new Set(ALL_COLUMNS.map((c) => c.key));
+        const validSaved = parsed.filter((k) => allKeys.has(k));
+        const newDefaults = defaultCols.filter((k) => !parsed.includes(k));
+        return [...validSaved, ...newDefaults];
+      }
     } catch {}
-    return ALL_COLUMNS.filter((c) => c.defaultVisible).map((c) => c.key);
+    return defaultCols;
   });
 
   useEffect(() => {
