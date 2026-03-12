@@ -42,6 +42,7 @@ import { PaymentOrderDialog } from "@/components/nabavka/PaymentOrderDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, formatDate } from "@/lib/formatting";
 import { usePartners, PAYMENT_PRIORITY_LABELS } from "@/hooks/usePartners";
+import { usePermissions } from "@/hooks/usePermissions";
 import {
   exportPaymentOrdersToExcel,
   exportPaymentOrdersToPdf,
