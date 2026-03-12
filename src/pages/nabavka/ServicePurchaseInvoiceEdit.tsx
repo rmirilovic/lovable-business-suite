@@ -356,6 +356,21 @@ export default function ServicePurchaseInvoiceEdit() {
             <Badge variant={statusVariants[invoice.status]}>
               {statusLabels[invoice.status]}
             </Badge>
+            {isPosted && (
+              linkedPaymentOrder ? (
+                <Link to="/racunovodstvo/nalozi-placanja" className="inline-flex">
+                  <Badge variant="outline" className="gap-1.5 hover:bg-muted">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    Nalog: {paymentOrderStatusLabels[linkedPaymentOrder.status] || linkedPaymentOrder.status}
+                  </Badge>
+                </Link>
+              ) : (
+                <Badge variant="secondary" className="gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Nalog nije kreiran
+                </Badge>
+              )
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
