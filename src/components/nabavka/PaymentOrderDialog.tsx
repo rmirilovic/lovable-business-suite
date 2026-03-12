@@ -184,42 +184,40 @@ export function PaymentOrderDialog({
           <div>
             <Label>Iznos po dokumentu</Label>
             <LocaleNumberInput
-              value={form.document_amount || 0}
+              value={String(form.document_amount || 0)}
               onChange={(val) => {
+                const num = parseLocaleNumber(val);
                 setForm((f) => ({
                   ...f,
-                  document_amount: val,
-                  approved_amount: Math.min(f.approved_amount || 0, val - (f.previously_paid || 0)),
+                  document_amount: num,
+                  approved_amount: Math.min(f.approved_amount || 0, num - (f.previously_paid || 0)),
                 }));
               }}
               disabled={readOnly}
-              minimumFractionDigits={2}
-              maximumFractionDigits={2}
+              decimalPlaces={2}
             />
           </div>
 
           <div>
             <Label>Prethodno isplaćeno</Label>
             <LocaleNumberInput
-              value={form.previously_paid || 0}
-              onChange={(val) => setForm((f) => ({ ...f, previously_paid: val }))}
+              value={String(form.previously_paid || 0)}
+              onChange={(val) => setForm((f) => ({ ...f, previously_paid: parseLocaleNumber(val) }))}
               disabled={readOnly}
-              minimumFractionDigits={2}
-              maximumFractionDigits={2}
+              decimalPlaces={2}
             />
           </div>
 
           <div>
             <Label>Plaća se (odobren iznos)</Label>
             <LocaleNumberInput
-              value={form.approved_amount || 0}
+              value={String(form.approved_amount || 0)}
               onChange={(val) => {
-                const clamped = Math.min(val, remaining);
+                const clamped = Math.min(parseLocaleNumber(val), remaining);
                 setForm((f) => ({ ...f, approved_amount: clamped }));
               }}
               disabled={readOnly}
-              minimumFractionDigits={2}
-              maximumFractionDigits={2}
+              decimalPlaces={2}
             />
             {remaining > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
