@@ -156,14 +156,27 @@ export default function ServicePurchaseInvoiceEdit() {
 
   // Fetch linked payment order
   const fetchLinkedPaymentOrder = useCallback(async () => {
-    if (!id) return;
-    const { data } = await supabase
+    if (!id || !selectedCompany?.id) {
+      setLinkedPaymentOrder(null);
+      return;
+    }
+
+    const { data, error } = await supabase
       .from("payment_orders" as any)
-      .select("id, status")
+      .select("id, status, created_at")
+      .eq("company_id", selectedCompany.id)
       .eq("source_document_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
-    setLinkedPaymentOrder(data as any);
-  }, [id]);
+
+    if (error) {
+      setLinkedPaymentOrder(null);
+      return;
+    }
+
+    setLinkedPaymentOrder(data ? ({ id: data.id, status: data.status } as any) : null);
+  }, [id, selectedCompany?.id]);
 
   useEffect(() => {
     fetchLinkedPaymentOrder();
