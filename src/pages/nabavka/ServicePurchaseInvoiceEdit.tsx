@@ -520,10 +520,7 @@ export default function ServicePurchaseInvoiceEdit() {
                   to="/racunovodstvo/nalozi-placanja"
                   className="font-medium text-primary hover:underline"
                 >
-                  {linkedPaymentOrder.status === "draft" ? "Nacrt" :
-                   linkedPaymentOrder.status === "approved" ? "Odobren" :
-                   linkedPaymentOrder.status === "sent" ? "Poslat" :
-                   linkedPaymentOrder.status === "paid" ? "Plaćen" : linkedPaymentOrder.status}
+                  {paymentOrderStatusLabels[linkedPaymentOrder.status] || linkedPaymentOrder.status}
                 </Link>
               </>
             ) : (
