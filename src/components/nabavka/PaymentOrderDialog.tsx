@@ -165,10 +165,9 @@ export function PaymentOrderDialog({
 
           <div>
             <Label>Datum dokumenta dobavljača</Label>
-            <Input
-              type="date"
+            <LocaleDateInput
               value={form.supplier_document_date || ""}
-              onChange={(e) => setForm((f) => ({ ...f, supplier_document_date: e.target.value }))}
+              onChange={(v) => setForm((f) => ({ ...f, supplier_document_date: v }))}
               disabled={readOnly}
             />
           </div>
