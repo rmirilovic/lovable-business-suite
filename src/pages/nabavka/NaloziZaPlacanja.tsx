@@ -454,6 +454,7 @@ export default function NaloziZaPlacanja() {
                       {visibleColumns.includes("previously_paid") && <TableCell className="text-right font-mono">{formatPrice(order.previously_paid)}</TableCell>}
                       {visibleColumns.includes("approved_amount") && <TableCell className="text-right font-mono font-medium">{formatPrice(order.approved_amount)}</TableCell>}
                       {visibleColumns.includes("partner_bank_account") && <TableCell>{order.partner_bank_account || "-"}</TableCell>}
+                      {visibleColumns.includes("bank_account_id") && <TableCell>{order.bank_account_id ? bankAccountMap[order.bank_account_id] || "-" : "-"}</TableCell>}
                       {visibleColumns.includes("payment_reference") && <TableCell>{order.payment_reference || "-"}</TableCell>}
                       {visibleColumns.includes("nbs_payment_code") && <TableCell>{order.nbs_payment_code || "-"}</TableCell>}
                       {visibleColumns.includes("status") && (
