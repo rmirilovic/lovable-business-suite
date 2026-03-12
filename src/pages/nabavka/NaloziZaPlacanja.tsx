@@ -41,6 +41,7 @@ import { usePaymentOrders, usePaymentOrderMutations, PaymentOrder } from "@/hook
 import { PaymentOrderDialog } from "@/components/nabavka/PaymentOrderDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, formatDate } from "@/lib/formatting";
+import { usePartners, PAYMENT_PRIORITY_LABELS } from "@/hooks/usePartners";
 import {
   exportPaymentOrdersToExcel,
   exportPaymentOrdersToPdf,
