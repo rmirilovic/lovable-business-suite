@@ -45,6 +45,7 @@ import UlazneFaktureAvansi from "./pages/nabavka/UlazneFaktureAvansi";
 import AdvancePurchaseInvoiceEdit from "./pages/nabavka/AdvancePurchaseInvoiceEdit";
 import PrimljenaKnjiznaOdobrenja from "./pages/nabavka/PrimljenaKnjiznaOdobrenja";
 import ReceivedCreditNoteEdit from "./pages/nabavka/ReceivedCreditNoteEdit";
+import NaloziZaPlacanja from "./pages/nabavka/NaloziZaPlacanja";
 import Prijemnice from "./pages/magacin/Prijemnice";
 import GoodsReceiptEdit from "./pages/magacin/GoodsReceiptEdit";
 import Kalkulacije from "./pages/magacin/Kalkulacije";
@@ -344,6 +345,11 @@ const App = () => (
               <Route path="/nabavka/primljena-ko/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <ReceivedCreditNoteEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/nabavka/nalozi-placanja" element={
+                <ProtectedRoute>
+                  <NaloziZaPlacanja />
                 </ProtectedRoute>
               } />
               <Route path="/magacin/prijemnice" element={
