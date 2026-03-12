@@ -203,12 +203,14 @@ export default function NaloziZaPlacanja() {
     return (item as any)[col];
   });
 
+  const { hasAccess, getAccessLevel } = usePermissions();
   const isAdmin = isSuperAdmin || isLocalAdmin;
-  const canApprove = isAdmin || roleView === "approver" || roleView === "all";
-  const canSend = isAdmin || roleView === "sender" || roleView === "all";
-  const canPay = isAdmin || roleView === "payer" || roleView === "all";
-  const canDelete = isAdmin || roleView === "approver" || roleView === "all";
-  const isViewOnly = roleView === "viewer";
+  const canApprove = isAdmin || hasAccess("nabavka.nalozi_placanja.odobravanje", "write");
+  const canSend = isAdmin || hasAccess("nabavka.nalozi_placanja.slanje", "write");
+  const canPay = isAdmin || hasAccess("nabavka.nalozi_placanja.placanje", "write");
+  const canEdit = isAdmin || hasAccess("nabavka.nalozi_placanja", "write");
+  const canDelete = isAdmin || hasAccess("nabavka.nalozi_placanja", "admin");
+  const isViewOnly = !canEdit && !canApprove && !canSend && !canPay;
 
   const handleCreate = () => {
     setSelectedOrder(null);
