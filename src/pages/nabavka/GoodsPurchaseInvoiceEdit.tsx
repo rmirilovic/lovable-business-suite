@@ -180,6 +180,39 @@ export default function GoodsPurchaseInvoiceEdit() {
     if (!canProceed) return;
     
     await postInvoice.mutateAsync(invoice.id);
+    
+    // Create payment order if checkbox is checked
+    if (createPaymentOrder && selectedCompany && user) {
+      try {
+        await supabase
+          .from("payment_orders" as any)
+          .insert({
+            company_id: selectedCompany.id,
+            source_document_type: "UFR",
+            source_document_id: invoice.id,
+            source_document_number: `UFR-${invoice.internal_number}`,
+            partner_id: invoice.partner_id,
+            partner_name: invoice.supplier_name || invoice.partner?.name || null,
+            partner_code: invoice.partner?.code || null,
+            booking_date: invoice.invoice_date,
+            supplier_document_number: invoice.supplier_invoice_number,
+            supplier_document_date: invoice.invoice_date,
+            due_date: invoice.due_date,
+            document_amount: invoice.total_amount,
+            previously_paid: 0,
+            approved_amount: invoice.total_amount,
+            partner_bank_account: invoice.supplier_bank_account,
+            payment_reference: invoice.payment_reference,
+            nbs_payment_code: "220",
+            status: "draft",
+            created_by: user.id,
+          } as any);
+        toast.success("Nalog za plaćanje kreiran");
+      } catch (e: any) {
+        toast.error("Greška pri kreiranju naloga za plaćanje: " + e.message);
+      }
+    }
+    
     setPostDialogOpen(false);
     fetchInvoice();
   };
