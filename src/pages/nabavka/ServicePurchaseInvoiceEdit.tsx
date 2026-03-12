@@ -45,6 +45,13 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive"> = 
   cancelled: "destructive",
 };
 
+const paymentOrderStatusLabels: Record<string, string> = {
+  draft: "Nacrt",
+  approved: "Odobren",
+  sent: "Poslat",
+  paid: "Plaćen",
+};
+
 export default function ServicePurchaseInvoiceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -149,14 +156,27 @@ export default function ServicePurchaseInvoiceEdit() {
 
   // Fetch linked payment order
   const fetchLinkedPaymentOrder = useCallback(async () => {
-    if (!id) return;
-    const { data } = await supabase
+    if (!id || !selectedCompany?.id) {
+      setLinkedPaymentOrder(null);
+      return;
+    }
+
+    const { data, error } = await supabase
       .from("payment_orders" as any)
-      .select("id, status")
+      .select("id, status, created_at")
+      .eq("company_id", selectedCompany.id)
       .eq("source_document_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
-    setLinkedPaymentOrder(data as any);
-  }, [id]);
+
+    if (error) {
+      setLinkedPaymentOrder(null);
+      return;
+    }
+
+    setLinkedPaymentOrder(data ? ({ id: (data as any).id, status: (data as any).status } as any) : null);
+  }, [id, selectedCompany?.id]);
 
   useEffect(() => {
     fetchLinkedPaymentOrder();
@@ -233,7 +253,7 @@ export default function ServicePurchaseInvoiceEdit() {
     // Create payment order if checkbox is checked
     if (createPaymentOrder && selectedCompany && user) {
       try {
-        await supabase
+        const { data: createdOrder, error: createOrderError } = await supabase
           .from("payment_orders" as any)
           .insert({
             company_id: selectedCompany.id,
@@ -255,7 +275,13 @@ export default function ServicePurchaseInvoiceEdit() {
             nbs_payment_code: "221",
             status: "draft",
             created_by: user.id,
-          } as any);
+          } as any)
+          .select("id, status")
+          .single();
+
+        if (createOrderError) throw createOrderError;
+
+        setLinkedPaymentOrder(createdOrder as any);
         toast.success("Nalog za plaćanje kreiran");
       } catch (e: any) {
         toast.error("Greška pri kreiranju naloga za plaćanje: " + e.message);
@@ -330,6 +356,21 @@ export default function ServicePurchaseInvoiceEdit() {
             <Badge variant={statusVariants[invoice.status]}>
               {statusLabels[invoice.status]}
             </Badge>
+            {isPosted && (
+              linkedPaymentOrder ? (
+                <Link to="/racunovodstvo/nalozi-placanja" className="inline-flex">
+                  <Badge variant="outline" className="gap-1.5 hover:bg-muted">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    Nalog: {paymentOrderStatusLabels[linkedPaymentOrder.status] || linkedPaymentOrder.status}
+                  </Badge>
+                </Link>
+              ) : (
+                <Badge variant="secondary" className="gap-1.5">
+                  <CreditCard className="w-3.5 h-3.5" />
+                  Nalog nije kreiran
+                </Badge>
+              )
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
@@ -479,10 +520,7 @@ export default function ServicePurchaseInvoiceEdit() {
                   to="/racunovodstvo/nalozi-placanja"
                   className="font-medium text-primary hover:underline"
                 >
-                  {linkedPaymentOrder.status === "draft" ? "Nacrt" :
-                   linkedPaymentOrder.status === "approved" ? "Odobren" :
-                   linkedPaymentOrder.status === "sent" ? "Poslat" :
-                   linkedPaymentOrder.status === "paid" ? "Plaćen" : linkedPaymentOrder.status}
+                  {paymentOrderStatusLabels[linkedPaymentOrder.status] || linkedPaymentOrder.status}
                 </Link>
               </>
             ) : (
