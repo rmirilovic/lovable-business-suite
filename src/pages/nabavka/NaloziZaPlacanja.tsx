@@ -126,6 +126,15 @@ export default function NaloziZaPlacanja() {
   const { createMutation, updateMutation, deleteMutation, updateStatusMutation } = usePaymentOrderMutations();
   const { isSuperAdmin, isLocalAdmin, selectedCompany } = useAuth();
   const { partners } = usePartners();
+  const { bankAccounts } = useBankAccounts(selectedCompany?.id);
+
+  const bankAccountMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const ba of bankAccounts || []) {
+      map[ba.id] = `${ba.bank_name} - ${ba.account_number}`;
+    }
+    return map;
+  }, [bankAccounts]);
 
   const partnerPriorityMap = useMemo(() => {
     const map: Record<string, number | null> = {};
