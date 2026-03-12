@@ -40,6 +40,7 @@ import { useTableSort } from "@/hooks/useTableSort";
 import { usePaymentOrders, usePaymentOrderMutations, PaymentOrder } from "@/hooks/usePaymentOrders";
 import { PaymentOrderDialog } from "@/components/nabavka/PaymentOrderDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { formatPrice, formatDate } from "@/lib/formatting";
 import { usePartners, PAYMENT_PRIORITY_LABELS } from "@/hooks/usePartners";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -108,6 +109,7 @@ const ALL_COLUMNS = [
   { key: "previously_paid", label: "Preth. isplaćeno", defaultVisible: false },
   { key: "approved_amount", label: "Plaća se", defaultVisible: true },
   { key: "partner_bank_account", label: "TR dobavljača", defaultVisible: false },
+  { key: "bank_account_id", label: "Naš TR", defaultVisible: true },
   { key: "payment_reference", label: "Poziv na broj", defaultVisible: false },
   { key: "nbs_payment_code", label: "Šifra NBS", defaultVisible: false },
   { key: "status", label: "Status", defaultVisible: true },
@@ -124,6 +126,15 @@ export default function NaloziZaPlacanja() {
   const { createMutation, updateMutation, deleteMutation, updateStatusMutation } = usePaymentOrderMutations();
   const { isSuperAdmin, isLocalAdmin, selectedCompany } = useAuth();
   const { partners } = usePartners();
+  const { bankAccounts } = useBankAccounts(selectedCompany?.id);
+
+  const bankAccountMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const ba of bankAccounts || []) {
+      map[ba.id] = `${ba.bank_name} - ${ba.account_number}`;
+    }
+    return map;
+  }, [bankAccounts]);
 
   const partnerPriorityMap = useMemo(() => {
     const map: Record<string, number | null> = {};
@@ -388,6 +399,7 @@ export default function NaloziZaPlacanja() {
                 {visibleColumns.includes("previously_paid") && <TableHead style={{ width: 110 }} className="text-right">{renderSortHeader("previously_paid", "Preth. isplaćeno")}</TableHead>}
                 {visibleColumns.includes("approved_amount") && <TableHead style={{ width: 110 }} className="text-right">{renderSortHeader("approved_amount", "Plaća se")}</TableHead>}
                 {visibleColumns.includes("partner_bank_account") && <TableHead>{renderSortHeader("partner_bank_account", "TR dobavljača")}</TableHead>}
+                {visibleColumns.includes("bank_account_id") && <TableHead style={{ minWidth: 180 }}>{renderSortHeader("bank_account_id", "Naš TR")}</TableHead>}
                 {visibleColumns.includes("payment_reference") && <TableHead>{renderSortHeader("payment_reference", "Poziv na broj")}</TableHead>}
                 {visibleColumns.includes("nbs_payment_code") && <TableHead style={{ width: 80 }}>{renderSortHeader("nbs_payment_code", "NBS")}</TableHead>}
                 {visibleColumns.includes("status") && <TableHead style={{ width: 90 }}>{renderSortHeader("status", "Status")}</TableHead>}
@@ -442,6 +454,7 @@ export default function NaloziZaPlacanja() {
                       {visibleColumns.includes("previously_paid") && <TableCell className="text-right font-mono">{formatPrice(order.previously_paid)}</TableCell>}
                       {visibleColumns.includes("approved_amount") && <TableCell className="text-right font-mono font-medium">{formatPrice(order.approved_amount)}</TableCell>}
                       {visibleColumns.includes("partner_bank_account") && <TableCell>{order.partner_bank_account || "-"}</TableCell>}
+                      {visibleColumns.includes("bank_account_id") && <TableCell>{order.bank_account_id ? bankAccountMap[order.bank_account_id] || "-" : "-"}</TableCell>}
                       {visibleColumns.includes("payment_reference") && <TableCell>{order.payment_reference || "-"}</TableCell>}
                       {visibleColumns.includes("nbs_payment_code") && <TableCell>{order.nbs_payment_code || "-"}</TableCell>}
                       {visibleColumns.includes("status") && (
