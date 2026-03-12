@@ -330,7 +330,7 @@ export default function NaloziZaPlacanja() {
             <Button variant="outline" size="sm" onClick={() => printPaymentOrders(sortedData, { companyName: selectedCompany?.name ?? "" })}>
               <Printer className="w-4 h-4 mr-2" /> Štampa
             </Button>
-            {!isViewOnly && (
+            {canEdit && (
               <Button size="sm" onClick={handleCreate}>
                 <Plus className="w-4 h-4 mr-1" />
                 Novi nalog
