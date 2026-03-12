@@ -264,6 +264,7 @@ export default function ServicePurchaseInvoiceEdit() {
     
     setPostDialogOpen(false);
     fetchInvoice();
+    fetchLinkedPaymentOrder();
   };
 
   const handleUnpostConfirm = async () => {
