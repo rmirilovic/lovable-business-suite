@@ -464,7 +464,7 @@ export default function NaloziZaPlacanja() {
                             <DropdownMenuItem onClick={() => handleView(order)}>
                               <Eye className="w-4 h-4 mr-2" />Pregled
                             </DropdownMenuItem>
-                            {!isViewOnly && order.status !== "paid" && (
+                            {canEdit && order.status !== "paid" && (
                               <DropdownMenuItem onClick={() => handleEdit(order)}>
                                 <Edit className="w-4 h-4 mr-2" />Izmeni
                               </DropdownMenuItem>
