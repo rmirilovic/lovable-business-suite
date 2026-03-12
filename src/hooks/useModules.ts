@@ -12,6 +12,10 @@ export interface Module {
   is_active: boolean;
 }
 
+export interface ModuleWithChildren extends Module {
+  children: ModuleWithChildren[];
+}
+
 export function useModules() {
   return useQuery({
     queryKey: ["modules"],
@@ -35,11 +39,17 @@ export function useModuleTree() {
     if (!mod.parent_code) {
       acc.push({
         ...mod,
-        children: modules.filter((m) => m.parent_code === mod.code),
+        children: (modules.filter((m) => m.parent_code === mod.code) || []).map((child) => ({
+          ...child,
+          children: modules.filter((m) => m.parent_code === child.code).map((gc) => ({
+            ...gc,
+            children: [],
+          })),
+        })),
       });
     }
     return acc;
-  }, [] as (Module & { children: Module[] })[]);
+  }, [] as ModuleWithChildren[]);
 
   return { tree, isLoading, error };
 }

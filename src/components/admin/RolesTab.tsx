@@ -40,7 +40,7 @@ import {
   Role,
   RolePermission,
 } from "@/hooks/useRoles";
-import { useModuleTree, Module } from "@/hooks/useModules";
+import { useModuleTree, Module, ModuleWithChildren } from "@/hooks/useModules";
 
 const ACCESS_LEVELS = [
   { value: "none", label: "Bez pristupa", color: "bg-muted text-muted-foreground" },
@@ -203,6 +203,13 @@ export function RolesTab() {
           can_post: level === "none" ? false : prev[child.code]?.can_post || false,
           can_unpost: level === "none" ? false : prev[child.code]?.can_unpost || false,
         };
+        child.children?.forEach((gc) => {
+          updated[gc.code] = {
+            access_level: level,
+            can_post: level === "none" ? false : prev[gc.code]?.can_post || false,
+            can_unpost: level === "none" ? false : prev[gc.code]?.can_unpost || false,
+          };
+        });
       });
       return updated;
     });
@@ -219,6 +226,12 @@ export function RolesTab() {
         if (current.access_level !== "none") {
           updated[child.code] = { ...current, can_post: value };
         }
+        child.children?.forEach((gc) => {
+          const gcCurrent = prev[gc.code] || { access_level: "none", can_post: false, can_unpost: false };
+          if (gcCurrent.access_level !== "none") {
+            updated[gc.code] = { ...gcCurrent, can_post: value };
+          }
+        });
       });
       return updated;
     });
@@ -235,6 +248,12 @@ export function RolesTab() {
         if (current.access_level !== "none") {
           updated[child.code] = { ...current, can_unpost: value };
         }
+        child.children?.forEach((gc) => {
+          const gcCurrent = prev[gc.code] || { access_level: "none", can_post: false, can_unpost: false };
+          if (gcCurrent.access_level !== "none") {
+            updated[gc.code] = { ...gcCurrent, can_unpost: value };
+          }
+        });
       });
       return updated;
     });
@@ -493,41 +512,87 @@ export function RolesTab() {
                           can_unpost: false,
                         };
                         return (
-                          <TableRow key={mod.code}>
-                            <TableCell className="pl-8">{mod.name}</TableCell>
-                            <TableCell>
-                              <Select
-                                value={perm.access_level}
-                                onValueChange={(v) => updatePermission(mod.code, "access_level", v)}
-                                disabled={!canManageRoles}
-                              >
-                                <SelectTrigger className="w-40">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {ACCESS_LEVELS.map((level) => (
-                                    <SelectItem key={level.value} value={level.value}>
-                                      {level.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Checkbox
-                                checked={perm.can_post}
-                                onCheckedChange={(v) => updatePermission(mod.code, "can_post", !!v)}
-                                disabled={!canManageRoles || perm.access_level === "none"}
-                              />
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Checkbox
-                                checked={perm.can_unpost}
-                                onCheckedChange={(v) => updatePermission(mod.code, "can_unpost", !!v)}
-                                disabled={!canManageRoles || perm.access_level === "none"}
-                              />
-                            </TableCell>
-                          </TableRow>
+                          <React.Fragment key={mod.code}>
+                            <TableRow>
+                              <TableCell className="pl-8">{mod.name}</TableCell>
+                              <TableCell>
+                                <Select
+                                  value={perm.access_level}
+                                  onValueChange={(v) => updatePermission(mod.code, "access_level", v)}
+                                  disabled={!canManageRoles}
+                                >
+                                  <SelectTrigger className="w-40">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {ACCESS_LEVELS.map((level) => (
+                                      <SelectItem key={level.value} value={level.value}>
+                                        {level.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Checkbox
+                                  checked={perm.can_post}
+                                  onCheckedChange={(v) => updatePermission(mod.code, "can_post", !!v)}
+                                  disabled={!canManageRoles || perm.access_level === "none"}
+                                />
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Checkbox
+                                  checked={perm.can_unpost}
+                                  onCheckedChange={(v) => updatePermission(mod.code, "can_unpost", !!v)}
+                                  disabled={!canManageRoles || perm.access_level === "none"}
+                                />
+                              </TableCell>
+                            </TableRow>
+                            {mod.children?.map((subMod) => {
+                              const subPerm = permissionsMap[subMod.code] || {
+                                access_level: "none",
+                                can_post: false,
+                                can_unpost: false,
+                              };
+                              return (
+                                <TableRow key={subMod.code} className="bg-muted/20">
+                                  <TableCell className="pl-14 text-sm text-muted-foreground">↳ {subMod.name}</TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value={subPerm.access_level}
+                                      onValueChange={(v) => updatePermission(subMod.code, "access_level", v)}
+                                      disabled={!canManageRoles}
+                                    >
+                                      <SelectTrigger className="w-40">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {ACCESS_LEVELS.map((level) => (
+                                          <SelectItem key={level.value} value={level.value}>
+                                            {level.label}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Checkbox
+                                      checked={subPerm.can_post}
+                                      onCheckedChange={(v) => updatePermission(subMod.code, "can_post", !!v)}
+                                      disabled={!canManageRoles || subPerm.access_level === "none"}
+                                    />
+                                  </TableCell>
+                                  <TableCell className="text-center">
+                                    <Checkbox
+                                      checked={subPerm.can_unpost}
+                                      onCheckedChange={(v) => updatePermission(subMod.code, "can_unpost", !!v)}
+                                      disabled={!canManageRoles || subPerm.access_level === "none"}
+                                    />
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </React.Fragment>
                         );
                       })}
                     </React.Fragment>
