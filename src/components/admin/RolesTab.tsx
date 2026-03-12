@@ -203,6 +203,13 @@ export function RolesTab() {
           can_post: level === "none" ? false : prev[child.code]?.can_post || false,
           can_unpost: level === "none" ? false : prev[child.code]?.can_unpost || false,
         };
+        child.children?.forEach((gc) => {
+          updated[gc.code] = {
+            access_level: level,
+            can_post: level === "none" ? false : prev[gc.code]?.can_post || false,
+            can_unpost: level === "none" ? false : prev[gc.code]?.can_unpost || false,
+          };
+        });
       });
       return updated;
     });
@@ -219,6 +226,12 @@ export function RolesTab() {
         if (current.access_level !== "none") {
           updated[child.code] = { ...current, can_post: value };
         }
+        child.children?.forEach((gc) => {
+          const gcCurrent = prev[gc.code] || { access_level: "none", can_post: false, can_unpost: false };
+          if (gcCurrent.access_level !== "none") {
+            updated[gc.code] = { ...gcCurrent, can_post: value };
+          }
+        });
       });
       return updated;
     });
@@ -235,6 +248,12 @@ export function RolesTab() {
         if (current.access_level !== "none") {
           updated[child.code] = { ...current, can_unpost: value };
         }
+        child.children?.forEach((gc) => {
+          const gcCurrent = prev[gc.code] || { access_level: "none", can_post: false, can_unpost: false };
+          if (gcCurrent.access_level !== "none") {
+            updated[gc.code] = { ...gcCurrent, can_unpost: value };
+          }
+        });
       });
       return updated;
     });
