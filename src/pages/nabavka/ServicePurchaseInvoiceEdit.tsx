@@ -147,6 +147,21 @@ export default function ServicePurchaseInvoiceEdit() {
     fetchCompanyData();
   }, [selectedCompany?.id]);
 
+  // Fetch linked payment order
+  const fetchLinkedPaymentOrder = useCallback(async () => {
+    if (!id) return;
+    const { data } = await supabase
+      .from("payment_orders" as any)
+      .select("id, status")
+      .eq("source_document_id", id)
+      .maybeSingle();
+    setLinkedPaymentOrder(data as any);
+  }, [id]);
+
+  useEffect(() => {
+    fetchLinkedPaymentOrder();
+  }, [fetchLinkedPaymentOrder]);
+
   // Recalculate totals when items change
   useEffect(() => {
     if (!invoice || invoice.status !== "draft") return;
