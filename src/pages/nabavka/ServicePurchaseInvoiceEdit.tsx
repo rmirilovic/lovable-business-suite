@@ -253,7 +253,7 @@ export default function ServicePurchaseInvoiceEdit() {
     // Create payment order if checkbox is checked
     if (createPaymentOrder && selectedCompany && user) {
       try {
-        await supabase
+        const { data: createdOrder, error: createOrderError } = await supabase
           .from("payment_orders" as any)
           .insert({
             company_id: selectedCompany.id,
@@ -275,7 +275,13 @@ export default function ServicePurchaseInvoiceEdit() {
             nbs_payment_code: "221",
             status: "draft",
             created_by: user.id,
-          } as any);
+          } as any)
+          .select("id, status")
+          .single();
+
+        if (createOrderError) throw createOrderError;
+
+        setLinkedPaymentOrder(createdOrder as any);
         toast.success("Nalog za plaćanje kreiran");
       } catch (e: any) {
         toast.error("Greška pri kreiranju naloga za plaćanje: " + e.message);
