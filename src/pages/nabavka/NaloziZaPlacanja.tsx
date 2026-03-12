@@ -39,7 +39,6 @@ import { SortableHeader } from "@/components/ui/sortable-header";
 import { useTableSort } from "@/hooks/useTableSort";
 import { usePaymentOrders, usePaymentOrderMutations, PaymentOrder } from "@/hooks/usePaymentOrders";
 import { PaymentOrderDialog } from "@/components/nabavka/PaymentOrderDialog";
-import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, formatDate } from "@/lib/formatting";
 import {
@@ -83,7 +82,6 @@ const STATUS_VARIANTS: Record<string, "default" | "secondary" | "destructive" | 
   paid: "default",
 };
 
-// Role-based views
 const ROLE_VIEWS = [
   { value: "all", label: "Svi nalozi" },
   { value: "approver", label: "Odobravanje" },
@@ -117,7 +115,6 @@ const STORAGE_KEY = "payment_orders_visible_columns";
 export default function NaloziZaPlacanja() {
   const { data: orders = [], isLoading, refetch } = usePaymentOrders();
   const { createMutation, updateMutation, deleteMutation, updateStatusMutation } = usePaymentOrderMutations();
-  const { hasAccess } = usePermissions();
   const { isSuperAdmin, isLocalAdmin } = useAuth();
 
   const [search, setSearch] = useState("");
@@ -130,7 +127,6 @@ export default function NaloziZaPlacanja() {
   const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
   const [splitConfirm, setSplitConfirm] = useState<{ order: PaymentOrder; newAmount: number } | null>(null);
 
-  // Column visibility
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -149,7 +145,6 @@ export default function NaloziZaPlacanja() {
     );
   };
 
-  // Role-based filtering
   const roleFilteredOrders = useMemo(() => {
     switch (roleView) {
       case "approver":
@@ -169,7 +164,6 @@ export default function NaloziZaPlacanja() {
     }
   }, [orders, roleView]);
 
-  // Status + search filter
   const filtered = useMemo(() => {
     return roleFilteredOrders.filter((o) => {
       if (statusFilter !== "all" && o.status !== statusFilter) return false;
@@ -187,7 +181,11 @@ export default function NaloziZaPlacanja() {
     });
   }, [roleFilteredOrders, statusFilter, search]);
 
-  const { sortedData, sortKey, sortDirection, handleSort } = useTableSort(filtered, "booking_date", "desc");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("booking_date", "desc");
+
+  const sortedData = sortItems(filtered, (item: PaymentOrder, col: string) => {
+    return (item as any)[col];
+  });
 
   const isAdmin = isSuperAdmin || isLocalAdmin;
   const canApprove = isAdmin || roleView === "approver" || roleView === "all";
@@ -226,9 +224,7 @@ export default function NaloziZaPlacanja() {
     if (newStatus === "approved" && order.approved_amount > 0) {
       const remaining = order.document_amount - order.previously_paid - order.approved_amount;
       if (remaining > 0.01) {
-        // Partial payment - offer to split
         setSplitConfirm({ order, newAmount: remaining });
-        // Still change status
       }
       updateStatusMutation.mutate({ id: order.id, status: newStatus });
     } else if (newStatus === "sent") {
@@ -289,10 +285,15 @@ export default function NaloziZaPlacanja() {
     return icons[current] || CheckCircle;
   };
 
+  const colCount = visibleColumns.length + 1;
+
+  const renderSortHeader = (col: string, label: string) => (
+    <SortableHeader column={col} label={label} sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+  );
+
   return (
-    <MainLayout>
+    <MainLayout title="Nalozi za plaćanja">
       <div className="space-y-4">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Nalozi za plaćanja</h1>
@@ -302,15 +303,9 @@ export default function NaloziZaPlacanja() {
             <Button variant="outline" size="sm" onClick={() => refetch()}>
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm">
-              <FileSpreadsheet className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="sm">
-              <FileText className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="sm">
-              <Printer className="w-4 h-4" />
-            </Button>
+            <Button variant="outline" size="sm"><FileSpreadsheet className="w-4 h-4" /></Button>
+            <Button variant="outline" size="sm"><FileText className="w-4 h-4" /></Button>
+            <Button variant="outline" size="sm"><Printer className="w-4 h-4" /></Button>
             {!isViewOnly && (
               <Button size="sm" onClick={handleCreate}>
                 <Plus className="w-4 h-4 mr-1" />
@@ -320,163 +315,70 @@ export default function NaloziZaPlacanja() {
           </div>
         </div>
 
-        {/* Filters */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Pretraži..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9"
-            />
+            <Input placeholder="Pretraži..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
           </div>
           <Select value={roleView} onValueChange={setRoleView}>
-            <SelectTrigger className="w-[180px] h-9">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {ROLE_VIEWS.map((r) => (
-                <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-              ))}
+              {ROLE_VIEWS.map((r) => (<SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>))}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px] h-9">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {STATUS_OPTIONS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
+              {STATUS_OPTIONS.map((s) => (<SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>))}
             </SelectContent>
           </Select>
           <DropdownMenu open={columnSettingsOpen} onOpenChange={setColumnSettingsOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Settings2 className="w-4 h-4 mr-1" />
-                Kolone
-              </Button>
+              <Button variant="outline" size="sm"><Settings2 className="w-4 h-4 mr-1" />Kolone</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               {ALL_COLUMNS.map((col) => (
                 <DropdownMenuItem key={col.key} onSelect={(e) => e.preventDefault()}>
                   <label className="flex items-center gap-2 cursor-pointer w-full">
-                    <Checkbox
-                      checked={visibleColumns.includes(col.key)}
-                      onCheckedChange={() => toggleColumn(col.key)}
-                    />
+                    <Checkbox checked={visibleColumns.includes(col.key)} onCheckedChange={() => toggleColumn(col.key)} />
                     <span className="text-sm">{col.label}</span>
                   </label>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <span className="text-sm text-muted-foreground ml-auto">
-            {sortedData.length} naloga
-          </span>
+          <span className="text-sm text-muted-foreground ml-auto">{sortedData.length} naloga</span>
         </div>
 
-        {/* Table */}
         <TableScrollContainer>
           <Table>
             <TableHeader>
               <TableRow>
-                {visibleColumns.includes("source_document_number") && (
-                  <TableHead style={{ width: 130 }}>
-                    <SortableHeader label="Int. dokument" sortKey="source_document_number" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("partner_name") && (
-                  <TableHead style={{ minWidth: 180 }}>
-                    <SortableHeader label="Partner" sortKey="partner_name" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("booking_date") && (
-                  <TableHead style={{ width: 90 }}>
-                    <SortableHeader label="Datum" sortKey="booking_date" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("supplier_document_number") && (
-                  <TableHead style={{ width: 130 }}>
-                    <SortableHeader label="Dok. dobavljača" sortKey="supplier_document_number" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("supplier_document_date") && (
-                  <TableHead style={{ width: 90 }}>
-                    <SortableHeader label="Dat. dok." sortKey="supplier_document_date" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("due_date") && (
-                  <TableHead style={{ width: 90 }}>
-                    <SortableHeader label="Valuta" sortKey="due_date" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("document_amount") && (
-                  <TableHead style={{ width: 110 }} className="text-right">
-                    <SortableHeader label="Iznos dok." sortKey="document_amount" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("previously_paid") && (
-                  <TableHead style={{ width: 110 }} className="text-right">
-                    <SortableHeader label="Preth. isplaćeno" sortKey="previously_paid" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("approved_amount") && (
-                  <TableHead style={{ width: 110 }} className="text-right">
-                    <SortableHeader label="Plaća se" sortKey="approved_amount" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("partner_bank_account") && (
-                  <TableHead><SortableHeader label="TR dobavljača" sortKey="partner_bank_account" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                )}
-                {visibleColumns.includes("payment_reference") && (
-                  <TableHead><SortableHeader label="Poziv na broj" sortKey="payment_reference" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                )}
-                {visibleColumns.includes("nbs_payment_code") && (
-                  <TableHead style={{ width: 80 }}>
-                    <SortableHeader label="NBS" sortKey="nbs_payment_code" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("status") && (
-                  <TableHead style={{ width: 90 }}>
-                    <SortableHeader label="Status" sortKey="status" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("approved_date") && (
-                  <TableHead style={{ width: 90 }}>
-                    <SortableHeader label="Odobren" sortKey="approved_date" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("sent_date") && (
-                  <TableHead style={{ width: 90 }}>
-                    <SortableHeader label="Poslat" sortKey="sent_date" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("paid_date") && (
-                  <TableHead style={{ width: 90 }}>
-                    <SortableHeader label="Plaćen" sortKey="paid_date" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} />
-                  </TableHead>
-                )}
-                {visibleColumns.includes("note") && (
-                  <TableHead><SortableHeader label="Napomena" sortKey="note" currentSortKey={sortKey} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                )}
+                {visibleColumns.includes("source_document_number") && <TableHead style={{ width: 130 }}>{renderSortHeader("source_document_number", "Int. dokument")}</TableHead>}
+                {visibleColumns.includes("partner_name") && <TableHead style={{ minWidth: 180 }}>{renderSortHeader("partner_name", "Partner")}</TableHead>}
+                {visibleColumns.includes("booking_date") && <TableHead style={{ width: 90 }}>{renderSortHeader("booking_date", "Datum")}</TableHead>}
+                {visibleColumns.includes("supplier_document_number") && <TableHead style={{ width: 130 }}>{renderSortHeader("supplier_document_number", "Dok. dobavljača")}</TableHead>}
+                {visibleColumns.includes("supplier_document_date") && <TableHead style={{ width: 90 }}>{renderSortHeader("supplier_document_date", "Dat. dok.")}</TableHead>}
+                {visibleColumns.includes("due_date") && <TableHead style={{ width: 90 }}>{renderSortHeader("due_date", "Valuta")}</TableHead>}
+                {visibleColumns.includes("document_amount") && <TableHead style={{ width: 110 }} className="text-right">{renderSortHeader("document_amount", "Iznos dok.")}</TableHead>}
+                {visibleColumns.includes("previously_paid") && <TableHead style={{ width: 110 }} className="text-right">{renderSortHeader("previously_paid", "Preth. isplaćeno")}</TableHead>}
+                {visibleColumns.includes("approved_amount") && <TableHead style={{ width: 110 }} className="text-right">{renderSortHeader("approved_amount", "Plaća se")}</TableHead>}
+                {visibleColumns.includes("partner_bank_account") && <TableHead>{renderSortHeader("partner_bank_account", "TR dobavljača")}</TableHead>}
+                {visibleColumns.includes("payment_reference") && <TableHead>{renderSortHeader("payment_reference", "Poziv na broj")}</TableHead>}
+                {visibleColumns.includes("nbs_payment_code") && <TableHead style={{ width: 80 }}>{renderSortHeader("nbs_payment_code", "NBS")}</TableHead>}
+                {visibleColumns.includes("status") && <TableHead style={{ width: 90 }}>{renderSortHeader("status", "Status")}</TableHead>}
+                {visibleColumns.includes("approved_date") && <TableHead style={{ width: 90 }}>{renderSortHeader("approved_date", "Odobren")}</TableHead>}
+                {visibleColumns.includes("sent_date") && <TableHead style={{ width: 90 }}>{renderSortHeader("sent_date", "Poslat")}</TableHead>}
+                {visibleColumns.includes("paid_date") && <TableHead style={{ width: 90 }}>{renderSortHeader("paid_date", "Plaćen")}</TableHead>}
+                {visibleColumns.includes("note") && <TableHead>{renderSortHeader("note", "Napomena")}</TableHead>}
                 <TableHead style={{ width: 50 }} />
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={visibleColumns.length + 1} className="text-center py-8 text-muted-foreground">
-                    Učitavanje...
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={colCount} className="text-center py-8 text-muted-foreground">Učitavanje...</TableCell></TableRow>
               ) : sortedData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={visibleColumns.length + 1} className="text-center py-8 text-muted-foreground">
-                    Nema naloga za plaćanje
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={colCount} className="text-center py-8 text-muted-foreground">Nema naloga za plaćanje</TableCell></TableRow>
               ) : (
                 sortedData.map((order) => {
                   const nextStatus = getNextStatus(order.status);
@@ -488,49 +390,23 @@ export default function NaloziZaPlacanja() {
 
                   return (
                     <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50" onDoubleClick={() => handleEdit(order)}>
-                      {visibleColumns.includes("source_document_number") && (
-                        <TableCell className="font-medium">{order.source_document_number || "-"}</TableCell>
-                      )}
+                      {visibleColumns.includes("source_document_number") && <TableCell className="font-medium">{order.source_document_number || "-"}</TableCell>}
                       {visibleColumns.includes("partner_name") && (
                         <TableCell>
-                          <div>
-                            <span className="font-medium">{order.partner_name}</span>
-                            {order.partner_code && (
-                              <span className="text-xs text-muted-foreground ml-1">({order.partner_code})</span>
-                            )}
-                          </div>
+                          <span className="font-medium">{order.partner_name}</span>
+                          {order.partner_code && <span className="text-xs text-muted-foreground ml-1">({order.partner_code})</span>}
                         </TableCell>
                       )}
-                      {visibleColumns.includes("booking_date") && (
-                        <TableCell>{formatDate(order.booking_date)}</TableCell>
-                      )}
-                      {visibleColumns.includes("supplier_document_number") && (
-                        <TableCell>{order.supplier_document_number || "-"}</TableCell>
-                      )}
-                      {visibleColumns.includes("supplier_document_date") && (
-                        <TableCell>{order.supplier_document_date ? formatDate(order.supplier_document_date) : "-"}</TableCell>
-                      )}
-                      {visibleColumns.includes("due_date") && (
-                        <TableCell>{order.due_date ? formatDate(order.due_date) : "-"}</TableCell>
-                      )}
-                      {visibleColumns.includes("document_amount") && (
-                        <TableCell className="text-right font-mono">{formatPrice(order.document_amount)}</TableCell>
-                      )}
-                      {visibleColumns.includes("previously_paid") && (
-                        <TableCell className="text-right font-mono">{formatPrice(order.previously_paid)}</TableCell>
-                      )}
-                      {visibleColumns.includes("approved_amount") && (
-                        <TableCell className="text-right font-mono font-medium">{formatPrice(order.approved_amount)}</TableCell>
-                      )}
-                      {visibleColumns.includes("partner_bank_account") && (
-                        <TableCell>{order.partner_bank_account || "-"}</TableCell>
-                      )}
-                      {visibleColumns.includes("payment_reference") && (
-                        <TableCell>{order.payment_reference || "-"}</TableCell>
-                      )}
-                      {visibleColumns.includes("nbs_payment_code") && (
-                        <TableCell>{order.nbs_payment_code || "-"}</TableCell>
-                      )}
+                      {visibleColumns.includes("booking_date") && <TableCell>{formatDate(order.booking_date)}</TableCell>}
+                      {visibleColumns.includes("supplier_document_number") && <TableCell>{order.supplier_document_number || "-"}</TableCell>}
+                      {visibleColumns.includes("supplier_document_date") && <TableCell>{order.supplier_document_date ? formatDate(order.supplier_document_date) : "-"}</TableCell>}
+                      {visibleColumns.includes("due_date") && <TableCell>{order.due_date ? formatDate(order.due_date) : "-"}</TableCell>}
+                      {visibleColumns.includes("document_amount") && <TableCell className="text-right font-mono">{formatPrice(order.document_amount)}</TableCell>}
+                      {visibleColumns.includes("previously_paid") && <TableCell className="text-right font-mono">{formatPrice(order.previously_paid)}</TableCell>}
+                      {visibleColumns.includes("approved_amount") && <TableCell className="text-right font-mono font-medium">{formatPrice(order.approved_amount)}</TableCell>}
+                      {visibleColumns.includes("partner_bank_account") && <TableCell>{order.partner_bank_account || "-"}</TableCell>}
+                      {visibleColumns.includes("payment_reference") && <TableCell>{order.payment_reference || "-"}</TableCell>}
+                      {visibleColumns.includes("nbs_payment_code") && <TableCell>{order.nbs_payment_code || "-"}</TableCell>}
                       {visibleColumns.includes("status") && (
                         <TableCell>
                           <Badge variant={STATUS_VARIANTS[order.status] || "secondary"}>
@@ -538,49 +414,32 @@ export default function NaloziZaPlacanja() {
                           </Badge>
                         </TableCell>
                       )}
-                      {visibleColumns.includes("approved_date") && (
-                        <TableCell>{order.approved_date ? formatDate(order.approved_date) : "-"}</TableCell>
-                      )}
-                      {visibleColumns.includes("sent_date") && (
-                        <TableCell>{order.sent_date ? formatDate(order.sent_date) : "-"}</TableCell>
-                      )}
-                      {visibleColumns.includes("paid_date") && (
-                        <TableCell>{order.paid_date ? formatDate(order.paid_date) : "-"}</TableCell>
-                      )}
-                      {visibleColumns.includes("note") && (
-                        <TableCell className="max-w-[150px] truncate">{order.note || "-"}</TableCell>
-                      )}
+                      {visibleColumns.includes("approved_date") && <TableCell>{order.approved_date ? formatDate(order.approved_date) : "-"}</TableCell>}
+                      {visibleColumns.includes("sent_date") && <TableCell>{order.sent_date ? formatDate(order.sent_date) : "-"}</TableCell>}
+                      {visibleColumns.includes("paid_date") && <TableCell>{order.paid_date ? formatDate(order.paid_date) : "-"}</TableCell>}
+                      {visibleColumns.includes("note") && <TableCell className="max-w-[150px] truncate">{order.note || "-"}</TableCell>}
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleView(order)}>
-                              <Eye className="w-4 h-4 mr-2" />
-                              Pregled
+                              <Eye className="w-4 h-4 mr-2" />Pregled
                             </DropdownMenuItem>
                             {!isViewOnly && order.status !== "paid" && (
                               <DropdownMenuItem onClick={() => handleEdit(order)}>
-                                <Edit className="w-4 h-4 mr-2" />
-                                Izmeni
+                                <Edit className="w-4 h-4 mr-2" />Izmeni
                               </DropdownMenuItem>
                             )}
                             {canAdvance && nextStatus && (
                               <DropdownMenuItem onClick={() => handleStatusChange(order, nextStatus)}>
-                                <NextIcon className="w-4 h-4 mr-2" />
-                                {getNextStatusLabel(order.status)}
+                                <NextIcon className="w-4 h-4 mr-2" />{getNextStatusLabel(order.status)}
                               </DropdownMenuItem>
                             )}
                             {canDelete && (order.status === "draft" || order.status === "approved") && (
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => setDeleteId(order.id)}
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Obriši
+                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(order.id)}>
+                                <Trash2 className="w-4 h-4 mr-2" />Obriši
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -595,52 +454,36 @@ export default function NaloziZaPlacanja() {
         </TableScrollContainer>
       </div>
 
-      {/* Dialog */}
-      <PaymentOrderDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        order={selectedOrder}
-        onSave={handleSave}
-        readOnly={readOnly}
-      />
+      <PaymentOrderDialog open={dialogOpen} onOpenChange={setDialogOpen} order={selectedOrder} onSave={handleSave} readOnly={readOnly} />
 
-      {/* Delete confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Brisanje naloga</AlertDialogTitle>
-            <AlertDialogDescription>
-              Da li ste sigurni da želite da obrišete ovaj nalog za plaćanje?
-            </AlertDialogDescription>
+            <AlertDialogDescription>Da li ste sigurni da želite da obrišete ovaj nalog za plaćanje?</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Otkaži</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deleteId) deleteMutation.mutate(deleteId);
-                setDeleteId(null);
-              }}
-            >
-              Obriši
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => { if (deleteId) deleteMutation.mutate(deleteId); setDeleteId(null); }}>Obriši</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Split confirmation */}
       <AlertDialog open={!!splitConfirm} onOpenChange={() => setSplitConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delimično plaćanje</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              {splitConfirm && (
-                <>
-                  <p>Ukupan iznos po dokumentu: <strong>{formatPrice(splitConfirm.order.document_amount)}</strong></p>
-                  <p>Prethodno na nalozima: <strong>{formatPrice(splitConfirm.order.previously_paid)}</strong></p>
-                  <p>Odobreno na ovoj stavci: <strong>{formatPrice(splitConfirm.order.approved_amount)}</strong></p>
-                  <p>Da li želite da se kreira novi nalog na iznos od <strong>{formatPrice(splitConfirm.newAmount)}</strong>?</p>
-                </>
-              )}
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                {splitConfirm && (
+                  <>
+                    <p>Ukupan iznos po dokumentu: <strong>{formatPrice(splitConfirm.order.document_amount)}</strong></p>
+                    <p>Prethodno na nalozima: <strong>{formatPrice(splitConfirm.order.previously_paid)}</strong></p>
+                    <p>Odobreno na ovoj stavci: <strong>{formatPrice(splitConfirm.order.approved_amount)}</strong></p>
+                    <p>Da li želite da se kreira novi nalog na iznos od <strong>{formatPrice(splitConfirm.newAmount)}</strong>?</p>
+                  </>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

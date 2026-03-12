@@ -32,16 +32,6 @@ export interface PaymentOrder {
   created_by: string;
   created_at: string;
   updated_at: string;
-  partner?: {
-    id: string;
-    name: string;
-    code: string;
-  } | null;
-  bank_account?: {
-    id: string;
-    bank_name: string;
-    account_number: string;
-  } | null;
 }
 
 export function usePaymentOrders() {
@@ -52,13 +42,13 @@ export function usePaymentOrders() {
     queryFn: async () => {
       if (!selectedCompany) return [];
       const { data, error } = await supabase
-        .from("payment_orders")
-        .select("*, partner:partners(id, name, code), bank_account:bank_accounts(id, bank_name, account_number)")
+        .from("payment_orders" as any)
+        .select("*")
         .eq("company_id", selectedCompany.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as unknown as PaymentOrder[];
+      return (data || []) as unknown as PaymentOrder[];
     },
     enabled: !!selectedCompany,
   });
@@ -73,12 +63,12 @@ export function usePaymentOrderMutations() {
     mutationFn: async (order: Partial<PaymentOrder>) => {
       if (!selectedCompany || !user) throw new Error("No company/user");
       const { data, error } = await supabase
-        .from("payment_orders")
+        .from("payment_orders" as any)
         .insert({
           ...order,
           company_id: selectedCompany.id,
           created_by: user.id,
-        } as any)
+        })
         .select()
         .single();
       if (error) throw error;
@@ -94,8 +84,8 @@ export function usePaymentOrderMutations() {
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<PaymentOrder> & { id: string }) => {
       const { data, error } = await supabase
-        .from("payment_orders")
-        .update({ ...updates, updated_at: new Date().toISOString() } as any)
+        .from("payment_orders" as any)
+        .update({ ...updates, updated_at: new Date().toISOString() })
         .eq("id", id)
         .select()
         .single();
@@ -112,7 +102,7 @@ export function usePaymentOrderMutations() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("payment_orders")
+        .from("payment_orders" as any)
         .delete()
         .eq("id", id);
       if (error) throw error;
@@ -138,8 +128,8 @@ export function usePaymentOrderMutations() {
       if (extra) Object.assign(updates, extra);
       
       const { data, error } = await supabase
-        .from("payment_orders")
-        .update(updates as any)
+        .from("payment_orders" as any)
+        .update(updates)
         .eq("id", id)
         .select()
         .single();

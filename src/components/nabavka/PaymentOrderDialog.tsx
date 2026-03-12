@@ -20,6 +20,7 @@ import {
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { usePartners } from "@/hooks/usePartners";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
+import { useAuth } from "@/contexts/AuthContext";
 import { PaymentOrder } from "@/hooks/usePaymentOrders";
 import { formatPrice } from "@/lib/formatting";
 
@@ -37,20 +38,10 @@ const NBS_CODES = [
   { code: "222", name: "Usluge javnih preduzeća" },
   { code: "223", name: "Zakupnine" },
   { code: "224", name: "Članarine" },
-  { code: "225", name: "Promet HOV i udelima" },
-  { code: "226", name: "Subvencije, regres i sl." },
-  { code: "227", name: "Stipendije i krediti za školovanje" },
   { code: "240", name: "Zarade i druga primanja zaposlenih" },
-  { code: "241", name: "Privremeni i povremeni poslovi" },
-  { code: "242", name: "Ugovor o delu" },
-  { code: "243", name: "Autorski honorar" },
-  { code: "244", name: "Dopunski rad" },
-  { code: "245", name: "Naknade članovima UO i NO" },
-  { code: "246", name: "Volonterski rad" },
   { code: "253", name: "Porez na dobit preduzeća" },
   { code: "254", name: "Porez na promet" },
   { code: "260", name: "Premije osiguranja" },
-  { code: "261", name: "Naknade šteta iz osiguranja" },
   { code: "265", name: "Kratkoročni krediti" },
   { code: "266", name: "Dugoročni krediti" },
   { code: "270", name: "Komunalne usluge" },
@@ -65,8 +56,9 @@ export function PaymentOrderDialog({
   onSave,
   readOnly = false,
 }: PaymentOrderDialogProps) {
-  const { data: partners = [] } = usePartners();
-  const { data: bankAccounts = [] } = useBankAccounts();
+  const { selectedCompany } = useAuth();
+  const { partners } = usePartners();
+  const { bankAccounts } = useBankAccounts(selectedCompany?.id);
 
   const [form, setForm] = useState<Partial<PaymentOrder>>({
     booking_date: new Date().toISOString().split("T")[0],
@@ -94,9 +86,7 @@ export function PaymentOrderDialog({
   const remaining = (form.document_amount || 0) - (form.previously_paid || 0);
 
   const handleSave = () => {
-    if (!form.partner_id) {
-      return;
-    }
+    if (!form.partner_id) return;
     onSave(form);
     onOpenChange(false);
   };
@@ -133,7 +123,6 @@ export function PaymentOrderDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4">
-          {/* Partner */}
           <div className="col-span-2">
             <Label>Partner</Label>
             <SearchablePartnerSelect
@@ -144,7 +133,6 @@ export function PaymentOrderDialog({
             />
           </div>
 
-          {/* Source document */}
           <div>
             <Label>Interni dokument</Label>
             <Input
@@ -242,7 +230,6 @@ export function PaymentOrderDialog({
             )}
           </div>
 
-          {/* Payment details */}
           <div>
             <Label>Tekući račun za uplatu (dobavljača)</Label>
             <Input
@@ -263,7 +250,7 @@ export function PaymentOrderDialog({
                 <SelectValue placeholder="Izaberite TR" />
               </SelectTrigger>
               <SelectContent>
-                {bankAccounts.map((ba) => (
+                {(bankAccounts || []).map((ba) => (
                   <SelectItem key={ba.id} value={ba.id}>
                     {ba.bank_name} - {ba.account_number}
                   </SelectItem>
@@ -301,7 +288,6 @@ export function PaymentOrderDialog({
             </Select>
           </div>
 
-          {/* Status dates */}
           {order && (
             <>
               {form.approved_date && (
