@@ -84,7 +84,6 @@ const navigation: NavItem[] = [
       { label: "UF za avanse", href: "/nabavka/ulazne-fakture-avansi", moduleCode: "nabavka.ulazne_fakture" },
       { label: "Primljena KO", href: "/nabavka/primljena-ko", moduleCode: "nabavka.ulazne_fakture" },
       { label: "Kalkulacije", href: "/magacin/kalkulacije", moduleCode: "robno.prijemnice" },
-      { label: "Nalozi za plaćanja", href: "/nabavka/nalozi-placanja", moduleCode: "nabavka.nalozi_placanja" },
       { label: "Narudžbenice", href: "/nabavka/narudzbenice", moduleCode: "nabavka.porudzbine" },
     ],
   },
