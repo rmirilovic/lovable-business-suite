@@ -398,7 +398,7 @@ export default function NaloziZaPlacanja() {
             <TableHeader>
               <TableRow>
                 {visibleColumns.includes("source_document_number") && <TableHead style={{ width: 130 }}>{renderSortHeader("source_document_number", "Int. dokument")}</TableHead>}
-                {visibleColumns.includes("partner_name") && <TableHead style={{ minWidth: 180 }}>{renderSortHeader("partner_name", "Partner")}</TableHead>}
+                {visibleColumns.includes("partner_name") && <TableHead style={{ minWidth: 540, width: "auto" }}>{renderSortHeader("partner_name", "Partner")}</TableHead>}
                 {visibleColumns.includes("booking_date") && <TableHead style={{ width: 90 }}>{renderSortHeader("booking_date", "Datum")}</TableHead>}
                 {visibleColumns.includes("supplier_document_number") && <TableHead style={{ width: 130 }}>{renderSortHeader("supplier_document_number", "Dok. dobavljača")}</TableHead>}
                 {visibleColumns.includes("supplier_document_date") && <TableHead style={{ width: 90 }}>{renderSortHeader("supplier_document_date", "Dat. dok.")}</TableHead>}
