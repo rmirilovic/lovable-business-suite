@@ -120,7 +120,7 @@ const STORAGE_KEY = "payment_orders_visible_columns";
 export default function NaloziZaPlacanja() {
   const { data: orders = [], isLoading, refetch } = usePaymentOrders();
   const { createMutation, updateMutation, deleteMutation, updateStatusMutation } = usePaymentOrderMutations();
-  const { isSuperAdmin, isLocalAdmin } = useAuth();
+  const { isSuperAdmin, isLocalAdmin, selectedCompany } = useAuth();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
