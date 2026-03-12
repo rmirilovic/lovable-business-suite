@@ -53,6 +53,7 @@ export default function GoodsPurchaseInvoiceEdit() {
   const [userAccessLevel, setUserAccessLevel] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
+  const [createPaymentOrder, setCreatePaymentOrder] = useState(true);
   const [companyData, setCompanyData] = useState<{
     name: string;
     address?: string | null;
