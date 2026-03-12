@@ -317,6 +317,7 @@ export default function ServicePurchaseInvoiceEdit() {
     if (!invoice) return;
     
     await unpostInvoice.mutateAsync(invoice.id);
+    setLinkedPaymentOrder(null);
     setUnpostDialogOpen(false);
     fetchInvoice(); // Refresh to get new status
   };
