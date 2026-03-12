@@ -250,6 +250,26 @@ export default function ServicePurchaseInvoiceEdit() {
     
     await postInvoice.mutateAsync(invoice.id);
     
+    // Always remove previous payment orders linked to this UFU to avoid duplicates on repost
+    if (selectedCompany?.id) {
+      const { error: cleanupError } = await supabase
+        .from("payment_orders" as any)
+        .delete()
+        .eq("company_id", selectedCompany.id)
+        .eq("source_document_type", "UFU")
+        .eq("source_document_id", invoice.id);
+
+      if (cleanupError) {
+        toast.error("Greška pri brisanju prethodnog naloga: " + cleanupError.message);
+        setPostDialogOpen(false);
+        fetchInvoice();
+        fetchLinkedPaymentOrder();
+        return;
+      }
+
+      setLinkedPaymentOrder(null);
+    }
+
     // Create payment order if checkbox is checked
     if (createPaymentOrder && selectedCompany && user) {
       try {
@@ -297,6 +317,7 @@ export default function ServicePurchaseInvoiceEdit() {
     if (!invoice) return;
     
     await unpostInvoice.mutateAsync(invoice.id);
+    setLinkedPaymentOrder(null);
     setUnpostDialogOpen(false);
     fetchInvoice(); // Refresh to get new status
   };

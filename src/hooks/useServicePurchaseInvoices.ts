@@ -266,6 +266,7 @@ export function useServicePurchaseInvoices() {
   const unpostInvoice = useMutation({
     mutationFn: async (invoiceId: string) => {
       if (!user?.id) throw new Error("Niste prijavljeni");
+      if (!selectedCompany?.id) throw new Error("Potrebno je izabrati firmu");
 
       // Check if this UFU is linked to any calculation
       const { data: links, error: linkError } = await supabase
@@ -279,6 +280,16 @@ export function useServicePurchaseInvoices() {
         throw new Error("Nije moguće poništiti knjiženje - UFU je povezan sa kalkulacijom. Prvo uklonite vezu sa kalkulacije.");
       }
 
+      // Remove all payment orders linked to this UFU before unposting
+      const { error: paymentOrderDeleteError } = await supabase
+        .from("payment_orders" as any)
+        .delete()
+        .eq("company_id", selectedCompany.id)
+        .eq("source_document_type", "UFU")
+        .eq("source_document_id", invoiceId);
+
+      if (paymentOrderDeleteError) throw paymentOrderDeleteError;
+
       const { data, error } = await supabase
         .rpc("unpost_service_purchase_invoice", {
           _invoice_id: invoiceId,
@@ -291,6 +302,7 @@ export function useServicePurchaseInvoices() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["service-purchase-invoices"] });
       queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["payment_orders", selectedCompany?.id] });
       toast.success("Knjiženje je poništeno - dokument je vraćen u nacrt");
     },
     onError: (error) => {
