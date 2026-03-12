@@ -307,7 +307,7 @@ export function PaymentOrderDialog({
               {form.paid_amount !== null && form.paid_amount !== undefined && form.status === "paid" && (
                 <div>
                   <Label>Plaćen iznos</Label>
-                  <LocaleNumberInput value={form.paid_amount} onChange={() => {}} disabled minimumFractionDigits={2} maximumFractionDigits={2} />
+                  <LocaleNumberInput value={String(form.paid_amount)} onChange={() => {}} disabled decimalPlaces={2} />
                 </div>
               )}
             </>
