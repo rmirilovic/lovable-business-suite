@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History, Eye } from "lucide-react";
+import { Loader2, Pencil, BookCheck, FileText, FileSpreadsheet, Printer, Undo2, ArrowLeft, RefreshCw, History, Eye, CreditCard } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { GoodsPurchaseInvoice, useGoodsPurchaseInvoiceItems, useGoodsPurchaseInvoices } from "@/hooks/useGoodsPurchaseInvoices";
@@ -41,6 +41,13 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive"> = 
   cancelled: "destructive",
 };
 
+const paymentOrderStatusLabels: Record<string, string> = {
+  draft: "Nacrt",
+  approved: "Odobren",
+  sent: "Poslat",
+  paid: "Plaćen",
+};
+
 export default function GoodsPurchaseInvoiceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -55,6 +62,7 @@ export default function GoodsPurchaseInvoiceEdit() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [createPaymentOrder, setCreatePaymentOrder] = useState(true);
+  const [linkedPaymentOrder, setLinkedPaymentOrder] = useState<{ id: string; status: string } | null>(null);
   const [companyData, setCompanyData] = useState<{
     name: string;
     address?: string | null;
