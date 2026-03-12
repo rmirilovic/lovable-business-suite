@@ -58,6 +58,7 @@ export default function ServicePurchaseInvoiceEdit() {
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [createPaymentOrder, setCreatePaymentOrder] = useState(true);
+  const [linkedPaymentOrder, setLinkedPaymentOrder] = useState<{ id: string; status: string } | null>(null);
   const [userAccessLevel, setUserAccessLevel] = useState<string | null>(null);
   const [companyData, setCompanyData] = useState<{
     name: string;
