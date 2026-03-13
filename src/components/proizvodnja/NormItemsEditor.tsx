@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
 import { Plus, Trash2 } from "lucide-react";
 
 interface NormItemsEditorProps {
@@ -72,7 +72,6 @@ export function NormItemsEditor({ variantId, companyId, readOnly = false }: Norm
     value: string
   ) => {
     // Parse locale number
-    const { parseLocaleNumber } = await import("@/lib/formatting");
     const numVal = parseLocaleNumber(value);
 
     const { error } = await supabase
