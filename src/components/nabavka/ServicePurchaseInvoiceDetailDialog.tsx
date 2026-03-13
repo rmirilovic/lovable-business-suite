@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +71,6 @@ export function ServicePurchaseInvoiceDetailDialog({
     if (!open || !selectedCompany?.id) return;
     
     const fetchCompanyData = async () => {
-      const { supabase } = await import("@/integrations/supabase/client");
       const { data } = await supabase
         .from("companies")
         .select("name, address, city, postal_code, pib, mb, phone, email")
