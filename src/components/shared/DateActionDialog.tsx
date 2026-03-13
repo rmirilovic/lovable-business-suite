@@ -22,12 +22,14 @@ interface Props {
 export function DateActionDialog({
   open, onOpenChange, title, label, defaultDate, minDate, minDateMessage, onConfirm, isPending,
 }: Props) {
-  const [date, setDate] = useState(defaultDate || format(new Date(), "yyyy-MM-dd"));
+  const [openCount, setOpenCount] = useState(0);
+  const [date, setDate] = useState(() => defaultDate || format(new Date(), "yyyy-MM-dd"));
 
   // Reset date every time dialog opens
   useEffect(() => {
     if (open) {
       setDate(defaultDate || format(new Date(), "yyyy-MM-dd"));
+      setOpenCount((c) => c + 1);
     }
   }, [open, defaultDate]);
 
@@ -40,7 +42,7 @@ export function DateActionDialog({
         <div className="space-y-3 py-2">
           <div className="space-y-1">
             <Label>{label}</Label>
-            <LocaleDateInput value={date} onChange={setDate} />
+            <LocaleDateInput key={openCount} value={date} onChange={setDate} />
           </div>
           {minDate && date && date < minDate && (
             <p className="text-sm text-destructive">
