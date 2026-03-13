@@ -482,7 +482,7 @@ export default function NaloziZaPlacanja() {
                       {visibleColumns.includes("sent_date") && <TableCell>{order.sent_date ? formatDate(order.sent_date) : "-"}</TableCell>}
                       {visibleColumns.includes("paid_date") && <TableCell>{order.paid_date ? formatDate(order.paid_date) : "-"}</TableCell>}
                       {visibleColumns.includes("note") && <TableCell className="max-w-[150px] truncate">{order.note || "-"}</TableCell>}
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
