@@ -72,7 +72,6 @@ export function NormItemsEditor({ variantId, companyId, readOnly = false }: Norm
     value: string
   ) => {
     // Parse locale number
-    const { parseLocaleNumber } = await import("@/lib/formatting");
     const numVal = parseLocaleNumber(value);
 
     const { error } = await supabase
