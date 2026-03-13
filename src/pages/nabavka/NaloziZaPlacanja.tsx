@@ -260,12 +260,9 @@ export default function NaloziZaPlacanja() {
   };
 
   const handleStatusChange = (order: PaymentOrder, newStatus: string) => {
-    if (newStatus === "approved" && order.approved_amount > 0) {
-      const remaining = order.document_amount - order.previously_paid - order.approved_amount;
-      if (remaining > 0.01) {
-        setSplitConfirm({ order, newAmount: remaining });
-      }
-      updateStatusMutation.mutate({ id: order.id, status: newStatus });
+    if (newStatus === "approved") {
+      setApproveOrder(order);
+      return;
     } else if (newStatus === "sent") {
       if (!order.bank_account_id) {
         toast.error("Potrebno je izabrati tekući račun pre slanja naloga");
@@ -282,6 +279,20 @@ export default function NaloziZaPlacanja() {
     } else {
       updateStatusMutation.mutate({ id: order.id, status: newStatus });
     }
+  };
+
+  const handleApproveConfirm = (approvedDate: string) => {
+    if (!approveOrder) return;
+    const remaining = approveOrder.document_amount - approveOrder.previously_paid - approveOrder.approved_amount;
+    if (approveOrder.approved_amount > 0 && remaining > 0.01) {
+      setSplitConfirm({ order: approveOrder, newAmount: remaining });
+    }
+    updateStatusMutation.mutate({
+      id: approveOrder.id,
+      status: "approved",
+      extra: { approved_date: approvedDate },
+    });
+    setApproveOrder(null);
   };
 
   const handleSplitConfirm = () => {
