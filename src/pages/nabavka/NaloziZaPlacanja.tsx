@@ -538,6 +538,7 @@ export default function NaloziZaPlacanja() {
         onOpenChange={(v) => { if (!v) setApproveOrder(null); }}
         title="Odobri nalog za plaćanje"
         label="Datum odobravanja"
+        defaultDate={approveOrder?.approved_date || new Date().toISOString().split("T")[0]}
         onConfirm={handleApproveConfirm}
       />
 
