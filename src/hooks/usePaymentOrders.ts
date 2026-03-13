@@ -118,7 +118,7 @@ export function usePaymentOrderMutations() {
     mutationFn: async ({ id, status, extra }: { id: string; status: string; extra?: Record<string, any> }) => {
       const updates: Record<string, any> = { status, updated_at: new Date().toISOString() };
       if (status === "approved") {
-        updates.approved_date = new Date().toISOString().split("T")[0];
+        updates.approved_date = extra?.approved_date || new Date().toISOString().split("T")[0];
       } else if (status === "sent") {
         updates.sent_date = new Date().toISOString().split("T")[0];
       } else if (status === "paid") {
