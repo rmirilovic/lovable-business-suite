@@ -153,7 +153,8 @@ export default function NaloziZaPlacanja() {
   const [readOnly, setReadOnly] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
-  const [splitConfirm, setSplitConfirm] = useState<{ order: PaymentOrder; newAmount: number } | null>(null);
+   const [splitConfirm, setSplitConfirm] = useState<{ order: PaymentOrder; newAmount: number } | null>(null);
+  const [approveOrder, setApproveOrder] = useState<PaymentOrder | null>(null);
 
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     const defaultCols = ALL_COLUMNS.filter((c) => c.defaultVisible).map((c) => c.key);
