@@ -533,6 +533,14 @@ export default function NaloziZaPlacanja() {
 
       <PaymentOrderDialog open={dialogOpen} onOpenChange={setDialogOpen} order={selectedOrder} onSave={handleSave} readOnly={readOnly} />
 
+      <DateActionDialog
+        open={!!approveOrder}
+        onOpenChange={(v) => { if (!v) setApproveOrder(null); }}
+        title="Odobri nalog za plaćanje"
+        label="Datum odobravanja"
+        onConfirm={handleApproveConfirm}
+      />
+
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
