@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { DateActionDialog } from "@/components/shared/DateActionDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -152,7 +153,8 @@ export default function NaloziZaPlacanja() {
   const [readOnly, setReadOnly] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
-  const [splitConfirm, setSplitConfirm] = useState<{ order: PaymentOrder; newAmount: number } | null>(null);
+   const [splitConfirm, setSplitConfirm] = useState<{ order: PaymentOrder; newAmount: number } | null>(null);
+  const [approveOrder, setApproveOrder] = useState<PaymentOrder | null>(null);
 
   const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
     const defaultCols = ALL_COLUMNS.filter((c) => c.defaultVisible).map((c) => c.key);
@@ -258,12 +260,9 @@ export default function NaloziZaPlacanja() {
   };
 
   const handleStatusChange = (order: PaymentOrder, newStatus: string) => {
-    if (newStatus === "approved" && order.approved_amount > 0) {
-      const remaining = order.document_amount - order.previously_paid - order.approved_amount;
-      if (remaining > 0.01) {
-        setSplitConfirm({ order, newAmount: remaining });
-      }
-      updateStatusMutation.mutate({ id: order.id, status: newStatus });
+    if (newStatus === "approved") {
+      setApproveOrder(order);
+      return;
     } else if (newStatus === "sent") {
       if (!order.bank_account_id) {
         toast.error("Potrebno je izabrati tekući račun pre slanja naloga");
@@ -280,6 +279,20 @@ export default function NaloziZaPlacanja() {
     } else {
       updateStatusMutation.mutate({ id: order.id, status: newStatus });
     }
+  };
+
+  const handleApproveConfirm = (approvedDate: string) => {
+    if (!approveOrder) return;
+    const remaining = approveOrder.document_amount - approveOrder.previously_paid - approveOrder.approved_amount;
+    if (approveOrder.approved_amount > 0 && remaining > 0.01) {
+      setSplitConfirm({ order: approveOrder, newAmount: remaining });
+    }
+    updateStatusMutation.mutate({
+      id: approveOrder.id,
+      status: "approved",
+      extra: { approved_date: approvedDate },
+    });
+    setApproveOrder(null);
   };
 
   const handleSplitConfirm = () => {
@@ -519,6 +532,14 @@ export default function NaloziZaPlacanja() {
       </div>
 
       <PaymentOrderDialog open={dialogOpen} onOpenChange={setDialogOpen} order={selectedOrder} onSave={handleSave} readOnly={readOnly} />
+
+      <DateActionDialog
+        open={!!approveOrder}
+        onOpenChange={(v) => { if (!v) setApproveOrder(null); }}
+        title="Odobri nalog za plaćanje"
+        label="Datum odobravanja"
+        onConfirm={handleApproveConfirm}
+      />
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
