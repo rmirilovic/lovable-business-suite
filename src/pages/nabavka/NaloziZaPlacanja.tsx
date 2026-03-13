@@ -433,7 +433,13 @@ export default function NaloziZaPlacanja() {
                     (order.status === "sent" && canPay);
 
                   return (
-                    <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50" onDoubleClick={() => handleEdit(order)}>
+                    <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50" onClick={() => {
+                      if (canEdit && order.status !== "paid") {
+                        handleEdit(order);
+                      } else {
+                        handleView(order);
+                      }
+                    }}>
                       {visibleColumns.includes("source_document_number") && <TableCell className="font-medium">{order.source_document_number || "-"}</TableCell>}
                       {visibleColumns.includes("partner_name") && (
                         <TableCell>
