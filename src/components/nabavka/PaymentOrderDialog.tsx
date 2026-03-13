@@ -289,7 +289,11 @@ export function PaymentOrderDialog({
               {form.approved_date && (
                 <div>
                   <Label>Odobren za datum</Label>
-                  <LocaleDateInput value={form.approved_date} onChange={() => {}} disabled />
+                  <LocaleDateInput
+                    value={form.approved_date}
+                    onChange={(v) => setForm((f) => ({ ...f, approved_date: v }))}
+                    disabled={readOnly || form.status === "paid"}
+                  />
                 </div>
               )}
               {form.sent_date && (
