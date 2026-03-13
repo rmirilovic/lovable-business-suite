@@ -22,18 +22,16 @@ interface Props {
 export function DateActionDialog({
   open, onOpenChange, title, label, defaultDate, minDate, minDateMessage, onConfirm, isPending,
 }: Props) {
-  const [openCount, setOpenCount] = useState(0);
-  const [date, setDate] = useState(() => defaultDate || format(new Date(), "yyyy-MM-dd"));
+  const [date, setDate] = useState("");
 
-  // Reset date every time dialog opens
   useEffect(() => {
     if (open) {
-      setDate(defaultDate || format(new Date(), "yyyy-MM-dd"));
-      setOpenCount((c) => c + 1);
+      setDate(defaultDate && defaultDate.trim() ? defaultDate : format(new Date(), "yyyy-MM-dd"));
     }
   }, [open, defaultDate]);
 
-  const isValid = date && (!minDate || date >= minDate);
+  const effectiveDate = date || format(new Date(), "yyyy-MM-dd");
+  const isValid = effectiveDate && (!minDate || effectiveDate >= minDate);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,9 +40,9 @@ export function DateActionDialog({
         <div className="space-y-3 py-2">
           <div className="space-y-1">
             <Label>{label}</Label>
-            <LocaleDateInput key={openCount} value={date} onChange={setDate} />
+            <LocaleDateInput value={effectiveDate} onChange={setDate} />
           </div>
-          {minDate && date && date < minDate && (
+          {minDate && effectiveDate && effectiveDate < minDate && (
             <p className="text-sm text-destructive">
               {minDateMessage || `Datum ne može biti pre ${format(new Date(minDate), "dd.MM.yyyy")}`}
             </p>
@@ -52,7 +50,7 @@ export function DateActionDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Otkaži</Button>
-          <Button onClick={() => { onConfirm(date); onOpenChange(false); }} disabled={!isValid || isPending}>
+          <Button onClick={() => { onConfirm(effectiveDate); onOpenChange(false); }} disabled={!isValid || isPending}>
             Potvrdi
           </Button>
         </DialogFooter>
