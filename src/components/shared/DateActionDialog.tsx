@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -24,11 +24,12 @@ export function DateActionDialog({
 }: Props) {
   const [date, setDate] = useState(defaultDate || format(new Date(), "yyyy-MM-dd"));
 
-  // Reset date when dialog opens
-  const handleOpenChange = (v: boolean) => {
-    if (v) setDate(defaultDate || format(new Date(), "yyyy-MM-dd"));
-    onOpenChange(v);
-  };
+  // Reset date every time dialog opens
+  useEffect(() => {
+    if (open) {
+      setDate(defaultDate || format(new Date(), "yyyy-MM-dd"));
+    }
+  }, [open, defaultDate]);
 
   const isValid = date && (!minDate || date >= minDate);
 
