@@ -142,7 +142,6 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
       const quantity = parseLocaleNumber(pending.quantity);
       const maxQty = getMaxQuantity(item.article_id);
       if (quantity > maxQty) {
-        const { toast } = await import("sonner");
         toast.error(`Maksimalna količina za ovaj artikal je ${formatDecimal(maxQty, 3)} (stanje u magacinu)`);
         delete pending.quantity;
         return;
