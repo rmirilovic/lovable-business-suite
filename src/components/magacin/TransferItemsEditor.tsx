@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -102,7 +103,6 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
 
     const maxQty = getMaxQuantity(newItem.article_id);
     if (quantity > maxQty) {
-      const { toast } = await import("sonner");
       toast.error(`Maksimalna količina za ovaj artikal je ${formatDecimal(maxQty, 3)} (stanje u magacinu)`);
       return;
     }
@@ -142,7 +142,6 @@ export function TransferItemsEditor({ transferId, sourceWarehouseId, transferDat
       const quantity = parseLocaleNumber(pending.quantity);
       const maxQty = getMaxQuantity(item.article_id);
       if (quantity > maxQty) {
-        const { toast } = await import("sonner");
         toast.error(`Maksimalna količina za ovaj artikal je ${formatDecimal(maxQty, 3)} (stanje u magacinu)`);
         delete pending.quantity;
         return;
