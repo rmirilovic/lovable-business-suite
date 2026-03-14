@@ -108,6 +108,17 @@ export default function LikvidacijaPoste() {
             <h1 className="text-2xl font-bold text-foreground">Likvidacija dokumenta</h1>
             <p className="text-muted-foreground">Dokumenti dodeljeni vama na likvidaciju</p>
           </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportIncomingMailToExcel(filtered, { companyName: selectedCompany?.name ?? "" })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportIncomingMailToPdf(filtered, { companyName: selectedCompany?.name ?? "" })}>
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printIncomingMail(filtered, { companyName: selectedCompany?.name ?? "" })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-end gap-4">
