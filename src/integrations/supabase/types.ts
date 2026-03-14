@@ -2649,6 +2649,118 @@ export type Database = {
           },
         ]
       }
+      incoming_mail: {
+        Row: {
+          amount: number | null
+          archive_label: string | null
+          attachment_name: string | null
+          attachment_path: string | null
+          business_year_id: string
+          company_id: string
+          cost_center_distribution: string | null
+          created_at: string
+          created_by: string
+          document_date: string
+          document_number: string
+          document_type: string
+          id: string
+          incorrect_reason: string | null
+          is_correct: boolean | null
+          liquidation_date: string | null
+          liquidator_name: string | null
+          liquidator_user_id: string | null
+          mail_number: string
+          note: string | null
+          partner_id: string | null
+          registration_date: string | null
+          sender_mb: string | null
+          sender_name: string
+          sender_pib: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          archive_label?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
+          business_year_id: string
+          company_id: string
+          cost_center_distribution?: string | null
+          created_at?: string
+          created_by: string
+          document_date: string
+          document_number: string
+          document_type: string
+          id?: string
+          incorrect_reason?: string | null
+          is_correct?: boolean | null
+          liquidation_date?: string | null
+          liquidator_name?: string | null
+          liquidator_user_id?: string | null
+          mail_number: string
+          note?: string | null
+          partner_id?: string | null
+          registration_date?: string | null
+          sender_mb?: string | null
+          sender_name: string
+          sender_pib?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          archive_label?: string | null
+          attachment_name?: string | null
+          attachment_path?: string | null
+          business_year_id?: string
+          company_id?: string
+          cost_center_distribution?: string | null
+          created_at?: string
+          created_by?: string
+          document_date?: string
+          document_number?: string
+          document_type?: string
+          id?: string
+          incorrect_reason?: string | null
+          is_correct?: boolean | null
+          liquidation_date?: string | null
+          liquidator_name?: string | null
+          liquidator_user_id?: string | null
+          mail_number?: string
+          note?: string | null
+          partner_id?: string | null
+          registration_date?: string | null
+          sender_mb?: string | null
+          sender_name?: string
+          sender_pib?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incoming_mail_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_mail_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incoming_mail_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       input_costs: {
         Row: {
           account_code: string
