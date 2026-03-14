@@ -413,7 +413,7 @@ export default function IncomingMailEdit() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Iznos{requiresAmount ? " *" : ""}</Label>
-                <LocaleNumberInput value={amount} onChange={setAmount} minimumFractionDigits={2} maximumFractionDigits={2} />
+                <LocaleNumberInput value={amount} onChange={setAmount} />
               </div>
               <div className="space-y-2">
                 <Label>Napomena (max 127)</Label>
