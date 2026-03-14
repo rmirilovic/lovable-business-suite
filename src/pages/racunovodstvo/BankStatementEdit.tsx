@@ -30,7 +30,7 @@ import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Partner } from "@/components/ui/searchable-partner-select";
 import { format } from "date-fns";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";

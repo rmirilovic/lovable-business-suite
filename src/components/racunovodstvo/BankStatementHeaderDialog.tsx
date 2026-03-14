@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
 import { BankStatement, useBankStatementMutations, useBankStatements } from "@/hooks/useBankStatements";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";

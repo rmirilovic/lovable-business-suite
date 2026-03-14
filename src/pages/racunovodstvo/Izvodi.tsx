@@ -30,7 +30,7 @@ import { Plus, Trash2, Search, FileText, FileSpreadsheet, Printer, MoreHorizonta
 import { useBankStatements, useBankStatementMutations } from "@/hooks/useBankStatements";
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatNumber, formatDate } from "@/lib/formatting";
+import { formatNumber, formatDate, parseLocaleNumber } from "@/lib/formatting";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import {

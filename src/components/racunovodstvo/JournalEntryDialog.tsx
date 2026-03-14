@@ -30,7 +30,7 @@ import {
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 
