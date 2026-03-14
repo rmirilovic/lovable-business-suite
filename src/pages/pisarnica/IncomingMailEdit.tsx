@@ -366,7 +366,7 @@ export default function IncomingMailEdit() {
 
         {/* Editable form for draft */}
         {isDraft && (
-          <div className="space-y-4 bg-muted/30 p-4 rounded-lg">
+          <div className="space-y-4 bg-muted/30 p-4 rounded-lg overflow-visible">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Vrsta dokumenta *</Label>
