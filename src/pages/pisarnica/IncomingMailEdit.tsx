@@ -423,10 +423,10 @@ export default function IncomingMailEdit() {
 
             <Separator />
 
-            {/* Attachment section */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Prilog</Label>
+            {/* Attachment + Correctness row */}
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
+                <Label className="text-sm font-medium">Prilog:</Label>
                 {!mail.attachment_path ? (
                   <Button variant="outline" size="sm" asChild>
                     <label className="cursor-pointer">
@@ -455,12 +455,6 @@ export default function IncomingMailEdit() {
                   </>
                 )}
               </div>
-            </div>
-
-            <Separator />
-
-            {/* Correctness & Registration section */}
-            <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="is_correct"
@@ -469,62 +463,64 @@ export default function IncomingMailEdit() {
                 />
                 <Label htmlFor="is_correct" className="font-medium">Dokument je ispravan</Label>
               </div>
-
-              {!isCorrect && (
-                <div className="space-y-2 ml-6">
-                  <Label>Zašto je dokument neispravan? *</Label>
-                  <Textarea
-                    value={incorrectReason}
-                    onChange={(e) => setIncorrectReason(e.target.value)}
-                    placeholder="Obrazložite zašto je dokument neispravan..."
-                  />
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => {
-                      setCancelReason(incorrectReason);
-                      setCancelDialogOpen(true);
-                    }}
-                    disabled={incorrectReason.trim().length < 10}
-                  >
-                    Storniraj dokument
-                  </Button>
-                </div>
-              )}
-
-              {isCorrect && (
-                <div className="space-y-4 border-t pt-4">
-                  <div className="space-y-2 relative z-50">
-                    <Label>Prosleđuje se na likvidaciju: *</Label>
-                    <Select value={liquidatorUserId} onValueChange={setLiquidatorUserId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Izaberite likvidatora..." />
-                      </SelectTrigger>
-                      <SelectContent position="popper" side="top" className="max-h-60 overflow-y-auto z-[9999]">
-                        {companyUsers.length === 0 ? (
-                          <SelectItem value="__no-users" disabled>
-                            Nema dostupnih operatera
-                          </SelectItem>
-                        ) : (
-                          companyUsers.map((u) => (
-                            <SelectItem key={u.id} value={u.id}>
-                              {u.first_name} {u.last_name} ({u.email})
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={() => setRegisterDialogOpen(true)}
-                    disabled={!liquidatorUserId || !isCorrect}
-                  >
-                    <BookCheck className="w-4 h-4 mr-2" />Zavedi dokument
-                  </Button>
-                </div>
-              )}
             </div>
+
+            <Separator />
+
+            {!isCorrect && (
+              <div className="space-y-2 ml-6">
+                <Label>Zašto je dokument neispravan? *</Label>
+                <Textarea
+                  value={incorrectReason}
+                  onChange={(e) => setIncorrectReason(e.target.value)}
+                  placeholder="Obrazložite zašto je dokument neispravan..."
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    setCancelReason(incorrectReason);
+                    setCancelDialogOpen(true);
+                  }}
+                  disabled={incorrectReason.trim().length < 10}
+                >
+                  Storniraj dokument
+                </Button>
+              </div>
+            )}
+
+            {isCorrect && (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 relative z-50">
+                  <Label className="whitespace-nowrap">Prosleđuje se na likvidaciju: *</Label>
+                  <Select value={liquidatorUserId} onValueChange={setLiquidatorUserId}>
+                    <SelectTrigger className="w-[300px]">
+                      <SelectValue placeholder="Izaberite likvidatora..." />
+                    </SelectTrigger>
+                    <SelectContent position="popper" side="top" className="max-h-60 overflow-y-auto z-[9999]">
+                      {companyUsers.length === 0 ? (
+                        <SelectItem value="__no-users" disabled>
+                          Nema dostupnih operatera
+                        </SelectItem>
+                      ) : (
+                        companyUsers.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.first_name} {u.last_name} ({u.email})
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setRegisterDialogOpen(true)}
+                  disabled={!liquidatorUserId || !isCorrect}
+                >
+                  <BookCheck className="w-4 h-4 mr-2" />Zavedi dokument
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
