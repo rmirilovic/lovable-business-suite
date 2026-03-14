@@ -81,7 +81,7 @@ export default function IncomingMailEdit() {
     setDocumentDate(m.document_date);
     setPartnerId(m.partner_id);
     setSenderName(m.sender_name);
-    setAmount(m.amount);
+    setAmount(m.amount != null ? String(m.amount) : "");
     setNote(m.note || "");
     setIsCorrect(m.is_correct);
     setIncorrectReason(m.incorrect_reason || "");
