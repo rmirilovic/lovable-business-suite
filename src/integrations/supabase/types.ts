@@ -7858,6 +7858,7 @@ export type Database = {
         | "finansije"
         | "racunovodstvo"
         | "administracija"
+        | "pisarnica"
       sales_document_type: "quote" | "invoice" | "delivery_note"
       svk_type: "0" | "1" | "2" | "6" | "8" | "9"
       warehouse_type: "1" | "2" | "6" | "9" | "12"
@@ -8010,6 +8011,7 @@ export const Constants = {
         "finansije",
         "racunovodstvo",
         "administracija",
+        "pisarnica",
       ],
       sales_document_type: ["quote", "invoice", "delivery_note"],
       svk_type: ["0", "1", "2", "6", "8", "9"],
