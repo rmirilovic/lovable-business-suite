@@ -128,6 +128,21 @@ export default function ZavodjenjePoste() {
             </Select>
           </div>
           <div className="space-y-1">
+            <Label className="text-xs">Likvidator</Label>
+            <Select value={liquidatorFilter} onValueChange={setLiquidatorFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                <SelectItem value="none">Bez likvidatora</SelectItem>
+                {liquidators.map(([id, name]) => (
+                  <SelectItem key={id} value={id}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
             <Label className="text-xs">Datum od</Label>
             <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
           </div>
