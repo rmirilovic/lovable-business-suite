@@ -58,13 +58,17 @@ export default function ZavodjenjePoste() {
         d.mail_number.toLowerCase().includes(q) ||
         d.document_number.toLowerCase().includes(q) ||
         d.sender_name.toLowerCase().includes(q);
+      const matchLiquidator =
+        liquidatorFilter === "all" ||
+        (liquidatorFilter === "none" ? !d.liquidator_user_id : d.liquidator_user_id === liquidatorFilter);
       return (
         matchSearch &&
+        matchLiquidator &&
         (!dateFrom || d.document_date >= dateFrom) &&
         (!dateTo || d.document_date <= dateTo)
       );
     });
-  }, [mails, searchTerm, dateFrom, dateTo]);
+  }, [mails, searchTerm, dateFrom, dateTo, liquidatorFilter]);
 
   const handleDelete = async () => {
     if (!docToDelete) return;
