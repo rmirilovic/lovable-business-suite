@@ -81,10 +81,10 @@ export function UserRolesTab() {
 
   const canManageRoles = isSuperAdmin || isLocalAdmin;
 
-  const handleOpenDialog = (userId?: string) => {
+  const handleOpenDialog = (userId?: string, roleId?: string, orgUnitId?: string) => {
     setSelectedUserId(userId || "");
-    setSelectedRoleId("");
-    setSelectedOrgUnitId("");
+    setSelectedRoleId(roleId || "");
+    setSelectedOrgUnitId(orgUnitId || "");
     setPrefilledUserName(userId ? getUserDisplayName(profiles?.find(p => p.id === userId)) : "");
     setIsDialogOpen(true);
   };
