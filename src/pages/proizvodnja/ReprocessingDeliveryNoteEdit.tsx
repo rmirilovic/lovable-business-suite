@@ -24,7 +24,7 @@ import { useReprocessingWorkOrders } from "@/hooks/useReprocessingWorkOrders";
 import { useShiftManagers } from "@/hooks/useShiftManagers";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
