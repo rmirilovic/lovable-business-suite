@@ -497,7 +497,7 @@ export default function IncomingMailEdit() {
                     <SelectTrigger className="w-[300px]">
                       <SelectValue placeholder="Izaberite likvidatora..." />
                     </SelectTrigger>
-                    <SelectContent position="popper" side="top" className="max-h-60 overflow-y-auto z-[9999]">
+                    <SelectContent position="popper" side="bottom" className="max-h-60 overflow-y-auto z-[9999]">
                       {companyUsers.length === 0 ? (
                         <SelectItem value="__no-users" disabled>
                           Nema dostupnih operatera
