@@ -503,7 +503,7 @@ export default function IncomingMailEdit() {
                 <div className="flex items-center gap-2 relative z-50">
                   <Label className="whitespace-nowrap">Prosleđuje se na likvidaciju: *</Label>
                   <Select value={liquidatorUserId} onValueChange={setLiquidatorUserId}>
-                    <SelectTrigger className="w-[300px]">
+                    <SelectTrigger className="w-[350px]">
                       <SelectValue placeholder="Izaberite likvidatora..." />
                     </SelectTrigger>
                     <SelectContent position="popper" side="bottom" className="max-h-60 overflow-y-auto z-[9999]">
