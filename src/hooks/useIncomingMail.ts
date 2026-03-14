@@ -187,62 +187,52 @@ export function useCompanyUsers() {
     queryKey: ["company-users", selectedCompany?.id],
     queryFn: async () => {
       if (!selectedCompany?.id) return [];
-      
-      const uniqueUsers = new Map<string, { id: string; first_name: string; last_name: string; email: string }>();
 
-      // 1. Users with role assignments for this company
-      const { data: roleData } = await supabase
-        .from("user_role_assignments")
-        .select("user_id, profiles!inner(id, first_name, last_name, email)")
-        .eq("company_id", selectedCompany.id)
-        .eq("is_active", true);
-      for (const row of roleData || []) {
-        const p = row.profiles as any;
-        if (p && !uniqueUsers.has(row.user_id)) {
-          uniqueUsers.set(row.user_id, {
-            id: row.user_id,
-            first_name: p.first_name || "",
-            last_name: p.last_name || "",
-            email: p.email || "",
-          });
-        }
-      }
+      const [roleAssignmentsRes, userCompaniesRes, superAdminsRes] = await Promise.all([
+        supabase
+          .from("user_role_assignments")
+          .select("user_id")
+          .eq("company_id", selectedCompany.id)
+          .eq("is_active", true),
+        supabase
+          .from("user_companies")
+          .select("user_id")
+          .eq("company_id", selectedCompany.id),
+        supabase
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "super_admin"),
+      ]);
 
-      // 2. Users from user_companies (local admins and others with company access)
-      const { data: companyData } = await supabase
-        .from("user_companies")
-        .select("user_id, profiles!inner(id, first_name, last_name, email)")
-        .eq("company_id", selectedCompany.id);
-      for (const row of companyData || []) {
-        const p = (row as any).profiles;
-        if (p && !uniqueUsers.has(row.user_id)) {
-          uniqueUsers.set(row.user_id, {
-            id: row.user_id,
-            first_name: p.first_name || "",
-            last_name: p.last_name || "",
-            email: p.email || "",
-          });
-        }
-      }
+      if (roleAssignmentsRes.error) throw roleAssignmentsRes.error;
+      if (userCompaniesRes.error) throw userCompaniesRes.error;
+      if (superAdminsRes.error) throw superAdminsRes.error;
 
-      // 3. Super admins
-      const { data: superAdmins } = await supabase
-        .from("user_roles")
-        .select("user_id, profiles:user_id(id, first_name, last_name, email)")
-        .eq("role", "super_admin");
-      for (const row of superAdmins || []) {
-        const p = (row as any).profiles;
-        if (p && !uniqueUsers.has(row.user_id)) {
-          uniqueUsers.set(row.user_id, {
-            id: row.user_id,
-            first_name: p.first_name || "",
-            last_name: p.last_name || "",
-            email: p.email || "",
-          });
-        }
-      }
+      const userIds = Array.from(
+        new Set([
+          ...(roleAssignmentsRes.data || []).map((row) => row.user_id),
+          ...(userCompaniesRes.data || []).map((row) => row.user_id),
+          ...(superAdminsRes.data || []).map((row) => row.user_id),
+        ].filter(Boolean))
+      );
 
-      return Array.from(uniqueUsers.values());
+      if (userIds.length === 0) return [];
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email")
+        .in("id", userIds);
+
+      if (profilesError) throw profilesError;
+
+      return (profiles || [])
+        .map((p) => ({
+          id: p.id,
+          first_name: p.first_name || "",
+          last_name: p.last_name || "",
+          email: p.email || "",
+        }))
+        .sort((a, b) => `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "sr"));
     },
     enabled: !!selectedCompany?.id,
   });
