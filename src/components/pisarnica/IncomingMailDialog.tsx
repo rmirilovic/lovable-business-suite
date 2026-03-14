@@ -201,8 +201,6 @@ export function IncomingMailDialog({ open, onOpenChange, onSaved }: Props) {
             <LocaleNumberInput
               value={amount}
               onChange={setAmount}
-              minimumFractionDigits={2}
-              maximumFractionDigits={2}
             />
           </div>
 
