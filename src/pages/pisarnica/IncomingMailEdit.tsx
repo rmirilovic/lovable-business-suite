@@ -133,7 +133,7 @@ export default function IncomingMailEdit() {
       toast.error("Unesite iznos dokumenta");
       return;
     }
-    const parsedAmount = amount ? parseFloat(amount.replace(/[^\d.-]/g, "")) : null;
+    const parsedAmount = amount ? parseFloat(amount.replace(/\./g, "").replace(",", ".")) : null;
 
     await updateMail.mutateAsync({
       id: mail.id,
