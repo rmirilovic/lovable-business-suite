@@ -13,7 +13,7 @@ import {
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIncomingMail, DOCUMENT_TYPES, DOCUMENT_TYPE_MAP, IncomingMail } from "@/hooks/useIncomingMail";
-import { usePartners } from "@/hooks/usePartners";
+import { usePartners, Partner } from "@/hooks/usePartners";
 import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
