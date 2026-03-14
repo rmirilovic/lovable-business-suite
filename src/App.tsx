@@ -537,6 +537,16 @@ const App = () => (
                   <LikvidacijaPoste />
                 </ProtectedRoute>
               } />
+              <Route path="/pisarnica/poslata-posta" element={
+                <ProtectedRoute>
+                  <ZavodjenjePoslatePoste />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/poslata-posta/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <OutgoingMailEdit />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
