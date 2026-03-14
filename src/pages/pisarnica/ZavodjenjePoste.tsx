@@ -26,6 +26,8 @@ import { IncomingMailDialog } from "@/components/pisarnica/IncomingMailDialog";
 import { formatDate, formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { exportIncomingMailToExcel, exportIncomingMailToPdf, printIncomingMail } from "@/lib/incomingMailListExportUtils";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 
 export default function ZavodjenjePoste() {
   const navigate = useNavigate();
@@ -40,7 +42,8 @@ export default function ZavodjenjePoste() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<IncomingMail | null>(null);
 
-  // Collect unique liquidators from current data for the filter
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+
   const liquidators = useMemo(() => {
     const map = new Map<string, string>();
     mails.forEach((m) => {
@@ -53,7 +56,7 @@ export default function ZavodjenjePoste() {
 
   const filtered = useMemo(() => {
     const q = searchTerm.toLowerCase();
-    return mails.filter((d) => {
+    const base = mails.filter((d) => {
       const matchSearch =
         d.mail_number.toLowerCase().includes(q) ||
         d.document_number.toLowerCase().includes(q) ||
@@ -68,7 +71,20 @@ export default function ZavodjenjePoste() {
         (!dateTo || d.document_date <= dateTo)
       );
     });
-  }, [mails, searchTerm, dateFrom, dateTo, liquidatorFilter]);
+    return sortItems(base, (item, col) => {
+      switch (col) {
+        case "mail_number": return item.mail_number;
+        case "document_date": return item.document_date;
+        case "document_type": return DOCUMENT_TYPE_MAP[item.document_type]?.label || item.document_type;
+        case "document_number": return item.document_number;
+        case "sender_name": return item.sender_name;
+        case "amount": return item.amount ?? 0;
+        case "liquidator_name": return item.liquidator_name ?? "";
+        case "status": return item.status;
+        default: return "";
+      }
+    });
+  }, [mails, searchTerm, dateFrom, dateTo, liquidatorFilter, sortItems]);
 
   const handleDelete = async () => {
     if (!docToDelete) return;
@@ -156,14 +172,14 @@ export default function ZavodjenjePoste() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Broj</TableHead>
-                <TableHead className="w-[100px]">Datum dok.</TableHead>
-                <TableHead>Vrsta</TableHead>
-                <TableHead>Broj dokumenta</TableHead>
-                <TableHead>Pošiljalac</TableHead>
-                <TableHead className="text-right w-[120px]">Iznos</TableHead>
-                <TableHead className="w-[150px]">Likvidator</TableHead>
-                <TableHead className="w-[110px]">Status</TableHead>
+                <TableHead className="w-[100px]"><SortableHeader column="mail_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[100px]"><SortableHeader column="document_date" label="Datum dok." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="document_type" label="Vrsta" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="document_number" label="Broj dokumenta" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader column="sender_name" label="Pošiljalac" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="text-right w-[120px]"><SortableHeader column="amount" label="Iznos" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                <TableHead className="w-[150px]"><SortableHeader column="liquidator_name" label="Likvidator" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="w-[110px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="w-[60px]"></TableHead>
               </TableRow>
             </TableHeader>
