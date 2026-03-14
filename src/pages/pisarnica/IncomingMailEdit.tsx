@@ -49,7 +49,7 @@ export default function IncomingMailEdit() {
   const [documentDate, setDocumentDate] = useState("");
   const [partnerId, setPartnerId] = useState<string | null>(null);
   const [senderName, setSenderName] = useState("");
-  const [amount, setAmount] = useState<number | null>(null);
+  const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [isCorrect, setIsCorrect] = useState(true);
   const [incorrectReason, setIncorrectReason] = useState("");
