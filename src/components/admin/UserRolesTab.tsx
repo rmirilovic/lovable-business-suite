@@ -213,7 +213,7 @@ export function UserRolesTab() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleOpenDialog(assignment.user_id);
+                              handleOpenDialog(assignment.user_id, assignment.role_id, assignment.org_unit_id || undefined);
                             }}
                           >
                             <UserPlus className="w-4 h-4 mr-2" />
