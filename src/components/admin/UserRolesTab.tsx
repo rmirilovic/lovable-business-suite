@@ -22,8 +22,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, UserCheck, Building2 } from "lucide-react";
+import { Plus, Trash2, UserCheck, Building2, MoreHorizontal, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +56,7 @@ export function UserRolesTab() {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedRoleId, setSelectedRoleId] = useState("");
   const [selectedOrgUnitId, setSelectedOrgUnitId] = useState("");
+  const [prefilledUserName, setPrefilledUserName] = useState("");
 
   const { data: assignments, isLoading } = useUserRoleAssignments(selectedCompany?.id);
   const { data: roles } = useRoles(selectedCompany?.id);
@@ -74,10 +81,11 @@ export function UserRolesTab() {
 
   const canManageRoles = isSuperAdmin || isLocalAdmin;
 
-  const handleOpenDialog = () => {
-    setSelectedUserId("");
+  const handleOpenDialog = (userId?: string) => {
+    setSelectedUserId(userId || "");
     setSelectedRoleId("");
     setSelectedOrgUnitId("");
+    setPrefilledUserName(userId ? getUserDisplayName(profiles?.find(p => p.id === userId)) : "");
     setIsDialogOpen(true);
   };
 
@@ -134,7 +142,7 @@ export function UserRolesTab() {
           Dodelite uloge korisnicima za pristup modulima
         </p>
         {canManageRoles && (
-          <Button onClick={handleOpenDialog} className="gap-2">
+          <Button onClick={() => handleOpenDialog()} className="gap-2">
             <Plus className="w-4 h-4" />
             Dodeli ulogu
           </Button>
@@ -160,12 +168,20 @@ export function UserRolesTab() {
                 <TableHead>Email</TableHead>
                 <TableHead>Uloga</TableHead>
                 <TableHead>Org. jedinica</TableHead>
-                <TableHead className="w-24">Akcije</TableHead>
+                <TableHead className="w-16">Akcije</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {assignments.map((assignment) => (
-                <TableRow key={assignment.id}>
+                <TableRow
+                  key={assignment.id}
+                  className={canManageRoles ? "cursor-pointer" : ""}
+                  onClick={() => {
+                    if (canManageRoles) {
+                      handleOpenDialog(assignment.user_id);
+                    }
+                  }}
+                >
                   <TableCell className="font-medium">
                     {getUserDisplayName(assignment.profile)}
                   </TableCell>
@@ -187,14 +203,34 @@ export function UserRolesTab() {
                   </TableCell>
                   <TableCell>
                     {canManageRoles && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemove(assignment)}
-                        className="text-muted-foreground hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenDialog(assignment.user_id);
+                            }}
+                          >
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Dodela uloge
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemove(assignment);
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Brisanje uloge
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
                   </TableCell>
                 </TableRow>
@@ -245,8 +281,8 @@ export function UserRolesTab() {
 
             <div className="space-y-2">
               <Label>Organizaciona jedinica (opciono)</Label>
-              <Select 
-                value={selectedOrgUnitId || "__all__"} 
+              <Select
+                value={selectedOrgUnitId || "__all__"}
                 onValueChange={(val) => setSelectedOrgUnitId(val === "__all__" ? "" : val)}
               >
                 <SelectTrigger>
