@@ -393,7 +393,7 @@ export default function ReprocessingWorkOrderEdit() {
                     <TableCell>{item.article_name}</TableCell>
                     <TableCell>{item.unit}</TableCell>
                     <TableCell className="text-right"><LocaleNumberInput value={String(item.unit_price ?? 0)} onChange={(v) => handleUpdateOutput(item, "unit_price", parseLocaleNumber(v))} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
-                     <TableCell className="text-right"><LocaleNumberInput value={String(item.launched_qty ?? 0)} onChange={(v) => handleUpdateOutput(item, "launched_qty", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
+                     <TableCell className="text-right"><LocaleNumberInput value={String(item.launched_qty ?? 0)} onChange={(v) => handleUpdateOutput(item, "launched_qty", parseLocaleNumber(v))} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
                      <TableCell className="text-right font-mono">{formatNumber(deliveredQtyMap[item.article_id] || 0, { minimumFractionDigits: 2 })}</TableCell>
                      <TableCell className="text-right font-mono">{formatNumber(item.launched_value, { minimumFractionDigits: 2 })}</TableCell>
                     {isDraft && <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteOutput(item.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></TableCell>}
