@@ -394,8 +394,9 @@ export default function IncomingMailEdit() {
             <div className="space-y-2">
               <Label>Partner iz šifarnika</Label>
               <SearchablePartnerSelect
+                partners={partners.map(p => ({ id: p.id, code: p.code, name: p.name, city: p.city }))}
                 value={partnerId || ""}
-                onChange={(val) => setPartnerId(val || null)}
+                onValueChange={(val) => setPartnerId(val || null)}
               />
             </div>
 
