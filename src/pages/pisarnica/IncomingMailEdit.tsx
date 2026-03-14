@@ -500,7 +500,7 @@ export default function IncomingMailEdit() {
                       <SelectTrigger>
                         <SelectValue placeholder="Izaberite likvidatora..." />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent position="popper" className="max-h-60 overflow-y-auto">
                         {companyUsers.map((u) => (
                           <SelectItem key={u.id} value={u.id}>
                             {u.first_name} {u.last_name} ({u.email})
