@@ -93,6 +93,8 @@ import AiAssistant from "./pages/AiAssistant";
 import ZavodjenjePoste from "./pages/pisarnica/ZavodjenjePoste";
 import IncomingMailEdit from "./pages/pisarnica/IncomingMailEdit";
 import LikvidacijaPoste from "./pages/pisarnica/LikvidacijaPoste";
+import ZavodjenjePoslatePoste from "./pages/pisarnica/ZavodjenjePoslatePoste";
+import OutgoingMailEdit from "./pages/pisarnica/OutgoingMailEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
