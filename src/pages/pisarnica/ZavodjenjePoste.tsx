@@ -162,6 +162,7 @@ export default function ZavodjenjePoste() {
                 <TableHead>Broj dokumenta</TableHead>
                 <TableHead>Pošiljalac</TableHead>
                 <TableHead className="text-right w-[120px]">Iznos</TableHead>
+                <TableHead className="w-[150px]">Likvidator</TableHead>
                 <TableHead className="w-[110px]">Status</TableHead>
                 <TableHead className="w-[60px]"></TableHead>
               </TableRow>
