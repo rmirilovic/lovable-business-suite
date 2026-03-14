@@ -20,8 +20,9 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreHorizontal, Eye, Undo2, ArrowRight, Loader2, Paperclip } from "lucide-react";
+import { Search, MoreHorizontal, Eye, Undo2, ArrowRight, Loader2, Paperclip, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useIncomingMail, DOCUMENT_TYPE_MAP, STATUS_LABELS, IncomingMail } from "@/hooks/useIncomingMail";
+import { exportIncomingMailToExcel, exportIncomingMailToPdf, printIncomingMail } from "@/lib/incomingMailListExportUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatNumber } from "@/lib/formatting";
 import { toast } from "sonner";

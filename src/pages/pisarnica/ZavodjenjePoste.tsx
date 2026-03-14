@@ -20,11 +20,13 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreHorizontal, Trash2, Eye, Loader2 } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Trash2, Eye, Loader2, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useIncomingMail, DOCUMENT_TYPE_MAP, STATUS_LABELS, STATUS_VARIANTS, IncomingMail } from "@/hooks/useIncomingMail";
 import { IncomingMailDialog } from "@/components/pisarnica/IncomingMailDialog";
 import { formatDate, formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
+import { exportIncomingMailToExcel, exportIncomingMailToPdf, printIncomingMail } from "@/lib/incomingMailListExportUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ZavodjenjePoste() {
   const navigate = useNavigate();
