@@ -26,7 +26,6 @@ import { IncomingMailDialog } from "@/components/pisarnica/IncomingMailDialog";
 import { formatDate, formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { exportIncomingMailToExcel, exportIncomingMailToPdf, printIncomingMail } from "@/lib/incomingMailListExportUtils";
-import { useAuth } from "@/contexts/AuthContext";
 
 export default function ZavodjenjePoste() {
   const navigate = useNavigate();
