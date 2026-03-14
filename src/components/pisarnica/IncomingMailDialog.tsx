@@ -90,7 +90,7 @@ export function IncomingMailDialog({ open, onOpenChange, onSaved }: Props) {
       return;
     }
 
-    const parsedAmount = amount ? parseFloat(amount.replace(/[^\d.-]/g, "")) : null;
+    const parsedAmount = amount ? parseLocaleNumber(amount) : null;
 
     // Check for duplicate document number
     const { data: existing } = await supabase
