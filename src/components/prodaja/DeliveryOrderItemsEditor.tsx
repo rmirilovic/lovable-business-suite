@@ -237,7 +237,7 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isRe
                     {isReadOnly ? formatDecimal(item.quantity) : (
                       <LocaleNumberInput
                         value={String(item.quantity)}
-                        onChange={(val) => updateField(index, "quantity", parseFloat(val.replace(",", ".")) || 0)}
+                        onChange={(val) => updateField(index, "quantity", parseLocaleNumber(val))}
                         onBlur={commitChange}
                         className="w-full text-right"
                       />
