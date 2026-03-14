@@ -35,9 +35,21 @@ export default function ZavodjenjePoste() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [liquidatorFilter, setLiquidatorFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<IncomingMail | null>(null);
+
+  // Collect unique liquidators from current data for the filter
+  const liquidators = useMemo(() => {
+    const map = new Map<string, string>();
+    mails.forEach((m) => {
+      if (m.liquidator_user_id && m.liquidator_name) {
+        map.set(m.liquidator_user_id, m.liquidator_name);
+      }
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1], "sr"));
+  }, [mails]);
 
   const filtered = useMemo(() => {
     const q = searchTerm.toLowerCase();
@@ -46,13 +58,17 @@ export default function ZavodjenjePoste() {
         d.mail_number.toLowerCase().includes(q) ||
         d.document_number.toLowerCase().includes(q) ||
         d.sender_name.toLowerCase().includes(q);
+      const matchLiquidator =
+        liquidatorFilter === "all" ||
+        (liquidatorFilter === "none" ? !d.liquidator_user_id : d.liquidator_user_id === liquidatorFilter);
       return (
         matchSearch &&
+        matchLiquidator &&
         (!dateFrom || d.document_date >= dateFrom) &&
         (!dateTo || d.document_date <= dateTo)
       );
     });
-  }, [mails, searchTerm, dateFrom, dateTo]);
+  }, [mails, searchTerm, dateFrom, dateTo, liquidatorFilter]);
 
   const handleDelete = async () => {
     if (!docToDelete) return;
@@ -112,6 +128,21 @@ export default function ZavodjenjePoste() {
             </Select>
           </div>
           <div className="space-y-1">
+            <Label className="text-xs">Likvidator</Label>
+            <Select value={liquidatorFilter} onValueChange={setLiquidatorFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Svi</SelectItem>
+                <SelectItem value="none">Bez likvidatora</SelectItem>
+                {liquidators.map(([id, name]) => (
+                  <SelectItem key={id} value={id}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
             <Label className="text-xs">Datum od</Label>
             <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
           </div>
@@ -131,6 +162,7 @@ export default function ZavodjenjePoste() {
                 <TableHead>Broj dokumenta</TableHead>
                 <TableHead>Pošiljalac</TableHead>
                 <TableHead className="text-right w-[120px]">Iznos</TableHead>
+                <TableHead className="w-[150px]">Likvidator</TableHead>
                 <TableHead className="w-[110px]">Status</TableHead>
                 <TableHead className="w-[60px]"></TableHead>
               </TableRow>
@@ -138,13 +170,13 @@ export default function ZavodjenjePoste() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Nema dokumenata
                   </TableCell>
                 </TableRow>
@@ -167,6 +199,7 @@ export default function ZavodjenjePoste() {
                         ? formatNumber(d.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         : ""}
                     </TableCell>
+                    <TableCell className="text-sm">{d.liquidator_name || ""}</TableCell>
                     <TableCell>
                       <Badge
                         variant={STATUS_VARIANTS[d.status] || "secondary"}
