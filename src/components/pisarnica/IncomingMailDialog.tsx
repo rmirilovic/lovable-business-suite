@@ -122,7 +122,7 @@ export function IncomingMailDialog({ open, onOpenChange, onSaved }: Props) {
         sender_name: senderName.trim(),
         sender_pib: selectedPartner?.pib || null,
         sender_mb: selectedPartner?.mb || null,
-        amount: amount,
+        amount: parsedAmount,
         note: note.trim() || null,
         status: "draft",
       } as any);
