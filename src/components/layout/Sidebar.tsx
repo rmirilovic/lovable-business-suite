@@ -143,6 +143,15 @@ const navigation: NavItem[] = [
       { label: "PP-PDV Prijava", href: "/racunovodstvo/pp-pdv", moduleCode: "racunovodstvo.nalozi" },
     ],
   },
+  {
+    label: "Pisarnica",
+    icon: Mail,
+    moduleCode: "pisarnica",
+    children: [
+      { label: "Zavođenje ulazne pošte", href: "/pisarnica/zavodjenje", moduleCode: "pisarnica.zavodjenje" },
+      { label: "Likvidacija dokumenta", href: "/pisarnica/likvidacija", moduleCode: "pisarnica.likvidacija" },
+    ],
+  },
   { label: "AI Asistent", icon: Bot, href: "/ai-asistent", moduleCode: "administracija" },
   { label: "Administracija", icon: Settings, href: "/admin", moduleCode: "administracija" },
 ];
