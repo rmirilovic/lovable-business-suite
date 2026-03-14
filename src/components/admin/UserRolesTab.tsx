@@ -81,10 +81,10 @@ export function UserRolesTab() {
 
   const canManageRoles = isSuperAdmin || isLocalAdmin;
 
-  const handleOpenDialog = (userId?: string) => {
+  const handleOpenDialog = (userId?: string, roleId?: string, orgUnitId?: string) => {
     setSelectedUserId(userId || "");
-    setSelectedRoleId("");
-    setSelectedOrgUnitId("");
+    setSelectedRoleId(roleId || "");
+    setSelectedOrgUnitId(orgUnitId || "");
     setPrefilledUserName(userId ? getUserDisplayName(profiles?.find(p => p.id === userId)) : "");
     setIsDialogOpen(true);
   };
@@ -178,7 +178,7 @@ export function UserRolesTab() {
                   className={canManageRoles ? "cursor-pointer" : ""}
                   onClick={() => {
                     if (canManageRoles) {
-                      handleOpenDialog(assignment.user_id);
+                      handleOpenDialog(assignment.user_id, assignment.role_id, assignment.org_unit_id || undefined);
                     }
                   }}
                 >
@@ -213,7 +213,7 @@ export function UserRolesTab() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleOpenDialog(assignment.user_id);
+                              handleOpenDialog(assignment.user_id, assignment.role_id, assignment.org_unit_id || undefined);
                             }}
                           >
                             <UserPlus className="w-4 h-4 mr-2" />
