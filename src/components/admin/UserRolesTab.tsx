@@ -178,7 +178,7 @@ export function UserRolesTab() {
                   className={canManageRoles ? "cursor-pointer" : ""}
                   onClick={() => {
                     if (canManageRoles) {
-                      handleOpenDialog(assignment.user_id);
+                      handleOpenDialog(assignment.user_id, assignment.role_id, assignment.org_unit_id || undefined);
                     }
                   }}
                 >
