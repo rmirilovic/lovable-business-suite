@@ -501,11 +501,17 @@ export default function IncomingMailEdit() {
                         <SelectValue placeholder="Izaberite likvidatora..." />
                       </SelectTrigger>
                       <SelectContent position="popper" side="top" className="max-h-60 overflow-y-auto z-[9999]">
-                        {companyUsers.map((u) => (
-                          <SelectItem key={u.id} value={u.id}>
-                            {u.first_name} {u.last_name} ({u.email})
+                        {companyUsers.length === 0 ? (
+                          <SelectItem value="__no-users" disabled>
+                            Nema dostupnih operatera
                           </SelectItem>
-                        ))}
+                        ) : (
+                          companyUsers.map((u) => (
+                            <SelectItem key={u.id} value={u.id}>
+                              {u.first_name} {u.last_name} ({u.email})
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
