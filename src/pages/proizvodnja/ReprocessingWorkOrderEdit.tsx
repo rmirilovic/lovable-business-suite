@@ -392,7 +392,7 @@ export default function ReprocessingWorkOrderEdit() {
                     <TableCell className="font-mono text-xs">{item.article_code}</TableCell>
                     <TableCell>{item.article_name}</TableCell>
                     <TableCell>{item.unit}</TableCell>
-                    <TableCell className="text-right"><LocaleNumberInput value={String(item.unit_price ?? 0)} onChange={(v) => handleUpdateOutput(item, "unit_price", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
+                    <TableCell className="text-right"><LocaleNumberInput value={String(item.unit_price ?? 0)} onChange={(v) => handleUpdateOutput(item, "unit_price", parseLocaleNumber(v))} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
                      <TableCell className="text-right"><LocaleNumberInput value={String(item.launched_qty ?? 0)} onChange={(v) => handleUpdateOutput(item, "launched_qty", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[90px] text-right h-8" /></TableCell>
                      <TableCell className="text-right font-mono">{formatNumber(deliveredQtyMap[item.article_id] || 0, { minimumFractionDigits: 2 })}</TableCell>
                      <TableCell className="text-right font-mono">{formatNumber(item.launched_value, { minimumFractionDigits: 2 })}</TableCell>
