@@ -65,11 +65,6 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
     return account?.name || "";
   };
 
-  const parseLocaleNumber = (value: string): number => {
-    if (!value) return 0;
-    const normalized = value.replace(/\./g, "").replace(",", ".");
-    return parseFloat(normalized) || 0;
-  };
 
   const handleAddItem = async () => {
     if (!entry?.id || !newItem.account_code) return;

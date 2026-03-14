@@ -23,10 +23,6 @@ interface BankStatementHeaderDialogProps {
   onSaved?: () => void;
 }
 
-const parseLocaleNumber = (value: string): number => {
-  if (!value) return 0;
-  return parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
-};
 
 export function BankStatementHeaderDialog({
   open,

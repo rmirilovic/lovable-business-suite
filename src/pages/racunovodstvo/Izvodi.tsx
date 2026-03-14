@@ -178,10 +178,6 @@ export default function Izvodi() {
     }
   });
 
-  const parseLocaleNumber = (value: string): number => {
-    if (!value) return 0;
-    return parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
-  };
 
   const handleCreate = async () => {
     if (!newData.bank_account_id) return;

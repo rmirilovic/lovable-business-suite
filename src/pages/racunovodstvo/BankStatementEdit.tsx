@@ -86,10 +86,6 @@ interface EditingItemState {
   partner_account_number: string;
 }
 
-const parseLocaleNumber = (value: string): number => {
-  if (!value) return 0;
-  return parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
-};
 
 export default function BankStatementEdit() {
   const { id } = useParams<{ id: string }>();
