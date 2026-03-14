@@ -6,7 +6,7 @@ import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { formatDecimal } from "@/lib/formatting";
+import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -237,7 +237,7 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isRe
                     {isReadOnly ? formatDecimal(item.quantity) : (
                       <LocaleNumberInput
                         value={String(item.quantity)}
-                        onChange={(val) => updateField(index, "quantity", parseFloat(val.replace(",", ".")) || 0)}
+                        onChange={(val) => updateField(index, "quantity", parseLocaleNumber(val))}
                         onBlur={commitChange}
                         className="w-full text-right"
                       />
@@ -247,7 +247,7 @@ export function DeliveryOrderItemsEditor({ orderId, companyId, warehouseId, isRe
                     {isReadOnly ? formatDecimal(item.unit_price, 2) : (
                       <LocaleNumberInput
                         value={String(item.unit_price)}
-                        onChange={(val) => updateField(index, "unit_price", parseFloat(val.replace(",", ".")) || 0)}
+                        onChange={(val) => updateField(index, "unit_price", parseLocaleNumber(val))}
                         onBlur={commitChange}
                         className="w-full text-right"
                       />

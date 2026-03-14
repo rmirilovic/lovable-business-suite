@@ -15,6 +15,7 @@ import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { supabase } from "@/integrations/supabase/client";
 import { useReceivedCreditNotes, ReceivedCreditNote, ReceivedCreditNoteFormData } from "@/hooks/useReceivedCreditNotes";
 import { CURRENCIES, isForeignCurrency } from "@/lib/currencies";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 interface Props {
   open: boolean;
@@ -159,7 +160,7 @@ export function ReceivedCreditNoteHeaderDialog({ open, onOpenChange, doc, onSave
               {isForeignCurrency(formData.currency) && (
                 <div className="space-y-2">
                   <Label>Kurs (srednji NBS)</Label>
-                  <LocaleNumberInput value={exchangeRateText} onChange={setExchangeRateText} onBlur={() => setFormData({ ...formData, exchange_rate: parseFloat(exchangeRateText.replace(",", ".")) || 1 })} className="h-10" allowEmpty />
+                  <LocaleNumberInput value={exchangeRateText} onChange={setExchangeRateText} onBlur={() => setFormData({ ...formData, exchange_rate: parseLocaleNumber(exchangeRateText) || 1 })} className="h-10" allowEmpty />
                   <p className="text-xs text-muted-foreground">1 {formData.currency} = {exchangeRateText} RSD</p>
                 </div>
               )}

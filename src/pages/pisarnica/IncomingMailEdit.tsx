@@ -27,7 +27,7 @@ import { useIncomingMail, DOCUMENT_TYPES, DOCUMENT_TYPE_MAP, STATUS_LABELS, STAT
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { formatDate, formatNumber } from "@/lib/formatting";
+import { formatDate, formatNumber, parseLocaleNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 
 export default function IncomingMailEdit() {
@@ -133,7 +133,7 @@ export default function IncomingMailEdit() {
       toast.error("Unesite iznos dokumenta");
       return;
     }
-    const parsedAmount = amount ? parseFloat(amount.replace(/\./g, "").replace(",", ".")) : null;
+    const parsedAmount = amount ? parseLocaleNumber(amount) : null;
 
     await updateMail.mutateAsync({
       id: mail.id,
@@ -172,7 +172,7 @@ export default function IncomingMailEdit() {
       sender_name: senderName.trim(),
       sender_pib: selectedPartner?.pib || null,
       sender_mb: selectedPartner?.mb || null,
-      amount: amount ? parseFloat(amount.replace(/\./g, "").replace(",", ".")) : null,
+      amount: amount ? parseLocaleNumber(amount) : null,
       note: note.trim() || null,
       is_correct: isCorrect,
       liquidator_user_id: liquidatorUserId,

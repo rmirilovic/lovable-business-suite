@@ -24,7 +24,7 @@ import { useReprocessingWorkOrders } from "@/hooks/useReprocessingWorkOrders";
 import { useShiftManagers } from "@/hooks/useShiftManagers";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import React from "react";
@@ -38,12 +38,12 @@ function ItemRow({ item, idx, isDraft, onUpdate, onShowHistory }: { item: Reproc
       <TableCell>{item.unit}</TableCell>
       <TableCell className="text-right">{formatNumber(item.kg_per_unit, { minimumFractionDigits: 3 })}</TableCell>
       <TableCell className="text-right">{formatNumber(item.launched_qty, { minimumFractionDigits: 2 })}</TableCell>
-      <TableCell className="text-right"><LocaleNumberInput value={String(item.qty_shift_1 ?? 0)} onChange={(v) => onUpdate(item, "qty_shift_1", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[80px] text-right h-8" /></TableCell>
-      <TableCell className="text-right"><LocaleNumberInput value={String(item.qty_shift_2 ?? 0)} onChange={(v) => onUpdate(item, "qty_shift_2", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[80px] text-right h-8" /></TableCell>
-      <TableCell className="text-right"><LocaleNumberInput value={String(item.qty_shift_3 ?? 0)} onChange={(v) => onUpdate(item, "qty_shift_3", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[80px] text-right h-8" /></TableCell>
+      <TableCell className="text-right"><LocaleNumberInput value={String(item.qty_shift_1 ?? 0)} onChange={(v) => onUpdate(item, "qty_shift_1", parseLocaleNumber(v))} disabled={!isDraft} className="w-[80px] text-right h-8" /></TableCell>
+      <TableCell className="text-right"><LocaleNumberInput value={String(item.qty_shift_2 ?? 0)} onChange={(v) => onUpdate(item, "qty_shift_2", parseLocaleNumber(v))} disabled={!isDraft} className="w-[80px] text-right h-8" /></TableCell>
+      <TableCell className="text-right"><LocaleNumberInput value={String(item.qty_shift_3 ?? 0)} onChange={(v) => onUpdate(item, "qty_shift_3", parseLocaleNumber(v))} disabled={!isDraft} className="w-[80px] text-right h-8" /></TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.qty_total, { minimumFractionDigits: 2 })}</TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.delivered_kg, { minimumFractionDigits: 2 })}</TableCell>
-      <TableCell className="text-right"><LocaleNumberInput value={String(item.scrap_qty ?? 0)} onChange={(v) => onUpdate(item, "scrap_qty", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[70px] text-right h-8" /></TableCell>
+      <TableCell className="text-right"><LocaleNumberInput value={String(item.scrap_qty ?? 0)} onChange={(v) => onUpdate(item, "scrap_qty", parseLocaleNumber(v))} disabled={!isDraft} className="w-[70px] text-right h-8" /></TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.unit_price, { minimumFractionDigits: 2 })}</TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.item_value, { minimumFractionDigits: 2 })}</TableCell>
       <TableCell>

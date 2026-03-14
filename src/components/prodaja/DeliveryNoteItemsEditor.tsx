@@ -6,7 +6,7 @@ import { Trash2 } from "lucide-react";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { formatDecimal } from "@/lib/formatting";
+import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { DeliveryNoteItemData } from "@/hooks/useDeliveryNotes";
 
 interface DeliveryNoteItemsEditorProps {
@@ -103,7 +103,7 @@ export function DeliveryNoteItemsEditor({ items, onChange, disabled }: DeliveryN
                     {disabled ? formatDecimal(item.quantity) : (
                       <LocaleNumberInput 
                         value={String(item.quantity)} 
-                        onChange={(val) => updateItem(index, { quantity: parseFloat(val.replace(',', '.')) || 0 })} 
+                        onChange={(val) => updateItem(index, { quantity: parseLocaleNumber(val) })} 
                         className="w-full text-right" 
                       />
                     )}

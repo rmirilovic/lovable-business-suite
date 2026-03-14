@@ -30,6 +30,7 @@ import {
   ServicePurchaseInvoiceFormData,
 } from "@/hooks/useServicePurchaseInvoices";
 import { CURRENCIES, isForeignCurrency } from "@/lib/currencies";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 interface ServicePurchaseInvoiceHeaderDialogProps {
   open: boolean;
@@ -318,7 +319,7 @@ export function ServicePurchaseInvoiceHeaderDialog({
                   value={exchangeRateText}
                   onChange={setExchangeRateText}
                   onBlur={() => {
-                    const parsed = parseFloat(exchangeRateText.replace(",", ".")) || 1;
+                    const parsed = parseLocaleNumber(exchangeRateText) || 1;
                     setFormData({ ...formData, exchange_rate: parsed });
                   }}
                   className="h-10"

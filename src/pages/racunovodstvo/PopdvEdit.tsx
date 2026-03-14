@@ -12,6 +12,7 @@ import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 export default function PopdvEdit() {
   const { id } = useParams<{ id: string }>();
@@ -394,7 +395,7 @@ function BlurCommitCell({ value, autoVal, isOverridden, onCommit }: BlurCommitCe
         value={localVal}
         onChange={(v) => setLocalVal(v)}
         onBlur={() => {
-          const parsed = parseFloat(localVal.replace(/\./g, "").replace(",", ".")) || 0;
+          const parsed = parseLocaleNumber(localVal);
           committedRef.current = parsed;
           onCommit(parsed);
         }}

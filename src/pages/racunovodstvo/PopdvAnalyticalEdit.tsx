@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PopdvDocumentReviewDialog } from "@/components/racunovodstvo/PopdvDocumentReviewDialog";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 const fmt2 = (v: number) =>
   v.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -512,7 +513,7 @@ function AnalyticalBlurCell({ value, onCommit }: AnalyticalBlurCellProps) {
       value={localVal}
       onChange={(v) => setLocalVal(v)}
       onBlur={() => {
-        const parsed = parseFloat(localVal.replace(/\./g, "").replace(",", ".")) || 0;
+        const parsed = parseLocaleNumber(localVal);
         committedRef.current = parsed;
         onCommit(parsed);
       }}

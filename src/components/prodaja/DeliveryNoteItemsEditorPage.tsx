@@ -6,7 +6,7 @@ import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { formatDecimal } from "@/lib/formatting";
+import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -236,7 +236,7 @@ export function DeliveryNoteItemsEditorPage({
                       <LocaleNumberInput
                         value={String(item.quantity)}
                         onChange={(val) =>
-                          updateQuantity(index, parseFloat(val.replace(",", ".")) || 0)
+                          updateQuantity(index, parseLocaleNumber(val))
                         }
                         onBlur={commitChange}
                         className="w-full text-right"
