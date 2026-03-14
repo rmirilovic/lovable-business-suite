@@ -84,10 +84,12 @@ export function IncomingMailDialog({ open, onOpenChange, onSaved }: Props) {
     }
 
     // Amount required for certain types
-    if (requiresAmount && (amount === null || amount === 0)) {
+    if (requiresAmount && !amount.trim()) {
       toast.error("Unesite iznos dokumenta");
       return;
     }
+
+    const parsedAmount = amount ? parseFloat(amount.replace(/[^\d.-]/g, "")) : null;
 
     // Check for duplicate document number
     const { data: existing } = await supabase
