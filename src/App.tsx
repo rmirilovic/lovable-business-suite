@@ -520,6 +520,21 @@ const App = () => (
                   <BankStatementEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/pisarnica/zavodjenje" element={
+                <ProtectedRoute>
+                  <ZavodjenjePoste />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/zavodjenje/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <IncomingMailEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/likvidacija" element={
+                <ProtectedRoute>
+                  <LikvidacijaPoste />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
