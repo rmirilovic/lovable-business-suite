@@ -36,7 +36,7 @@ export function IncomingMailDialog({ open, onOpenChange, onSaved }: Props) {
   const [documentDate, setDocumentDate] = useState("");
   const [partnerId, setPartnerId] = useState<string | null>(null);
   const [senderName, setSenderName] = useState("");
-  const [amount, setAmount] = useState<number | null>(null);
+  const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
