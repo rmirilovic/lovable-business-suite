@@ -4017,6 +4017,88 @@ export type Database = {
         }
         Relationships: []
       }
+      outgoing_mail: {
+        Row: {
+          amount: number | null
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          document_date: string
+          document_number: string
+          document_type: string
+          id: string
+          mail_number: string
+          note: string | null
+          recipient_address: string | null
+          recipient_name: string
+          recipient_partner_id: string | null
+          registration_date: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          document_date?: string
+          document_number?: string
+          document_type: string
+          id?: string
+          mail_number: string
+          note?: string | null
+          recipient_address?: string | null
+          recipient_name?: string
+          recipient_partner_id?: string | null
+          registration_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          document_date?: string
+          document_number?: string
+          document_type?: string
+          id?: string
+          mail_number?: string
+          note?: string | null
+          recipient_address?: string | null
+          recipient_name?: string
+          recipient_partner_id?: string | null
+          registration_date?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outgoing_mail_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outgoing_mail_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outgoing_mail_recipient_partner_id_fkey"
+            columns: ["recipient_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_bank_accounts: {
         Row: {
           account_number: string
