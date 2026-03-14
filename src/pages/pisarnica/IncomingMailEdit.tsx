@@ -281,9 +281,18 @@ export default function IncomingMailEdit() {
               <RefreshCw className="w-4 h-4" />
             </Button>
             {isDraft && (
-              <Button variant="outline" size="sm" onClick={handleSave}>
-                Sačuvaj izmene
-              </Button>
+              <>
+                <Button variant="outline" size="sm" onClick={handleSave}>
+                  Sačuvaj izmene
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => setRegisterDialogOpen(true)}
+                  disabled={!liquidatorUserId || !isCorrect}
+                >
+                  <BookCheck className="w-4 h-4 mr-2" />Zavedi dokument
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -512,13 +521,6 @@ export default function IncomingMailEdit() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => setRegisterDialogOpen(true)}
-                  disabled={!liquidatorUserId || !isCorrect}
-                >
-                  <BookCheck className="w-4 h-4 mr-2" />Zavedi dokument
-                </Button>
               </div>
             )}
           </div>
