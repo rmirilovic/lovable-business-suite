@@ -129,10 +129,11 @@ export default function IncomingMailEdit() {
       toast.error("Za finansijske dokumente pošiljalac mora biti registrovan partner");
       return;
     }
-    if (requiresAmount && (amount === null || amount === 0)) {
+    if (requiresAmount && !amount.trim()) {
       toast.error("Unesite iznos dokumenta");
       return;
     }
+    const parsedAmount = amount ? parseFloat(amount.replace(/[^\d.-]/g, "")) : null;
 
     await updateMail.mutateAsync({
       id: mail.id,
