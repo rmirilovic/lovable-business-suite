@@ -285,7 +285,7 @@ export function GoodsPurchaseInvoiceHeaderDialog({
                   value={exchangeRateText}
                   onChange={setExchangeRateText}
                   onBlur={() => {
-                    const parsed = parseFloat(exchangeRateText.replace(",", ".")) || 1;
+                    const parsed = parseLocaleNumber(exchangeRateText) || 1;
                     setFormData({ ...formData, exchange_rate: parsed });
                   }}
                   className="h-10"

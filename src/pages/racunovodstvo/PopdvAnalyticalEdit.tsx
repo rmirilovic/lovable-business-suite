@@ -513,7 +513,7 @@ function AnalyticalBlurCell({ value, onCommit }: AnalyticalBlurCellProps) {
       value={localVal}
       onChange={(v) => setLocalVal(v)}
       onBlur={() => {
-        const parsed = parseFloat(localVal.replace(/\./g, "").replace(",", ".")) || 0;
+        const parsed = parseLocaleNumber(localVal);
         committedRef.current = parsed;
         onCommit(parsed);
       }}

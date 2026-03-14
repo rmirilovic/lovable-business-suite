@@ -131,7 +131,7 @@ export function ArticleAttributesDialog({
       }
     }
     if (attr.data_type === "decimal") {
-      const num = parseFloat(value.replace(",", "."));
+      const num = parseFloat(value.replace(/\./g, "").replace(",", "."));
       if (isNaN(num)) {
         toast.error("Unesite validan decimalni broj");
         return;

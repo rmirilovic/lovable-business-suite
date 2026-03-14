@@ -172,7 +172,7 @@ export default function IncomingMailEdit() {
       sender_name: senderName.trim(),
       sender_pib: selectedPartner?.pib || null,
       sender_mb: selectedPartner?.mb || null,
-      amount: amount ? parseFloat(amount.replace(/\./g, "").replace(",", ".")) : null,
+      amount: amount ? parseLocaleNumber(amount) : null,
       note: note.trim() || null,
       is_correct: isCorrect,
       liquidator_user_id: liquidatorUserId,

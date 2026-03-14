@@ -222,7 +222,7 @@ export function AdvancePurchaseInvoiceHeaderDialog({
               {isForeignCurrency(formData.currency) && (
                 <div className="space-y-2">
                   <Label>Kurs (srednji NBS)</Label>
-                  <LocaleNumberInput value={exchangeRateText} onChange={setExchangeRateText} onBlur={() => { const p = parseFloat(exchangeRateText.replace(",", ".")) || 1; setFormData({ ...formData, exchange_rate: p }); }} className="h-10" allowEmpty />
+                  <LocaleNumberInput value={exchangeRateText} onChange={setExchangeRateText} onBlur={() => { const p = parseLocaleNumber(exchangeRateText) || 1; setFormData({ ...formData, exchange_rate: p }); }} className="h-10" allowEmpty />
                   <p className="text-xs text-muted-foreground">1 {formData.currency} = {exchangeRateText} RSD</p>
                 </div>
               )}
