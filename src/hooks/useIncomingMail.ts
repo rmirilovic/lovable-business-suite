@@ -187,16 +187,16 @@ export function useCompanyUsers() {
     queryKey: ["company-users", selectedCompany?.id],
     queryFn: async () => {
       if (!selectedCompany?.id) return [];
-      const { data, error } = await supabase
+      
+      const uniqueUsers = new Map<string, { id: string; first_name: string; last_name: string; email: string }>();
+
+      // 1. Users with role assignments for this company
+      const { data: roleData } = await supabase
         .from("user_role_assignments")
         .select("user_id, profiles!inner(id, first_name, last_name, email)")
         .eq("company_id", selectedCompany.id)
         .eq("is_active", true);
-      if (error) throw error;
-      
-      // Deduplicate by user_id
-      const uniqueUsers = new Map<string, { id: string; first_name: string; last_name: string; email: string }>();
-      for (const row of data || []) {
+      for (const row of roleData || []) {
         const p = row.profiles as any;
         if (p && !uniqueUsers.has(row.user_id)) {
           uniqueUsers.set(row.user_id, {
@@ -207,6 +207,41 @@ export function useCompanyUsers() {
           });
         }
       }
+
+      // 2. Users from user_companies (local admins and others with company access)
+      const { data: companyData } = await supabase
+        .from("user_companies")
+        .select("user_id, profiles!inner(id, first_name, last_name, email)")
+        .eq("company_id", selectedCompany.id);
+      for (const row of companyData || []) {
+        const p = (row as any).profiles;
+        if (p && !uniqueUsers.has(row.user_id)) {
+          uniqueUsers.set(row.user_id, {
+            id: row.user_id,
+            first_name: p.first_name || "",
+            last_name: p.last_name || "",
+            email: p.email || "",
+          });
+        }
+      }
+
+      // 3. Super admins
+      const { data: superAdmins } = await supabase
+        .from("user_roles")
+        .select("user_id, profiles:user_id(id, first_name, last_name, email)")
+        .eq("role", "super_admin");
+      for (const row of superAdmins || []) {
+        const p = (row as any).profiles;
+        if (p && !uniqueUsers.has(row.user_id)) {
+          uniqueUsers.set(row.user_id, {
+            id: row.user_id,
+            first_name: p.first_name || "",
+            last_name: p.last_name || "",
+            email: p.email || "",
+          });
+        }
+      }
+
       return Array.from(uniqueUsers.values());
     },
     enabled: !!selectedCompany?.id,
