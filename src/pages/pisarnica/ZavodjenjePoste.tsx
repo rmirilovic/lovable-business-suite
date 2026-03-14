@@ -35,9 +35,21 @@ export default function ZavodjenjePoste() {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [liquidatorFilter, setLiquidatorFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [docToDelete, setDocToDelete] = useState<IncomingMail | null>(null);
+
+  // Collect unique liquidators from current data for the filter
+  const liquidators = useMemo(() => {
+    const map = new Map<string, string>();
+    mails.forEach((m) => {
+      if (m.liquidator_user_id && m.liquidator_name) {
+        map.set(m.liquidator_user_id, m.liquidator_name);
+      }
+    });
+    return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1], "sr"));
+  }, [mails]);
 
   const filtered = useMemo(() => {
     const q = searchTerm.toLowerCase();
