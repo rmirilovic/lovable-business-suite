@@ -23,6 +23,7 @@ import {
   AdvancePurchaseInvoiceFormData,
 } from "@/hooks/useAdvancePurchaseInvoices";
 import { CURRENCIES, isForeignCurrency } from "@/lib/currencies";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 interface Props {
   open: boolean;

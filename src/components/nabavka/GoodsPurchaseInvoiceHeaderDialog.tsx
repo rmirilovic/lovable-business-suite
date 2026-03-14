@@ -32,6 +32,7 @@ import {
   GoodsPurchaseInvoiceFormData,
 } from "@/hooks/useGoodsPurchaseInvoices";
 import { CURRENCIES, isForeignCurrency } from "@/lib/currencies";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 interface GoodsPurchaseInvoiceHeaderDialogProps {
   open: boolean;

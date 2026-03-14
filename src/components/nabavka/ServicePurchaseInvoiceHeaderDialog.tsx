@@ -30,6 +30,7 @@ import {
   ServicePurchaseInvoiceFormData,
 } from "@/hooks/useServicePurchaseInvoices";
 import { CURRENCIES, isForeignCurrency } from "@/lib/currencies";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 interface ServicePurchaseInvoiceHeaderDialogProps {
   open: boolean;

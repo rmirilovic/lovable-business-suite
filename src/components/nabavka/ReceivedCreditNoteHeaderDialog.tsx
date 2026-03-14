@@ -15,6 +15,7 @@ import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { supabase } from "@/integrations/supabase/client";
 import { useReceivedCreditNotes, ReceivedCreditNote, ReceivedCreditNoteFormData } from "@/hooks/useReceivedCreditNotes";
 import { CURRENCIES, isForeignCurrency } from "@/lib/currencies";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 interface Props {
   open: boolean;
