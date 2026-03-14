@@ -70,6 +70,7 @@ const navigation: NavItem[] = [
     children: [
       { label: "Zavođenje ulazne pošte", href: "/pisarnica/zavodjenje", moduleCode: "pisarnica.zavodjenje" },
       { label: "Likvidacija dokumenta", href: "/pisarnica/likvidacija", moduleCode: "pisarnica.likvidacija" },
+      { label: "Zavođenje poslate pošte", href: "/pisarnica/poslata-posta", moduleCode: "pisarnica.poslata_posta" },
     ],
   },
   {

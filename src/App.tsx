@@ -93,6 +93,8 @@ import AiAssistant from "./pages/AiAssistant";
 import ZavodjenjePoste from "./pages/pisarnica/ZavodjenjePoste";
 import IncomingMailEdit from "./pages/pisarnica/IncomingMailEdit";
 import LikvidacijaPoste from "./pages/pisarnica/LikvidacijaPoste";
+import ZavodjenjePoslatePoste from "./pages/pisarnica/ZavodjenjePoslatePoste";
+import OutgoingMailEdit from "./pages/pisarnica/OutgoingMailEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -533,6 +535,16 @@ const App = () => (
               <Route path="/pisarnica/likvidacija" element={
                 <ProtectedRoute>
                   <LikvidacijaPoste />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/poslata-posta" element={
+                <ProtectedRoute>
+                  <ZavodjenjePoslatePoste />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/poslata-posta/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <OutgoingMailEdit />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
