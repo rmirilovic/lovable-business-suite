@@ -494,13 +494,13 @@ export default function IncomingMailEdit() {
 
               {isCorrect && (
                 <div className="space-y-4 border-t pt-4">
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative z-50">
                     <Label>Prosleđuje se na likvidaciju: *</Label>
                     <Select value={liquidatorUserId} onValueChange={setLiquidatorUserId}>
                       <SelectTrigger>
                         <SelectValue placeholder="Izaberite likvidatora..." />
                       </SelectTrigger>
-                      <SelectContent position="popper" className="max-h-60 overflow-y-auto">
+                      <SelectContent position="popper" side="top" className="max-h-60 overflow-y-auto z-[9999]">
                         {companyUsers.map((u) => (
                           <SelectItem key={u.id} value={u.id}>
                             {u.first_name} {u.last_name} ({u.email})
