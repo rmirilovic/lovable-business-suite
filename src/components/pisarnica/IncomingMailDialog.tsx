@@ -172,8 +172,9 @@ export function IncomingMailDialog({ open, onOpenChange, onSaved }: Props) {
           <div className="space-y-2">
             <Label>Pošiljalac - partner iz šifarnika</Label>
             <SearchablePartnerSelect
+              partners={partners.map(p => ({ id: p.id, code: p.code, name: p.name, city: p.city }))}
               value={partnerId || ""}
-              onChange={(val) => setPartnerId(val || null)}
+              onValueChange={(val) => setPartnerId(val || null)}
               placeholder="Izaberite partnera (opciono)..."
             />
           </div>
