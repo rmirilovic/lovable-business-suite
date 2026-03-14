@@ -20,11 +20,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreHorizontal, Trash2, Eye, Loader2 } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Trash2, Eye, Loader2, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useIncomingMail, DOCUMENT_TYPE_MAP, STATUS_LABELS, STATUS_VARIANTS, IncomingMail } from "@/hooks/useIncomingMail";
 import { IncomingMailDialog } from "@/components/pisarnica/IncomingMailDialog";
 import { formatDate, formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
+import { exportIncomingMailToExcel, exportIncomingMailToPdf, printIncomingMail } from "@/lib/incomingMailListExportUtils";
 
 export default function ZavodjenjePoste() {
   const navigate = useNavigate();
@@ -68,9 +69,20 @@ export default function ZavodjenjePoste() {
             <h1 className="text-2xl font-bold text-foreground">Zavođenje ulazne pošte</h1>
             <p className="text-muted-foreground">Delovodna knjiga - primljena pošta</p>
           </div>
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />Novi dokument
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportIncomingMailToExcel(filtered, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportIncomingMailToPdf(filtered, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printIncomingMail(filtered, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />Novi dokument
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-end gap-4">

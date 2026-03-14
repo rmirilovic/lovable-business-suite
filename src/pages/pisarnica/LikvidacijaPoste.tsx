@@ -20,8 +20,9 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, MoreHorizontal, Eye, Undo2, ArrowRight, Loader2, Paperclip } from "lucide-react";
+import { Search, MoreHorizontal, Eye, Undo2, ArrowRight, Loader2, Paperclip, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useIncomingMail, DOCUMENT_TYPE_MAP, STATUS_LABELS, IncomingMail } from "@/hooks/useIncomingMail";
+import { exportIncomingMailToExcel, exportIncomingMailToPdf, printIncomingMail } from "@/lib/incomingMailListExportUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatNumber } from "@/lib/formatting";
 import { toast } from "sonner";
@@ -106,6 +107,17 @@ export default function LikvidacijaPoste() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Likvidacija dokumenta</h1>
             <p className="text-muted-foreground">Dokumenti dodeljeni vama na likvidaciju</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportIncomingMailToExcel(filtered, { companyName: selectedCompany?.name ?? "" })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportIncomingMailToPdf(filtered, { companyName: selectedCompany?.name ?? "" })}>
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printIncomingMail(filtered, { companyName: selectedCompany?.name ?? "" })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
           </div>
         </div>
 
