@@ -47,7 +47,7 @@ export function IncomingMailDialog({ open, onOpenChange, onSaved }: Props) {
       setDocumentDate(format(new Date(), "yyyy-MM-dd"));
       setPartnerId(null);
       setSenderName("");
-      setAmount(null);
+      setAmount("");
       setNote("");
     }
   }, [open]);
