@@ -199,6 +199,7 @@ export default function ZavodjenjePoste() {
                         ? formatNumber(d.amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         : ""}
                     </TableCell>
+                    <TableCell className="text-sm">{d.liquidator_name || ""}</TableCell>
                     <TableCell>
                       <Badge
                         variant={STATUS_VARIANTS[d.status] || "secondary"}
