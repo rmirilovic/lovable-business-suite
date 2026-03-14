@@ -15,6 +15,7 @@ import {
   LogOut,
   X,
   Bot,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -140,6 +141,15 @@ const navigation: NavItem[] = [
       { label: "Bruto bilans", href: "/racunovodstvo/bruto-bilans", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "POPDV", href: "/racunovodstvo/popdv", moduleCode: "racunovodstvo.nalozi" },
       { label: "PP-PDV Prijava", href: "/racunovodstvo/pp-pdv", moduleCode: "racunovodstvo.nalozi" },
+    ],
+  },
+  {
+    label: "Pisarnica",
+    icon: Mail,
+    moduleCode: "pisarnica",
+    children: [
+      { label: "Zavođenje ulazne pošte", href: "/pisarnica/zavodjenje", moduleCode: "pisarnica.zavodjenje" },
+      { label: "Likvidacija dokumenta", href: "/pisarnica/likvidacija", moduleCode: "pisarnica.likvidacija" },
     ],
   },
   { label: "AI Asistent", icon: Bot, href: "/ai-asistent", moduleCode: "administracija" },

@@ -90,6 +90,9 @@ import NbsSifrePlacanja from "./pages/sifarnici/NbsSifrePlacanja";
 import Izvodi from "./pages/racunovodstvo/Izvodi";
 import BankStatementEdit from "./pages/racunovodstvo/BankStatementEdit";
 import AiAssistant from "./pages/AiAssistant";
+import ZavodjenjePoste from "./pages/pisarnica/ZavodjenjePoste";
+import IncomingMailEdit from "./pages/pisarnica/IncomingMailEdit";
+import LikvidacijaPoste from "./pages/pisarnica/LikvidacijaPoste";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -515,6 +518,21 @@ const App = () => (
               <Route path="/racunovodstvo/izvodi/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <BankStatementEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/zavodjenje" element={
+                <ProtectedRoute>
+                  <ZavodjenjePoste />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/zavodjenje/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <IncomingMailEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/likvidacija" element={
+                <ProtectedRoute>
+                  <LikvidacijaPoste />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
