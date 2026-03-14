@@ -494,7 +494,7 @@ export default function ReprocessingWorkOrderEdit() {
                     <TableCell>{mat.article_name}</TableCell>
                     <TableCell>{mat.unit}</TableCell>
                     <TableCell className="text-right"><LocaleNumberInput value={String(mat.quantity ?? 0)} onChange={(v) => handleUpdateMaterial(mat, "quantity", parseLocaleNumber(v))} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
-                    <TableCell className="text-right"><LocaleNumberInput value={String(mat.unit_price ?? 0)} onChange={(v) => handleUpdateMaterial(mat, "unit_price", parseFloat(v.replace(',', '.')) || 0)} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
+                    <TableCell className="text-right"><LocaleNumberInput value={String(mat.unit_price ?? 0)} onChange={(v) => handleUpdateMaterial(mat, "unit_price", parseLocaleNumber(v))} disabled={isClosed} className="w-[90px] text-right h-8" /></TableCell>
                     <TableCell className="text-right font-mono">{formatNumber(mat.item_value, { minimumFractionDigits: 2 })}</TableCell>
                     {(isDraft || isLaunched) && <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteMaterial(mat.id)}><Trash2 className="w-3 h-3 text-destructive" /></Button></TableCell>}
                   </TableRow>

@@ -236,7 +236,7 @@ export function DeliveryNoteItemsEditorPage({
                       <LocaleNumberInput
                         value={String(item.quantity)}
                         onChange={(val) =>
-                          updateQuantity(index, parseFloat(val.replace(",", ".")) || 0)
+                          updateQuantity(index, parseLocaleNumber(val))
                         }
                         onBlur={commitChange}
                         className="w-full text-right"

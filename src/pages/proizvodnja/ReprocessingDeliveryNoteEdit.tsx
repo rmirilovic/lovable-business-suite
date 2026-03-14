@@ -43,7 +43,7 @@ function ItemRow({ item, idx, isDraft, onUpdate, onShowHistory }: { item: Reproc
       <TableCell className="text-right"><LocaleNumberInput value={String(item.qty_shift_3 ?? 0)} onChange={(v) => onUpdate(item, "qty_shift_3", parseLocaleNumber(v))} disabled={!isDraft} className="w-[80px] text-right h-8" /></TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.qty_total, { minimumFractionDigits: 2 })}</TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.delivered_kg, { minimumFractionDigits: 2 })}</TableCell>
-      <TableCell className="text-right"><LocaleNumberInput value={String(item.scrap_qty ?? 0)} onChange={(v) => onUpdate(item, "scrap_qty", parseFloat(v.replace(',', '.')) || 0)} disabled={!isDraft} className="w-[70px] text-right h-8" /></TableCell>
+      <TableCell className="text-right"><LocaleNumberInput value={String(item.scrap_qty ?? 0)} onChange={(v) => onUpdate(item, "scrap_qty", parseLocaleNumber(v))} disabled={!isDraft} className="w-[70px] text-right h-8" /></TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.unit_price, { minimumFractionDigits: 2 })}</TableCell>
       <TableCell className="text-right font-mono">{formatNumber(item.item_value, { minimumFractionDigits: 2 })}</TableCell>
       <TableCell>

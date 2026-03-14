@@ -103,7 +103,7 @@ export function DeliveryNoteItemsEditor({ items, onChange, disabled }: DeliveryN
                     {disabled ? formatDecimal(item.quantity) : (
                       <LocaleNumberInput 
                         value={String(item.quantity)} 
-                        onChange={(val) => updateItem(index, { quantity: parseFloat(val.replace(',', '.')) || 0 })} 
+                        onChange={(val) => updateItem(index, { quantity: parseLocaleNumber(val) })} 
                         className="w-full text-right" 
                       />
                     )}
