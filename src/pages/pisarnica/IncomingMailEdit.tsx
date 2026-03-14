@@ -520,8 +520,7 @@ export default function IncomingMailEdit() {
                   <BookCheck className="w-4 h-4 mr-2" />Zavedi dokument
                 </Button>
               </div>
-              )}
-            </div>
+            )}
           </div>
         )}
 
