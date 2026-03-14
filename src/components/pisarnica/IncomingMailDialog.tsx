@@ -18,6 +18,7 @@ import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 interface Props {
   open: boolean;
