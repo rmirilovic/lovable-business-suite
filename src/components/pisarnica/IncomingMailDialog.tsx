@@ -18,6 +18,7 @@ import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 interface Props {
   open: boolean;
@@ -89,7 +90,7 @@ export function IncomingMailDialog({ open, onOpenChange, onSaved }: Props) {
       return;
     }
 
-    const parsedAmount = amount ? parseFloat(amount.replace(/[^\d.-]/g, "")) : null;
+    const parsedAmount = amount ? parseLocaleNumber(amount) : null;
 
     // Check for duplicate document number
     const { data: existing } = await supabase
