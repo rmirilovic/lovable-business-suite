@@ -144,7 +144,7 @@ export default function IncomingMailEdit() {
       sender_name: senderName.trim(),
       sender_pib: selectedPartner?.pib || null,
       sender_mb: selectedPartner?.mb || null,
-      amount,
+      amount: parsedAmount,
       note: note.trim() || null,
       is_correct: isCorrect,
       incorrect_reason: !isCorrect ? incorrectReason.trim() : null,
