@@ -521,13 +521,6 @@ export default function IncomingMailEdit() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => setRegisterDialogOpen(true)}
-                  disabled={!liquidatorUserId || !isCorrect}
-                >
-                  <BookCheck className="w-4 h-4 mr-2" />Zavedi dokument
-                </Button>
               </div>
             )}
           </div>
