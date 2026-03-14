@@ -148,6 +148,8 @@ export default function IncomingMailEdit() {
       note: note.trim() || null,
       is_correct: isCorrect,
       incorrect_reason: !isCorrect ? incorrectReason.trim() : null,
+      liquidator_user_id: liquidatorUserId || null,
+      liquidator_name: liquidatorName || null,
     } as any);
     fetchMail();
   };
