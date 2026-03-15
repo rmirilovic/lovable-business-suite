@@ -87,6 +87,7 @@ import PpPdvList from "./pages/racunovodstvo/PpPdvList";
 import PpPdvEdit from "./pages/racunovodstvo/PpPdvEdit";
 import SifarnikPlacanja from "./pages/racunovodstvo/SifarnikPlacanja";
 import NbsSifrePlacanja from "./pages/sifarnici/NbsSifrePlacanja";
+import KursnaLista from "./pages/sifarnici/KursnaLista";
 import Izvodi from "./pages/racunovodstvo/Izvodi";
 import BankStatementEdit from "./pages/racunovodstvo/BankStatementEdit";
 import AiAssistant from "./pages/AiAssistant";
@@ -510,6 +511,11 @@ const App = () => (
               <Route path="/sifarnici/nbs-sifre-placanja" element={
                 <ProtectedRoute>
                   <NbsSifrePlacanja />
+                </ProtectedRoute>
+              } />
+              <Route path="/sifarnici/kursna-lista" element={
+                <ProtectedRoute>
+                  <KursnaLista />
                 </ProtectedRoute>
               } />
               <Route path="/racunovodstvo/izvodi" element={
