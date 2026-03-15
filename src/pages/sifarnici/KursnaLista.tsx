@@ -75,9 +75,9 @@ export default function KursnaLista() {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             {loading ? "Preuzimanje..." : "Preuzmi kurs"}
           </Button>
-          {listNumber && (
+          {listDate && (
             <span className="text-sm text-muted-foreground ml-auto">
-              Lista br. {listNumber}{listDate ? ` od ${listDate}` : ""}
+              Kurs za datum: {listDate}
             </span>
           )}
         </div>
