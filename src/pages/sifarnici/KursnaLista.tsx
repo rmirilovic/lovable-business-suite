@@ -114,7 +114,7 @@ export default function KursnaLista() {
                   </TableCell>
                 </TableRow>
               ) : (
-                sortedRates.map((r, i) => (
+                rates.map((r, i) => (
                   <TableRow key={`${r.currencyCode}-${i}`}>
                     <TableCell className="font-mono font-medium">{r.currencyCode}</TableCell>
                     <TableCell>{r.currencyName}</TableCell>
