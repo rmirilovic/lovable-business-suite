@@ -63,19 +63,6 @@ export default function KursnaLista() {
     return rate.toLocaleString("sr-Latn-RS", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
   };
 
-  // Filter to show EUR and USD first, then others
-  const priorityCodes = ["978", "840"]; // EUR, USD numeric codes
-  const priorityAlpha = ["EUR", "USD"];
-  const sortedRates = [...rates].sort((a, b) => {
-    const aIdx = priorityCodes.indexOf(a.currencyCode) !== -1 
-      ? priorityCodes.indexOf(a.currencyCode) 
-      : (priorityAlpha.indexOf(a.currencyCode) !== -1 ? priorityAlpha.indexOf(a.currencyCode) : 999);
-    const bIdx = priorityCodes.indexOf(b.currencyCode) !== -1 
-      ? priorityCodes.indexOf(b.currencyCode) 
-      : (priorityAlpha.indexOf(b.currencyCode) !== -1 ? priorityAlpha.indexOf(b.currencyCode) : 999);
-    return aIdx - bIdx;
-  });
-
   return (
     <MainLayout title="Kursna lista NBS">
       <div className="flex flex-col gap-4 h-full min-h-0">
