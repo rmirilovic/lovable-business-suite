@@ -507,11 +507,6 @@ const App = () => (
                   <SifarnikPlacanja />
                 </ProtectedRoute>
               } />
-              <Route path="/sifarnici/nbs-sifre-placanja" element={
-                <ProtectedRoute>
-                  <NbsSifrePlacanja />
-                </ProtectedRoute>
-              } />
               <Route path="/sifarnici/kursna-lista" element={
                 <ProtectedRoute>
                   <KursnaLista />
