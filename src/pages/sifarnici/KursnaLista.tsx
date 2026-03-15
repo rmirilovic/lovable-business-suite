@@ -43,7 +43,6 @@ export default function KursnaLista() {
 
       setRates(data.rates || []);
       setListDate(data.listDate || "");
-      setListNumber(data.listNumber || "");
       setFetched(true);
 
       if ((data.rates || []).length === 0) {
