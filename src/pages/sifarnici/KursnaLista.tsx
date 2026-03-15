@@ -24,7 +24,6 @@ export default function KursnaLista() {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [rates, setRates] = useState<ExchangeRate[]>([]);
   const [listDate, setListDate] = useState("");
-  const [listNumber, setListNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
 
