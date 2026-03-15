@@ -107,7 +107,7 @@ export default function KursnaLista() {
                     Učitavanje...
                   </TableCell>
                 </TableRow>
-              ) : sortedRates.length === 0 ? (
+              ) : rates.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     Nema podataka za traženi datum
