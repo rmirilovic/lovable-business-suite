@@ -17,6 +17,7 @@ interface ExchangeRate {
   buyingRate: number | null;
   middleRate: number | null;
   sellingRate: number | null;
+  date?: string;
 }
 
 export default function KursnaLista() {
