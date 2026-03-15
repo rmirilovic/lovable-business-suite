@@ -17,13 +17,13 @@ interface ExchangeRate {
   buyingRate: number | null;
   middleRate: number | null;
   sellingRate: number | null;
+  date?: string;
 }
 
 export default function KursnaLista() {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [rates, setRates] = useState<ExchangeRate[]>([]);
   const [listDate, setListDate] = useState("");
-  const [listNumber, setListNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
 
@@ -43,7 +43,6 @@ export default function KursnaLista() {
 
       setRates(data.rates || []);
       setListDate(data.listDate || "");
-      setListNumber(data.listNumber || "");
       setFetched(true);
 
       if ((data.rates || []).length === 0) {
@@ -64,19 +63,6 @@ export default function KursnaLista() {
     return rate.toLocaleString("sr-Latn-RS", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
   };
 
-  // Filter to show EUR and USD first, then others
-  const priorityCodes = ["978", "840"]; // EUR, USD numeric codes
-  const priorityAlpha = ["EUR", "USD"];
-  const sortedRates = [...rates].sort((a, b) => {
-    const aIdx = priorityCodes.indexOf(a.currencyCode) !== -1 
-      ? priorityCodes.indexOf(a.currencyCode) 
-      : (priorityAlpha.indexOf(a.currencyCode) !== -1 ? priorityAlpha.indexOf(a.currencyCode) : 999);
-    const bIdx = priorityCodes.indexOf(b.currencyCode) !== -1 
-      ? priorityCodes.indexOf(b.currencyCode) 
-      : (priorityAlpha.indexOf(b.currencyCode) !== -1 ? priorityAlpha.indexOf(b.currencyCode) : 999);
-    return aIdx - bIdx;
-  });
-
   return (
     <MainLayout title="Kursna lista NBS">
       <div className="flex flex-col gap-4 h-full min-h-0">
@@ -89,9 +75,9 @@ export default function KursnaLista() {
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
             {loading ? "Preuzimanje..." : "Preuzmi kurs"}
           </Button>
-          {listNumber && (
+          {listDate && (
             <span className="text-sm text-muted-foreground ml-auto">
-              Lista br. {listNumber}{listDate ? ` od ${listDate}` : ""}
+              Kurs za datum: {listDate}
             </span>
           )}
         </div>
@@ -121,14 +107,14 @@ export default function KursnaLista() {
                     Učitavanje...
                   </TableCell>
                 </TableRow>
-              ) : sortedRates.length === 0 ? (
+              ) : rates.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     Nema podataka za traženi datum
                   </TableCell>
                 </TableRow>
               ) : (
-                sortedRates.map((r, i) => (
+                rates.map((r, i) => (
                   <TableRow key={`${r.currencyCode}-${i}`}>
                     <TableCell className="font-mono font-medium">{r.currencyCode}</TableCell>
                     <TableCell>{r.currencyName}</TableCell>
