@@ -513,6 +513,11 @@ const App = () => (
                   <NbsSifrePlacanja />
                 </ProtectedRoute>
               } />
+              <Route path="/sifarnici/kursna-lista" element={
+                <ProtectedRoute>
+                  <KursnaLista />
+                </ProtectedRoute>
+              } />
               <Route path="/racunovodstvo/izvodi" element={
                 <ProtectedRoute>
                   <Izvodi />
