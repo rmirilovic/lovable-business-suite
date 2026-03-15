@@ -60,7 +60,7 @@ const navigation: NavItem[] = [
       { label: "Šefovi smena", href: "/sifarnici/sefovi-smena", moduleCode: "sifarnici.ulazni_troskovi" },
       { label: "Tekući računi", href: "/sifarnici/tekuci-racuni", moduleCode: "sifarnici.magacini" },
       { label: "Šifarnik plaćanja", href: "/sifarnici/sifarnik-placanja", moduleCode: "racunovodstvo.nalozi" },
-      { label: "NBS šifre plaćanja", href: "/sifarnici/nbs-sifre-placanja", moduleCode: "racunovodstvo.nalozi" },
+      { label: "Kursna lista NBS", href: "/sifarnici/kursna-lista", moduleCode: "racunovodstvo.nalozi" },
       { label: "Kursna lista NBS", href: "/sifarnici/kursna-lista", moduleCode: "racunovodstvo.nalozi" },
     ],
   },
