@@ -235,6 +235,11 @@ const App = () => (
                   <PartneriPoDpo />
                 </ProtectedRoute>
               } />
+              <Route path="/racunovodstvo/dokumenti-partnera" element={
+                <ProtectedRoute>
+                  <PartnerDocumentBalancesReport />
+                </ProtectedRoute>
+              } />
               <Route path="/prodaja/ponude" element={
                 <ProtectedRoute>
                   <Ponude />

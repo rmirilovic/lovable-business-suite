@@ -139,6 +139,7 @@ const navigation: NavItem[] = [
       { label: "Kartice partnera", href: "/racunovodstvo/kartice-partnera", moduleCode: "racunovodstvo.kartice_partnera" },
       { label: "Partneri po datumu valute", href: "/racunovodstvo/partneri-valuta", moduleCode: "racunovodstvo.kartice_partnera" },
       { label: "Partneri po datumu DPO", href: "/racunovodstvo/partneri-dpo", moduleCode: "racunovodstvo.kartice_partnera" },
+      { label: "Dokumenti partnera", href: "/racunovodstvo/dokumenti-partnera", moduleCode: "racunovodstvo.kartice_partnera" },
     ],
   },
   {
