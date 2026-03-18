@@ -31,6 +31,7 @@ import KarticaKonta from "./pages/racunovodstvo/KarticaKonta";
 import KarticePartnera from "./pages/racunovodstvo/KarticePartnera";
 import PartneriPoValuti from "./pages/racunovodstvo/PartneriPoValuti";
 import PartneriPoDpo from "./pages/racunovodstvo/PartneriPoDpo";
+import PartnerDocumentBalancesReport from "./pages/racunovodstvo/PartnerDocumentBalancesReport";
 import Ponude from "./pages/prodaja/Ponude";
 import QuoteEdit from "./pages/prodaja/QuoteEdit";
 import Fakture from "./pages/prodaja/Fakture";
