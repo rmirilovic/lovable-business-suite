@@ -22,7 +22,7 @@ import {
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { Button } from "@/components/ui/button";
-import { FileDown, Printer, FileSpreadsheet, Users } from "lucide-react";
+import { FileDown, Printer, FileSpreadsheet, Users, FilterX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDecimal } from "@/lib/formatting";
@@ -197,6 +197,23 @@ export default function PartnerDocumentBalancesReport() {
             </div>
 
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setFilterCode("");
+                  setFilterName("");
+                  setFilterDoc("");
+                  setFilterValuta("");
+                  setFilterKasni("");
+                  setFilterDebit("");
+                  setFilterCredit("");
+                  setFilterSaldo("");
+                }}
+              >
+                <FilterX className="h-4 w-4 mr-1" />
+                Poništi filtere
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
