@@ -22,7 +22,7 @@ import {
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { Button } from "@/components/ui/button";
-import { FileDown, Printer, FileSpreadsheet, Users } from "lucide-react";
+import { FileDown, Printer, FileSpreadsheet, Users, FilterX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDecimal } from "@/lib/formatting";
