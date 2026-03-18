@@ -279,28 +279,28 @@ export default function PartnerDocumentBalancesReport() {
                 </TableRow>
                 {/* Filter row */}
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input placeholder="Filter..." value={filterCode} onChange={(e) => setFilterCode(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input placeholder="Filter..." value={filterName} onChange={(e) => setFilterName(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input placeholder="Filter..." value={filterDoc} onChange={(e) => setFilterDoc(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input placeholder="Filter..." value={filterValuta} onChange={(e) => setFilterValuta(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input placeholder="Filter..." value={filterKasni} onChange={(e) => setFilterKasni(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input placeholder="Filter..." value={filterDebit} onChange={(e) => setFilterDebit(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input placeholder="Filter..." value={filterCredit} onChange={(e) => setFilterCredit(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input placeholder="Filter..." value={filterSaldo} onChange={(e) => setFilterSaldo(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
                 </TableRow>
