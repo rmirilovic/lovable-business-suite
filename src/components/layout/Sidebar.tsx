@@ -135,7 +135,7 @@ const navigation: NavItem[] = [
     icon: Users,
     moduleCode: "sifarnici.partneri",
     children: [
-      { label: "Partneri", href: "/sifarnici/partneri", moduleCode: "sifarnici.partneri" },
+      { label: "Šifarnik partnera", href: "/sifarnici/partneri", moduleCode: "sifarnici.partneri" },
       { label: "Kartice partnera", href: "/racunovodstvo/kartice-partnera", moduleCode: "racunovodstvo.kartice_partnera" },
     ],
   },
