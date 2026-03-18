@@ -203,7 +203,7 @@ export default function PartnerBalancesReport({ dateMode, title }: Props) {
                 </TableRow>
                 {/* Column filters row */}
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input
                       placeholder="Filter..."
                       value={filterCode}
@@ -211,7 +211,7 @@ export default function PartnerBalancesReport({ dateMode, title }: Props) {
                       className="h-7 text-xs"
                     />
                   </TableHead>
-                  <TableHead className="py-1">
+                  <TableHead className="py-1 top-12 z-20">
                     <Input
                       placeholder="Filter..."
                       value={filterName}
@@ -219,9 +219,9 @@ export default function PartnerBalancesReport({ dateMode, title }: Props) {
                       className="h-7 text-xs"
                     />
                   </TableHead>
-                  <TableHead />
-                  <TableHead />
-                  <TableHead />
+                  <TableHead className="top-12 z-20" />
+                  <TableHead className="top-12 z-20" />
+                  <TableHead className="top-12 z-20" />
                 </TableRow>
               </TableHeader>
               <TableBody>
