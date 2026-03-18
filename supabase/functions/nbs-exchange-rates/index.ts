@@ -5,7 +5,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const CURRENCIES = ["eur", "usd", "chf", "gbp", "aud", "cad", "czk", "dkk", "huf", "jpy", "nok", "sek", "pln", "rub", "try", "cny"];
+const CURRENCIES: { code: string; country: string; countryCode: string }[] = [
+  { code: "eur", country: "EMU", countryCode: "EU" },
+  { code: "usd", country: "SAD", countryCode: "US" },
+  { code: "chf", country: "Švajcarska", countryCode: "CHE" },
+  { code: "gbp", country: "V. Britanija", countryCode: "GBR" },
+  { code: "aud", country: "Australija", countryCode: "AUS" },
+  { code: "cad", country: "Kanada", countryCode: "CAN" },
+  { code: "czk", country: "Češka", countryCode: "CZE" },
+  { code: "dkk", country: "Danska", countryCode: "DNK" },
+  { code: "huf", country: "Mađarska", countryCode: "HUN" },
+  { code: "jpy", country: "Japan", countryCode: "JPN" },
+  { code: "nok", country: "Norveška", countryCode: "NOR" },
+  { code: "sek", country: "Švedska", countryCode: "SWE" },
+  { code: "pln", country: "Poljska", countryCode: "POL" },
+  { code: "rub", country: "Rusija", countryCode: "RUS" },
+  { code: "try", country: "Turska", countryCode: "TUR" },
+  { code: "cny", country: "Kina", countryCode: "CHN" },
+];
 
 interface RateResponse {
   code: string;
