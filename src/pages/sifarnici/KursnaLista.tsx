@@ -122,6 +122,8 @@ export default function KursnaLista() {
                   <TableRow key={`${r.currencyCode}-${i}`}>
                     <TableCell className="font-mono font-medium">{r.currencyCode}</TableCell>
                     <TableCell>{r.currencyName}</TableCell>
+                    <TableCell>{r.country}</TableCell>
+                    <TableCell className="text-center font-mono">{r.countryCode}</TableCell>
                     <TableCell className="text-center">{r.unit}</TableCell>
                     <TableCell className="text-right font-mono">{formatRate(r.buyingRate)}</TableCell>
                     <TableCell className="text-right font-mono font-semibold">{formatRate(r.middleRate)}</TableCell>
