@@ -56,14 +56,14 @@ serve(async (req) => {
         const resp = await fetch(url);
         
         if (!resp.ok) {
-          console.log(`${code} returned ${resp.status}`);
+          console.log(`${cur.code} returned ${resp.status}`);
           return null;
         }
         
         const data = await resp.json();
-        return data as RateResponse;
+        return { ...data, country: cur.country, countryCode: cur.countryCode } as RateResponse;
       } catch (err) {
-        console.error(`Error fetching ${code}:`, err);
+        console.error(`Error fetching ${cur.code}:`, err);
         return null;
       }
     });
