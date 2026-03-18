@@ -13,6 +13,8 @@ import { RefreshCw } from "lucide-react";
 interface ExchangeRate {
   currencyCode: string;
   currencyName: string;
+  country: string;
+  countryCode: string;
   unit: number;
   buyingRate: number | null;
   middleRate: number | null;
