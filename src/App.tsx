@@ -29,6 +29,8 @@ import GlavnaKnjiga from "./pages/racunovodstvo/GlavnaKnjiga";
 import BrutoBilans from "./pages/racunovodstvo/BrutoBilans";
 import KarticaKonta from "./pages/racunovodstvo/KarticaKonta";
 import KarticePartnera from "./pages/racunovodstvo/KarticePartnera";
+import PartneriPoValuti from "./pages/racunovodstvo/PartneriPoValuti";
+import PartneriPoDpo from "./pages/racunovodstvo/PartneriPoDpo";
 import Ponude from "./pages/prodaja/Ponude";
 import QuoteEdit from "./pages/prodaja/QuoteEdit";
 import Fakture from "./pages/prodaja/Fakture";
@@ -220,6 +222,16 @@ const App = () => (
               <Route path="/racunovodstvo/kartice-partnera" element={
                 <ProtectedRoute>
                   <KarticePartnera />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/partneri-valuta" element={
+                <ProtectedRoute>
+                  <PartneriPoValuti />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/partneri-dpo" element={
+                <ProtectedRoute>
+                  <PartneriPoDpo />
                 </ProtectedRoute>
               } />
               <Route path="/prodaja/ponude" element={

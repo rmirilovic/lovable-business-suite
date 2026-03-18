@@ -137,6 +137,8 @@ const navigation: NavItem[] = [
     children: [
       { label: "Šifarnik partnera", href: "/sifarnici/partneri", moduleCode: "sifarnici.partneri" },
       { label: "Kartice partnera", href: "/racunovodstvo/kartice-partnera", moduleCode: "racunovodstvo.kartice_partnera" },
+      { label: "Partneri po datumu valute", href: "/racunovodstvo/partneri-valuta", moduleCode: "racunovodstvo.kartice_partnera" },
+      { label: "Partneri po datumu DPO", href: "/racunovodstvo/partneri-dpo", moduleCode: "racunovodstvo.kartice_partnera" },
     ],
   },
   {
