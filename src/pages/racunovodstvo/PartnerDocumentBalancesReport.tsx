@@ -168,7 +168,7 @@ export default function PartnerDocumentBalancesReport() {
       <div className="flex flex-col h-full gap-4">
         {/* Filters */}
         <div className="erp-card p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div className="space-y-2">
               <Label>Vrsta</Label>
               <Select value={accountPrefix} onValueChange={setAccountPrefix}>
@@ -183,11 +183,6 @@ export default function PartnerDocumentBalancesReport() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Datum od</Label>
-              <LocaleDateInput value={dateFrom} onChange={setDateFrom} />
             </div>
 
             <div className="space-y-2">
