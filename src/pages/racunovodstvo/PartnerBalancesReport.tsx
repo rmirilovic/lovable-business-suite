@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Label } from "@/components/ui/label";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { SortableHeader } from "@/components/ui/sortable-header";
 import { Button } from "@/components/ui/button";
 import { FileDown, Printer, FileSpreadsheet, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,8 @@ import {
   type DateMode,
   type PartnerBalanceRow,
 } from "@/hooks/usePartnerBalances";
+import { useTableSort } from "@/hooks/useTableSort";
+import { exportPartnerBalancesToPdf, printPartnerBalances } from "@/lib/partnerBalancesExportUtils";
 import * as XLSX from "xlsx";
 
 interface Props {
@@ -38,12 +42,18 @@ interface Props {
 }
 
 export default function PartnerBalancesReport({ dateMode, title }: Props) {
-  const { selectedYear } = useAuth();
+  const { selectedCompany, selectedYear } = useAuth();
   const currentYear = selectedYear?.year || new Date().getFullYear();
 
   const [accountPrefix, setAccountPrefix] = useState<string>("204");
   const [dateFrom, setDateFrom] = useState(`${currentYear}-01-01`);
   const [dateTo, setDateTo] = useState(`${currentYear}-12-31`);
+
+  // Column filters
+  const [filterCode, setFilterCode] = useState("");
+  const [filterName, setFilterName] = useState("");
+
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("partner_code", "asc");
 
   const { data: rows = [], isLoading } = usePartnerBalances(
     accountPrefix,
@@ -52,7 +62,26 @@ export default function PartnerBalancesReport({ dateMode, title }: Props) {
     dateMode
   );
 
-  const totals = rows.reduce(
+  // Apply filters
+  const filtered = rows.filter((r) => {
+    if (filterCode && !r.partner_code.toLowerCase().includes(filterCode.toLowerCase())) return false;
+    if (filterName && !r.partner_name.toLowerCase().includes(filterName.toLowerCase())) return false;
+    return true;
+  });
+
+  // Apply sort
+  const sorted = sortItems(filtered, (item: PartnerBalanceRow, col: string) => {
+    switch (col) {
+      case "partner_code": return item.partner_code;
+      case "partner_name": return item.partner_name;
+      case "debit": return item.debit;
+      case "credit": return item.credit;
+      case "balance": return item.balance;
+      default: return null;
+    }
+  });
+
+  const totals = sorted.reduce(
     (acc, r) => ({
       debit: acc.debit + r.debit,
       credit: acc.credit + r.credit,
@@ -63,9 +92,17 @@ export default function PartnerBalancesReport({ dateMode, title }: Props) {
 
   const selectedLabel = ACCOUNT_TYPES.find(t => t.code === accountPrefix)?.label || "";
 
+  const exportMeta = {
+    companyName: selectedCompany?.name || "",
+    title,
+    accountLabel: selectedLabel,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+  };
+
   const handleExportExcel = () => {
-    if (!rows.length) return;
-    const data = rows.map(r => ({
+    if (!sorted.length) return;
+    const data = sorted.map(r => ({
       "Šifra": r.partner_code,
       "Naziv partnera": r.partner_name,
       "Duguje": Number(r.debit.toFixed(2)),
@@ -119,9 +156,17 @@ export default function PartnerBalancesReport({ dateMode, title }: Props) {
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={!rows.length}>
+              <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={!sorted.length}>
                 <FileSpreadsheet className="h-4 w-4 mr-1" />
                 Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportPartnerBalancesToPdf(sorted, exportMeta)} disabled={!sorted.length}>
+                <FileDown className="h-4 w-4 mr-1" />
+                PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => printPartnerBalances(sorted, exportMeta)} disabled={!sorted.length}>
+                <Printer className="h-4 w-4 mr-1" />
+                Štampa
               </Button>
             </div>
           </div>
@@ -140,15 +185,47 @@ export default function PartnerBalancesReport({ dateMode, title }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[80px]">Šifra</TableHead>
-                  <TableHead>Naziv partnera</TableHead>
-                  <TableHead className="text-right w-[140px]">Duguje</TableHead>
-                  <TableHead className="text-right w-[140px]">Potražuje</TableHead>
-                  <TableHead className="text-right w-[140px]">Saldo</TableHead>
+                  <TableHead className="w-[100px]">
+                    <SortableHeader column="partner_code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead>
+                    <SortableHeader column="partner_name" label="Naziv partnera" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                  </TableHead>
+                  <TableHead className="text-right w-[140px]">
+                    <SortableHeader column="debit" label="Duguje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                  </TableHead>
+                  <TableHead className="text-right w-[140px]">
+                    <SortableHeader column="credit" label="Potražuje" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                  </TableHead>
+                  <TableHead className="text-right w-[140px]">
+                    <SortableHeader column="balance" label="Saldo" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" />
+                  </TableHead>
+                </TableRow>
+                {/* Column filters row */}
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="py-1">
+                    <Input
+                      placeholder="Filter..."
+                      value={filterCode}
+                      onChange={(e) => setFilterCode(e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </TableHead>
+                  <TableHead className="py-1">
+                    <Input
+                      placeholder="Filter..."
+                      value={filterName}
+                      onChange={(e) => setFilterName(e.target.value)}
+                      className="h-7 text-xs"
+                    />
+                  </TableHead>
+                  <TableHead />
+                  <TableHead />
+                  <TableHead />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map(r => (
+                {sorted.map(r => (
                   <TableRow key={r.partner_id}>
                     <TableCell className="font-mono text-sm">{r.partner_code}</TableCell>
                     <TableCell>{r.partner_name}</TableCell>
