@@ -282,19 +282,19 @@ export default function PartnerDocumentBalancesReport() {
                     <Input placeholder="Filter..." value={filterDoc} onChange={(e) => setFilterDoc(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterValuta} onChange={setFilterValuta} type="text" placeholder="dd.MM.yyyy" placeholderTo="dd.MM.yyyy" />
+                    <SmartFilterInput value={filterValuta} onChange={setFilterValuta} type="date" placeholder=">dd.MM.yyyy" showHelp />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterKasni} onChange={setFilterKasni} type="number" placeholder="Dani" />
+                    <SmartFilterInput value={filterKasni} onChange={setFilterKasni} type="number" placeholder=">0, 10-30" showHelp />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterDebit} onChange={setFilterDebit} type="number" />
+                    <SmartFilterInput value={filterDebit} onChange={setFilterDebit} type="number" placeholder=">100" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterCredit} onChange={setFilterCredit} type="number" />
+                    <SmartFilterInput value={filterCredit} onChange={setFilterCredit} type="number" placeholder=">100" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterSaldo} onChange={setFilterSaldo} type="number" />
+                    <SmartFilterInput value={filterSaldo} onChange={setFilterSaldo} type="number" placeholder=">0" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
