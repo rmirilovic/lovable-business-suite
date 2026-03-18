@@ -38,12 +38,10 @@ import {
   printPartnerDocuments,
 } from "@/lib/partnerDocumentBalancesExportUtils";
 import {
-  ColumnRangeFilter,
-  emptyFilter,
-  applyNumericFilter,
-  applyDateFilter,
-  type ColumnFilterValue,
-} from "@/components/ui/column-range-filter";
+  SmartFilterInput,
+  applySmartNumericFilter,
+  applySmartDateFilter,
+} from "@/components/ui/smart-filter-input";
 import * as XLSX from "xlsx";
 
 export default function PartnerDocumentBalancesReport() {
@@ -59,12 +57,12 @@ export default function PartnerDocumentBalancesReport() {
   const [filterName, setFilterName] = useState("");
   const [filterDoc, setFilterDoc] = useState("");
 
-  // Range filters
-  const [filterValuta, setFilterValuta] = useState<ColumnFilterValue>(emptyFilter());
-  const [filterKasni, setFilterKasni] = useState<ColumnFilterValue>(emptyFilter());
-  const [filterDebit, setFilterDebit] = useState<ColumnFilterValue>(emptyFilter());
-  const [filterCredit, setFilterCredit] = useState<ColumnFilterValue>(emptyFilter());
-  const [filterSaldo, setFilterSaldo] = useState<ColumnFilterValue>(emptyFilter());
+  // Smart filters (operator typed inline: >100, 50-200, etc.)
+  const [filterValuta, setFilterValuta] = useState("");
+  const [filterKasni, setFilterKasni] = useState("");
+  const [filterDebit, setFilterDebit] = useState("");
+  const [filterCredit, setFilterCredit] = useState("");
+  const [filterSaldo, setFilterSaldo] = useState("");
 
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
     "partner_code",
@@ -84,11 +82,11 @@ export default function PartnerDocumentBalancesReport() {
       return false;
     if (filterDoc && !r.document_number.toLowerCase().includes(filterDoc.toLowerCase()))
       return false;
-    if (!applyDateFilter(r.document_date, filterValuta)) return false;
-    if (!applyNumericFilter(r.days_overdue ?? -1, filterKasni)) return false;
-    if (!applyNumericFilter(r.debit, filterDebit)) return false;
-    if (!applyNumericFilter(r.credit, filterCredit)) return false;
-    if (!applyNumericFilter(r.saldo, filterSaldo)) return false;
+    if (!applySmartDateFilter(r.document_date, filterValuta)) return false;
+    if (!applySmartNumericFilter(r.days_overdue ?? -1, filterKasni)) return false;
+    if (!applySmartNumericFilter(r.debit, filterDebit)) return false;
+    if (!applySmartNumericFilter(r.credit, filterCredit)) return false;
+    if (!applySmartNumericFilter(r.saldo, filterSaldo)) return false;
     return true;
   });
 
@@ -284,19 +282,19 @@ export default function PartnerDocumentBalancesReport() {
                     <Input placeholder="Filter..." value={filterDoc} onChange={(e) => setFilterDoc(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterValuta} onChange={setFilterValuta} type="text" placeholder="dd.MM.yyyy" placeholderTo="dd.MM.yyyy" />
+                    <SmartFilterInput value={filterValuta} onChange={setFilterValuta} type="date" placeholder=">dd.MM.yyyy" showHelp />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterKasni} onChange={setFilterKasni} type="number" placeholder="Dani" />
+                    <SmartFilterInput value={filterKasni} onChange={setFilterKasni} type="number" placeholder=">0, 10-30" showHelp />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterDebit} onChange={setFilterDebit} type="number" />
+                    <SmartFilterInput value={filterDebit} onChange={setFilterDebit} type="number" placeholder=">100" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterCredit} onChange={setFilterCredit} type="number" />
+                    <SmartFilterInput value={filterCredit} onChange={setFilterCredit} type="number" placeholder=">100" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <ColumnRangeFilter filter={filterSaldo} onChange={setFilterSaldo} type="number" />
+                    <SmartFilterInput value={filterSaldo} onChange={setFilterSaldo} type="number" placeholder=">0" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
