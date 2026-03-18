@@ -70,7 +70,7 @@ export default function PartnerDocumentBalancesReport() {
 
   const { data: rows = [], isLoading } = usePartnerDocumentBalances(
     accountPrefix,
-    dateFrom || null,
+    null,
     dateTo || null
   );
 
