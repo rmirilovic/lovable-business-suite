@@ -224,6 +224,15 @@ const App = () => (
                   <KarticePartnera />
                 </ProtectedRoute>
               } />
+              <Route path="/racunovodstvo/partneri-valuta" element={
+                <ProtectedRoute>
+                  <PartneriPoValuti />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/partneri-dpo" element={
+                <ProtectedRoute>
+                  <PartneriPoDpo />
+                </ProtectedRoute>
               <Route path="/prodaja/ponude" element={
                 <ProtectedRoute>
                   <Ponude />
