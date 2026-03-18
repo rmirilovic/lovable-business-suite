@@ -284,19 +284,19 @@ export default function PartnerDocumentBalancesReport() {
                     <Input placeholder="Filter..." value={filterDoc} onChange={(e) => setFilterDoc(e.target.value)} className="h-7 text-xs" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <Input placeholder="Filter..." value={filterValuta} onChange={(e) => setFilterValuta(e.target.value)} className="h-7 text-xs" />
+                    <ColumnRangeFilter filter={filterValuta} onChange={setFilterValuta} type="text" placeholder="dd.MM.yyyy" placeholderTo="dd.MM.yyyy" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <Input placeholder="Filter..." value={filterKasni} onChange={(e) => setFilterKasni(e.target.value)} className="h-7 text-xs" />
+                    <ColumnRangeFilter filter={filterKasni} onChange={setFilterKasni} type="number" placeholder="Dani" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <Input placeholder="Filter..." value={filterDebit} onChange={(e) => setFilterDebit(e.target.value)} className="h-7 text-xs" />
+                    <ColumnRangeFilter filter={filterDebit} onChange={setFilterDebit} type="number" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <Input placeholder="Filter..." value={filterCredit} onChange={(e) => setFilterCredit(e.target.value)} className="h-7 text-xs" />
+                    <ColumnRangeFilter filter={filterCredit} onChange={setFilterCredit} type="number" />
                   </TableHead>
                   <TableHead className="py-1 top-12 z-20">
-                    <Input placeholder="Filter..." value={filterSaldo} onChange={(e) => setFilterSaldo(e.target.value)} className="h-7 text-xs" />
+                    <ColumnRangeFilter filter={filterSaldo} onChange={setFilterSaldo} type="number" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
