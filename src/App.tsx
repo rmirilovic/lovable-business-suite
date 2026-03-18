@@ -233,6 +233,7 @@ const App = () => (
                 <ProtectedRoute>
                   <PartneriPoDpo />
                 </ProtectedRoute>
+              } />
               <Route path="/prodaja/ponude" element={
                 <ProtectedRoute>
                   <Ponude />
