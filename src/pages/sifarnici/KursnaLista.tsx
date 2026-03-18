@@ -113,7 +113,7 @@ export default function KursnaLista() {
                 </TableRow>
               ) : rates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nema podataka za traženi datum
                   </TableCell>
                 </TableRow>
