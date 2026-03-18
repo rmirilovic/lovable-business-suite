@@ -200,6 +200,23 @@ export default function PartnerDocumentBalancesReport() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => {
+                  setFilterCode("");
+                  setFilterName("");
+                  setFilterDoc("");
+                  setFilterValuta("");
+                  setFilterKasni("");
+                  setFilterDebit("");
+                  setFilterCredit("");
+                  setFilterSaldo("");
+                }}
+              >
+                <FilterX className="h-4 w-4 mr-1" />
+                Poništi filtere
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleExportExcel}
                 disabled={!sorted.length}
               >
