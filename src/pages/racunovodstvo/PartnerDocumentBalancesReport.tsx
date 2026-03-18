@@ -49,7 +49,6 @@ export default function PartnerDocumentBalancesReport() {
   const currentYear = selectedYear?.year || new Date().getFullYear();
 
   const [accountPrefix, setAccountPrefix] = useState<string>("204");
-  const [dateFrom, setDateFrom] = useState(`${currentYear}-01-01`);
   const [dateTo, setDateTo] = useState(`${currentYear}-12-31`);
 
   // Text filters
@@ -71,7 +70,7 @@ export default function PartnerDocumentBalancesReport() {
 
   const { data: rows = [], isLoading } = usePartnerDocumentBalances(
     accountPrefix,
-    dateFrom || null,
+    null,
     dateTo || null
   );
 
@@ -120,7 +119,6 @@ export default function PartnerDocumentBalancesReport() {
     companyName: selectedCompany?.name || "",
     title: "Dokumenti partnera",
     accountLabel: selectedLabel,
-    dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
   };
 
@@ -169,7 +167,7 @@ export default function PartnerDocumentBalancesReport() {
       <div className="flex flex-col h-full gap-4">
         {/* Filters */}
         <div className="erp-card p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div className="space-y-2">
               <Label>Vrsta</Label>
               <Select value={accountPrefix} onValueChange={setAccountPrefix}>
@@ -184,11 +182,6 @@ export default function PartnerDocumentBalancesReport() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Datum od</Label>
-              <LocaleDateInput value={dateFrom} onChange={setDateFrom} />
             </div>
 
             <div className="space-y-2">
