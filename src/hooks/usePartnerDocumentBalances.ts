@@ -209,9 +209,9 @@ export function usePartnerDocumentBalances(
         );
       }
 
-      // Filter by document_date (valuta)
-      if (dateFrom) query = query.gte("document_date", dateFrom);
-      if (dateTo) query = query.lte("document_date", dateTo);
+      // Filter by document_date (valuta) — include nulls (e.g. invoice entries without valuta date)
+      if (dateFrom) query = query.or(`document_date.gte.${dateFrom},document_date.is.null`);
+      if (dateTo) query = query.or(`document_date.lte.${dateTo},document_date.is.null`);
 
       const { data, error } = await query;
       if (error) throw error;
