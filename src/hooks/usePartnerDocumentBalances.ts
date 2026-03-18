@@ -78,7 +78,7 @@ function applyFifo(
       id: item.id,
       partner_id: item.partner_id!,
       document_number: docNum,
-      document_date: item.document_date,
+      document_date: item.document_date || item.journal_entries.entry_date,
       debit,
       credit,
       remaining: debit - credit, // positive = owes money (customer), negative for payments
