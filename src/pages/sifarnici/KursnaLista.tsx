@@ -90,6 +90,8 @@ export default function KursnaLista() {
               <TableRow>
                 <TableHead className="w-[100px]">Šifra</TableHead>
                 <TableHead>Valuta</TableHead>
+                <TableHead>Država / Teritorija</TableHead>
+                <TableHead className="w-[80px] text-center">Oznaka</TableHead>
                 <TableHead className="w-[80px] text-center">Jedinica</TableHead>
                 <TableHead className="w-[140px] text-right">Kupovni</TableHead>
                 <TableHead className="w-[140px] text-right">Srednji</TableHead>
