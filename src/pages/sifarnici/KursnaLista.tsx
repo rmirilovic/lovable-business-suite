@@ -13,6 +13,8 @@ import { RefreshCw } from "lucide-react";
 interface ExchangeRate {
   currencyCode: string;
   currencyName: string;
+  country: string;
+  countryCode: string;
   unit: number;
   buyingRate: number | null;
   middleRate: number | null;
@@ -88,6 +90,8 @@ export default function KursnaLista() {
               <TableRow>
                 <TableHead className="w-[100px]">Šifra</TableHead>
                 <TableHead>Valuta</TableHead>
+                <TableHead>Država / Teritorija</TableHead>
+                <TableHead className="w-[80px] text-center">Oznaka</TableHead>
                 <TableHead className="w-[80px] text-center">Jedinica</TableHead>
                 <TableHead className="w-[140px] text-right">Kupovni</TableHead>
                 <TableHead className="w-[140px] text-right">Srednji</TableHead>
@@ -97,19 +101,19 @@ export default function KursnaLista() {
             <TableBody>
               {!fetched ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     Kliknite "Preuzmi kurs" za preuzimanje kursne liste NBS-a
                   </TableCell>
                 </TableRow>
               ) : loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : rates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nema podataka za traženi datum
                   </TableCell>
                 </TableRow>
@@ -118,6 +122,8 @@ export default function KursnaLista() {
                   <TableRow key={`${r.currencyCode}-${i}`}>
                     <TableCell className="font-mono font-medium">{r.currencyCode}</TableCell>
                     <TableCell>{r.currencyName}</TableCell>
+                    <TableCell>{r.country}</TableCell>
+                    <TableCell className="text-center font-mono">{r.countryCode}</TableCell>
                     <TableCell className="text-center">{r.unit}</TableCell>
                     <TableCell className="text-right font-mono">{formatRate(r.buyingRate)}</TableCell>
                     <TableCell className="text-right font-mono font-semibold">{formatRate(r.middleRate)}</TableCell>

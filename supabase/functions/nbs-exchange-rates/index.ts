@@ -5,7 +5,24 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const CURRENCIES = ["eur", "usd", "chf", "gbp", "aud", "cad", "czk", "dkk", "huf", "jpy", "nok", "sek", "pln", "rub", "try", "cny"];
+const CURRENCIES: { code: string; country: string; countryCode: string }[] = [
+  { code: "eur", country: "EMU", countryCode: "EU" },
+  { code: "usd", country: "SAD", countryCode: "US" },
+  { code: "chf", country: "Švajcarska", countryCode: "CHE" },
+  { code: "gbp", country: "V. Britanija", countryCode: "GBR" },
+  { code: "aud", country: "Australija", countryCode: "AUS" },
+  { code: "cad", country: "Kanada", countryCode: "CAN" },
+  { code: "czk", country: "Češka", countryCode: "CZE" },
+  { code: "dkk", country: "Danska", countryCode: "DNK" },
+  { code: "huf", country: "Mađarska", countryCode: "HUN" },
+  { code: "jpy", country: "Japan", countryCode: "JPN" },
+  { code: "nok", country: "Norveška", countryCode: "NOR" },
+  { code: "sek", country: "Švedska", countryCode: "SWE" },
+  { code: "pln", country: "Poljska", countryCode: "POL" },
+  { code: "rub", country: "Rusija", countryCode: "RUS" },
+  { code: "try", country: "Turska", countryCode: "TUR" },
+  { code: "cny", country: "Kina", countryCode: "CHN" },
+];
 
 interface RateResponse {
   code: string;
@@ -15,6 +32,8 @@ interface RateResponse {
   exchange_buy: number;
   exchange_middle: number;
   exchange_sell: number;
+  country: string;
+  countryCode: string;
 }
 
 serve(async (req) => {
@@ -29,24 +48,24 @@ serve(async (req) => {
     const results: RateResponse[] = [];
 
     // Fetch EUR and USD (and optionally more) in parallel
-    const fetches = CURRENCIES.map(async (code) => {
+    const fetches = CURRENCIES.map(async (cur) => {
       try {
         const url = date
-          ? `${baseUrl}/${code}/rates/${date}`
-          : `${baseUrl}/${code}/rates/today`;
+          ? `${baseUrl}/${cur.code}/rates/${date}`
+          : `${baseUrl}/${cur.code}/rates/today`;
         
         console.log(`Fetching: ${url}`);
         const resp = await fetch(url);
         
         if (!resp.ok) {
-          console.log(`${code} returned ${resp.status}`);
+          console.log(`${cur.code} returned ${resp.status}`);
           return null;
         }
         
         const data = await resp.json();
-        return data as RateResponse;
+        return { ...data, country: cur.country, countryCode: cur.countryCode } as RateResponse;
       } catch (err) {
-        console.error(`Error fetching ${code}:`, err);
+        console.error(`Error fetching ${cur.code}:`, err);
         return null;
       }
     });
@@ -64,6 +83,8 @@ serve(async (req) => {
     const rates = results.map((r) => ({
       currencyCode: r.code,
       currencyName: r.code,
+      country: r.country,
+      countryCode: r.countryCode,
       unit: r.parity || 1,
       buyingRate: r.exchange_buy,
       middleRate: r.exchange_middle,
