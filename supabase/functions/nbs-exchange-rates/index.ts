@@ -83,6 +83,8 @@ serve(async (req) => {
     const rates = results.map((r) => ({
       currencyCode: r.code,
       currencyName: r.code,
+      country: r.country,
+      countryCode: r.countryCode,
       unit: r.parity || 1,
       buyingRate: r.exchange_buy,
       middleRate: r.exchange_middle,
