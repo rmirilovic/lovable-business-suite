@@ -120,7 +120,6 @@ export default function PartnerDocumentBalancesReport() {
     title: "Dokumenti partnera",
     accountLabel: selectedLabel,
     dateTo: dateTo || undefined,
-    dateTo: dateTo || undefined,
   };
 
   const handleExportExcel = () => {
