@@ -46,11 +46,11 @@ serve(async (req) => {
     const results: RateResponse[] = [];
 
     // Fetch EUR and USD (and optionally more) in parallel
-    const fetches = CURRENCIES.map(async (code) => {
+    const fetches = CURRENCIES.map(async (cur) => {
       try {
         const url = date
-          ? `${baseUrl}/${code}/rates/${date}`
-          : `${baseUrl}/${code}/rates/today`;
+          ? `${baseUrl}/${cur.code}/rates/${date}`
+          : `${baseUrl}/${cur.code}/rates/today`;
         
         console.log(`Fetching: ${url}`);
         const resp = await fetch(url);
