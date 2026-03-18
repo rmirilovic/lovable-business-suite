@@ -119,7 +119,7 @@ export default function PartnerDocumentBalancesReport() {
     companyName: selectedCompany?.name || "",
     title: "Dokumenti partnera",
     accountLabel: selectedLabel,
-    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
     dateTo: dateTo || undefined,
   };
 
