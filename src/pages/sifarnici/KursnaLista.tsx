@@ -101,7 +101,7 @@ export default function KursnaLista() {
             <TableBody>
               {!fetched ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     Kliknite "Preuzmi kurs" za preuzimanje kursne liste NBS-a
                   </TableCell>
                 </TableRow>
