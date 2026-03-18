@@ -37,6 +37,13 @@ import {
   exportPartnerDocumentsToPdf,
   printPartnerDocuments,
 } from "@/lib/partnerDocumentBalancesExportUtils";
+import {
+  ColumnRangeFilter,
+  emptyFilter,
+  applyNumericFilter,
+  applyDateFilter,
+  type ColumnFilterValue,
+} from "@/components/ui/column-range-filter";
 import * as XLSX from "xlsx";
 
 export default function PartnerDocumentBalancesReport() {
@@ -47,15 +54,17 @@ export default function PartnerDocumentBalancesReport() {
   const [dateFrom, setDateFrom] = useState(`${currentYear}-01-01`);
   const [dateTo, setDateTo] = useState(`${currentYear}-12-31`);
 
-  // Filters
+  // Text filters
   const [filterCode, setFilterCode] = useState("");
   const [filterName, setFilterName] = useState("");
   const [filterDoc, setFilterDoc] = useState("");
-  const [filterValuta, setFilterValuta] = useState("");
-  const [filterKasni, setFilterKasni] = useState("");
-  const [filterDebit, setFilterDebit] = useState("");
-  const [filterCredit, setFilterCredit] = useState("");
-  const [filterSaldo, setFilterSaldo] = useState("");
+
+  // Range filters
+  const [filterValuta, setFilterValuta] = useState<ColumnFilterValue>(emptyFilter());
+  const [filterKasni, setFilterKasni] = useState<ColumnFilterValue>(emptyFilter());
+  const [filterDebit, setFilterDebit] = useState<ColumnFilterValue>(emptyFilter());
+  const [filterCredit, setFilterCredit] = useState<ColumnFilterValue>(emptyFilter());
+  const [filterSaldo, setFilterSaldo] = useState<ColumnFilterValue>(emptyFilter());
 
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
     "partner_code",
@@ -75,25 +84,11 @@ export default function PartnerDocumentBalancesReport() {
       return false;
     if (filterDoc && !r.document_number.toLowerCase().includes(filterDoc.toLowerCase()))
       return false;
-    if (filterValuta) {
-      const formatted = r.document_date
-        ? format(new Date(r.document_date), "dd.MM.yyyy")
-        : "";
-      if (!formatted.includes(filterValuta)) return false;
-    }
-    if (filterKasni) {
-      const val = r.days_overdue !== null ? String(r.days_overdue) : "-";
-      if (!val.includes(filterKasni)) return false;
-    }
-    if (filterDebit) {
-      if (!formatDecimal(r.debit, 2).includes(filterDebit)) return false;
-    }
-    if (filterCredit) {
-      if (!formatDecimal(r.credit, 2).includes(filterCredit)) return false;
-    }
-    if (filterSaldo) {
-      if (!formatDecimal(r.saldo, 2).includes(filterSaldo)) return false;
-    }
+    if (!applyDateFilter(r.document_date, filterValuta)) return false;
+    if (!applyNumericFilter(r.days_overdue ?? -1, filterKasni)) return false;
+    if (!applyNumericFilter(r.debit, filterDebit)) return false;
+    if (!applyNumericFilter(r.credit, filterCredit)) return false;
+    if (!applyNumericFilter(r.saldo, filterSaldo)) return false;
     return true;
   });
 
