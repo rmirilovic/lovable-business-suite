@@ -49,7 +49,6 @@ export default function PartnerDocumentBalancesReport() {
   const currentYear = selectedYear?.year || new Date().getFullYear();
 
   const [accountPrefix, setAccountPrefix] = useState<string>("204");
-  const [dateFrom, setDateFrom] = useState(`${currentYear}-01-01`);
   const [dateTo, setDateTo] = useState(`${currentYear}-12-31`);
 
   // Text filters
