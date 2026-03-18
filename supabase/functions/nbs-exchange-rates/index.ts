@@ -32,6 +32,8 @@ interface RateResponse {
   exchange_buy: number;
   exchange_middle: number;
   exchange_sell: number;
+  country: string;
+  countryCode: string;
 }
 
 serve(async (req) => {
