@@ -68,9 +68,9 @@ export function usePartnerBalances(
 
       // Date filtering based on mode
       if (dateMode === "valuta") {
-        // Filter by document_date (valuta date) on journal_entry_items
-        if (dateFrom) query = query.gte("document_date", dateFrom);
-        if (dateTo) query = query.lte("document_date", dateTo);
+        // Filter by document_date (valuta date) — include nulls
+        if (dateFrom) query = query.or(`document_date.gte.${dateFrom},document_date.is.null`);
+        if (dateTo) query = query.or(`document_date.lte.${dateTo},document_date.is.null`);
       } else {
         // Filter by entry_date (DPO) on journal_entries
         if (dateFrom) query = query.gte("journal_entries.entry_date", dateFrom);
