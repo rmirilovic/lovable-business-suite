@@ -268,7 +268,7 @@ export default function PredmetEdit() {
         {/* Main form + tabs */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Left: Case details */}
-          <div className="lg:col-span-1 erp-card p-4 space-y-4">
+          <div className="lg:col-span-1 erp-card p-4 space-y-4 lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto">
             <div className="space-y-2">
               <Label>Vrsta CRM-a</Label>
               <Select value={typeId} onValueChange={setTypeId} disabled={isClosed}>
