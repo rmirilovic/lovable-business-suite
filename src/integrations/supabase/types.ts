@@ -1809,6 +1809,267 @@ export type Database = {
           },
         ]
       }
+      crm_cases: {
+        Row: {
+          assigned_to: string | null
+          case_number: string
+          closed_at: string | null
+          closing_reason: string | null
+          company_id: string
+          created_at: string
+          created_by: string
+          crm_type_id: string
+          deadline: string | null
+          description: string | null
+          id: string
+          owner_user_id: string
+          partner_id: string | null
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          case_number: string
+          closed_at?: string | null
+          closing_reason?: string | null
+          company_id: string
+          created_at?: string
+          created_by: string
+          crm_type_id: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          owner_user_id: string
+          partner_id?: string | null
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          case_number?: string
+          closed_at?: string | null
+          closing_reason?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          crm_type_id?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          owner_user_id?: string
+          partner_id?: string | null
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_cases_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_cases_crm_type_id_fkey"
+            columns: ["crm_type_id"]
+            isOneToOne: false
+            referencedRelation: "crm_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_cases_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_communications: {
+        Row: {
+          body: string | null
+          case_id: string
+          comm_date: string
+          comm_type: string
+          contact_info: string | null
+          contact_name: string | null
+          created_at: string
+          created_by: string
+          direction: string | null
+          id: string
+          subject: string | null
+        }
+        Insert: {
+          body?: string | null
+          case_id: string
+          comm_date?: string
+          comm_type?: string
+          contact_info?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by: string
+          direction?: string | null
+          id?: string
+          subject?: string | null
+        }
+        Update: {
+          body?: string | null
+          case_id?: string
+          comm_date?: string
+          comm_type?: string
+          contact_info?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string
+          direction?: string | null
+          id?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_communications_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_documents: {
+        Row: {
+          case_id: string
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          uploaded_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          case_id: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_at?: string
+          uploaded_by: string
+        }
+        Update: {
+          case_id?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_documents_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_types: {
+        Row: {
+          code: string
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_types_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_workflow: {
+        Row: {
+          action_type: string
+          case_id: string
+          from_status: string | null
+          id: string
+          note: string | null
+          performed_at: string
+          performed_by: string
+          to_status: string | null
+        }
+        Insert: {
+          action_type: string
+          case_id: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          performed_at?: string
+          performed_by: string
+          to_status?: string | null
+        }
+        Update: {
+          action_type?: string
+          case_id?: string
+          from_status?: string | null
+          id?: string
+          note?: string | null
+          performed_at?: string
+          performed_by?: string
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_workflow_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "crm_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_note_items: {
         Row: {
           article_id: string
