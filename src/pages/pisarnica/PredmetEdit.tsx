@@ -374,18 +374,18 @@ export default function PredmetEdit() {
                   <p className="text-center text-muted-foreground py-4">Nema komunikacija</p>
                 ) : (
                   <div className="space-y-3">
-                    {communications.map((comm) => (
+                     {communications.map((comm) => (
                       <div key={comm.id} className="border rounded-lg p-3 space-y-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline">
-                              {COMMUNICATION_TYPES.find((ct) => ct.value === comm.communication_type)?.label || comm.communication_type}
+                              {COMMUNICATION_TYPES.find((ct) => ct.value === comm.comm_type)?.label || comm.comm_type}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
-                              {format(new Date(comm.communication_date), "dd.MM.yyyy HH:mm")}
+                              {format(new Date(comm.comm_date), "dd.MM.yyyy HH:mm")}
                             </span>
-                            {comm.contact_person && (
-                              <span className="text-xs">• {comm.contact_person}</span>
+                            {comm.contact_name && (
+                              <span className="text-xs">• {comm.contact_name}</span>
                             )}
                           </div>
                           {!isClosed && (
@@ -395,10 +395,10 @@ export default function PredmetEdit() {
                             </Button>
                           )}
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">{comm.summary}</p>
-                        {comm.next_steps && (
+                        <p className="text-sm whitespace-pre-wrap">{comm.subject}</p>
+                        {comm.body && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            <strong>Naredni koraci:</strong> {comm.next_steps}
+                            <strong>Naredni koraci:</strong> {comm.body}
                           </p>
                         )}
                       </div>
