@@ -59,14 +59,12 @@ export default function PredmetEdit() {
   const [description, setDescription] = useState("");
   const [typeId, setTypeId] = useState("");
   const [partnerId, setPartnerId] = useState<string | null>(null);
-  const [contactPerson, setContactPerson] = useState("");
   const [priority, setPriority] = useState("normal");
   const [deadline, setDeadline] = useState("");
 
   // Assign dialog
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignUserId, setAssignUserId] = useState("");
-  const [assignDepartment, setAssignDepartment] = useState("");
   const [assignDeadline, setAssignDeadline] = useState("");
 
   // Close dialog
@@ -112,7 +110,6 @@ export default function PredmetEdit() {
     setDescription(crmCase.description || "");
     setTypeId(crmCase.crm_type_id);
     setPartnerId(crmCase.partner_id);
-    setContactPerson(crmCase.contact_person || "");
     setPriority(crmCase.priority);
     setDeadline(crmCase.deadline ? crmCase.deadline.slice(0, 10) : "");
   }, [crmCase]);
@@ -137,7 +134,7 @@ export default function PredmetEdit() {
 
   const isClosed = crmCase.status === "closed";
   const isOwner = crmCase.owner_user_id === user?.id;
-  const isAssignee = crmCase.assigned_user_id === user?.id;
+  const isAssignee = crmCase.assigned_to === user?.id;
   const typeObj = types.find((t) => t.id === crmCase.crm_type_id);
 
   const handleSave = async () => {
@@ -147,7 +144,6 @@ export default function PredmetEdit() {
       description: description || null,
       crm_type_id: typeId,
       partner_id: partnerId,
-      contact_person: contactPerson || null,
       priority,
       deadline: deadline ? `${deadline}T23:59:59` : null,
     });
@@ -159,7 +155,6 @@ export default function PredmetEdit() {
     await assignCase.mutateAsync({
       caseId: crmCase.id,
       userId: assignUserId,
-      department: assignDepartment || undefined,
       deadline: assignDeadline ? `${assignDeadline}T23:59:59` : undefined,
     });
     setAssignOpen(false);
@@ -178,11 +173,11 @@ export default function PredmetEdit() {
     if (!commSummary.trim()) { toast.error("Unesite rezime komunikacije"); return; }
     await addCommunication.mutateAsync({
       case_id: crmCase.id,
-      communication_type: commType,
-      contact_person: commContact || null,
-      summary: commSummary,
-      next_steps: commNextSteps || null,
-      communication_date: `${commDate}T12:00:00`,
+      comm_type: commType,
+      contact_name: commContact || null,
+      subject: commSummary,
+      body: commNextSteps || null,
+      comm_date: `${commDate}T12:00:00`,
     });
     setCommSummary("");
     setCommNextSteps("");
@@ -230,8 +225,8 @@ export default function PredmetEdit() {
           <Badge variant={CRM_STATUS_VARIANTS[crmCase.status] || "secondary"}>
             {CRM_STATUS_MAP[crmCase.status] || crmCase.status}
           </Badge>
-          {crmCase.close_reason && (
-            <span className="text-sm text-muted-foreground">({crmCase.close_reason})</span>
+          {crmCase.closing_reason && (
+            <span className="text-sm text-muted-foreground">({crmCase.closing_reason})</span>
           )}
           <div className="flex-1" />
           {!isClosed && (
@@ -239,7 +234,7 @@ export default function PredmetEdit() {
               <Button size="sm" onClick={handleSave} disabled={updateCase.isPending}>
                 <Save className="h-4 w-4 mr-1" /> Sačuvaj
               </Button>
-              {(isOwner || !crmCase.assigned_user_id) && crmCase.status === "draft" && (
+              {(isOwner || !crmCase.assigned_to) && crmCase.status === "draft" && (
                 <Button size="sm" variant="outline" onClick={() => setAssignOpen(true)}>
                   <UserPlus className="h-4 w-4 mr-1" /> Dodeli
                 </Button>
@@ -297,10 +292,6 @@ export default function PredmetEdit() {
                 disabled={isClosed}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Kontakt osoba</Label>
-              <Input value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} disabled={isClosed} />
-            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Prioritet</Label>
@@ -321,8 +312,7 @@ export default function PredmetEdit() {
             <Separator />
             <div className="text-xs text-muted-foreground space-y-1">
               <p>Vlasnik: {getUserEmail(crmCase.owner_user_id)}</p>
-              <p>Zadužen: {getUserEmail(crmCase.assigned_user_id)}</p>
-              {crmCase.assigned_department && <p>Odeljenje: {crmCase.assigned_department}</p>}
+              <p>Zadužen: {getUserEmail(crmCase.assigned_to)}</p>
             </div>
           </div>
 
@@ -384,18 +374,18 @@ export default function PredmetEdit() {
                   <p className="text-center text-muted-foreground py-4">Nema komunikacija</p>
                 ) : (
                   <div className="space-y-3">
-                    {communications.map((comm) => (
+                     {communications.map((comm) => (
                       <div key={comm.id} className="border rounded-lg p-3 space-y-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline">
-                              {COMMUNICATION_TYPES.find((ct) => ct.value === comm.communication_type)?.label || comm.communication_type}
+                              {COMMUNICATION_TYPES.find((ct) => ct.value === comm.comm_type)?.label || comm.comm_type}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
-                              {format(new Date(comm.communication_date), "dd.MM.yyyy HH:mm")}
+                              {format(new Date(comm.comm_date), "dd.MM.yyyy HH:mm")}
                             </span>
-                            {comm.contact_person && (
-                              <span className="text-xs">• {comm.contact_person}</span>
+                            {comm.contact_name && (
+                              <span className="text-xs">• {comm.contact_name}</span>
                             )}
                           </div>
                           {!isClosed && (
@@ -405,10 +395,10 @@ export default function PredmetEdit() {
                             </Button>
                           )}
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">{comm.summary}</p>
-                        {comm.next_steps && (
+                        <p className="text-sm whitespace-pre-wrap">{comm.subject}</p>
+                        {comm.body && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            <strong>Naredni koraci:</strong> {comm.next_steps}
+                            <strong>Naredni koraci:</strong> {comm.body}
                           </p>
                         )}
                       </div>
@@ -500,12 +490,7 @@ export default function PredmetEdit() {
                               </Badge>
                             )}
                           </div>
-                          {w.to_user_id && (
-                            <p className="text-xs text-muted-foreground">→ {getUserEmail(w.to_user_id)}</p>
-                          )}
-                          {w.to_department && (
-                            <p className="text-xs text-muted-foreground">Odeljenje: {w.to_department}</p>
-                          )}
+                          
                           {w.note && <p className="text-xs mt-1">{w.note}</p>}
                         </div>
                         <div className="text-xs text-muted-foreground whitespace-nowrap">
@@ -540,10 +525,6 @@ export default function PredmetEdit() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>Odeljenje (opciono)</Label>
-              <Input value={assignDepartment} onChange={(e) => setAssignDepartment(e.target.value)} placeholder="npr. Komercijala" />
             </div>
             <div className="space-y-1">
               <Label>Rok (opciono)</Label>
