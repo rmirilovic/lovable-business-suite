@@ -209,9 +209,12 @@ export default function PredmetEdit() {
     URL.revokeObjectURL(url);
   };
 
-  const getUserEmail = (uid: string | null) => {
+  const getUserDisplay = (uid: string | null) => {
     if (!uid) return "-";
-    return companyUsers.find((u) => u.id === uid)?.email || uid.slice(0, 8) + "...";
+    const u = companyUsers.find((u) => u.id === uid);
+    if (!u) return uid.slice(0, 8) + "...";
+    const fullName = [u.first_name, u.last_name].filter(Boolean).join(" ");
+    return fullName || u.email || uid.slice(0, 8) + "...";
   };
 
   return (
