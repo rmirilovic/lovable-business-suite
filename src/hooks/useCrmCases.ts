@@ -120,7 +120,7 @@ export function useCrmCases(statusFilter?: string) {
       if (error) throw error;
       return data as CrmCase[];
     },
-    enabled: !!selectedCompany?.id && !!selectedYear?.id,
+    enabled: !!selectedCompany?.id,
   });
 
   const createCase = useMutation({
