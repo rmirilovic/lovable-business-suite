@@ -225,8 +225,8 @@ export default function PredmetEdit() {
           <Badge variant={CRM_STATUS_VARIANTS[crmCase.status] || "secondary"}>
             {CRM_STATUS_MAP[crmCase.status] || crmCase.status}
           </Badge>
-          {crmCase.close_reason && (
-            <span className="text-sm text-muted-foreground">({crmCase.close_reason})</span>
+          {crmCase.closing_reason && (
+            <span className="text-sm text-muted-foreground">({crmCase.closing_reason})</span>
           )}
           <div className="flex-1" />
           {!isClosed && (
