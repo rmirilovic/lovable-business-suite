@@ -155,7 +155,6 @@ export default function PredmetEdit() {
     await assignCase.mutateAsync({
       caseId: crmCase.id,
       userId: assignUserId,
-      department: assignDepartment || undefined,
       deadline: assignDeadline ? `${assignDeadline}T23:59:59` : undefined,
     });
     setAssignOpen(false);
