@@ -39,7 +39,6 @@ export const COMMUNICATION_TYPES = [
 export interface CrmCase {
   id: string;
   company_id: string;
-  business_year_id: string;
   case_number: string;
   crm_type_id: string;
   subject: string;
