@@ -102,17 +102,16 @@ export interface CrmDocument {
 const fromCrm = (table: string) => (supabase.from as any)(table);
 
 export function useCrmCases(statusFilter?: string) {
-  const { selectedCompany, selectedYear } = useAuth();
+  const { selectedCompany } = useAuth();
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["crm-cases", selectedCompany?.id, selectedYear?.id, statusFilter],
+    queryKey: ["crm-cases", selectedCompany?.id, statusFilter],
     queryFn: async () => {
-      if (!selectedCompany?.id || !selectedYear?.id) return [];
+      if (!selectedCompany?.id) return [];
       let q = fromCrm("crm_cases")
         .select("*")
         .eq("company_id", selectedCompany.id)
-        .eq("business_year_id", selectedYear.id)
         .order("created_at", { ascending: false });
       if (statusFilter && statusFilter !== "__all__") {
         q = q.eq("status", statusFilter);
