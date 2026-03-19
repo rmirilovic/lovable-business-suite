@@ -39,7 +39,6 @@ export const COMMUNICATION_TYPES = [
 export interface CrmCase {
   id: string;
   company_id: string;
-  business_year_id: string;
   case_number: string;
   crm_type_id: string;
   subject: string;
@@ -103,17 +102,16 @@ export interface CrmDocument {
 const fromCrm = (table: string) => (supabase.from as any)(table);
 
 export function useCrmCases(statusFilter?: string) {
-  const { selectedCompany, selectedYear } = useAuth();
+  const { selectedCompany } = useAuth();
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ["crm-cases", selectedCompany?.id, selectedYear?.id, statusFilter],
+    queryKey: ["crm-cases", selectedCompany?.id, statusFilter],
     queryFn: async () => {
-      if (!selectedCompany?.id || !selectedYear?.id) return [];
+      if (!selectedCompany?.id) return [];
       let q = fromCrm("crm_cases")
         .select("*")
         .eq("company_id", selectedCompany.id)
-        .eq("business_year_id", selectedYear.id)
         .order("created_at", { ascending: false });
       if (statusFilter && statusFilter !== "__all__") {
         q = q.eq("status", statusFilter);
@@ -122,16 +120,15 @@ export function useCrmCases(statusFilter?: string) {
       if (error) throw error;
       return data as CrmCase[];
     },
-    enabled: !!selectedCompany?.id && !!selectedYear?.id,
+    enabled: !!selectedCompany?.id,
   });
 
   const createCase = useMutation({
     mutationFn: async (values: Partial<CrmCase>) => {
-      if (!selectedCompany?.id || !selectedYear?.id) throw new Error("No company/year");
+      if (!selectedCompany?.id) throw new Error("No company");
       const { data: maxNum } = await fromCrm("crm_cases")
         .select("case_number")
         .eq("company_id", selectedCompany.id)
-        .eq("business_year_id", selectedYear.id)
         .order("case_number", { ascending: false })
         .limit(1);
       
@@ -144,7 +141,6 @@ export function useCrmCases(statusFilter?: string) {
       const { data, error } = await fromCrm("crm_cases").insert({
         ...values,
         company_id: selectedCompany.id,
-        business_year_id: selectedYear.id,
         case_number: caseNumber,
         status: "draft",
       }).select().single();
