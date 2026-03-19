@@ -65,7 +65,6 @@ export default function PredmetEdit() {
   // Assign dialog
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignUserId, setAssignUserId] = useState("");
-  const [assignDepartment, setAssignDepartment] = useState("");
   const [assignDeadline, setAssignDeadline] = useState("");
 
   // Close dialog
