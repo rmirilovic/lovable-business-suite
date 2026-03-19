@@ -115,6 +115,7 @@ export default function PredmetEdit() {
     setPartnerId(crmCase.partner_id);
     setPriority(crmCase.priority);
     setDeadline(crmCase.deadline ? crmCase.deadline.slice(0, 10) : "");
+    setContactPerson(crmCase.contact_person || "");
   }, [crmCase]);
 
   if (isLoading) {
