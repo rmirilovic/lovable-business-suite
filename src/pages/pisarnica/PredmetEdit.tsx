@@ -300,6 +300,27 @@ export default function PredmetEdit() {
                 disabled={isClosed}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Kontakt sa</Label>
+              <div className="relative">
+                <Input
+                  value={contactPerson}
+                  onChange={(e) => setContactPerson(e.target.value)}
+                  placeholder="Ime kontakt osobe..."
+                  disabled={isClosed}
+                  list="contact-persons-list"
+                />
+                {partnerId && partnerContacts.length > 0 && (
+                  <datalist id="contact-persons-list">
+                    {partnerContacts.map((c) => (
+                      <option key={c.id} value={c.contact_name}>
+                        {c.position ? `${c.contact_name} — ${c.position}` : c.contact_name}
+                      </option>
+                    ))}
+                  </datalist>
+                )}
+              </div>
+            </div>
             {partnerId && partnerContacts.length > 0 && (
               <div className="space-y-1.5">
                 <Label className="flex items-center gap-1.5">
