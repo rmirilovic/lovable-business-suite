@@ -125,11 +125,10 @@ export function useCrmCases(statusFilter?: string) {
 
   const createCase = useMutation({
     mutationFn: async (values: Partial<CrmCase>) => {
-      if (!selectedCompany?.id || !selectedYear?.id) throw new Error("No company/year");
+      if (!selectedCompany?.id) throw new Error("No company");
       const { data: maxNum } = await fromCrm("crm_cases")
         .select("case_number")
         .eq("company_id", selectedCompany.id)
-        .eq("business_year_id", selectedYear.id)
         .order("case_number", { ascending: false })
         .limit(1);
       
@@ -142,7 +141,6 @@ export function useCrmCases(statusFilter?: string) {
       const { data, error } = await fromCrm("crm_cases").insert({
         ...values,
         company_id: selectedCompany.id,
-        business_year_id: selectedYear.id,
         case_number: caseNumber,
         status: "draft",
       }).select().single();
