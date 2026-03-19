@@ -134,7 +134,7 @@ export default function PredmetEdit() {
 
   const isClosed = crmCase.status === "closed";
   const isOwner = crmCase.owner_user_id === user?.id;
-  const isAssignee = crmCase.assigned_user_id === user?.id;
+  const isAssignee = crmCase.assigned_to === user?.id;
   const typeObj = types.find((t) => t.id === crmCase.crm_type_id);
 
   const handleSave = async () => {
