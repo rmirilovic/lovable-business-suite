@@ -1,0 +1,1 @@
+ALTER TABLE public.crm_cases ADD COLUMN contact_person text DEFAULT null;

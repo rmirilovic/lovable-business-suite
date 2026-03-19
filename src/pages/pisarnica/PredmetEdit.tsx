@@ -62,6 +62,7 @@ export default function PredmetEdit() {
   const { contacts: partnerContacts } = usePartnerContacts(partnerId);
   const [priority, setPriority] = useState("normal");
   const [deadline, setDeadline] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
 
   // Assign dialog
   const [assignOpen, setAssignOpen] = useState(false);
@@ -114,6 +115,7 @@ export default function PredmetEdit() {
     setPartnerId(crmCase.partner_id);
     setPriority(crmCase.priority);
     setDeadline(crmCase.deadline ? crmCase.deadline.slice(0, 10) : "");
+    setContactPerson(crmCase.contact_person || "");
   }, [crmCase]);
 
   if (isLoading) {
@@ -148,6 +150,7 @@ export default function PredmetEdit() {
       partner_id: partnerId,
       priority,
       deadline: deadline ? `${deadline}T23:59:59` : null,
+      contact_person: contactPerson || null,
     });
     toast.success("Predmet sačuvan");
   };
@@ -296,6 +299,27 @@ export default function PredmetEdit() {
                 onValueChange={setPartnerId}
                 disabled={isClosed}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Kontakt sa</Label>
+              <div className="relative">
+                <Input
+                  value={contactPerson}
+                  onChange={(e) => setContactPerson(e.target.value)}
+                  placeholder="Ime kontakt osobe..."
+                  disabled={isClosed}
+                  list="contact-persons-list"
+                />
+                {partnerId && partnerContacts.length > 0 && (
+                  <datalist id="contact-persons-list">
+                    {partnerContacts.map((c) => (
+                      <option key={c.id} value={c.contact_name}>
+                        {c.position ? `${c.contact_name} — ${c.position}` : c.contact_name}
+                      </option>
+                    ))}
+                  </datalist>
+                )}
+              </div>
             </div>
             {partnerId && partnerContacts.length > 0 && (
               <div className="space-y-1.5">

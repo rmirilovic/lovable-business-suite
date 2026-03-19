@@ -1816,6 +1816,7 @@ export type Database = {
           closed_at: string | null
           closing_reason: string | null
           company_id: string
+          contact_person: string | null
           created_at: string
           created_by: string
           crm_type_id: string
@@ -1835,6 +1836,7 @@ export type Database = {
           closed_at?: string | null
           closing_reason?: string | null
           company_id: string
+          contact_person?: string | null
           created_at?: string
           created_by: string
           crm_type_id: string
@@ -1854,6 +1856,7 @@ export type Database = {
           closed_at?: string | null
           closing_reason?: string | null
           company_id?: string
+          contact_person?: string | null
           created_at?: string
           created_by?: string
           crm_type_id?: string
