@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -20,25 +20,44 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCrmCases, CRM_STATUS_MAP, CRM_STATUS_VARIANTS, CRM_STATUSES } from "@/hooks/useCrmCases";
 import { useCrmTypes } from "@/hooks/useCrmTypes";
 import { usePartners } from "@/hooks/usePartners";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CrmTypesDialog } from "@/components/pisarnica/CrmTypesDialog";
 
 export default function Predmeti() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, selectedCompany } = useAuth();
   const [statusFilter, setStatusFilter] = useState("__active__");
   const [filterText, setFilterText] = useState("");
   const [typeFilter, setTypeFilter] = useState("__all__");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [typesOpen, setTypesOpen] = useState(false);
 
-  // For __active__ we fetch all and filter client-side
   const { cases, isLoading, createCase, deleteCase } = useCrmCases(
     statusFilter === "__active__" ? "__all__" : statusFilter
   );
   const { types } = useCrmTypes();
   const { partners } = usePartners();
+
+  const [userMap, setUserMap] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    if (!selectedCompany?.id) return;
+    supabase
+      .from("user_role_assignments")
+      .select("user_id, profiles!inner(id, email, first_name, last_name)")
+      .eq("company_id", selectedCompany.id)
+      .then(({ data }) => {
+        if (data) {
+          const m = new Map<string, string>();
+          data.forEach((d: any) => {
+            const name = [d.profiles.first_name, d.profiles.last_name].filter(Boolean).join(" ");
+            m.set(d.profiles.id, name || d.profiles.email || "");
+          });
+          setUserMap(m);
+        }
+      });
+  }, [selectedCompany?.id]);
 
   const typeMap = new Map(types.map((t) => [t.id, t]));
   const partnerMap = new Map(partners.map((p) => [p.id, p]));
@@ -138,8 +157,9 @@ export default function Predmeti() {
                 <TableRow>
                   <TableHead className="w-[120px]">Broj</TableHead>
                   <TableHead className="w-[100px]">Vrsta</TableHead>
-                  <TableHead>Predmet</TableHead>
-                  <TableHead className="w-[200px]">Partner</TableHead>
+                  <TableHead className="w-[250px] max-w-[250px]">Predmet</TableHead>
+                  <TableHead>Partner</TableHead>
+                  <TableHead className="w-[150px]">Zadužen</TableHead>
                   <TableHead className="w-[100px]">Prioritet</TableHead>
                   <TableHead className="w-[100px]">Status</TableHead>
                   <TableHead className="w-[110px]">Rok</TableHead>
@@ -158,8 +178,9 @@ export default function Predmeti() {
                     <TableCell>
                       <Badge variant="outline">{typeMap.get(c.crm_type_id)?.code || "?"}</Badge>
                     </TableCell>
-                    <TableCell className="font-medium">{c.subject}</TableCell>
+                    <TableCell className="font-medium max-w-[250px] truncate">{c.subject}</TableCell>
                     <TableCell>{partnerMap.get(c.partner_id || "")?.name || ""}</TableCell>
+                    <TableCell className="text-sm">{c.assigned_to ? (userMap.get(c.assigned_to) || "-") : "-"}</TableCell>
                     <TableCell>
                       <Badge variant={c.priority === "urgent" ? "destructive" : c.priority === "high" ? "default" : "secondary"}>
                         {c.priority === "low" ? "Nizak" : c.priority === "high" ? "Visok" : c.priority === "urgent" ? "Hitan" : "Normalan"}
