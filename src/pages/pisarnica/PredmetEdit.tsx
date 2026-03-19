@@ -62,6 +62,7 @@ export default function PredmetEdit() {
   const { contacts: partnerContacts } = usePartnerContacts(partnerId);
   const [priority, setPriority] = useState("normal");
   const [deadline, setDeadline] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
 
   // Assign dialog
   const [assignOpen, setAssignOpen] = useState(false);
