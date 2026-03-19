@@ -87,12 +87,10 @@ export interface CrmCommunication {
 export interface CrmDocument {
   id: string;
   case_id: string;
-  communication_id: string | null;
-  company_id: string;
   file_name: string;
   file_path: string;
   file_size: number | null;
-  file_type: string | null;
+  mime_type: string | null;
   description: string | null;
   uploaded_by: string;
   uploaded_at: string;
