@@ -84,20 +84,21 @@ export default function PredmetEdit() {
   const [docDescription, setDocDescription] = useState("");
 
   // Users list for assignment
-  const [companyUsers, setCompanyUsers] = useState<{ id: string; email: string }[]>([]);
+  const [companyUsers, setCompanyUsers] = useState<{ id: string; email: string; first_name: string | null; last_name: string | null }[]>([]);
   useEffect(() => {
     if (!selectedCompany?.id) return;
     supabase
       .from("user_role_assignments")
-      .select("user_id, profiles!inner(id, email)")
+      .select("user_id, profiles!inner(id, email, first_name, last_name)")
       .eq("company_id", selectedCompany.id)
       .then(({ data }) => {
         if (data) {
           const users = data.map((d: any) => ({
             id: d.profiles.id,
             email: d.profiles.email,
+            first_name: d.profiles.first_name,
+            last_name: d.profiles.last_name,
           }));
-          // Deduplicate
           const seen = new Set<string>();
           setCompanyUsers(users.filter((u: any) => { if (seen.has(u.id)) return false; seen.add(u.id); return true; }));
         }
@@ -208,9 +209,12 @@ export default function PredmetEdit() {
     URL.revokeObjectURL(url);
   };
 
-  const getUserEmail = (uid: string | null) => {
+  const getUserDisplay = (uid: string | null) => {
     if (!uid) return "-";
-    return companyUsers.find((u) => u.id === uid)?.email || uid.slice(0, 8) + "...";
+    const u = companyUsers.find((u) => u.id === uid);
+    if (!u) return uid.slice(0, 8) + "...";
+    const fullName = [u.first_name, u.last_name].filter(Boolean).join(" ");
+    return fullName || u.email || uid.slice(0, 8) + "...";
   };
 
   return (
@@ -336,8 +340,8 @@ export default function PredmetEdit() {
             </div>
             <Separator />
             <div className="text-xs text-muted-foreground space-y-1">
-              <p>Vlasnik: {getUserEmail(crmCase.owner_user_id)}</p>
-              <p>Zadužen: {getUserEmail(crmCase.assigned_to)}</p>
+              <p>Vlasnik: {getUserDisplay(crmCase.owner_user_id)}</p>
+              <p>Zadužen: {getUserDisplay(crmCase.assigned_to)}</p>
             </div>
           </div>
 
@@ -520,7 +524,7 @@ export default function PredmetEdit() {
                         </div>
                         <div className="text-xs text-muted-foreground whitespace-nowrap">
                           <p>{format(new Date(w.performed_at), "dd.MM.yyyy HH:mm")}</p>
-                          <p>{getUserEmail(w.performed_by)}</p>
+                          <p>{getUserDisplay(w.performed_by)}</p>
                         </div>
                       </div>
                     ))}
