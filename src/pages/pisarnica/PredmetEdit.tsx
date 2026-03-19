@@ -292,10 +292,6 @@ export default function PredmetEdit() {
                 disabled={isClosed}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Kontakt osoba</Label>
-              <Input value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} disabled={isClosed} />
-            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Prioritet</Label>
