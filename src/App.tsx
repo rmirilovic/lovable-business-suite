@@ -567,6 +567,16 @@ const App = () => (
                   <OutgoingMailEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/pisarnica/predmeti" element={
+                <ProtectedRoute>
+                  <Predmeti />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/predmeti/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <PredmetEdit />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
