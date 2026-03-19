@@ -100,6 +100,8 @@ export default function Predmeti() {
       default: return "";
     }
   });
+
+  const handleCreate = async () => {
     if (!user?.id || types.length === 0) return;
     const result = await createCase.mutateAsync({
       crm_type_id: types[0].id,
