@@ -150,6 +150,7 @@ export default function PredmetEdit() {
       partner_id: partnerId,
       priority,
       deadline: deadline ? `${deadline}T23:59:59` : null,
+      contact_person: contactPerson || null,
     });
     toast.success("Predmet sačuvan");
   };
