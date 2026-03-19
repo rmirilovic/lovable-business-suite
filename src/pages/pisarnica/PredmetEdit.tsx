@@ -144,7 +144,6 @@ export default function PredmetEdit() {
       description: description || null,
       crm_type_id: typeId,
       partner_id: partnerId,
-      contact_person: contactPerson || null,
       priority,
       deadline: deadline ? `${deadline}T23:59:59` : null,
     });
