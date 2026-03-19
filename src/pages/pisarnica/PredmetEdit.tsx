@@ -173,11 +173,11 @@ export default function PredmetEdit() {
     if (!commSummary.trim()) { toast.error("Unesite rezime komunikacije"); return; }
     await addCommunication.mutateAsync({
       case_id: crmCase.id,
-      communication_type: commType,
-      contact_person: commContact || null,
-      summary: commSummary,
-      next_steps: commNextSteps || null,
-      communication_date: `${commDate}T12:00:00`,
+      comm_type: commType,
+      contact_name: commContact || null,
+      subject: commSummary,
+      body: commNextSteps || null,
+      comm_date: `${commDate}T12:00:00`,
     });
     setCommSummary("");
     setCommNextSteps("");
