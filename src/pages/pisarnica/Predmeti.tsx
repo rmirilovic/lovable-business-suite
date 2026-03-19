@@ -177,20 +177,20 @@ export default function Predmeti() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[120px]">Broj</TableHead>
-                  <TableHead className="w-[100px]">Vrsta</TableHead>
-                  <TableHead className="w-[250px] max-w-[250px]">Predmet</TableHead>
-                  <TableHead>Partner</TableHead>
-                  <TableHead className="w-[150px]">Zadužen</TableHead>
-                  <TableHead className="w-[100px]">Prioritet</TableHead>
-                  <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead className="w-[110px]">Rok</TableHead>
-                  <TableHead className="w-[110px]">Kreiran</TableHead>
+                  <TableHead className="w-[120px]"><SortableHeader column="case_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[100px]"><SortableHeader column="type" label="Vrsta" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[250px] max-w-[250px]"><SortableHeader column="subject" label="Predmet" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead><SortableHeader column="partner" label="Partner" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[150px]"><SortableHeader column="assigned" label="Zadužen" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[100px]"><SortableHeader column="priority" label="Prioritet" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[100px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[110px]"><SortableHeader column="deadline" label="Rok" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[110px]"><SortableHeader column="created_at" label="Kreiran" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((c) => (
+                {sorted.map((c) => (
                   <TableRow
                     key={c.id}
                     className="cursor-pointer"
