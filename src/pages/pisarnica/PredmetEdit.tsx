@@ -92,18 +92,23 @@ export default function PredmetEdit() {
       const userIds = new Set<string>();
 
       // Collect user IDs from role assignments
-      const { data: raData } = await supabase
+      const { data: raData, error: raError } = await supabase
         .from("user_role_assignments")
         .select("user_id")
         .eq("company_id", selectedCompany.id);
+      if (raError) console.error("RA fetch error:", raError);
       raData?.forEach((d: any) => userIds.add(d.user_id));
 
       // Collect user IDs from user_companies
-      const { data: ucData } = await supabase
+      const { data: ucData, error: ucError } = await supabase
         .from("user_companies")
         .select("user_id")
         .eq("company_id", selectedCompany.id);
+      if (ucError) console.error("UC fetch error:", ucError);
       ucData?.forEach((d: any) => userIds.add(d.user_id));
+
+      // Also include current user (super_admin may not be in either table)
+      if (user?.id) userIds.add(user.id);
 
       if (userIds.size === 0) {
         setCompanyUsers([]);
@@ -111,10 +116,11 @@ export default function PredmetEdit() {
       }
 
       // Fetch profiles for all collected user IDs
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profError } = await supabase
         .from("profiles")
         .select("id, email, first_name, last_name")
         .in("id", Array.from(userIds));
+      if (profError) console.error("Profiles fetch error:", profError);
 
       if (profiles) {
         setCompanyUsers(profiles.map((p: any) => ({
