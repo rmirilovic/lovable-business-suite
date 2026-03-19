@@ -234,7 +234,7 @@ export default function PredmetEdit() {
               <Button size="sm" onClick={handleSave} disabled={updateCase.isPending}>
                 <Save className="h-4 w-4 mr-1" /> Sačuvaj
               </Button>
-              {(isOwner || !crmCase.assigned_user_id) && crmCase.status === "draft" && (
+              {(isOwner || !crmCase.assigned_to) && crmCase.status === "draft" && (
                 <Button size="sm" variant="outline" onClick={() => setAssignOpen(true)}>
                   <UserPlus className="h-4 w-4 mr-1" /> Dodeli
                 </Button>
