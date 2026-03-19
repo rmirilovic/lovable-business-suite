@@ -36,6 +36,7 @@ export const COMMUNICATION_TYPES = [
   { value: "other", label: "Drugi način" },
 ] as const;
 
+// Matches actual crm_cases table columns
 export interface CrmCase {
   id: string;
   company_id: string;
@@ -44,43 +45,41 @@ export interface CrmCase {
   subject: string;
   description: string | null;
   partner_id: string | null;
-  contact_person: string | null;
   priority: string;
   status: string;
-  close_reason: string | null;
+  closing_reason: string | null;
+  closed_at: string | null;
   deadline: string | null;
   owner_user_id: string;
-  assigned_user_id: string | null;
-  assigned_department: string | null;
+  assigned_to: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
 }
 
+// Matches actual crm_workflow table columns
 export interface CrmWorkflow {
   id: string;
   case_id: string;
-  company_id: string;
   action_type: string;
   from_status: string | null;
   to_status: string | null;
-  from_user_id: string | null;
-  to_user_id: string | null;
-  to_department: string | null;
   note: string | null;
   performed_by: string;
   performed_at: string;
 }
 
+// Matches actual crm_communications table columns
 export interface CrmCommunication {
   id: string;
   case_id: string;
-  company_id: string;
-  communication_type: string;
-  contact_person: string | null;
-  summary: string;
-  next_steps: string | null;
-  communication_date: string;
+  comm_type: string;
+  direction: string | null;
+  subject: string | null;
+  body: string | null;
+  contact_name: string | null;
+  contact_info: string | null;
+  comm_date: string;
   created_by: string;
   created_at: string;
 }
@@ -131,9 +130,9 @@ export function useCrmCases(statusFilter?: string) {
         .eq("company_id", selectedCompany.id)
         .order("case_number", { ascending: false })
         .limit(1);
-      
+
       const lastNum = maxNum?.[0]?.case_number;
-      const nextNum = lastNum 
+      const nextNum = lastNum
         ? String(parseInt(lastNum.replace(/\D/g, "") || "0") + 1).padStart(4, "0")
         : "0001";
       const caseNumber = `CRM-${nextNum}`;
@@ -149,7 +148,6 @@ export function useCrmCases(statusFilter?: string) {
       // Add workflow entry
       await fromCrm("crm_workflow").insert({
         case_id: data.id,
-        company_id: selectedCompany.id,
         action_type: "created",
         to_status: "draft",
         performed_by: values.created_by!,
@@ -237,7 +235,7 @@ export function useCrmCaseDetail(caseId: string | undefined) {
       const { data, error } = await fromCrm("crm_communications")
         .select("*")
         .eq("case_id", caseId)
-        .order("communication_date", { ascending: false });
+        .order("comm_date", { ascending: false });
       if (error) throw error;
       return data as CrmCommunication[];
     },
@@ -272,22 +270,19 @@ export function useCrmActions() {
   const queryClient = useQueryClient();
 
   const addWorkflowEntry = async (entry: Partial<CrmWorkflow>) => {
-    if (!selectedCompany?.id) return;
     await fromCrm("crm_workflow").insert({
       ...entry,
-      company_id: selectedCompany.id,
       performed_by: user?.id || entry.performed_by!,
     });
     queryClient.invalidateQueries({ queryKey: ["crm-workflow"] });
   };
 
   const assignCase = useMutation({
-    mutationFn: async (values: { caseId: string; userId: string; department?: string; deadline?: string }) => {
-      if (!selectedCompany?.id || !user?.id) throw new Error("No company/user");
-      
+    mutationFn: async (values: { caseId: string; userId: string; deadline?: string }) => {
+      if (!user?.id) throw new Error("No user");
+
       const { error } = await fromCrm("crm_cases").update({
-        assigned_user_id: values.userId,
-        assigned_department: values.department || null,
+        assigned_to: values.userId,
         deadline: values.deadline || null,
         status: "assigned",
         updated_at: new Date().toISOString(),
@@ -298,8 +293,7 @@ export function useCrmActions() {
         case_id: values.caseId,
         action_type: "assigned",
         to_status: "assigned",
-        to_user_id: values.userId,
-        to_department: values.department,
+        note: `Dodeljeno korisniku ${values.userId}`,
       });
     },
     onSuccess: () => {
@@ -339,7 +333,8 @@ export function useCrmActions() {
       if (!user?.id) throw new Error("No user");
       const { error } = await fromCrm("crm_cases").update({
         status: "closed",
-        close_reason: values.reason,
+        closing_reason: values.reason,
+        closed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }).eq("id", values.caseId);
       if (error) throw error;
@@ -361,10 +356,9 @@ export function useCrmActions() {
 
   const addCommunication = useMutation({
     mutationFn: async (values: Partial<CrmCommunication>) => {
-      if (!selectedCompany?.id || !user?.id) throw new Error("No company/user");
+      if (!user?.id) throw new Error("No user");
       const { data, error } = await fromCrm("crm_communications").insert({
         ...values,
-        company_id: selectedCompany.id,
         created_by: user.id,
       }).select().single();
       if (error) throw error;
