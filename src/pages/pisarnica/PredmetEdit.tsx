@@ -49,7 +49,6 @@ export default function PredmetEdit() {
   const navigate = useNavigate();
   const { user, selectedCompany } = useAuth();
   const { partners } = usePartners();
-  const { contacts: partnerContacts } = usePartnerContacts(partnerId);
   const { types } = useCrmTypes();
   const { crmCase, isLoading, workflow, communications, documents } = useCrmCaseDetail(id);
   const { assignCase, pickUpCase, closeCase, addCommunication, deleteCommunication, uploadDocument, deleteDocument } = useCrmActions();
@@ -60,6 +59,7 @@ export default function PredmetEdit() {
   const [description, setDescription] = useState("");
   const [typeId, setTypeId] = useState("");
   const [partnerId, setPartnerId] = useState<string | null>(null);
+  const { contacts: partnerContacts } = usePartnerContacts(partnerId);
   const [priority, setPriority] = useState("normal");
   const [deadline, setDeadline] = useState("");
 
