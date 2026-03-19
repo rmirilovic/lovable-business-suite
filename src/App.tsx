@@ -98,6 +98,8 @@ import IncomingMailEdit from "./pages/pisarnica/IncomingMailEdit";
 import LikvidacijaPoste from "./pages/pisarnica/LikvidacijaPoste";
 import ZavodjenjePoslatePoste from "./pages/pisarnica/ZavodjenjePoslatePoste";
 import OutgoingMailEdit from "./pages/pisarnica/OutgoingMailEdit";
+import Predmeti from "./pages/pisarnica/Predmeti";
+import PredmetEdit from "./pages/pisarnica/PredmetEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -563,6 +565,16 @@ const App = () => (
               <Route path="/pisarnica/poslata-posta/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <OutgoingMailEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/predmeti" element={
+                <ProtectedRoute>
+                  <Predmeti />
+                </ProtectedRoute>
+              } />
+              <Route path="/pisarnica/predmeti/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <PredmetEdit />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
