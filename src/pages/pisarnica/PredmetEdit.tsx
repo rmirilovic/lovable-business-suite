@@ -89,35 +89,41 @@ export default function PredmetEdit() {
   useEffect(() => {
     if (!selectedCompany?.id) return;
     const fetchUsers = async () => {
-      const seen = new Map<string, { id: string; email: string; first_name: string | null; last_name: string | null }>();
+      const userIds = new Set<string>();
 
-      // From role assignments
+      // Collect user IDs from role assignments
       const { data: raData } = await supabase
         .from("user_role_assignments")
-        .select("user_id, profiles!inner(id, email, first_name, last_name)")
+        .select("user_id")
         .eq("company_id", selectedCompany.id);
-      if (raData) {
-        raData.forEach((d: any) => {
-          if (!seen.has(d.profiles.id)) {
-            seen.set(d.profiles.id, { id: d.profiles.id, email: d.profiles.email, first_name: d.profiles.first_name, last_name: d.profiles.last_name });
-          }
-        });
-      }
+      raData?.forEach((d: any) => userIds.add(d.user_id));
 
-      // From user_companies
+      // Collect user IDs from user_companies
       const { data: ucData } = await supabase
         .from("user_companies")
-        .select("user_id, profiles!inner(id, email, first_name, last_name)")
+        .select("user_id")
         .eq("company_id", selectedCompany.id);
-      if (ucData) {
-        ucData.forEach((d: any) => {
-          if (!seen.has(d.profiles.id)) {
-            seen.set(d.profiles.id, { id: d.profiles.id, email: d.profiles.email, first_name: d.profiles.first_name, last_name: d.profiles.last_name });
-          }
-        });
+      ucData?.forEach((d: any) => userIds.add(d.user_id));
+
+      if (userIds.size === 0) {
+        setCompanyUsers([]);
+        return;
       }
 
-      setCompanyUsers(Array.from(seen.values()));
+      // Fetch profiles for all collected user IDs
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .in("id", Array.from(userIds));
+
+      if (profiles) {
+        setCompanyUsers(profiles.map((p: any) => ({
+          id: p.id,
+          email: p.email,
+          first_name: p.first_name,
+          last_name: p.last_name,
+        })));
+      }
     };
     fetchUsers();
   }, [selectedCompany?.id]);
