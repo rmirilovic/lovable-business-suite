@@ -524,7 +524,7 @@ export default function PredmetEdit() {
                         </div>
                         <div className="text-xs text-muted-foreground whitespace-nowrap">
                           <p>{format(new Date(w.performed_at), "dd.MM.yyyy HH:mm")}</p>
-                          <p>{getUserEmail(w.performed_by)}</p>
+                          <p>{getUserDisplay(w.performed_by)}</p>
                         </div>
                       </div>
                     ))}
