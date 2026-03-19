@@ -22,7 +22,7 @@ import {
 import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 import {
   ArrowLeft, Save, UserPlus, Play, XCircle, Upload, Trash2, Download,
-  MessageSquare, Clock, FileText, Plus, Loader2,
+  MessageSquare, Clock, FileText, Plus, Loader2, Users, Phone, Mail,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePartners, usePartnerContacts } from "@/hooks/usePartners";
