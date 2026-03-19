@@ -157,8 +157,9 @@ export default function Predmeti() {
                 <TableRow>
                   <TableHead className="w-[120px]">Broj</TableHead>
                   <TableHead className="w-[100px]">Vrsta</TableHead>
-                  <TableHead>Predmet</TableHead>
-                  <TableHead className="w-[200px]">Partner</TableHead>
+                  <TableHead className="w-[250px] max-w-[250px]">Predmet</TableHead>
+                  <TableHead>Partner</TableHead>
+                  <TableHead className="w-[150px]">Zadužen</TableHead>
                   <TableHead className="w-[100px]">Prioritet</TableHead>
                   <TableHead className="w-[100px]">Status</TableHead>
                   <TableHead className="w-[110px]">Rok</TableHead>
