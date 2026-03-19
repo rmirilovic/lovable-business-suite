@@ -340,8 +340,8 @@ export default function PredmetEdit() {
             </div>
             <Separator />
             <div className="text-xs text-muted-foreground space-y-1">
-              <p>Vlasnik: {getUserEmail(crmCase.owner_user_id)}</p>
-              <p>Zadužen: {getUserEmail(crmCase.assigned_to)}</p>
+              <p>Vlasnik: {getUserDisplay(crmCase.owner_user_id)}</p>
+              <p>Zadužen: {getUserDisplay(crmCase.assigned_to)}</p>
             </div>
           </div>
 
