@@ -294,26 +294,24 @@ export default function PredmetEdit() {
               />
             </div>
             {partnerId && partnerContacts.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label className="flex items-center gap-1.5">
-                  <Users className="h-3.5 w-3.5" /> Kontakt osobe partnera
+                  <Users className="h-3.5 w-3.5" /> Kontakt osobe ({partnerContacts.length})
                 </Label>
-                <div className="space-y-1.5">
+                <div className="max-h-32 overflow-y-auto space-y-1 pr-1">
                   {partnerContacts.map((c) => (
-                    <div key={c.id} className="rounded-md border p-2 text-xs space-y-0.5 bg-muted/30">
-                      <p className="font-medium">{c.contact_name}{c.position ? ` — ${c.position}` : ""}</p>
-                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-muted-foreground">
-                        {c.phone1 && (
-                          <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone1}</span>
-                        )}
-                        {c.phone2 && (
-                          <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone2}</span>
-                        )}
-                        {c.email && (
-                          <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{c.email}</span>
-                        )}
-                      </div>
-                      {c.note && <p className="text-muted-foreground italic">{c.note}</p>}
+                    <div key={c.id} className="rounded-md border px-2 py-1 text-xs bg-muted/30 flex items-center gap-2 flex-wrap">
+                      <span className="font-medium whitespace-nowrap">{c.contact_name}{c.position ? ` — ${c.position}` : ""}</span>
+                      {c.phone1 && (
+                        <span className="flex items-center gap-1 text-muted-foreground whitespace-nowrap"><Phone className="h-3 w-3" />{c.phone1}</span>
+                      )}
+                      {c.phone2 && (
+                        <span className="flex items-center gap-1 text-muted-foreground whitespace-nowrap"><Phone className="h-3 w-3" />{c.phone2}</span>
+                      )}
+                      {c.email && (
+                        <span className="flex items-center gap-1 text-muted-foreground whitespace-nowrap"><Mail className="h-3 w-3" />{c.email}</span>
+                      )}
+                      {c.note && <span className="text-muted-foreground italic">{c.note}</span>}
                     </div>
                   ))}
                 </div>
