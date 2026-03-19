@@ -59,7 +59,6 @@ export default function PredmetEdit() {
   const [description, setDescription] = useState("");
   const [typeId, setTypeId] = useState("");
   const [partnerId, setPartnerId] = useState<string | null>(null);
-  const [contactPerson, setContactPerson] = useState("");
   const [priority, setPriority] = useState("normal");
   const [deadline, setDeadline] = useState("");
 
