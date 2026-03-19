@@ -24,6 +24,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CrmTypesDialog } from "@/components/pisarnica/CrmTypesDialog";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 
 export default function Predmeti() {
   const navigate = useNavigate();
