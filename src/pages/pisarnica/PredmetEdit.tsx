@@ -293,6 +293,32 @@ export default function PredmetEdit() {
                 disabled={isClosed}
               />
             </div>
+            {partnerId && partnerContacts.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5" /> Kontakt osobe partnera
+                </Label>
+                <div className="space-y-1.5">
+                  {partnerContacts.map((c) => (
+                    <div key={c.id} className="rounded-md border p-2 text-xs space-y-0.5 bg-muted/30">
+                      <p className="font-medium">{c.contact_name}{c.position ? ` — ${c.position}` : ""}</p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-muted-foreground">
+                        {c.phone1 && (
+                          <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone1}</span>
+                        )}
+                        {c.phone2 && (
+                          <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone2}</span>
+                        )}
+                        {c.email && (
+                          <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{c.email}</span>
+                        )}
+                      </div>
+                      {c.note && <p className="text-muted-foreground italic">{c.note}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Prioritet</Label>
