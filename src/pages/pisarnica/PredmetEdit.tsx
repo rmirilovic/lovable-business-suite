@@ -84,26 +84,42 @@ export default function PredmetEdit() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [docDescription, setDocDescription] = useState("");
 
-  // Users list for assignment
+  // Users list for assignment - combine from role assignments and user_companies
   const [companyUsers, setCompanyUsers] = useState<{ id: string; email: string; first_name: string | null; last_name: string | null }[]>([]);
   useEffect(() => {
     if (!selectedCompany?.id) return;
-    supabase
-      .from("user_role_assignments")
-      .select("user_id, profiles!inner(id, email, first_name, last_name)")
-      .eq("company_id", selectedCompany.id)
-      .then(({ data }) => {
-        if (data) {
-          const users = data.map((d: any) => ({
-            id: d.profiles.id,
-            email: d.profiles.email,
-            first_name: d.profiles.first_name,
-            last_name: d.profiles.last_name,
-          }));
-          const seen = new Set<string>();
-          setCompanyUsers(users.filter((u: any) => { if (seen.has(u.id)) return false; seen.add(u.id); return true; }));
-        }
-      });
+    const fetchUsers = async () => {
+      const seen = new Map<string, { id: string; email: string; first_name: string | null; last_name: string | null }>();
+
+      // From role assignments
+      const { data: raData } = await supabase
+        .from("user_role_assignments")
+        .select("user_id, profiles!inner(id, email, first_name, last_name)")
+        .eq("company_id", selectedCompany.id);
+      if (raData) {
+        raData.forEach((d: any) => {
+          if (!seen.has(d.profiles.id)) {
+            seen.set(d.profiles.id, { id: d.profiles.id, email: d.profiles.email, first_name: d.profiles.first_name, last_name: d.profiles.last_name });
+          }
+        });
+      }
+
+      // From user_companies
+      const { data: ucData } = await supabase
+        .from("user_companies")
+        .select("user_id, profiles!inner(id, email, first_name, last_name)")
+        .eq("company_id", selectedCompany.id);
+      if (ucData) {
+        ucData.forEach((d: any) => {
+          if (!seen.has(d.profiles.id)) {
+            seen.set(d.profiles.id, { id: d.profiles.id, email: d.profiles.email, first_name: d.profiles.first_name, last_name: d.profiles.last_name });
+          }
+        });
+      }
+
+      setCompanyUsers(Array.from(seen.values()));
+    };
+    fetchUsers();
   }, [selectedCompany?.id]);
 
   // Populate form when case loads
@@ -573,9 +589,10 @@ export default function PredmetEdit() {
               <Select value={assignUserId} onValueChange={setAssignUserId}>
                 <SelectTrigger><SelectValue placeholder="Izaberite operatera" /></SelectTrigger>
                 <SelectContent>
-                  {companyUsers.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>{u.email}</SelectItem>
-                  ))}
+                  {companyUsers.map((u) => {
+                    const name = [u.first_name, u.last_name].filter(Boolean).join(" ");
+                    return <SelectItem key={u.id} value={u.id}>{name || u.email}</SelectItem>;
+                  })}
                 </SelectContent>
               </Select>
             </div>
