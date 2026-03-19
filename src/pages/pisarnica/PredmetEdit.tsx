@@ -490,12 +490,7 @@ export default function PredmetEdit() {
                               </Badge>
                             )}
                           </div>
-                          {w.to_user_id && (
-                            <p className="text-xs text-muted-foreground">→ {getUserEmail(w.to_user_id)}</p>
-                          )}
-                          {w.to_department && (
-                            <p className="text-xs text-muted-foreground">Odeljenje: {w.to_department}</p>
-                          )}
+                          
                           {w.note && <p className="text-xs mt-1">{w.note}</p>}
                         </div>
                         <div className="text-xs text-muted-foreground whitespace-nowrap">
