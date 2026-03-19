@@ -178,8 +178,9 @@ export default function Predmeti() {
                     <TableCell>
                       <Badge variant="outline">{typeMap.get(c.crm_type_id)?.code || "?"}</Badge>
                     </TableCell>
-                    <TableCell className="font-medium">{c.subject}</TableCell>
+                    <TableCell className="font-medium max-w-[250px] truncate">{c.subject}</TableCell>
                     <TableCell>{partnerMap.get(c.partner_id || "")?.name || ""}</TableCell>
+                    <TableCell className="text-sm">{c.assigned_to ? (userMap.get(c.assigned_to) || "-") : "-"}</TableCell>
                     <TableCell>
                       <Badge variant={c.priority === "urgent" ? "destructive" : c.priority === "high" ? "default" : "secondary"}>
                         {c.priority === "low" ? "Nizak" : c.priority === "high" ? "Visok" : c.priority === "urgent" ? "Hitan" : "Normalan"}
