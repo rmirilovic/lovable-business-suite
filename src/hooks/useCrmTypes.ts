@@ -23,8 +23,7 @@ export function useCrmTypes() {
     queryKey: ["crm-types", selectedCompany?.id],
     queryFn: async () => {
       if (!selectedCompany?.id) return [];
-      const { data, error } = await supabase
-        .from("crm_types")
+      const { data, error } = await (supabase.from as any)("crm_types")
         .select("*")
         .eq("company_id", selectedCompany.id)
         .order("sort_order");
@@ -37,7 +36,7 @@ export function useCrmTypes() {
   const createType = useMutation({
     mutationFn: async (values: { code: string; name: string; description?: string }) => {
       if (!selectedCompany?.id) throw new Error("No company");
-      const { error } = await supabase.from("crm_types").insert({
+      const { error } = await (supabase.from as any)("crm_types").insert({
         company_id: selectedCompany.id,
         code: values.code,
         name: values.name,
@@ -54,7 +53,7 @@ export function useCrmTypes() {
 
   const updateType = useMutation({
     mutationFn: async (values: { id: string; code: string; name: string; description?: string; is_active: boolean }) => {
-      const { error } = await supabase.from("crm_types").update({
+      const { error } = await (supabase.from as any)("crm_types").update({
         code: values.code,
         name: values.name,
         description: values.description || null,
@@ -72,7 +71,7 @@ export function useCrmTypes() {
 
   const deleteType = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("crm_types").delete().eq("id", id);
+      const { error } = await (supabase.from as any)("crm_types").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

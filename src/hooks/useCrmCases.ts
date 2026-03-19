@@ -100,6 +100,8 @@ export interface CrmDocument {
   uploaded_at: string;
 }
 
+const fromCrm = (table: string) => (supabase.from as any)(table);
+
 export function useCrmCases(statusFilter?: string) {
   const { selectedCompany, selectedYear } = useAuth();
   const queryClient = useQueryClient();
@@ -108,8 +110,7 @@ export function useCrmCases(statusFilter?: string) {
     queryKey: ["crm-cases", selectedCompany?.id, selectedYear?.id, statusFilter],
     queryFn: async () => {
       if (!selectedCompany?.id || !selectedYear?.id) return [];
-      let q = supabase
-        .from("crm_cases")
+      let q = fromCrm("crm_cases")
         .select("*")
         .eq("company_id", selectedCompany.id)
         .eq("business_year_id", selectedYear.id)
@@ -127,8 +128,7 @@ export function useCrmCases(statusFilter?: string) {
   const createCase = useMutation({
     mutationFn: async (values: Partial<CrmCase>) => {
       if (!selectedCompany?.id || !selectedYear?.id) throw new Error("No company/year");
-      const { data: maxNum } = await supabase
-        .from("crm_cases")
+      const { data: maxNum } = await fromCrm("crm_cases")
         .select("case_number")
         .eq("company_id", selectedCompany.id)
         .eq("business_year_id", selectedYear.id)
@@ -141,7 +141,7 @@ export function useCrmCases(statusFilter?: string) {
         : "0001";
       const caseNumber = `CRM-${nextNum}`;
 
-      const { data, error } = await supabase.from("crm_cases").insert({
+      const { data, error } = await fromCrm("crm_cases").insert({
         ...values,
         company_id: selectedCompany.id,
         business_year_id: selectedYear.id,
@@ -151,7 +151,7 @@ export function useCrmCases(statusFilter?: string) {
       if (error) throw error;
 
       // Add workflow entry
-      await supabase.from("crm_workflow").insert({
+      await fromCrm("crm_workflow").insert({
         case_id: data.id,
         company_id: selectedCompany.id,
         action_type: "created",
@@ -171,7 +171,7 @@ export function useCrmCases(statusFilter?: string) {
   const updateCase = useMutation({
     mutationFn: async (values: Partial<CrmCase> & { id: string }) => {
       const { id, ...rest } = values;
-      const { error } = await supabase.from("crm_cases").update({
+      const { error } = await fromCrm("crm_cases").update({
         ...rest,
         updated_at: new Date().toISOString(),
       }).eq("id", id);
@@ -186,7 +186,7 @@ export function useCrmCases(statusFilter?: string) {
 
   const deleteCase = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("crm_cases").delete().eq("id", id);
+      const { error } = await fromCrm("crm_cases").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -206,14 +206,11 @@ export function useCrmCases(statusFilter?: string) {
 }
 
 export function useCrmCaseDetail(caseId: string | undefined) {
-  const { selectedCompany } = useAuth();
-
   const caseQuery = useQuery({
     queryKey: ["crm-case", caseId],
     queryFn: async () => {
       if (!caseId) return null;
-      const { data, error } = await supabase
-        .from("crm_cases")
+      const { data, error } = await fromCrm("crm_cases")
         .select("*")
         .eq("id", caseId)
         .single();
@@ -227,8 +224,7 @@ export function useCrmCaseDetail(caseId: string | undefined) {
     queryKey: ["crm-workflow", caseId],
     queryFn: async () => {
       if (!caseId) return [];
-      const { data, error } = await supabase
-        .from("crm_workflow")
+      const { data, error } = await fromCrm("crm_workflow")
         .select("*")
         .eq("case_id", caseId)
         .order("performed_at", { ascending: true });
@@ -242,8 +238,7 @@ export function useCrmCaseDetail(caseId: string | undefined) {
     queryKey: ["crm-communications", caseId],
     queryFn: async () => {
       if (!caseId) return [];
-      const { data, error } = await supabase
-        .from("crm_communications")
+      const { data, error } = await fromCrm("crm_communications")
         .select("*")
         .eq("case_id", caseId)
         .order("communication_date", { ascending: false });
@@ -257,8 +252,7 @@ export function useCrmCaseDetail(caseId: string | undefined) {
     queryKey: ["crm-documents", caseId],
     queryFn: async () => {
       if (!caseId) return [];
-      const { data, error } = await supabase
-        .from("crm_documents")
+      const { data, error } = await fromCrm("crm_documents")
         .select("*")
         .eq("case_id", caseId)
         .order("uploaded_at", { ascending: false });
@@ -283,7 +277,7 @@ export function useCrmActions() {
 
   const addWorkflowEntry = async (entry: Partial<CrmWorkflow>) => {
     if (!selectedCompany?.id) return;
-    await supabase.from("crm_workflow").insert({
+    await fromCrm("crm_workflow").insert({
       ...entry,
       company_id: selectedCompany.id,
       performed_by: user?.id || entry.performed_by!,
@@ -295,7 +289,7 @@ export function useCrmActions() {
     mutationFn: async (values: { caseId: string; userId: string; department?: string; deadline?: string }) => {
       if (!selectedCompany?.id || !user?.id) throw new Error("No company/user");
       
-      const { error } = await supabase.from("crm_cases").update({
+      const { error } = await fromCrm("crm_cases").update({
         assigned_user_id: values.userId,
         assigned_department: values.department || null,
         deadline: values.deadline || null,
@@ -323,7 +317,7 @@ export function useCrmActions() {
   const pickUpCase = useMutation({
     mutationFn: async (caseId: string) => {
       if (!user?.id) throw new Error("No user");
-      const { error } = await supabase.from("crm_cases").update({
+      const { error } = await fromCrm("crm_cases").update({
         status: "in_progress",
         updated_at: new Date().toISOString(),
       }).eq("id", caseId);
@@ -347,7 +341,7 @@ export function useCrmActions() {
   const closeCase = useMutation({
     mutationFn: async (values: { caseId: string; reason: string }) => {
       if (!user?.id) throw new Error("No user");
-      const { error } = await supabase.from("crm_cases").update({
+      const { error } = await fromCrm("crm_cases").update({
         status: "closed",
         close_reason: values.reason,
         updated_at: new Date().toISOString(),
@@ -372,7 +366,7 @@ export function useCrmActions() {
   const addCommunication = useMutation({
     mutationFn: async (values: Partial<CrmCommunication>) => {
       if (!selectedCompany?.id || !user?.id) throw new Error("No company/user");
-      const { data, error } = await supabase.from("crm_communications").insert({
+      const { data, error } = await fromCrm("crm_communications").insert({
         ...values,
         company_id: selectedCompany.id,
         created_by: user.id,
@@ -389,7 +383,7 @@ export function useCrmActions() {
 
   const deleteCommunication = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("crm_communications").delete().eq("id", id);
+      const { error } = await fromCrm("crm_communications").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -408,7 +402,7 @@ export function useCrmActions() {
         .upload(path, values.file);
       if (uploadError) throw uploadError;
 
-      const { error } = await supabase.from("crm_documents").insert({
+      const { error } = await fromCrm("crm_documents").insert({
         case_id: values.caseId,
         communication_id: values.communicationId || null,
         company_id: selectedCompany.id,
@@ -431,7 +425,7 @@ export function useCrmActions() {
   const deleteDocument = useMutation({
     mutationFn: async (doc: CrmDocument) => {
       await supabase.storage.from("crm-documents").remove([doc.file_path]);
-      const { error } = await supabase.from("crm_documents").delete().eq("id", doc.id);
+      const { error } = await fromCrm("crm_documents").delete().eq("id", doc.id);
       if (error) throw error;
     },
     onSuccess: () => {
