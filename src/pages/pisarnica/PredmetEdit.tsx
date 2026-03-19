@@ -589,9 +589,10 @@ export default function PredmetEdit() {
               <Select value={assignUserId} onValueChange={setAssignUserId}>
                 <SelectTrigger><SelectValue placeholder="Izaberite operatera" /></SelectTrigger>
                 <SelectContent>
-                  {companyUsers.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>{u.email}</SelectItem>
-                  ))}
+                  {companyUsers.map((u) => {
+                    const name = [u.first_name, u.last_name].filter(Boolean).join(" ");
+                    return <SelectItem key={u.id} value={u.id}>{name || u.email}</SelectItem>;
+                  })}
                 </SelectContent>
               </Select>
             </div>
