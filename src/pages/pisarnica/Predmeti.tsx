@@ -81,7 +81,25 @@ export default function Predmeti() {
     );
   }
 
-  const handleCreate = async () => {
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("created_at", "desc");
+
+  const priorityOrder: Record<string, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
+  const statusOrder: Record<string, number> = { draft: 0, assigned: 1, in_progress: 2, closed: 3 };
+
+  const sorted = sortItems(filtered, (c, col) => {
+    switch (col) {
+      case "case_number": return c.case_number;
+      case "type": return typeMap.get(c.crm_type_id)?.code || "";
+      case "subject": return c.subject;
+      case "partner": return partnerMap.get(c.partner_id || "")?.name || "";
+      case "assigned": return c.assigned_to ? (userMap.get(c.assigned_to) || "") : "";
+      case "priority": return priorityOrder[c.priority] ?? 99;
+      case "status": return statusOrder[c.status] ?? 99;
+      case "deadline": return c.deadline || "";
+      case "created_at": return c.created_at;
+      default: return "";
+    }
+  });
     if (!user?.id || types.length === 0) return;
     const result = await createCase.mutateAsync({
       crm_type_id: types[0].id,
