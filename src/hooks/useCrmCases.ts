@@ -87,12 +87,10 @@ export interface CrmCommunication {
 export interface CrmDocument {
   id: string;
   case_id: string;
-  communication_id: string | null;
-  company_id: string;
   file_name: string;
   file_path: string;
   file_size: number | null;
-  file_type: string | null;
+  mime_type: string | null;
   description: string | null;
   uploaded_by: string;
   uploaded_at: string;
@@ -384,7 +382,7 @@ export function useCrmActions() {
   });
 
   const uploadDocument = useMutation({
-    mutationFn: async (values: { caseId: string; file: File; description?: string; communicationId?: string }) => {
+    mutationFn: async (values: { caseId: string; file: File; description?: string }) => {
       if (!selectedCompany?.id || !user?.id) throw new Error("No company/user");
       const path = `${selectedCompany.id}/${values.caseId}/${Date.now()}_${values.file.name}`;
       const { error: uploadError } = await supabase.storage
@@ -394,12 +392,10 @@ export function useCrmActions() {
 
       const { error } = await fromCrm("crm_documents").insert({
         case_id: values.caseId,
-        communication_id: values.communicationId || null,
-        company_id: selectedCompany.id,
         file_name: values.file.name,
         file_path: path,
         file_size: values.file.size,
-        file_type: values.file.type,
+        mime_type: values.file.type,
         description: values.description || null,
         uploaded_by: user.id,
       });
