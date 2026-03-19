@@ -24,6 +24,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CrmTypesDialog } from "@/components/pisarnica/CrmTypesDialog";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
 
 export default function Predmeti() {
   const navigate = useNavigate();
@@ -78,6 +80,26 @@ export default function Predmeti() {
         (partnerMap.get(c.partner_id || "")?.name || "").toLowerCase().includes(q)
     );
   }
+
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("created_at", "desc");
+
+  const priorityOrder: Record<string, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
+  const statusOrder: Record<string, number> = { draft: 0, assigned: 1, in_progress: 2, closed: 3 };
+
+  const sorted = sortItems(filtered, (c, col) => {
+    switch (col) {
+      case "case_number": return c.case_number;
+      case "type": return typeMap.get(c.crm_type_id)?.code || "";
+      case "subject": return c.subject;
+      case "partner": return partnerMap.get(c.partner_id || "")?.name || "";
+      case "assigned": return c.assigned_to ? (userMap.get(c.assigned_to) || "") : "";
+      case "priority": return priorityOrder[c.priority] ?? 99;
+      case "status": return statusOrder[c.status] ?? 99;
+      case "deadline": return c.deadline || "";
+      case "created_at": return c.created_at;
+      default: return "";
+    }
+  });
 
   const handleCreate = async () => {
     if (!user?.id || types.length === 0) return;
@@ -155,20 +177,20 @@ export default function Predmeti() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[120px]">Broj</TableHead>
-                  <TableHead className="w-[100px]">Vrsta</TableHead>
-                  <TableHead className="w-[250px] max-w-[250px]">Predmet</TableHead>
-                  <TableHead>Partner</TableHead>
-                  <TableHead className="w-[150px]">Zadužen</TableHead>
-                  <TableHead className="w-[100px]">Prioritet</TableHead>
-                  <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead className="w-[110px]">Rok</TableHead>
-                  <TableHead className="w-[110px]">Kreiran</TableHead>
+                  <TableHead className="w-[120px]"><SortableHeader column="case_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[100px]"><SortableHeader column="type" label="Vrsta" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[250px] max-w-[250px]"><SortableHeader column="subject" label="Predmet" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead><SortableHeader column="partner" label="Partner" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[150px]"><SortableHeader column="assigned" label="Zadužen" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[100px]"><SortableHeader column="priority" label="Prioritet" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[100px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[110px]"><SortableHeader column="deadline" label="Rok" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[110px]"><SortableHeader column="created_at" label="Kreiran" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((c) => (
+                {sorted.map((c) => (
                   <TableRow
                     key={c.id}
                     className="cursor-pointer"
