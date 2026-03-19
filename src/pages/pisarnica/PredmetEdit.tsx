@@ -527,10 +527,6 @@ export default function PredmetEdit() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Odeljenje (opciono)</Label>
-              <Input value={assignDepartment} onChange={(e) => setAssignDepartment(e.target.value)} placeholder="npr. Komercijala" />
-            </div>
-            <div className="space-y-1">
               <Label>Rok (opciono)</Label>
               <LocaleDateInput value={assignDeadline} onChange={setAssignDeadline} />
             </div>
