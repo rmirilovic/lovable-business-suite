@@ -98,6 +98,8 @@ import IncomingMailEdit from "./pages/pisarnica/IncomingMailEdit";
 import LikvidacijaPoste from "./pages/pisarnica/LikvidacijaPoste";
 import ZavodjenjePoslatePoste from "./pages/pisarnica/ZavodjenjePoslatePoste";
 import OutgoingMailEdit from "./pages/pisarnica/OutgoingMailEdit";
+import Predmeti from "./pages/pisarnica/Predmeti";
+import PredmetEdit from "./pages/pisarnica/PredmetEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
