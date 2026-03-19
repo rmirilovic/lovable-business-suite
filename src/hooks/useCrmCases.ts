@@ -384,7 +384,8 @@ export function useCrmActions() {
   const uploadDocument = useMutation({
     mutationFn: async (values: { caseId: string; file: File; description?: string }) => {
       if (!selectedCompany?.id || !user?.id) throw new Error("No company/user");
-      const path = `${selectedCompany.id}/${values.caseId}/${Date.now()}_${values.file.name}`;
+      const safeName = values.file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${selectedCompany.id}/${values.caseId}/${Date.now()}_${safeName}`;
       const { error: uploadError } = await supabase.storage
         .from("crm-documents")
         .upload(path, values.file);
