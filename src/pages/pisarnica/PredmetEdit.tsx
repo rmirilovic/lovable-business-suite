@@ -84,20 +84,21 @@ export default function PredmetEdit() {
   const [docDescription, setDocDescription] = useState("");
 
   // Users list for assignment
-  const [companyUsers, setCompanyUsers] = useState<{ id: string; email: string }[]>([]);
+  const [companyUsers, setCompanyUsers] = useState<{ id: string; email: string; first_name: string | null; last_name: string | null }[]>([]);
   useEffect(() => {
     if (!selectedCompany?.id) return;
     supabase
       .from("user_role_assignments")
-      .select("user_id, profiles!inner(id, email)")
+      .select("user_id, profiles!inner(id, email, first_name, last_name)")
       .eq("company_id", selectedCompany.id)
       .then(({ data }) => {
         if (data) {
           const users = data.map((d: any) => ({
             id: d.profiles.id,
             email: d.profiles.email,
+            first_name: d.profiles.first_name,
+            last_name: d.profiles.last_name,
           }));
-          // Deduplicate
           const seen = new Set<string>();
           setCompanyUsers(users.filter((u: any) => { if (seen.has(u.id)) return false; seen.add(u.id); return true; }));
         }
