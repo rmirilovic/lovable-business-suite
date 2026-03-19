@@ -49,6 +49,7 @@ export default function PredmetEdit() {
   const navigate = useNavigate();
   const { user, selectedCompany } = useAuth();
   const { partners } = usePartners();
+  const { contacts: partnerContacts } = usePartnerContacts(partnerId);
   const { types } = useCrmTypes();
   const { crmCase, isLoading, workflow, communications, documents } = useCrmCaseDetail(id);
   const { assignCase, pickUpCase, closeCase, addCommunication, deleteCommunication, uploadDocument, deleteDocument } = useCrmActions();
