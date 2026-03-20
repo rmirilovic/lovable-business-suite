@@ -27,7 +27,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { usePartners, usePartnerContacts } from "@/hooks/usePartners";
 import { useCrmTypes } from "@/hooks/useCrmTypes";
-import { useIncomingMail } from "@/hooks/useIncomingMail";
+import { useCompanyUsers } from "@/hooks/useIncomingMail";
 import {
   useCrmCaseDetail, useCrmActions, useCrmCases,
   CRM_STATUS_MAP, CRM_STATUS_VARIANTS, CRM_PRIORITIES,
@@ -37,12 +37,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-
-// Company users hook (reuse from incoming mail pattern)
-function useCompanyUsers() {
-  const { selectedCompany } = useAuth();
-  return { data: [] as { id: string; email: string }[] };
-}
 
 export default function PredmetEdit() {
   const { id } = useParams<{ id: string }>();
@@ -84,55 +78,7 @@ export default function PredmetEdit() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [docDescription, setDocDescription] = useState("");
 
-  // Users list for assignment - combine from role assignments and user_companies
-  const [companyUsers, setCompanyUsers] = useState<{ id: string; email: string; first_name: string | null; last_name: string | null }[]>([]);
-  useEffect(() => {
-    if (!selectedCompany?.id) return;
-    const fetchUsers = async () => {
-      const userIds = new Set<string>();
-
-      // Collect user IDs from role assignments
-      const { data: raData, error: raError } = await supabase
-        .from("user_role_assignments")
-        .select("user_id")
-        .eq("company_id", selectedCompany.id);
-      if (raError) console.error("RA fetch error:", raError);
-      raData?.forEach((d: any) => userIds.add(d.user_id));
-
-      // Collect user IDs from user_companies
-      const { data: ucData, error: ucError } = await supabase
-        .from("user_companies")
-        .select("user_id")
-        .eq("company_id", selectedCompany.id);
-      if (ucError) console.error("UC fetch error:", ucError);
-      ucData?.forEach((d: any) => userIds.add(d.user_id));
-
-      // Also include current user (super_admin may not be in either table)
-      if (user?.id) userIds.add(user.id);
-
-      if (userIds.size === 0) {
-        setCompanyUsers([]);
-        return;
-      }
-
-      // Fetch profiles for all collected user IDs
-      const { data: profiles, error: profError } = await supabase
-        .from("profiles")
-        .select("id, email, first_name, last_name")
-        .in("id", Array.from(userIds));
-      if (profError) console.error("Profiles fetch error:", profError);
-
-      if (profiles) {
-        setCompanyUsers(profiles.map((p: any) => ({
-          id: p.id,
-          email: p.email,
-          first_name: p.first_name,
-          last_name: p.last_name,
-        })));
-      }
-    };
-    fetchUsers();
-  }, [selectedCompany?.id]);
+  const { data: companyUsers = [] } = useCompanyUsers();
 
   // Populate form when case loads
   useEffect(() => {
@@ -600,11 +546,17 @@ export default function PredmetEdit() {
               <Label>Operater</Label>
               <Select value={assignUserId} onValueChange={setAssignUserId}>
                 <SelectTrigger><SelectValue placeholder="Izaberite operatera" /></SelectTrigger>
-                <SelectContent>
-                  {companyUsers.map((u) => {
-                    const name = [u.first_name, u.last_name].filter(Boolean).join(" ");
-                    return <SelectItem key={u.id} value={u.id}>{name || u.email}</SelectItem>;
-                  })}
+                <SelectContent position="popper" side="bottom" className="max-h-60 overflow-y-auto z-[9999]">
+                  {companyUsers.length === 0 ? (
+                    <SelectItem value="__no-users" disabled>
+                      Nema dostupnih operatera
+                    </SelectItem>
+                  ) : (
+                    companyUsers.map((u) => {
+                      const name = [u.first_name, u.last_name].filter(Boolean).join(" ");
+                      return <SelectItem key={u.id} value={u.id}>{name || u.email}</SelectItem>;
+                    })
+                  )}
                 </SelectContent>
               </Select>
             </div>
