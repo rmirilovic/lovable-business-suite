@@ -252,7 +252,7 @@ export default function PartnerDocumentBalancesReport() {
           </div>
         ) : (
           <TableScrollContainer>
-            <Table>
+            <Table className="min-w-[900px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[90px]">
