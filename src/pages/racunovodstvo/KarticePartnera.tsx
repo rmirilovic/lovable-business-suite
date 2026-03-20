@@ -141,7 +141,7 @@ export default function KarticePartnera() {
             Učitavanje...
           </div>
         ) : (
-          <div className="erp-card overflow-hidden">
+          <div className="erp-card overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
