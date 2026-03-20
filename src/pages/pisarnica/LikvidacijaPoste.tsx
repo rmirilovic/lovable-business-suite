@@ -134,8 +134,8 @@ export default function LikvidacijaPoste() {
           </div>
         </div>
 
-        <div className="rounded-md border">
-          <Table>
+        <div className="rounded-md border overflow-x-auto">
+          <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]">Broj</TableHead>
