@@ -182,7 +182,7 @@ export default function PartnerBalancesReport({ dateMode, title }: Props) {
           </div>
         ) : (
           <TableScrollContainer>
-            <Table>
+            <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">
