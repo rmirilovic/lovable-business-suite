@@ -267,7 +267,7 @@ export default function Prijemnice() {
 
         {/* Table */}
         <TableScrollContainer>
-          <Table>
+          <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow>
                 <TableHead>
