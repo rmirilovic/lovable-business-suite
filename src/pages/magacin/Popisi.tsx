@@ -132,7 +132,7 @@ export default function Popisi() {
         </div>
 
         <TableScrollContainer>
-          <Table>
+          <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow>
                 <TableHead><SortableHeader label="Broj" column="count_number" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
