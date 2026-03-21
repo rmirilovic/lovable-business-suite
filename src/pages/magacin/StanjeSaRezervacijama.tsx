@@ -226,7 +226,7 @@ export default function StanjeSaRezervacijama() {
           </div>
         ) : (
           <TableScrollContainer ref={scrollContainerRef} className="flex-1">
-            <Table className="table-fixed min-w-[900px]">
+            <Table className="table-fixed min-w-[1200px]">
               <colgroup>
                 <col className="w-[150px]" />
                 <col />
