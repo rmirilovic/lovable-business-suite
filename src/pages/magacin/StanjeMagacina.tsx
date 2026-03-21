@@ -290,7 +290,7 @@ export default function StanjeMagacina() {
           <TableScrollContainer ref={scrollContainerRef} className="flex-1">
             <Table className="table-fixed min-w-[1200px]">
               <colgroup>
-                <col className="w-[120px]" />
+                <col className="w-[150px]" />
                 <col />
                 <col className="w-[60px]" />
                 <col className="w-[110px]" />
