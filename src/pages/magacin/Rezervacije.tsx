@@ -324,7 +324,7 @@ export default function Rezervacije() {
           </div>
         ) : (
           <TableScrollContainer ref={scrollContainerRef} className="flex-1">
-            <Table>
+            <Table className="min-w-[900px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>

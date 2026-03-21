@@ -137,7 +137,7 @@ export default function MedjumagacinskiPrenosi() {
         </div>
 
         <TableScrollContainer>
-          <Table>
+          <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow>
                 <TableHead>
