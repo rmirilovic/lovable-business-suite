@@ -252,7 +252,17 @@ export default function LagerLista() {
           </div>
         ) : (
           <TableScrollContainer className="flex-1">
-            <Table className="min-w-[900px]">
+            <Table className="min-w-[1000px] table-fixed">
+              <colgroup>
+                <col className="w-[120px]" />
+                <col />
+                <col className="w-[60px]" />
+                <col className="w-[100px]" />
+                <col className="w-[100px]" />
+                <col className="w-[100px]" />
+                <col className="w-[100px]" />
+                <col className="w-[100px]" />
+              </colgroup>
               <TableHeader>
                 <TableRow>
                   <TableHead>
