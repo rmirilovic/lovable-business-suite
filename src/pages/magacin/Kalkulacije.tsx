@@ -184,7 +184,7 @@ export default function Kalkulacije() {
 
         {/* Table */}
         <TableScrollContainer>
-          <Table>
+          <Table className="min-w-[900px]">
             <TableHeader>
               <TableRow>
                 <TableHead>
