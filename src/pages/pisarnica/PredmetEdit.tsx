@@ -412,8 +412,13 @@ export default function PredmetEdit() {
                               {format(new Date(comm.comm_date), "dd.MM.yyyy HH:mm")}
                             </span>
                             {comm.contact_name && (
-                              <span className="text-xs">• {comm.contact_name}</span>
+                               <span className="text-xs">• {comm.contact_name}</span>
                             )}
+                            {(() => {
+                              const u = companyUsers.find((u) => u.id === comm.created_by);
+                              const name = u ? `${u.first_name || ""} ${u.last_name || ""}`.trim() || u.email : null;
+                              return name ? <span className="text-xs text-muted-foreground">• Operater: {name}</span> : null;
+                            })()}
                           </div>
                           {!isClosed && (
                             <Button variant="ghost" size="icon" className="h-6 w-6"
