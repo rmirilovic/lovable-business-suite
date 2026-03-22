@@ -188,42 +188,11 @@ export function useCompanyUsers() {
     queryFn: async () => {
       if (!selectedCompany?.id) return [];
 
-      const [roleAssignmentsRes, userCompaniesRes, superAdminsRes] = await Promise.all([
-        supabase
-          .from("user_role_assignments")
-          .select("user_id")
-          .eq("company_id", selectedCompany.id)
-          .eq("is_active", true),
-        supabase
-          .from("user_companies")
-          .select("user_id")
-          .eq("company_id", selectedCompany.id),
-        supabase
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "super_admin"),
-      ]);
+      const { data: profiles, error } = await supabase.rpc("get_company_users_for_display", {
+        _company_id: selectedCompany.id,
+      });
 
-      if (roleAssignmentsRes.error) throw roleAssignmentsRes.error;
-      if (userCompaniesRes.error) throw userCompaniesRes.error;
-      if (superAdminsRes.error) throw superAdminsRes.error;
-
-      const userIds = Array.from(
-        new Set([
-          ...(roleAssignmentsRes.data || []).map((row) => row.user_id),
-          ...(userCompaniesRes.data || []).map((row) => row.user_id),
-          ...(superAdminsRes.data || []).map((row) => row.user_id),
-        ].filter(Boolean))
-      );
-
-      if (userIds.length === 0) return [];
-
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .in("id", userIds);
-
-      if (profilesError) throw profilesError;
+      if (error) throw error;
 
       return (profiles || [])
         .map((p) => ({
