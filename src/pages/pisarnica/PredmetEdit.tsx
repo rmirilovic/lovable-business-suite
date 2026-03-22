@@ -526,7 +526,9 @@ export default function PredmetEdit() {
                             )}
                           </div>
                           
-                          {w.note && <p className="text-xs mt-1">{w.note}</p>}
+                          {w.note && <p className="text-xs mt-1">{
+                            w.note.replace(/Dodeljeno korisniku ([0-9a-f-]{36})/i, (_, uid) => `Dodeljeno korisniku ${getUserDisplay(uid)}`)
+                          }</p>}
                         </div>
                         <div className="text-xs text-muted-foreground whitespace-nowrap">
                           <p>{format(new Date(w.performed_at), "dd.MM.yyyy HH:mm")}</p>
