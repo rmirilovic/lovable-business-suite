@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,8 +169,9 @@ export default function ZavodjenjePoste() {
           </div>
         </div>
 
-        <div className="rounded-md border overflow-x-auto">
-          <Table className="min-w-[900px]">
+        <TableScrollContainer>
+        <div className="rounded-md border">
+          <Table className="min-w-[1000px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]"><SortableHeader column="mail_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
@@ -257,6 +259,7 @@ export default function ZavodjenjePoste() {
             </TableBody>
           </Table>
         </div>
+        </TableScrollContainer>
       </div>
 
       <IncomingMailDialog
