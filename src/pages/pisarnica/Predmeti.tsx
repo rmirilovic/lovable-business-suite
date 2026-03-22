@@ -205,6 +205,7 @@ export default function Predmeti() {
                     <TableCell className="font-medium max-w-[250px] truncate">{c.subject}</TableCell>
                     <TableCell>{partnerMap.get(c.partner_id || "")?.name || ""}</TableCell>
                     <TableCell className="text-sm">{c.assigned_to ? (userMap.get(c.assigned_to) || "-") : "-"}</TableCell>
+                    <TableCell className="text-sm">{c.assigned_at ? format(new Date(c.assigned_at), "dd.MM.yyyy") : ""}</TableCell>
                     <TableCell>
                       <Badge variant={c.priority === "urgent" ? "destructive" : c.priority === "high" ? "default" : "secondary"}>
                         {c.priority === "low" ? "Nizak" : c.priority === "high" ? "Visok" : c.priority === "urgent" ? "Hitan" : "Normalan"}

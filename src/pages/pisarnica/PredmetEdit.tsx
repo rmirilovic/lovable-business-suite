@@ -340,6 +340,9 @@ export default function PredmetEdit() {
             <div className="text-xs text-muted-foreground space-y-1">
               <p>Vlasnik: {getUserDisplay(crmCase.owner_user_id)}</p>
               <p>Zadužen: {getUserDisplay(crmCase.assigned_to)}</p>
+              {crmCase.assigned_at && (
+                <p>Datum dodele: {format(new Date(crmCase.assigned_at), "dd.MM.yyyy HH:mm")}</p>
+              )}
             </div>
           </div>
 

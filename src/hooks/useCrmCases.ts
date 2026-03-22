@@ -284,6 +284,7 @@ export function useCrmActions() {
       const { error } = await fromCrm("crm_cases").update({
         assigned_to: values.userId,
         deadline: values.deadline || null,
+        assigned_at: new Date().toISOString(),
         status: "assigned",
         updated_at: new Date().toISOString(),
       }).eq("id", values.caseId);
