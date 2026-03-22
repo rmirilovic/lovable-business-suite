@@ -429,7 +429,7 @@ export default function PredmetEdit() {
                               return name ? <span className="text-xs text-muted-foreground">• Operater: {name}</span> : null;
                             })()}
                           </div>
-                          {!isClosed && (
+                          {!isClosed && comm.created_by === user?.id && communications[0]?.id === comm.id && (
                             <Button variant="ghost" size="icon" className="h-6 w-6"
                               onClick={() => deleteCommunication.mutate(comm.id)}>
                               <Trash2 className="h-3 w-3 text-destructive" />
