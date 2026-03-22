@@ -7801,6 +7801,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_edit_crm_case: {
+        Args: { _case_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_user_post: {
         Args: {
           _company_id: string
@@ -7860,6 +7864,15 @@ export type Database = {
           out_quantity: number
           partner_name: string
           unit_price: number
+        }[]
+      }
+      get_company_users_for_display: {
+        Args: { _company_id: string }
+        Returns: {
+          email: string
+          first_name: string
+          id: string
+          last_name: string
         }[]
       }
       get_document_updated_at: {

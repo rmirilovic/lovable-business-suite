@@ -36,13 +36,12 @@ import {
 } from "@/hooks/useCrmCases";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 export default function PredmetEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, selectedCompany, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { user, isSuperAdmin, isLocalAdmin } = useAuth();
   const { hasAccess } = usePermissions();
   const { partners } = usePartners();
   const { types } = useCrmTypes();
@@ -115,9 +114,15 @@ export default function PredmetEdit() {
   const isClosed = crmCase.status === "closed";
   const isOwner = crmCase.owner_user_id === user?.id;
   const isAssignee = crmCase.assigned_to === user?.id;
+  const canEditCaseDetails = !isClosed && (isAssignee || (crmCase.status === "draft" && isOwner));
   const typeObj = types.find((t) => t.id === crmCase.crm_type_id);
 
   const handleSave = async () => {
+    if (!canEditCaseDetails) {
+      toast.error("Samo zaduženi operater može menjati podatke na predmetu.");
+      return;
+    }
+
     await updateCase.mutateAsync({
       id: crmCase.id,
       subject,
@@ -191,9 +196,18 @@ export default function PredmetEdit() {
   const getUserDisplay = (uid: string | null) => {
     if (!uid) return "-";
     const u = companyUsers.find((u) => u.id === uid);
-    if (!u) return uid.slice(0, 8) + "...";
+    if (!u) return "Nepoznat korisnik";
     const fullName = [u.first_name, u.last_name].filter(Boolean).join(" ");
-    return fullName || u.email || uid.slice(0, 8) + "...";
+    return fullName || u.email || "Nepoznat korisnik";
+  };
+
+  const formatWorkflowNote = (note: string | null) => {
+    if (!note) return null;
+
+    return note.replace(
+      /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
+      (uid) => getUserDisplay(uid)
+    );
   };
 
   return (
@@ -221,9 +235,11 @@ export default function PredmetEdit() {
           <div className="flex-1" />
           {!isClosed && (
             <>
-              <Button size="sm" onClick={handleSave} disabled={updateCase.isPending}>
-                <Save className="h-4 w-4 mr-1" /> Sačuvaj
-              </Button>
+              {canEditCaseDetails && (
+                <Button size="sm" onClick={handleSave} disabled={updateCase.isPending}>
+                  <Save className="h-4 w-4 mr-1" /> Sačuvaj
+                </Button>
+              )}
               {(isOwner || !crmCase.assigned_to) && crmCase.status === "draft" && (
                 <Button size="sm" variant="outline" onClick={() => { setAssignDeadline(crmCase.deadline ? crmCase.deadline.substring(0, 10) : ""); setAssignOpen(true); }}>
                   <UserPlus className="h-4 w-4 mr-1" /> Dodeli
@@ -256,7 +272,7 @@ export default function PredmetEdit() {
           <div className="lg:col-span-1 erp-card p-4 space-y-4 lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto">
             <div className="space-y-2">
               <Label>Vrsta CRM-a</Label>
-              <Select value={typeId} onValueChange={setTypeId} disabled={isClosed}>
+              <Select value={typeId} onValueChange={setTypeId} disabled={!canEditCaseDetails}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {types.map((t) => (
@@ -267,11 +283,11 @@ export default function PredmetEdit() {
             </div>
             <div className="space-y-2">
               <Label>Predmet</Label>
-              <Input value={subject} onChange={(e) => setSubject(e.target.value)} disabled={isClosed} />
+              <Input value={subject} onChange={(e) => setSubject(e.target.value)} disabled={!canEditCaseDetails} />
             </div>
             <div className="space-y-2">
               <Label>Opis</Label>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} disabled={isClosed} />
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} disabled={!canEditCaseDetails} />
             </div>
             <div className="space-y-2">
               <Label>Partner</Label>
@@ -279,7 +295,7 @@ export default function PredmetEdit() {
                 partners={partners}
                 value={partnerId}
                 onValueChange={setPartnerId}
-                disabled={isClosed}
+                disabled={!canEditCaseDetails}
               />
             </div>
             <div className="space-y-2">
@@ -289,7 +305,7 @@ export default function PredmetEdit() {
                   value={contactPerson}
                   onChange={(e) => setContactPerson(e.target.value)}
                   placeholder="Ime kontakt osobe..."
-                  disabled={isClosed}
+                  disabled={!canEditCaseDetails}
                   list="contact-persons-list"
                 />
                 {partnerId && partnerContacts.length > 0 && (
@@ -330,7 +346,7 @@ export default function PredmetEdit() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Prioritet</Label>
-                <Select value={priority} onValueChange={setPriority} disabled={isClosed}>
+                <Select value={priority} onValueChange={setPriority} disabled={!canEditCaseDetails}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {CRM_PRIORITIES.map((p) => (
@@ -341,7 +357,7 @@ export default function PredmetEdit() {
               </div>
               <div className="space-y-2">
                 <Label>Rok</Label>
-                <LocaleDateInput value={deadline} onChange={setDeadline} disabled={isClosed} />
+                <LocaleDateInput value={deadline} onChange={setDeadline} disabled={!canEditCaseDetails} />
               </div>
             </div>
             <Separator />
@@ -534,9 +550,7 @@ export default function PredmetEdit() {
                             )}
                           </div>
                           
-                          {w.note && <p className="text-xs mt-1">{
-                            w.note.replace(/Dodeljeno korisniku ([0-9a-f-]{36})/i, (_, uid) => `Dodeljeno korisniku ${getUserDisplay(uid)}`)
-                          }</p>}
+                          {formatWorkflowNote(w.note) && <p className="text-xs mt-1">{formatWorkflowNote(w.note)}</p>}
                         </div>
                         <div className="text-xs text-muted-foreground whitespace-nowrap">
                           <p>{format(new Date(w.performed_at), "dd.MM.yyyy HH:mm")}</p>
