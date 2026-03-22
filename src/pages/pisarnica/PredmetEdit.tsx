@@ -25,6 +25,7 @@ import {
   MessageSquare, Clock, FileText, Plus, Loader2, Users, Phone, Mail,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { usePartners, usePartnerContacts } from "@/hooks/usePartners";
 import { useCrmTypes } from "@/hooks/useCrmTypes";
 import { useCompanyUsers } from "@/hooks/useIncomingMail";
