@@ -229,7 +229,7 @@ export default function PredmetEdit() {
                   <UserPlus className="h-4 w-4 mr-1" /> Dodeli
                 </Button>
               )}
-              {isOwner && (crmCase.status === "assigned" || crmCase.status === "in_progress") && (
+              {(isOwner || isSuperAdmin || isLocalAdmin || (isAssignee && hasAccess("pisarnica.predmeti.predodela", "write"))) && (crmCase.status === "assigned" || crmCase.status === "in_progress") && (
                 <Button size="sm" variant="outline" onClick={() => { setAssignDeadline(crmCase.deadline ? crmCase.deadline.substring(0, 10) : ""); setAssignOpen(true); }}>
                   <UserPlus className="h-4 w-4 mr-1" /> Predodeli
                 </Button>
