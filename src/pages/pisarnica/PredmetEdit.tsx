@@ -210,7 +210,7 @@ export default function PredmetEdit() {
           {crmCase.assigned_to && (
             <span className="text-sm text-muted-foreground">
               Zadužen: {getUserDisplay(crmCase.assigned_to)}
-              {crmCase.assigned_at && ` od ${format(new Date(crmCase.assigned_at), "dd.MM.yyyy")}`}
+              {crmCase.assigned_at && ` | od datuma: ${format(new Date(crmCase.assigned_at), "dd.MM.yyyy")}`}
             </span>
           )}
           {crmCase.closing_reason && (
