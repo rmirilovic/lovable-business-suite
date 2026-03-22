@@ -49,6 +49,7 @@ export interface CrmCase {
   status: string;
   closing_reason: string | null;
   closed_at: string | null;
+  assigned_at: string | null;
   deadline: string | null;
   owner_user_id: string;
   assigned_to: string | null;
