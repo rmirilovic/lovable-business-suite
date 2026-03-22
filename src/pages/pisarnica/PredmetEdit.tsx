@@ -217,12 +217,12 @@ export default function PredmetEdit() {
                 <Save className="h-4 w-4 mr-1" /> Sačuvaj
               </Button>
               {(isOwner || !crmCase.assigned_to) && crmCase.status === "draft" && (
-                <Button size="sm" variant="outline" onClick={() => setAssignOpen(true)}>
+                <Button size="sm" variant="outline" onClick={() => { setAssignDeadline(crmCase.deadline ? crmCase.deadline.substring(0, 10) : ""); setAssignOpen(true); }}>
                   <UserPlus className="h-4 w-4 mr-1" /> Dodeli
                 </Button>
               )}
               {isOwner && (crmCase.status === "assigned" || crmCase.status === "in_progress") && (
-                <Button size="sm" variant="outline" onClick={() => setAssignOpen(true)}>
+                <Button size="sm" variant="outline" onClick={() => { setAssignDeadline(crmCase.deadline ? crmCase.deadline.substring(0, 10) : ""); setAssignOpen(true); }}>
                   <UserPlus className="h-4 w-4 mr-1" /> Predodeli
                 </Button>
               )}
