@@ -25,6 +25,7 @@ import {
   MessageSquare, Clock, FileText, Plus, Loader2, Users, Phone, Mail,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { usePartners, usePartnerContacts } from "@/hooks/usePartners";
 import { useCrmTypes } from "@/hooks/useCrmTypes";
 import { useCompanyUsers } from "@/hooks/useIncomingMail";
@@ -41,7 +42,8 @@ import { format } from "date-fns";
 export default function PredmetEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, selectedCompany } = useAuth();
+  const { user, selectedCompany, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { hasAccess } = usePermissions();
   const { partners } = usePartners();
   const { types } = useCrmTypes();
   const { crmCase, isLoading, workflow, communications, documents } = useCrmCaseDetail(id);
@@ -227,7 +229,7 @@ export default function PredmetEdit() {
                   <UserPlus className="h-4 w-4 mr-1" /> Dodeli
                 </Button>
               )}
-              {isOwner && (crmCase.status === "assigned" || crmCase.status === "in_progress") && (
+              {(isOwner || isSuperAdmin || isLocalAdmin || (isAssignee && hasAccess("pisarnica.predmeti.predodela", "write"))) && (crmCase.status === "assigned" || crmCase.status === "in_progress") && (
                 <Button size="sm" variant="outline" onClick={() => { setAssignDeadline(crmCase.deadline ? crmCase.deadline.substring(0, 10) : ""); setAssignOpen(true); }}>
                   <UserPlus className="h-4 w-4 mr-1" /> Predodeli
                 </Button>
