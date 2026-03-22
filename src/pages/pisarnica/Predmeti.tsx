@@ -45,21 +45,43 @@ export default function Predmeti() {
   const [userMap, setUserMap] = useState<Map<string, string>>(new Map());
   useEffect(() => {
     if (!selectedCompany?.id) return;
+    const m = new Map<string, string>();
+    
+    // Fetch users with role assignments
     supabase
       .from("user_role_assignments")
       .select("user_id, profiles!inner(id, email, first_name, last_name)")
       .eq("company_id", selectedCompany.id)
       .then(({ data }) => {
         if (data) {
-          const m = new Map<string, string>();
           data.forEach((d: any) => {
             const name = [d.profiles.first_name, d.profiles.last_name].filter(Boolean).join(" ");
             m.set(d.profiles.id, name || d.profiles.email || "");
           });
-          setUserMap(m);
+        }
+        
+        // Also fetch profiles for assigned users not yet in map
+        const assignedIds = cases
+          .map((c) => c.assigned_to)
+          .filter((id): id is string => !!id && !m.has(id));
+        
+        if (assignedIds.length > 0) {
+          supabase
+            .from("profiles")
+            .select("id, email, first_name, last_name")
+            .in("id", [...new Set(assignedIds)])
+            .then(({ data: profiles }) => {
+              profiles?.forEach((p) => {
+                const name = [p.first_name, p.last_name].filter(Boolean).join(" ");
+                m.set(p.id, name || p.email || "");
+              });
+              setUserMap(new Map(m));
+            });
+        } else {
+          setUserMap(new Map(m));
         }
       });
-  }, [selectedCompany?.id]);
+  }, [selectedCompany?.id, cases]);
 
   const typeMap = new Map(types.map((t) => [t.id, t]));
   const partnerMap = new Map(partners.map((p) => [p.id, p]));
