@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -80,6 +80,14 @@ export default function PredmetEdit() {
   const [docDescription, setDocDescription] = useState("");
 
   const { data: companyUsers = [] } = useCompanyUsers();
+  const userDisplayMap = useMemo(() => {
+    return new Map(
+      companyUsers.map((companyUser) => {
+        const fullName = [companyUser.first_name, companyUser.last_name].filter(Boolean).join(" ").trim();
+        return [companyUser.id, fullName || companyUser.email || "Korisnik"];
+      })
+    );
+  }, [companyUsers]);
 
   // Populate form when case loads
   useEffect(() => {
@@ -195,10 +203,15 @@ export default function PredmetEdit() {
 
   const getUserDisplay = (uid: string | null) => {
     if (!uid) return "-";
-    const u = companyUsers.find((u) => u.id === uid);
-    if (!u) return "Nepoznat korisnik";
-    const fullName = [u.first_name, u.last_name].filter(Boolean).join(" ");
-    return fullName || u.email || "Nepoznat korisnik";
+    if (uid === user?.id) {
+      const currentUserName = [user.user_metadata?.first_name, user.user_metadata?.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      return currentUserName || user.email || "Korisnik";
+    }
+
+    return userDisplayMap.get(uid) || "Korisnik";
   };
 
   const formatWorkflowNote = (note: string | null) => {
@@ -206,7 +219,7 @@ export default function PredmetEdit() {
 
     return note.replace(
       /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
-      (uid) => getUserDisplay(uid)
+      (uid) => getUserDisplay(uid) || "Korisnik"
     );
   };
 
@@ -532,8 +545,10 @@ export default function PredmetEdit() {
                   <p className="text-center text-muted-foreground py-4">Nema zapisa</p>
                 ) : (
                   <div className="space-y-2">
-                    {workflow.map((w) => (
-                      <div key={w.id} className="flex items-start gap-3 border-l-2 border-primary/30 pl-3 py-2">
+                    {workflow.map((w) => {
+                      const workflowNote = formatWorkflowNote(w.note);
+
+                      return <div key={w.id} className="flex items-start gap-3 border-l-2 border-primary/30 pl-3 py-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-medium">
@@ -550,14 +565,14 @@ export default function PredmetEdit() {
                             )}
                           </div>
                           
-                          {formatWorkflowNote(w.note) && <p className="text-xs mt-1">{formatWorkflowNote(w.note)}</p>}
+                          {workflowNote && <p className="text-xs mt-1">{workflowNote}</p>}
                         </div>
                         <div className="text-xs text-muted-foreground whitespace-nowrap">
                           <p>{format(new Date(w.performed_at), "dd.MM.yyyy HH:mm")}</p>
                           <p>{getUserDisplay(w.performed_by)}</p>
                         </div>
-                      </div>
-                    ))}
+                      </div>;
+                    })}
                   </div>
                 )}
               </TabsContent>
