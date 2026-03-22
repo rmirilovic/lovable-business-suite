@@ -259,6 +259,7 @@ export default function ZavodjenjePoste() {
             </TableBody>
           </Table>
         </div>
+        </TableScrollContainer>
       </div>
 
       <IncomingMailDialog
