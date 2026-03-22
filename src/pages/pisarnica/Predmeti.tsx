@@ -93,6 +93,7 @@ export default function Predmeti() {
       case "subject": return c.subject;
       case "partner": return partnerMap.get(c.partner_id || "")?.name || "";
       case "assigned": return c.assigned_to ? (userMap.get(c.assigned_to) || "") : "";
+      case "assigned_at": return c.assigned_at || "";
       case "priority": return priorityOrder[c.priority] ?? 99;
       case "status": return statusOrder[c.status] ?? 99;
       case "deadline": return c.deadline || "";
