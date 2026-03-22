@@ -171,7 +171,7 @@ export default function PredmetEdit() {
       contact_name: commContact || null,
       subject: commSummary,
       body: commNextSteps || null,
-      comm_date: `${commDate}T12:00:00`,
+      comm_date: new Date().toISOString(),
     });
     setCommSummary("");
     setCommNextSteps("");
