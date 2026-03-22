@@ -404,11 +404,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     intentionalSignOutRef.current = true;
-    await supabase.auth.signOut();
+    // Always clear local state, even if the API call fails (e.g. session_not_found)
+    setUser(null);
+    setSession(null);
+    sessionRef.current = null;
+    setCompanies([]);
+    setBusinessYears([]);
     setSelectedCompany(null);
     setSelectedYear(null);
+    setUserRole(null);
+    setLocalAdminCompanyIds([]);
+    setInitialLoadDone(false);
     localStorage.removeItem("selectedCompanyId");
     localStorage.removeItem("selectedYearId");
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore errors - local state is already cleared
+    }
   };
 
   return (
