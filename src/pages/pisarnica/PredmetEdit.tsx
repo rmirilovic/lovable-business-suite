@@ -400,7 +400,7 @@ export default function PredmetEdit() {
 
               {/* Communications Tab */}
               <TabsContent value="communications" className="space-y-4">
-                {!isClosed && (
+                {canEditCaseDetails && (
                   <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
                     <p className="text-sm font-medium">Nova komunikacija</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
