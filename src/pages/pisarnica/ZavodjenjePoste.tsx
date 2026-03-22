@@ -169,8 +169,9 @@ export default function ZavodjenjePoste() {
           </div>
         </div>
 
-        <div className="rounded-md border overflow-x-auto">
-          <Table className="min-w-[900px]">
+        <TableScrollContainer>
+        <div className="rounded-md border">
+          <Table className="min-w-[1000px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[100px]"><SortableHeader column="mail_number" label="Broj" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
