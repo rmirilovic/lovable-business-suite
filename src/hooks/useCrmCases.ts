@@ -49,6 +49,7 @@ export interface CrmCase {
   status: string;
   closing_reason: string | null;
   closed_at: string | null;
+  assigned_at: string | null;
   deadline: string | null;
   owner_user_id: string;
   assigned_to: string | null;
@@ -283,6 +284,7 @@ export function useCrmActions() {
       const { error } = await fromCrm("crm_cases").update({
         assigned_to: values.userId,
         deadline: values.deadline || null,
+        assigned_at: new Date().toISOString(),
         status: "assigned",
         updated_at: new Date().toISOString(),
       }).eq("id", values.caseId);

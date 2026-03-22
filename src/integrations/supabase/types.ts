@@ -1811,6 +1811,7 @@ export type Database = {
       }
       crm_cases: {
         Row: {
+          assigned_at: string | null
           assigned_to: string | null
           case_number: string
           closed_at: string | null
@@ -1831,6 +1832,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_at?: string | null
           assigned_to?: string | null
           case_number: string
           closed_at?: string | null
@@ -1851,6 +1853,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_at?: string | null
           assigned_to?: string | null
           case_number?: string
           closed_at?: string | null

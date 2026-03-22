@@ -1,0 +1,1 @@
+ALTER TABLE public.crm_cases ADD COLUMN IF NOT EXISTS assigned_at timestamptz DEFAULT NULL;

@@ -93,6 +93,7 @@ export default function Predmeti() {
       case "subject": return c.subject;
       case "partner": return partnerMap.get(c.partner_id || "")?.name || "";
       case "assigned": return c.assigned_to ? (userMap.get(c.assigned_to) || "") : "";
+      case "assigned_at": return c.assigned_at || "";
       case "priority": return priorityOrder[c.priority] ?? 99;
       case "status": return statusOrder[c.status] ?? 99;
       case "deadline": return c.deadline || "";
@@ -182,6 +183,7 @@ export default function Predmeti() {
                   <TableHead className="w-[250px] max-w-[250px]"><SortableHeader column="subject" label="Predmet" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead><SortableHeader column="partner" label="Partner" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[150px]"><SortableHeader column="assigned" label="Zadužen" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[110px]"><SortableHeader column="assigned_at" label="Datum dodele" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[100px]"><SortableHeader column="priority" label="Prioritet" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[100px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[110px]"><SortableHeader column="deadline" label="Rok" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
@@ -203,6 +205,7 @@ export default function Predmeti() {
                     <TableCell className="font-medium max-w-[250px] truncate">{c.subject}</TableCell>
                     <TableCell>{partnerMap.get(c.partner_id || "")?.name || ""}</TableCell>
                     <TableCell className="text-sm">{c.assigned_to ? (userMap.get(c.assigned_to) || "-") : "-"}</TableCell>
+                    <TableCell className="text-sm">{c.assigned_at ? format(new Date(c.assigned_at), "dd.MM.yyyy") : ""}</TableCell>
                     <TableCell>
                       <Badge variant={c.priority === "urgent" ? "destructive" : c.priority === "high" ? "default" : "secondary"}>
                         {c.priority === "low" ? "Nizak" : c.priority === "high" ? "Visok" : c.priority === "urgent" ? "Hitan" : "Normalan"}
