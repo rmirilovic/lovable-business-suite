@@ -222,7 +222,7 @@ export default function PredmetEdit() {
                 </Button>
               )}
               {isOwner && (crmCase.status === "assigned" || crmCase.status === "in_progress") && (
-                <Button size="sm" variant="outline" onClick={() => setAssignOpen(true)}>
+                <Button size="sm" variant="outline" onClick={() => { setAssignDeadline(crmCase.deadline ? crmCase.deadline.substring(0, 10) : ""); setAssignOpen(true); }}>
                   <UserPlus className="h-4 w-4 mr-1" /> Predodeli
                 </Button>
               )}
