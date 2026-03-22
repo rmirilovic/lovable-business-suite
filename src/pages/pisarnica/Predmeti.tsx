@@ -182,6 +182,7 @@ export default function Predmeti() {
                   <TableHead className="w-[250px] max-w-[250px]"><SortableHeader column="subject" label="Predmet" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead><SortableHeader column="partner" label="Partner" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[150px]"><SortableHeader column="assigned" label="Zadužen" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                  <TableHead className="w-[110px]"><SortableHeader column="assigned_at" label="Datum dodele" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[100px]"><SortableHeader column="priority" label="Prioritet" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[100px]"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                   <TableHead className="w-[110px]"><SortableHeader column="deadline" label="Rok" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
