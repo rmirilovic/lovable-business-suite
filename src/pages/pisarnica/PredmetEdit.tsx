@@ -207,6 +207,12 @@ export default function PredmetEdit() {
           <Badge variant={CRM_STATUS_VARIANTS[crmCase.status] || "secondary"}>
             {CRM_STATUS_MAP[crmCase.status] || crmCase.status}
           </Badge>
+          {crmCase.assigned_to && (
+            <span className="text-sm text-muted-foreground">
+              Zadužen: {getUserDisplay(crmCase.assigned_to)}
+              {crmCase.assigned_at && ` od ${format(new Date(crmCase.assigned_at), "dd.MM.yyyy")}`}
+            </span>
+          )}
           {crmCase.closing_reason && (
             <span className="text-sm text-muted-foreground">({crmCase.closing_reason})</span>
           )}
