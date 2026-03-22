@@ -42,7 +42,8 @@ import { format } from "date-fns";
 export default function PredmetEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, selectedCompany } = useAuth();
+  const { user, selectedCompany, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { hasAccess } = usePermissions();
   const { partners } = usePartners();
   const { types } = useCrmTypes();
   const { crmCase, isLoading, workflow, communications, documents } = useCrmCaseDetail(id);
