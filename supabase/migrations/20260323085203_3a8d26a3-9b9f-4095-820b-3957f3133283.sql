@@ -1,0 +1,1 @@
+ALTER TYPE module_type ADD VALUE IF NOT EXISTS 'zarade';
