@@ -10,17 +10,24 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, UserPlus } from "lucide-react";
+import { Search, UserPlus, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useEmployees, STATUS_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/hooks/useEmployees";
 import { format } from "date-fns";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
+import { exportEmployeesToExcel, exportEmployeesToPdf, printEmployees } from "@/lib/employeeListExportUtils";
+import { toast } from "sonner";
 
 export default function Zaposleni() {
   const { data: employees, isLoading } = useEmployees();
   const { hasAccess } = usePermissions();
+  const { selectedCompany } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("__all__");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
 
   const canWrite = hasAccess("zarade.zaposleni", "write");
 
@@ -40,6 +47,33 @@ export default function Zaposleni() {
       return matchesSearch && matchesStatus;
     });
   }, [employees, search, statusFilter]);
+
+  const sorted = sortItems(filtered, (item, column) => {
+    switch (column) {
+      case "employee_number": return item.employee_number;
+      case "name": return `${item.last_name} ${item.first_name}`;
+      case "jmbg": return item.jmbg || "";
+      case "job_title": return item.job_title || "";
+      case "employment_type": return EMPLOYMENT_TYPE_LABELS[item.employment_type] || item.employment_type;
+      case "employment_date": return item.employment_date || "";
+      case "status": return item.status;
+      default: return "";
+    }
+  });
+
+  const exportMeta = { companyName: selectedCompany?.name || "" };
+
+  const handleExcel = () => {
+    exportEmployeesToExcel(sorted, exportMeta);
+    toast.success("Excel izvezen");
+  };
+  const handlePdf = async () => {
+    await exportEmployeesToPdf(sorted, exportMeta);
+    toast.success("PDF izvezen");
+  };
+  const handlePrint = async () => {
+    await printEmployees(sorted, exportMeta);
+  };
 
   const statusBadgeVariant = (status: string) => {
     switch (status) {
@@ -76,11 +110,22 @@ export default function Zaposleni() {
               ))}
             </SelectContent>
           </Select>
-          {canWrite && (
-            <Button onClick={() => navigate("/zarade/zaposleni/new")}>
-              <UserPlus className="w-4 h-4 mr-2" /> Novi zaposleni
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExcel} title="Izvezi u Excel">
+              <FileSpreadsheet className="w-4 h-4" />
             </Button>
-          )}
+            <Button variant="outline" size="sm" onClick={handlePdf} title="Izvezi u PDF">
+              <FileText className="w-4 h-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} title="Štampaj">
+              <Printer className="w-4 h-4" />
+            </Button>
+            {canWrite && (
+              <Button onClick={() => navigate("/zarade/zaposleni/new")}>
+                <UserPlus className="w-4 h-4 mr-2" /> Novi zaposleni
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Table */}
@@ -88,13 +133,27 @@ export default function Zaposleni() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px]">Šifra</TableHead>
-                <TableHead>Ime i prezime</TableHead>
-                <TableHead>JMBG</TableHead>
-                <TableHead>Radno mesto</TableHead>
-                <TableHead>Vrsta ugovora</TableHead>
-                <TableHead>Datum zaposlenja</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead className="w-[80px]">
+                  <SortableHeader column="employee_number" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="name" label="Ime i prezime" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="jmbg" label="JMBG" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="job_title" label="Radno mesto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead>
+                  <SortableHeader column="employment_type" label="Vrsta ugovora" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[120px]">
+                  <SortableHeader column="employment_date" label="Datum zaposlenja" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,14 +163,14 @@ export default function Zaposleni() {
                     Učitavanje...
                   </TableCell>
                 </TableRow>
-              ) : filtered.length === 0 ? (
+              ) : sorted.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     {employees?.length === 0 ? "Nema unetih zaposlenih" : "Nema rezultata pretrage"}
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((emp) => (
+                sorted.map((emp) => (
                   <TableRow
                     key={emp.id}
                     className="cursor-pointer hover:bg-muted/50"
@@ -140,7 +199,7 @@ export default function Zaposleni() {
         </div>
 
         <div className="text-sm text-muted-foreground">
-          Ukupno: {filtered.length} zaposlenih
+          Ukupno: {sorted.length} zaposlenih
         </div>
       </div>
     </MainLayout>
