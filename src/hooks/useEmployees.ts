@@ -70,14 +70,14 @@ export function useEmployees() {
     queryFn: async () => {
       if (!selectedCompany?.id) return [];
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("employees")
         .select("*")
         .eq("company_id", selectedCompany.id)
         .order("employee_number");
 
       if (error) throw error;
-      return data as Employee[];
+      return (data || []) as Employee[];
     },
     enabled: !!selectedCompany?.id,
   });
@@ -89,7 +89,7 @@ export function useEmployee(id: string | undefined) {
     queryFn: async () => {
       if (!id) return null;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("employees")
         .select("*")
         .eq("id", id)
@@ -107,14 +107,14 @@ export function useCreateEmployee() {
 
   return useMutation({
     mutationFn: async (employee: Omit<Employee, "id" | "created_at" | "updated_at">) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("employees")
         .insert(employee)
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Employee;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["employees", data.company_id] });
@@ -135,7 +135,7 @@ export function useUpdateEmployee() {
 
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Employee> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("employees")
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq("id", id)
@@ -143,7 +143,7 @@ export function useUpdateEmployee() {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Employee;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["employees", data.company_id] });
@@ -161,7 +161,7 @@ export function useDeleteEmployee() {
 
   return useMutation({
     mutationFn: async ({ id, companyId }: { id: string; companyId: string }) => {
-      const { error } = await supabase.from("employees").delete().eq("id", id);
+      const { error } = await (supabase as any).from("employees").delete().eq("id", id);
       if (error) throw error;
       return { companyId };
     },
@@ -183,7 +183,7 @@ export function useNextEmployeeNumber() {
     queryFn: async () => {
       if (!selectedCompany?.id) return "001";
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("employees")
         .select("employee_number")
         .eq("company_id", selectedCompany.id)
