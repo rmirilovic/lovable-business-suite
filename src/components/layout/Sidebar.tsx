@@ -16,6 +16,7 @@ import {
   X,
   Bot,
   Mail,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {

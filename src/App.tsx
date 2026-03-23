@@ -100,6 +100,8 @@ import ZavodjenjePoslatePoste from "./pages/pisarnica/ZavodjenjePoslatePoste";
 import OutgoingMailEdit from "./pages/pisarnica/OutgoingMailEdit";
 import Predmeti from "./pages/pisarnica/Predmeti";
 import PredmetEdit from "./pages/pisarnica/PredmetEdit";
+import Zaposleni from "./pages/zarade/Zaposleni";
+import EmployeeEdit from "./pages/zarade/EmployeeEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
