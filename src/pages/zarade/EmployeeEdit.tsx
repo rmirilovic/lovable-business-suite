@@ -1,0 +1,523 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  useEmployee,
+  useCreateEmployee,
+  useUpdateEmployee,
+  useDeleteEmployee,
+  useNextEmployeeNumber,
+  EMPLOYMENT_TYPE_LABELS,
+  STATUS_LABELS,
+  EDUCATION_LEVELS,
+} from "@/hooks/useEmployees";
+import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+interface EmployeeForm {
+  employee_number: string;
+  first_name: string;
+  last_name: string;
+  jmbg: string;
+  date_of_birth: string;
+  gender: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  phone: string;
+  email: string;
+  education_level: string;
+  job_title: string;
+  org_unit_id: string;
+  employment_date: string;
+  employment_type: string;
+  contract_end_date: string;
+  work_experience_years: number;
+  work_experience_months: number;
+  bank_account: string;
+  status: string;
+  termination_date: string;
+  note: string;
+}
+
+const emptyForm: EmployeeForm = {
+  employee_number: "",
+  first_name: "",
+  last_name: "",
+  jmbg: "",
+  date_of_birth: "",
+  gender: "",
+  address: "",
+  city: "",
+  postal_code: "",
+  phone: "",
+  email: "",
+  education_level: "",
+  job_title: "",
+  org_unit_id: "",
+  employment_date: "",
+  employment_type: "neodredjeno",
+  contract_end_date: "",
+  work_experience_years: 0,
+  work_experience_months: 0,
+  bank_account: "",
+  status: "active",
+  termination_date: "",
+  note: "",
+};
+
+export default function EmployeeEdit() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isNew = id === "new";
+  const { user, selectedCompany } = useAuth();
+  const { hasAccess } = usePermissions();
+  const canWrite = hasAccess("zarade.zaposleni", "write");
+
+  const { data: employee, isLoading } = useEmployee(isNew ? undefined : id);
+  const { data: nextNumber } = useNextEmployeeNumber();
+  const { units } = useOrganizationalUnits(selectedCompany?.id);
+  const createEmployee = useCreateEmployee();
+  const updateEmployee = useUpdateEmployee();
+  const deleteEmployee = useDeleteEmployee();
+
+  const [form, setForm] = useState<EmployeeForm>(emptyForm);
+
+  useEffect(() => {
+    if (isNew && nextNumber) {
+      setForm((prev) => ({ ...prev, employee_number: nextNumber }));
+    }
+  }, [isNew, nextNumber]);
+
+  useEffect(() => {
+    if (employee) {
+      setForm({
+        employee_number: employee.employee_number,
+        first_name: employee.first_name,
+        last_name: employee.last_name,
+        jmbg: employee.jmbg || "",
+        date_of_birth: employee.date_of_birth || "",
+        gender: employee.gender || "",
+        address: employee.address || "",
+        city: employee.city || "",
+        postal_code: employee.postal_code || "",
+        phone: employee.phone || "",
+        email: employee.email || "",
+        education_level: employee.education_level || "",
+        job_title: employee.job_title || "",
+        org_unit_id: employee.org_unit_id || "",
+        employment_date: employee.employment_date || "",
+        employment_type: employee.employment_type,
+        contract_end_date: employee.contract_end_date || "",
+        work_experience_years: employee.work_experience_years,
+        work_experience_months: employee.work_experience_months,
+        bank_account: employee.bank_account || "",
+        status: employee.status,
+        termination_date: employee.termination_date || "",
+        note: employee.note || "",
+      });
+    }
+  }, [employee]);
+
+  const handleChange = (field: keyof EmployeeForm, value: string | number) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!form.first_name.trim() || !form.last_name.trim()) {
+      toast.error("Ime i prezime su obavezni");
+      return;
+    }
+    if (!form.employee_number.trim()) {
+      toast.error("Šifra zaposlenog je obavezna");
+      return;
+    }
+    if (!selectedCompany?.id || !user?.id) return;
+
+    const payload = {
+      company_id: selectedCompany.id,
+      employee_number: form.employee_number.trim(),
+      first_name: form.first_name.trim(),
+      last_name: form.last_name.trim(),
+      jmbg: form.jmbg || null,
+      date_of_birth: form.date_of_birth || null,
+      gender: form.gender || null,
+      address: form.address || null,
+      city: form.city || null,
+      postal_code: form.postal_code || null,
+      phone: form.phone || null,
+      email: form.email || null,
+      education_level: form.education_level || null,
+      job_title: form.job_title || null,
+      org_unit_id: form.org_unit_id || null,
+      employment_date: form.employment_date || null,
+      employment_type: form.employment_type,
+      contract_end_date: form.contract_end_date || null,
+      work_experience_years: form.work_experience_years,
+      work_experience_months: form.work_experience_months,
+      bank_account: form.bank_account || null,
+      is_active: form.status === "active",
+      status: form.status,
+      termination_date: form.termination_date || null,
+      note: form.note || null,
+      created_by: user.id,
+    };
+
+    try {
+      if (isNew) {
+        const result = await createEmployee.mutateAsync(payload);
+        navigate(`/zarade/zaposleni/${result.id}`, { replace: true });
+      } else {
+        await updateEmployee.mutateAsync({ id: id!, ...payload });
+      }
+    } catch {
+      // Error handled in mutation
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id || !selectedCompany?.id) return;
+    await deleteEmployee.mutateAsync({ id, companyId: selectedCompany.id });
+    navigate("/zarade/zaposleni");
+  };
+
+  if (!isNew && isLoading) {
+    return (
+      <MainLayout title="Zaposleni">
+        <div className="flex items-center justify-center py-12 text-muted-foreground">Učitavanje...</div>
+      </MainLayout>
+    );
+  }
+
+  const isPending = createEmployee.isPending || updateEmployee.isPending;
+
+  return (
+    <MainLayout title={isNew ? "Novi zaposleni" : `${form.last_name} ${form.first_name}`}>
+      <div className="flex flex-col gap-4 max-w-5xl">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={() => navigate("/zarade/zaposleni")}>
+            <ArrowLeft className="w-4 h-4 mr-2" /> Nazad
+          </Button>
+          <div className="flex items-center gap-2">
+            {!isNew && canWrite && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <Trash2 className="w-4 h-4 mr-2" /> Obriši
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Brisanje zaposlenog</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Da li ste sigurni? Ova akcija je nepovratna.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Otkaži</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>Obriši</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {canWrite && (
+              <Button onClick={handleSave} disabled={isPending}>
+                <Save className="w-4 h-4 mr-2" /> {isNew ? "Kreiraj" : "Sačuvaj"}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Lični podaci */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Lični podaci</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Šifra zaposlenog *</Label>
+                <Input
+                  value={form.employee_number}
+                  onChange={(e) => handleChange("employee_number", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Ime *</Label>
+                <Input
+                  value={form.first_name}
+                  onChange={(e) => handleChange("first_name", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Prezime *</Label>
+                <Input
+                  value={form.last_name}
+                  onChange={(e) => handleChange("last_name", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>JMBG</Label>
+                <Input
+                  value={form.jmbg}
+                  onChange={(e) => handleChange("jmbg", e.target.value)}
+                  maxLength={13}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Datum rođenja</Label>
+                <Input
+                  type="date"
+                  value={form.date_of_birth}
+                  onChange={(e) => handleChange("date_of_birth", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Pol</Label>
+                <Select value={form.gender} onValueChange={(v) => handleChange("gender", v)} disabled={!canWrite}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Izaberite" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="M">Muški</SelectItem>
+                    <SelectItem value="F">Ženski</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Kontakt */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Kontakt i adresa</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <Label>Adresa</Label>
+                <Input
+                  value={form.address}
+                  onChange={(e) => handleChange("address", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Poštanski broj</Label>
+                <Input
+                  value={form.postal_code}
+                  onChange={(e) => handleChange("postal_code", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Grad</Label>
+                <Input
+                  value={form.city}
+                  onChange={(e) => handleChange("city", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Telefon</Label>
+                <Input
+                  value={form.phone}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Zaposlenje */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Podaci o zaposlenju</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Radno mesto</Label>
+                <Input
+                  value={form.job_title}
+                  onChange={(e) => handleChange("job_title", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Organizaciona jedinica</Label>
+                <Select value={form.org_unit_id} onValueChange={(v) => handleChange("org_unit_id", v)} disabled={!canWrite}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Izaberite" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {units.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.code} - {u.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Stručna sprema</Label>
+                <Select value={form.education_level} onValueChange={(v) => handleChange("education_level", v)} disabled={!canWrite}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Izaberite" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EDUCATION_LEVELS.map((lvl) => (
+                      <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Datum zaposlenja</Label>
+                <Input
+                  type="date"
+                  value={form.employment_date}
+                  onChange={(e) => handleChange("employment_date", e.target.value)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Vrsta ugovora</Label>
+                <Select value={form.employment_type} onValueChange={(v) => handleChange("employment_type", v)} disabled={!canWrite}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(EMPLOYMENT_TYPE_LABELS).map(([val, label]) => (
+                      <SelectItem key={val} value={val}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {form.employment_type === "odredjeno" && (
+                <div>
+                  <Label>Ugovor do</Label>
+                  <Input
+                    type="date"
+                    value={form.contract_end_date}
+                    onChange={(e) => handleChange("contract_end_date", e.target.value)}
+                    disabled={!canWrite}
+                  />
+                </div>
+              )}
+              <div>
+                <Label>Prethodni staž (godine)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.work_experience_years}
+                  onChange={(e) => handleChange("work_experience_years", parseInt(e.target.value) || 0)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Prethodni staž (meseci)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={11}
+                  value={form.work_experience_months}
+                  onChange={(e) => handleChange("work_experience_months", parseInt(e.target.value) || 0)}
+                  disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Tekući račun</Label>
+                <Input
+                  value={form.bank_account}
+                  onChange={(e) => handleChange("bank_account", e.target.value)}
+                  placeholder="XXX-XXXXXXXXXXXXX-XX"
+                  disabled={!canWrite}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Status zaposlenog</Label>
+                <Select value={form.status} onValueChange={(v) => handleChange("status", v)} disabled={!canWrite}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                      <SelectItem key={val} value={val}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {form.status === "terminated" && (
+                <div>
+                  <Label>Datum prestanka</Label>
+                  <Input
+                    type="date"
+                    value={form.termination_date}
+                    onChange={(e) => handleChange("termination_date", e.target.value)}
+                    disabled={!canWrite}
+                  />
+                </div>
+              )}
+            </div>
+            <Separator className="my-4" />
+            <div>
+              <Label>Napomena</Label>
+              <Textarea
+                value={form.note}
+                onChange={(e) => handleChange("note", e.target.value)}
+                rows={3}
+                disabled={!canWrite}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </MainLayout>
+  );
+}

@@ -16,6 +16,7 @@ import {
   X,
   Bot,
   Mail,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -129,6 +130,14 @@ const navigation: NavItem[] = [
       { label: "RN za preradu", href: "/proizvodnja/prerada", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Predajnice preradu", href: "/proizvodnja/predajnice-prerada", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Recepture", href: "/proizvodnja/recepture", moduleCode: "proizvodnja.sastavnice" },
+    ],
+  },
+  {
+    label: "Zarade",
+    icon: Briefcase,
+    moduleCode: "zarade",
+    children: [
+      { label: "Zaposleni", href: "/zarade/zaposleni", moduleCode: "zarade.zaposleni" },
     ],
   },
   {
