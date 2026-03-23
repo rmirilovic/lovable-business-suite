@@ -133,6 +133,14 @@ const navigation: NavItem[] = [
     ],
   },
   {
+    label: "Zarade",
+    icon: Briefcase,
+    moduleCode: "zarade",
+    children: [
+      { label: "Zaposleni", href: "/zarade/zaposleni", moduleCode: "zarade.zaposleni" },
+    ],
+  },
+  {
     label: "Partneri",
     icon: Users,
     moduleCode: "sifarnici.partneri",

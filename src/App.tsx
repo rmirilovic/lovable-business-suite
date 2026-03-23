@@ -579,6 +579,16 @@ const App = () => (
                   <PredmetEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/zarade/zaposleni" element={
+                <ProtectedRoute>
+                  <Zaposleni />
+                </ProtectedRoute>
+              } />
+              <Route path="/zarade/zaposleni/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <EmployeeEdit />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
