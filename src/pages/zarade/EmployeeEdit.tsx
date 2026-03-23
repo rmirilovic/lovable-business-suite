@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -49,8 +51,8 @@ interface EmployeeForm {
   employment_date: string;
   employment_type: string;
   contract_end_date: string;
-  work_experience_years: number;
-  work_experience_months: number;
+  work_experience_years: string;
+  work_experience_months: string;
   bank_account: string;
   status: string;
   termination_date: string;
@@ -75,8 +77,8 @@ const emptyForm: EmployeeForm = {
   employment_date: "",
   employment_type: "neodredjeno",
   contract_end_date: "",
-  work_experience_years: 0,
-  work_experience_months: 0,
+  work_experience_years: "0",
+  work_experience_months: "0",
   bank_account: "",
   status: "active",
   termination_date: "",
@@ -126,8 +128,8 @@ export default function EmployeeEdit() {
         employment_date: employee.employment_date || "",
         employment_type: employee.employment_type,
         contract_end_date: employee.contract_end_date || "",
-        work_experience_years: employee.work_experience_years,
-        work_experience_months: employee.work_experience_months,
+        work_experience_years: String(employee.work_experience_years || 0),
+        work_experience_months: String(employee.work_experience_months || 0),
         bank_account: employee.bank_account || "",
         status: employee.status,
         termination_date: employee.termination_date || "",
@@ -136,7 +138,7 @@ export default function EmployeeEdit() {
     }
   }, [employee]);
 
-  const handleChange = (field: keyof EmployeeForm, value: string | number) => {
+  const handleChange = (field: keyof EmployeeForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -170,8 +172,8 @@ export default function EmployeeEdit() {
       employment_date: form.employment_date || null,
       employment_type: form.employment_type,
       contract_end_date: form.contract_end_date || null,
-      work_experience_years: form.work_experience_years,
-      work_experience_months: form.work_experience_months,
+      work_experience_years: parseInt(form.work_experience_years) || 0,
+      work_experience_months: parseInt(form.work_experience_months) || 0,
       bank_account: form.bank_account || null,
       is_active: form.status === "active",
       status: form.status,
@@ -288,10 +290,9 @@ export default function EmployeeEdit() {
               </div>
               <div>
                 <Label>Datum rođenja</Label>
-                <Input
-                  type="date"
+                <LocaleDateInput
                   value={form.date_of_birth}
-                  onChange={(e) => handleChange("date_of_birth", e.target.value)}
+                  onChange={(v) => handleChange("date_of_birth", v)}
                   disabled={!canWrite}
                 />
               </div>
@@ -408,10 +409,9 @@ export default function EmployeeEdit() {
               </div>
               <div>
                 <Label>Datum zaposlenja</Label>
-                <Input
-                  type="date"
+                <LocaleDateInput
                   value={form.employment_date}
-                  onChange={(e) => handleChange("employment_date", e.target.value)}
+                  onChange={(v) => handleChange("employment_date", v)}
                   disabled={!canWrite}
                 />
               </div>
@@ -431,32 +431,28 @@ export default function EmployeeEdit() {
               {form.employment_type === "odredjeno" && (
                 <div>
                   <Label>Ugovor do</Label>
-                  <Input
-                    type="date"
+                  <LocaleDateInput
                     value={form.contract_end_date}
-                    onChange={(e) => handleChange("contract_end_date", e.target.value)}
+                    onChange={(v) => handleChange("contract_end_date", v)}
                     disabled={!canWrite}
                   />
                 </div>
               )}
               <div>
                 <Label>Prethodni staž (godine)</Label>
-                <Input
-                  type="number"
-                  min={0}
+                <LocaleNumberInput
                   value={form.work_experience_years}
-                  onChange={(e) => handleChange("work_experience_years", parseInt(e.target.value) || 0)}
+                  onChange={(v) => handleChange("work_experience_years", v)}
+                  decimalPlaces={0}
                   disabled={!canWrite}
                 />
               </div>
               <div>
                 <Label>Prethodni staž (meseci)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={11}
+                <LocaleNumberInput
                   value={form.work_experience_months}
-                  onChange={(e) => handleChange("work_experience_months", parseInt(e.target.value) || 0)}
+                  onChange={(v) => handleChange("work_experience_months", v)}
+                  decimalPlaces={0}
                   disabled={!canWrite}
                 />
               </div>
@@ -496,10 +492,9 @@ export default function EmployeeEdit() {
               {form.status === "terminated" && (
                 <div>
                   <Label>Datum prestanka</Label>
-                  <Input
-                    type="date"
+                  <LocaleDateInput
                     value={form.termination_date}
-                    onChange={(e) => handleChange("termination_date", e.target.value)}
+                    onChange={(v) => handleChange("termination_date", v)}
                     disabled={!canWrite}
                   />
                 </div>

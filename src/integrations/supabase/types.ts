@@ -2501,6 +2501,117 @@ export type Database = {
         }
         Relationships: []
       }
+      employees: {
+        Row: {
+          address: string | null
+          bank_account: string | null
+          city: string | null
+          company_id: string
+          contract_end_date: string | null
+          created_at: string | null
+          created_by: string
+          date_of_birth: string | null
+          education_level: string | null
+          email: string | null
+          employee_number: string
+          employment_date: string | null
+          employment_type: string | null
+          first_name: string
+          gender: string | null
+          id: string
+          is_active: boolean | null
+          jmbg: string | null
+          job_title: string | null
+          last_name: string
+          note: string | null
+          org_unit_id: string | null
+          phone: string | null
+          postal_code: string | null
+          status: string | null
+          termination_date: string | null
+          updated_at: string | null
+          work_experience_months: number | null
+          work_experience_years: number | null
+        }
+        Insert: {
+          address?: string | null
+          bank_account?: string | null
+          city?: string | null
+          company_id: string
+          contract_end_date?: string | null
+          created_at?: string | null
+          created_by: string
+          date_of_birth?: string | null
+          education_level?: string | null
+          email?: string | null
+          employee_number: string
+          employment_date?: string | null
+          employment_type?: string | null
+          first_name: string
+          gender?: string | null
+          id?: string
+          is_active?: boolean | null
+          jmbg?: string | null
+          job_title?: string | null
+          last_name: string
+          note?: string | null
+          org_unit_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          status?: string | null
+          termination_date?: string | null
+          updated_at?: string | null
+          work_experience_months?: number | null
+          work_experience_years?: number | null
+        }
+        Update: {
+          address?: string | null
+          bank_account?: string | null
+          city?: string | null
+          company_id?: string
+          contract_end_date?: string | null
+          created_at?: string | null
+          created_by?: string
+          date_of_birth?: string | null
+          education_level?: string | null
+          email?: string | null
+          employee_number?: string
+          employment_date?: string | null
+          employment_type?: string | null
+          first_name?: string
+          gender?: string | null
+          id?: string
+          is_active?: boolean | null
+          jmbg?: string | null
+          job_title?: string | null
+          last_name?: string
+          note?: string | null
+          org_unit_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          status?: string | null
+          termination_date?: string | null
+          updated_at?: string | null
+          work_experience_months?: number | null
+          work_experience_years?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_org_unit_id_fkey"
+            columns: ["org_unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goods_purchase_invoice_items: {
         Row: {
           article_id: string | null
