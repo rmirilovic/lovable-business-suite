@@ -518,6 +518,15 @@ export default function EmployeeEdit() {
                   />
                 </div>
               )}
+              <div className="flex items-center gap-2 pt-6">
+                <Checkbox
+                  id="is_owner"
+                  checked={form.is_owner}
+                  onCheckedChange={(checked) => handleChange("is_owner", checked === true)}
+                  disabled={!canWrite}
+                />
+                <Label htmlFor="is_owner" className="cursor-pointer">Vlasnik firme</Label>
+              </div>
             </div>
             <Separator className="my-4" />
             <div>
