@@ -28,6 +28,7 @@ export interface Employee {
   work_experience_months: number;
   bank_account: string | null;
   is_active: boolean;
+  is_owner: boolean;
   status: string;
   termination_date: string | null;
   note: string | null;
