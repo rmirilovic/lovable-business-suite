@@ -523,6 +523,12 @@ export function DataImportTab() {
         open={paymentCodesImportOpen} 
         onOpenChange={setPaymentCodesImportOpen} 
       />
+
+      {/* Employee Dialogs */}
+      <EmployeeImportDialog 
+        open={employeeImportOpen} 
+        onOpenChange={setEmployeeImportOpen} 
+      />
     </div>
   );
 }
