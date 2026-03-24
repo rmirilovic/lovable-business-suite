@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
@@ -55,6 +56,7 @@ interface EmployeeForm {
   work_experience_years: string;
   work_experience_months: string;
   bank_account: string;
+  is_owner: boolean;
   status: string;
   termination_date: string;
   note: string;
@@ -82,6 +84,7 @@ const emptyForm: EmployeeForm = {
   work_experience_years: "0",
   work_experience_months: "0",
   bank_account: "",
+  is_owner: false,
   status: "active",
   termination_date: "",
   note: "",
@@ -134,6 +137,7 @@ export default function EmployeeEdit() {
         work_experience_years: String(employee.work_experience_years || 0),
         work_experience_months: String(employee.work_experience_months || 0),
         bank_account: employee.bank_account || "",
+        is_owner: employee.is_owner || false,
         status: employee.status,
         termination_date: employee.termination_date || "",
         note: employee.note || "",
@@ -141,7 +145,7 @@ export default function EmployeeEdit() {
     }
   }, [employee]);
 
-  const handleChange = (field: keyof EmployeeForm, value: string) => {
+  const handleChange = (field: keyof EmployeeForm, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -180,6 +184,7 @@ export default function EmployeeEdit() {
       work_experience_months: parseInt(form.work_experience_months) || 0,
       bank_account: form.bank_account || null,
       is_active: form.status === "active",
+      is_owner: form.is_owner,
       status: form.status,
       termination_date: form.termination_date || null,
       note: form.note || null,
@@ -513,6 +518,15 @@ export default function EmployeeEdit() {
                   />
                 </div>
               )}
+              <div className="flex items-center gap-2 pt-6">
+                <Checkbox
+                  id="is_owner"
+                  checked={form.is_owner}
+                  onCheckedChange={(checked) => handleChange("is_owner", checked === true)}
+                  disabled={!canWrite}
+                />
+                <Label htmlFor="is_owner" className="cursor-pointer">Vlasnik firme</Label>
+              </div>
             </div>
             <Separator className="my-4" />
             <div>
