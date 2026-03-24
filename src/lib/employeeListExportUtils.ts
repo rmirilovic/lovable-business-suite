@@ -18,6 +18,7 @@ function mapRows(items: Employee[]) {
   return items.map((e) => ({
     "Šifra": e.employee_number,
     "Prezime": e.last_name,
+    "Srednje slovo": e.middle_name || "",
     "Ime": e.first_name,
     "JMBG": e.jmbg || "-",
     "Radno mesto": e.job_title || "-",
@@ -31,7 +32,7 @@ export function exportEmployeesToExcel(items: Employee[], meta: ExportMeta) {
   const data = mapRows(items);
   const ws = XLSX.utils.json_to_sheet(data);
   ws["!cols"] = [
-    { wch: 10 }, { wch: 20 }, { wch: 18 }, { wch: 16 },
+    { wch: 10 }, { wch: 20 }, { wch: 6 }, { wch: 18 }, { wch: 16 },
     { wch: 25 }, { wch: 18 }, { wch: 14 }, { wch: 14 },
   ];
   const wb = XLSX.utils.book_new();
@@ -57,6 +58,7 @@ async function buildPdf(items: Employee[], meta: ExportMeta): Promise<jsPDF> {
   const rows = items.map((e) => [
     e.employee_number,
     e.last_name,
+    e.middle_name || "",
     e.first_name,
     e.jmbg || "-",
     e.job_title || "-",
@@ -67,7 +69,7 @@ async function buildPdf(items: Employee[], meta: ExportMeta): Promise<jsPDF> {
 
   autoTable(doc, {
     startY: y,
-    head: [["Šifra", "Prezime", "Ime", "JMBG", "Radno mesto", "Vrsta ugovora", "Datum zaposl.", "Status"]],
+    head: [["Šifra", "Prezime", "SS", "Ime", "JMBG", "Radno mesto", "Vrsta ugovora", "Datum zaposl.", "Status"]],
     body: rows,
     styles: { font: "Roboto", fontSize: 8 },
     headStyles: { fillColor: [66, 66, 66] },

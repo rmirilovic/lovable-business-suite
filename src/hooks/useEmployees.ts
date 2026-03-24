@@ -8,6 +8,7 @@ export interface Employee {
   company_id: string;
   employee_number: string;
   first_name: string;
+  middle_name: string | null;
   last_name: string;
   jmbg: string | null;
   date_of_birth: string | null;

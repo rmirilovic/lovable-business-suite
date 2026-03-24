@@ -51,7 +51,7 @@ export default function Zaposleni() {
   const sorted = sortItems(filtered, (item, column) => {
     switch (column) {
       case "employee_number": return item.employee_number;
-      case "name": return `${item.last_name} ${item.first_name}`;
+      case "name": return `${item.last_name} ${item.middle_name || ""} ${item.first_name}`;
       case "jmbg": return item.jmbg || "";
       case "job_title": return item.job_title || "";
       case "employment_type": return EMPLOYMENT_TYPE_LABELS[item.employment_type] || item.employment_type;
@@ -178,7 +178,7 @@ export default function Zaposleni() {
                   >
                     <TableCell className="font-mono">{emp.employee_number}</TableCell>
                     <TableCell className="font-medium">
-                      {emp.last_name} {emp.first_name}
+                      {emp.last_name} {emp.middle_name ? `(${emp.middle_name}) ` : ""}{emp.first_name}
                     </TableCell>
                     <TableCell className="font-mono">{emp.jmbg || "-"}</TableCell>
                     <TableCell>{emp.job_title || "-"}</TableCell>

@@ -1,0 +1,1 @@
+ALTER TABLE public.employees ADD COLUMN middle_name VARCHAR(2) DEFAULT NULL;

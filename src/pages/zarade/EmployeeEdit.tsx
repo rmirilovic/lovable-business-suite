@@ -36,6 +36,7 @@ import {
 interface EmployeeForm {
   employee_number: string;
   first_name: string;
+  middle_name: string;
   last_name: string;
   jmbg: string;
   date_of_birth: string;
@@ -62,6 +63,7 @@ interface EmployeeForm {
 const emptyForm: EmployeeForm = {
   employee_number: "",
   first_name: "",
+  middle_name: "",
   last_name: "",
   jmbg: "",
   date_of_birth: "",
@@ -113,6 +115,7 @@ export default function EmployeeEdit() {
       setForm({
         employee_number: employee.employee_number,
         first_name: employee.first_name,
+        middle_name: employee.middle_name || "",
         last_name: employee.last_name,
         jmbg: employee.jmbg || "",
         date_of_birth: employee.date_of_birth || "",
@@ -157,6 +160,7 @@ export default function EmployeeEdit() {
       company_id: selectedCompany.id,
       employee_number: form.employee_number.trim(),
       first_name: form.first_name.trim(),
+      middle_name: form.middle_name.trim() || null,
       last_name: form.last_name.trim(),
       jmbg: form.jmbg || null,
       date_of_birth: form.date_of_birth || null,
@@ -269,6 +273,16 @@ export default function EmployeeEdit() {
                   value={form.first_name}
                   onChange={(e) => handleChange("first_name", e.target.value)}
                   disabled={!canWrite}
+                />
+              </div>
+              <div>
+                <Label>Srednje slovo</Label>
+                <Input
+                  value={form.middle_name}
+                  onChange={(e) => handleChange("middle_name", e.target.value.slice(0, 2))}
+                  maxLength={2}
+                  disabled={!canWrite}
+                  placeholder="SS"
                 />
               </div>
               <div>
