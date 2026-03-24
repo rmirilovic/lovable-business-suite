@@ -17,7 +17,7 @@ interface EmployeeImportDialogProps {
 
 const REQUIRED_FIELDS = ["employee_number", "last_name", "first_name"];
 const OPTIONAL_FIELDS = [
-  "jmbg", "date_of_birth", "gender", "address", "city", "postal_code",
+  "middle_name", "jmbg", "date_of_birth", "gender", "address", "city", "postal_code",
   "phone", "email", "education_level", "job_title",
   "employment_date", "employment_type", "contract_end_date",
   "work_experience_years", "work_experience_months",
@@ -28,6 +28,7 @@ const FIELD_LABELS: Record<string, string> = {
   employee_number: "Šifra",
   last_name: "Prezime",
   first_name: "Ime",
+  middle_name: "Srednje slovo",
   jmbg: "JMBG",
   date_of_birth: "Datum rođenja",
   gender: "Pol",
@@ -51,6 +52,7 @@ const SYNONYMS: Record<string, string[]> = {
   employee_number: ["šifra", "sifra", "broj", "code", "rb", "r.b."],
   last_name: ["prezime", "last name", "surname"],
   first_name: ["ime", "first name", "name"],
+  middle_name: ["srednje", "middle", "sr. slovo", "ss"],
   jmbg: ["jmbg", "matični broj", "maticni"],
   date_of_birth: ["datum rođenja", "datum rodjenja", "rođen", "rodjen", "birth"],
   gender: ["pol", "gender", "sex"],
@@ -195,7 +197,7 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
           };
 
           // Optional string fields
-          for (const f of ["jmbg", "gender", "address", "city", "postal_code", "phone", "email", "education_level", "job_title", "bank_account", "note"]) {
+          for (const f of ["middle_name", "jmbg", "gender", "address", "city", "postal_code", "phone", "email", "education_level", "job_title", "bank_account", "note"]) {
             if (mapping[f]) {
               const val = String(row[mapping[f]] || "").trim();
               empData[f] = val || null;
