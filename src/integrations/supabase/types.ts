@@ -2523,6 +2523,7 @@ export type Database = {
           jmbg: string | null
           job_title: string | null
           last_name: string
+          middle_name: string | null
           note: string | null
           org_unit_id: string | null
           phone: string | null
@@ -2554,6 +2555,7 @@ export type Database = {
           jmbg?: string | null
           job_title?: string | null
           last_name: string
+          middle_name?: string | null
           note?: string | null
           org_unit_id?: string | null
           phone?: string | null
@@ -2585,6 +2587,7 @@ export type Database = {
           jmbg?: string | null
           job_title?: string | null
           last_name?: string
+          middle_name?: string | null
           note?: string | null
           org_unit_id?: string | null
           phone?: string | null
