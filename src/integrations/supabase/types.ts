@@ -2520,6 +2520,7 @@ export type Database = {
           gender: string | null
           id: string
           is_active: boolean | null
+          is_owner: boolean
           jmbg: string | null
           job_title: string | null
           last_name: string
@@ -2552,6 +2553,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_active?: boolean | null
+          is_owner?: boolean
           jmbg?: string | null
           job_title?: string | null
           last_name: string
@@ -2584,6 +2586,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_active?: boolean | null
+          is_owner?: boolean
           jmbg?: string | null
           job_title?: string | null
           last_name?: string
