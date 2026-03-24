@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt, Factory } from "lucide-react";
+import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt, Factory, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -21,6 +21,7 @@ import { InputCostsImportDialog } from "@/components/sifarnici/InputCostsImportD
 import { InputCostsExportDialog } from "@/components/sifarnici/InputCostsExportDialog";
 import { NormImportDialog } from "@/components/proizvodnja/NormImportDialog";
 import { PaymentCodesImportDialog } from "@/components/racunovodstvo/PaymentCodesImportDialog";
+import { EmployeeImportDialog } from "@/components/zarade/EmployeeImportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 
@@ -58,6 +59,9 @@ export function DataImportTab() {
   
   // Dialog states for payment codes
   const [paymentCodesImportOpen, setPaymentCodesImportOpen] = useState(false);
+  
+  // Dialog states for employees
+  const [employeeImportOpen, setEmployeeImportOpen] = useState(false);
   
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
@@ -403,6 +407,36 @@ export function DataImportTab() {
           </div>
         </CardContent>
       </Card>
+
+      <Separator />
+
+      {/* Employees Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserCheck className="w-5 h-5" />
+            Zaposleni
+          </CardTitle>
+          <CardDescription>
+            Uvoz šifarnika zaposlenih iz Excel fajla
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setEmployeeImportOpen(true)}
+            >
+              <Upload className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Šifarnik radnika</div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
       <PartnerImportDialog 
         open={partnerImportOpen} 
         onOpenChange={setPartnerImportOpen} 
@@ -488,6 +522,12 @@ export function DataImportTab() {
       <PaymentCodesImportDialog 
         open={paymentCodesImportOpen} 
         onOpenChange={setPaymentCodesImportOpen} 
+      />
+
+      {/* Employee Dialogs */}
+      <EmployeeImportDialog 
+        open={employeeImportOpen} 
+        onOpenChange={setEmployeeImportOpen} 
       />
     </div>
   );
