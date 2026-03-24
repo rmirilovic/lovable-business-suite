@@ -21,6 +21,7 @@ import { InputCostsImportDialog } from "@/components/sifarnici/InputCostsImportD
 import { InputCostsExportDialog } from "@/components/sifarnici/InputCostsExportDialog";
 import { NormImportDialog } from "@/components/proizvodnja/NormImportDialog";
 import { PaymentCodesImportDialog } from "@/components/racunovodstvo/PaymentCodesImportDialog";
+import { EmployeeImportDialog } from "@/components/zarade/EmployeeImportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 
@@ -58,6 +59,9 @@ export function DataImportTab() {
   
   // Dialog states for payment codes
   const [paymentCodesImportOpen, setPaymentCodesImportOpen] = useState(false);
+  
+  // Dialog states for employees
+  const [employeeImportOpen, setEmployeeImportOpen] = useState(false);
   
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
