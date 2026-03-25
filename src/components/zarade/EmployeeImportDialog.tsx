@@ -5,8 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, FileSpreadsheet } from "lucide-react";
-import { useEmployees, useCreateEmployee, useUpdateEmployee, EMPLOYMENT_TYPE_LABELS } from "@/hooks/useEmployees";
+import { useEmployees } from "@/hooks/useEmployees";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
@@ -100,11 +102,9 @@ const EMPLOYMENT_TYPE_MAP: Record<string, string> = {
 
 export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialogProps) {
   const { selectedCompany, user } = useAuth();
-  const { data: existingEmployees = [] } = useEmployees();
-  const createEmployee = useCreateEmployee();
-  const updateEmployee = useUpdateEmployee();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [headers, setHeaders] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
@@ -167,7 +167,11 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
 
-        const existingMap = new Map(existingEmployees.map(emp => [emp.employee_number, emp]));
+        const { data: existingEmployees } = await supabase
+          .from("employees")
+          .select("id, employee_number")
+          .eq("company_id", selectedCompany.id);
+        const existingMap = new Map((existingEmployees || []).map((emp: any) => [emp.employee_number, emp]));
 
         let createdCount = 0;
         let updatedCount = 0;
@@ -216,10 +220,12 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
           try {
             if (existing && updateExisting) {
               const { company_id, created_by, ...updates } = empData;
-              await updateEmployee.mutateAsync({ id: existing.id, ...updates } as any);
+              const { error } = await supabase.from("employees").update(updates).eq("id", (existing as any).id);
+              if (error) throw error;
               updatedCount++;
             } else if (!existing) {
-              await createEmployee.mutateAsync(empData as any);
+              const { error } = await supabase.from("employees").insert(empData as any);
+              if (error) throw error;
               createdCount++;
             }
           } catch (error) {
@@ -234,6 +240,7 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
         if (errorCount > 0) messages.push(`${errorCount} grešaka`);
 
         toast.success(`Uvoz završen: ${messages.join(", ")}`);
+        queryClient.invalidateQueries({ queryKey: ["employees"] });
         onOpenChange(false);
         resetState();
         setImporting(false);
