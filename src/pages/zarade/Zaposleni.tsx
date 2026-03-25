@@ -88,7 +88,7 @@ export default function Zaposleni() {
 
   return (
     <MainLayout title="Zaposleni">
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 flex-1 min-h-0 lg:overflow-hidden">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="relative flex-1 w-full">
