@@ -53,7 +53,7 @@ export function MainLayout({ children, title }: MainLayoutProps) {
           onSidebarToggle={toggleSidebar}
           sidebarCollapsed={sidebarCollapsed}
         />
-        <main className="flex-1 min-h-0 p-4 lg:p-6 flex flex-col lg:overflow-hidden">{children}</main>
+        <main className="flex-1 min-h-0 p-4 lg:p-6 flex flex-col overflow-hidden">{children}</main>
       </div>
     </div>
   );
