@@ -167,7 +167,11 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
 
-        const existingMap = new Map(existingEmployees.map(emp => [emp.employee_number, emp]));
+        const { data: existingEmployees } = await supabase
+          .from("employees")
+          .select("id, employee_number")
+          .eq("company_id", selectedCompany.id);
+        const existingMap = new Map((existingEmployees || []).map((emp: any) => [emp.employee_number, emp]));
 
         let createdCount = 0;
         let updatedCount = 0;
@@ -220,7 +224,7 @@ export function EmployeeImportDialog({ open, onOpenChange }: EmployeeImportDialo
               if (error) throw error;
               updatedCount++;
             } else if (!existing) {
-              const { error } = await supabase.from("employees").insert(empData);
+              const { error } = await supabase.from("employees").insert(empData as any);
               if (error) throw error;
               createdCount++;
             }
