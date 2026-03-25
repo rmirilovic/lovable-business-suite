@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, UserPlus, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { Search, UserPlus, Download, FileText, Printer } from "lucide-react";
 import { useEmployees, STATUS_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/hooks/useEmployees";
 import { format } from "date-fns";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -113,13 +113,13 @@ export default function Zaposleni() {
           </Select>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExcel} title="Izvezi u Excel">
-              <FileSpreadsheet className="w-4 h-4" />
+              <Download className="w-4 h-4 mr-2" /> Excel
             </Button>
             <Button variant="outline" size="sm" onClick={handlePdf} title="Izvezi u PDF">
-              <FileText className="w-4 h-4" />
+              <FileText className="w-4 h-4 mr-2" /> PDF
             </Button>
             <Button variant="outline" size="sm" onClick={handlePrint} title="Štampaj">
-              <Printer className="w-4 h-4" />
+              <Printer className="w-4 h-4 mr-2" /> Štampa
             </Button>
             {canWrite && (
               <Button onClick={() => navigate("/zarade/zaposleni/new")}>
