@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { exportEmployeesToExcel, exportEmployeesToPdf, printEmployees } from "@/lib/employeeListExportUtils";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { toast } from "sonner";
 
 export default function Zaposleni() {
@@ -129,7 +130,7 @@ export default function Zaposleni() {
         </div>
 
         {/* Table */}
-        <div className="border rounded-lg">
+        <TableScrollContainer className="border rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
@@ -196,7 +197,7 @@ export default function Zaposleni() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
 
         <div className="text-sm text-muted-foreground">
           Ukupno: {sorted.length} zaposlenih
