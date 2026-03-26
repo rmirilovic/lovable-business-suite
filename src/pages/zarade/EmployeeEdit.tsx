@@ -231,6 +231,11 @@ export default function EmployeeEdit() {
             <ArrowLeft className="w-4 h-4 mr-2" /> Nazad
           </Button>
           <div className="flex items-center gap-2">
+            {!isNew && (
+              <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)}>
+                <History className="w-4 h-4 mr-1" /> Istorija
+              </Button>
+            )}
             {!isNew && canWrite && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
