@@ -189,6 +189,7 @@ export default function EmployeeEdit() {
       termination_date: form.termination_date || null,
       note: form.note || null,
       created_by: user.id,
+      leave_days_default: 20,
     };
 
     try {
