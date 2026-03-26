@@ -98,6 +98,7 @@ export default function EmployeeEdit() {
   const { user, selectedCompany } = useAuth();
   const { hasAccess } = usePermissions();
   const canWrite = hasAccess("zarade.zaposleni", "write");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const { data: employee, isLoading } = useEmployee(isNew ? undefined : id);
   const { data: nextNumber } = useNextEmployeeNumber();
