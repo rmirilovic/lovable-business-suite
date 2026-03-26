@@ -50,6 +50,15 @@ export function usePermissions(): UsePermissionsReturn {
       return;
     }
 
+    setIsLoading(true);
+
+    if (isSuperAdmin || isLocalAdmin) {
+      setUserRoles([]);
+      setModuleAccess(new Map());
+      setIsLoading(false);
+      return;
+    }
+
     try {
       // Fetch assigned roles
       const { data: roleAssignments, error: rolesError } = await supabase
@@ -79,15 +88,6 @@ export function usePermissions(): UsePermissionsReturn {
         }));
 
       setUserRoles(roles);
-
-      // Super admin and local admin have full access
-      if (isSuperAdmin || isLocalAdmin) {
-        const fullAccess = new Map<string, ModuleAccess>();
-        // They have admin access to everything
-        setModuleAccess(fullAccess);
-        setIsLoading(false);
-        return;
-      }
 
       // Fetch all module permissions for user's roles
       if (roles.length === 0) {

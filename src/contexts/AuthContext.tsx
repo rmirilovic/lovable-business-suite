@@ -61,14 +61,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
-      .maybeSingle();
+      .eq("user_id", userId);
 
-    if (!error && data) {
-      setUserRole(data.role as AppRole);
-    } else {
+    if (error || !data || data.length === 0) {
       setUserRole(null);
+      return;
     }
+
+    const roles = data.map((item) => item.role as AppRole);
+
+    if (roles.includes("super_admin")) {
+      setUserRole("super_admin");
+      return;
+    }
+
+    setUserRole(roles[0] ?? null);
   };
 
   const fetchLocalAdminCompanies = async (userId: string) => {

@@ -212,6 +212,10 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
 
   // Filter navigation based on permissions
   const getFilteredNavigation = () => {
+    if (isSuperAdmin || isLocalAdmin) {
+      return navigation.filter((item) => item.href !== "/admin" || isSuperAdmin || isLocalAdmin);
+    }
+
     if (permissionsLoading) {
       return navigation.filter(item => !item.moduleCode || item.href === "/");
     }
@@ -236,6 +240,10 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
   };
 
   const getFilteredChildren = (children: NavChild[]) => {
+    if (isSuperAdmin || isLocalAdmin) {
+      return children;
+    }
+
     return children.filter(child => {
       if (!child.moduleCode) return true;
       return hasAccess(child.moduleCode);
