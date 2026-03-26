@@ -75,10 +75,10 @@ export default function FondOdmora() {
       switch (col) {
         case "name": return `${item.last_name} ${item.first_name}`;
         case "number": return item.employee_number;
-        case "fund": return editedFunds[item.id] ?? fundMap.get(item.id) ?? item.leave_days_default ?? 20;
+        case "fund": return editedFunds[item.id] ?? fundMap.get(item.id) ?? (item.leave_days_default || 20);
         case "used_go": return usedMap.get(item.id)?.godisnji_odmor ?? 0;
         case "remaining": {
-          const total = editedFunds[item.id] ?? fundMap.get(item.id) ?? item.leave_days_default ?? 20;
+          const total = editedFunds[item.id] ?? fundMap.get(item.id) ?? (item.leave_days_default || 20);
           const used = usedMap.get(item.id)?.godisnji_odmor ?? 0;
           return total - used;
         }
