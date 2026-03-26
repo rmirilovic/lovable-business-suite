@@ -102,6 +102,10 @@ import Predmeti from "./pages/pisarnica/Predmeti";
 import PredmetEdit from "./pages/pisarnica/PredmetEdit";
 import Zaposleni from "./pages/zarade/Zaposleni";
 import EmployeeEdit from "./pages/zarade/EmployeeEdit";
+import Odsustva from "./pages/zarade/Odsustva";
+import AbsenceEdit from "./pages/zarade/AbsenceEdit";
+import KalendarOdsustva from "./pages/zarade/KalendarOdsustva";
+import FondOdmora from "./pages/zarade/FondOdmora";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
