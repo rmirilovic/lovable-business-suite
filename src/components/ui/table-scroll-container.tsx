@@ -19,7 +19,7 @@ export const TableScrollContainer = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "flex-1 min-h-0 overflow-auto overscroll-contain max-w-full",
+        "flex-1 min-h-0 overflow-auto max-w-full touch-pan-y touch-pan-x",
         className,
       )}
     >
