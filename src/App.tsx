@@ -593,6 +593,26 @@ const App = () => (
                   <EmployeeEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/zarade/odsustva" element={
+                <ProtectedRoute>
+                  <Odsustva />
+                </ProtectedRoute>
+              } />
+              <Route path="/zarade/odsustva/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <AbsenceEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/zarade/kalendar" element={
+                <ProtectedRoute>
+                  <KalendarOdsustva />
+                </ProtectedRoute>
+              } />
+              <Route path="/zarade/fond-odmora" element={
+                <ProtectedRoute>
+                  <FondOdmora />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
