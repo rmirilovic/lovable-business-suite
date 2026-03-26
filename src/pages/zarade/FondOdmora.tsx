@@ -130,8 +130,7 @@ export default function FondOdmora() {
       };
     });
   };
-
-
+  return (
     <MainLayout title="Fond godišnjeg odmora">
       <div className="flex flex-col gap-4 h-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
