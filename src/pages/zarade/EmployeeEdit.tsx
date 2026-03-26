@@ -13,7 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Trash2, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { toast } from "sonner";
 import {
   useEmployee,
@@ -97,6 +98,7 @@ export default function EmployeeEdit() {
   const { user, selectedCompany } = useAuth();
   const { hasAccess } = usePermissions();
   const canWrite = hasAccess("zarade.zaposleni", "write");
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const { data: employee, isLoading } = useEmployee(isNew ? undefined : id);
   const { data: nextNumber } = useNextEmployeeNumber();
@@ -229,6 +231,11 @@ export default function EmployeeEdit() {
             <ArrowLeft className="w-4 h-4 mr-2" /> Nazad
           </Button>
           <div className="flex items-center gap-2">
+            {!isNew && (
+              <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)}>
+                <History className="w-4 h-4 mr-1" /> Istorija
+              </Button>
+            )}
             {!isNew && canWrite && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -542,6 +549,44 @@ export default function EmployeeEdit() {
           </CardContent>
         </Card>
       </div>
+
+      {!isNew && id && (
+        <DocumentHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          documentId={id}
+          documentName={`${form.last_name} ${form.first_name}`}
+          documentType="employee"
+          fieldLabels={{
+            employee_number: "Šifra",
+            first_name: "Ime",
+            middle_name: "Srednje slovo",
+            last_name: "Prezime",
+            jmbg: "JMBG",
+            date_of_birth: "Datum rođenja",
+            gender: "Pol",
+            address: "Adresa",
+            city: "Grad",
+            postal_code: "Poštanski broj",
+            phone: "Telefon",
+            email: "Email",
+            education_level: "Nivo obrazovanja",
+            job_title: "Radno mesto",
+            org_unit_id: "Org. jedinica",
+            employment_date: "Datum zaposlenja",
+            employment_type: "Vrsta ugovora",
+            contract_end_date: "Datum isteka ugovora",
+            work_experience_years: "Staž (godine)",
+            work_experience_months: "Staž (meseci)",
+            bank_account: "Tekući račun",
+            is_owner: "Vlasnik firme",
+            status: "Status",
+            termination_date: "Datum prestanka",
+            note: "Napomena",
+            leave_days_default: "Fond GO (podrazumevano)",
+          }}
+        />
+      )}
     </MainLayout>
   );
 }
