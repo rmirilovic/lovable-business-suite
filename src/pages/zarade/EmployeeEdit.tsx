@@ -549,6 +549,44 @@ export default function EmployeeEdit() {
           </CardContent>
         </Card>
       </div>
+
+      {!isNew && id && (
+        <DocumentHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          documentId={id}
+          documentName={`${form.last_name} ${form.first_name}`}
+          documentType="employee"
+          fieldLabels={{
+            employee_number: "Šifra",
+            first_name: "Ime",
+            middle_name: "Srednje slovo",
+            last_name: "Prezime",
+            jmbg: "JMBG",
+            date_of_birth: "Datum rođenja",
+            gender: "Pol",
+            address: "Adresa",
+            city: "Grad",
+            postal_code: "Poštanski broj",
+            phone: "Telefon",
+            email: "Email",
+            education_level: "Nivo obrazovanja",
+            job_title: "Radno mesto",
+            org_unit_id: "Org. jedinica",
+            employment_date: "Datum zaposlenja",
+            employment_type: "Vrsta ugovora",
+            contract_end_date: "Datum isteka ugovora",
+            work_experience_years: "Staž (godine)",
+            work_experience_months: "Staž (meseci)",
+            bank_account: "Tekući račun",
+            is_owner: "Vlasnik firme",
+            status: "Status",
+            termination_date: "Datum prestanka",
+            note: "Napomena",
+            leave_days_default: "Fond GO (podrazumevano)",
+          }}
+        />
+      )}
     </MainLayout>
   );
 }
