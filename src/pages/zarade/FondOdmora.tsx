@@ -114,7 +114,24 @@ export default function FondOdmora() {
     }
   };
 
-  return (
+  const buildExportRows = (): LeaveFundRow[] => {
+    return sorted.map((emp) => {
+      const totalDays = editedFunds[emp.id] ?? fundMap.get(emp.id) ?? (emp as any).leave_days_default ?? 20;
+      const used = usedMap.get(emp.id) || { godisnji_odmor: 0, bolovanje: 0, placeno_odsustvo: 0, neplaceno_odsustvo: 0 };
+      return {
+        employeeNumber: emp.employee_number,
+        employeeName: `${emp.last_name} ${emp.first_name}`,
+        totalDays,
+        usedGO: used.godisnji_odmor || 0,
+        remaining: totalDays - (used.godisnji_odmor || 0),
+        sickDays: used.bolovanje || 0,
+        paidLeave: used.placeno_odsustvo || 0,
+        unpaidLeave: used.neplaceno_odsustvo || 0,
+      };
+    });
+  };
+
+
     <MainLayout title="Fond godišnjeg odmora">
       <div className="flex flex-col gap-4 h-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
