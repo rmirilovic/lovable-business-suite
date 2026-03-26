@@ -10,8 +10,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Download, FileText, Printer } from "lucide-react";
 import { useAbsences, ABSENCE_TYPE_LABELS, ABSENCE_TYPE_COLORS } from "@/hooks/useAbsences";
+import { useAuth } from "@/contexts/AuthContext";
+import { exportAbsencesToExcel, exportAbsencesToPdf, printAbsences } from "@/lib/absenceExportUtils";
 import { useEmployees } from "@/hooks/useEmployees";
 import { format } from "date-fns";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -23,6 +25,7 @@ export default function Odsustva() {
   const { data: absences, isLoading } = useAbsences();
   const { data: employees } = useEmployees();
   const { hasAccess } = usePermissions();
+  const { selectedCompany } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("__all__");
@@ -89,11 +92,31 @@ export default function Odsustva() {
               </SelectContent>
             </Select>
           </div>
-          {canWrite && (
-            <Button onClick={() => navigate("/zarade/odsustva/new")} size="sm">
-              <Plus className="w-4 h-4 mr-2" /> Novo odsustvo
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={!sorted.length} onClick={() => {
+              const rows = sorted.map((a) => ({ employeeName: employeeMap.get(a.employee_id) || "—", absenceType: a.absence_type, startDate: a.start_date, endDate: a.end_date, workDays: a.work_days, note: a.note || "" }));
+              exportAbsencesToExcel(rows, { companyName: selectedCompany?.name || "" });
+            }}>
+              <Download className="h-4 w-4 mr-1" /> Excel
             </Button>
-          )}
+            <Button variant="outline" size="sm" disabled={!sorted.length} onClick={() => {
+              const rows = sorted.map((a) => ({ employeeName: employeeMap.get(a.employee_id) || "—", absenceType: a.absence_type, startDate: a.start_date, endDate: a.end_date, workDays: a.work_days, note: a.note || "" }));
+              exportAbsencesToPdf(rows, { companyName: selectedCompany?.name || "" });
+            }}>
+              <FileText className="h-4 w-4 mr-1" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" disabled={!sorted.length} onClick={() => {
+              const rows = sorted.map((a) => ({ employeeName: employeeMap.get(a.employee_id) || "—", absenceType: a.absence_type, startDate: a.start_date, endDate: a.end_date, workDays: a.work_days, note: a.note || "" }));
+              printAbsences(rows, { companyName: selectedCompany?.name || "" });
+            }}>
+              <Printer className="h-4 w-4 mr-1" /> Štampa
+            </Button>
+            {canWrite && (
+              <Button onClick={() => navigate("/zarade/odsustva/new")} size="sm">
+                <Plus className="w-4 h-4 mr-2" /> Novo odsustvo
+              </Button>
+            )}
+          </div>
         </div>
 
         <TableScrollContainer>
