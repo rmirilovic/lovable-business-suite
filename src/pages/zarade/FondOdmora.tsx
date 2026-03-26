@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Search, Save } from "lucide-react";
+import { Search, Save, Download, FileText, Printer } from "lucide-react";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useAbsences, ABSENCE_TYPE_LABELS } from "@/hooks/useAbsences";
 import { useLeaveFunds, useUpsertLeaveFund } from "@/hooks/useLeaveFunds";
@@ -17,6 +17,7 @@ import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { exportLeaveFundToExcel, exportLeaveFundToPdf, printLeaveFund, type LeaveFundRow } from "@/lib/leaveFundExportUtils";
 
 export default function FondOdmora() {
   const currentYear = new Date().getFullYear();
@@ -113,7 +114,24 @@ export default function FondOdmora() {
     }
   };
 
-  return (
+  const buildExportRows = (): LeaveFundRow[] => {
+    return sorted.map((emp) => {
+      const totalDays = editedFunds[emp.id] ?? fundMap.get(emp.id) ?? (emp as any).leave_days_default ?? 20;
+      const used = usedMap.get(emp.id) || { godisnji_odmor: 0, bolovanje: 0, placeno_odsustvo: 0, neplaceno_odsustvo: 0 };
+      return {
+        employeeNumber: emp.employee_number,
+        employeeName: `${emp.last_name} ${emp.first_name}`,
+        totalDays,
+        usedGO: used.godisnji_odmor || 0,
+        remaining: totalDays - (used.godisnji_odmor || 0),
+        sickDays: used.bolovanje || 0,
+        paidLeave: used.placeno_odsustvo || 0,
+        unpaidLeave: used.neplaceno_odsustvo || 0,
+      };
+    });
+  };
+
+
     <MainLayout title="Fond godišnjeg odmora">
       <div className="flex flex-col gap-4 h-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -133,11 +151,31 @@ export default function FondOdmora() {
               <Button variant="outline" size="sm" onClick={() => { setYear(year + 1); setEditedFunds({}); }}>→</Button>
             </div>
           </div>
-          {canWrite && Object.keys(editedFunds).length > 0 && (
-            <Button onClick={handleSaveAll} size="sm" disabled={upsertFund.isPending}>
-              <Save className="w-4 h-4 mr-2" /> Sačuvaj izmene ({Object.keys(editedFunds).length})
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={!sorted.length} onClick={() => {
+              const rows = buildExportRows();
+              exportLeaveFundToExcel(rows, { companyName: selectedCompany?.name || "", year });
+            }}>
+              <Download className="h-4 w-4 mr-1" /> Excel
             </Button>
-          )}
+            <Button variant="outline" size="sm" disabled={!sorted.length} onClick={() => {
+              const rows = buildExportRows();
+              exportLeaveFundToPdf(rows, { companyName: selectedCompany?.name || "", year });
+            }}>
+              <FileText className="h-4 w-4 mr-1" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" disabled={!sorted.length} onClick={() => {
+              const rows = buildExportRows();
+              printLeaveFund(rows, { companyName: selectedCompany?.name || "", year });
+            }}>
+              <Printer className="h-4 w-4 mr-1" /> Štampa
+            </Button>
+            {canWrite && Object.keys(editedFunds).length > 0 && (
+              <Button onClick={handleSaveAll} size="sm" disabled={upsertFund.isPending}>
+                <Save className="w-4 h-4 mr-2" /> Sačuvaj izmene ({Object.keys(editedFunds).length})
+              </Button>
+            )}
+          </div>
         </div>
 
         <TableScrollContainer>
