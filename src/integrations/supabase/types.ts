@@ -2501,6 +2501,111 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_absences: {
+        Row: {
+          absence_type: Database["public"]["Enums"]["absence_type"]
+          company_id: string
+          created_at: string
+          created_by: string
+          employee_id: string
+          end_date: string
+          id: string
+          note: string | null
+          start_date: string
+          updated_at: string
+          work_days: number
+        }
+        Insert: {
+          absence_type: Database["public"]["Enums"]["absence_type"]
+          company_id: string
+          created_at?: string
+          created_by: string
+          employee_id: string
+          end_date: string
+          id?: string
+          note?: string | null
+          start_date: string
+          updated_at?: string
+          work_days?: number
+        }
+        Update: {
+          absence_type?: Database["public"]["Enums"]["absence_type"]
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          employee_id?: string
+          end_date?: string
+          id?: string
+          note?: string | null
+          start_date?: string
+          updated_at?: string
+          work_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_absences_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_absences_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_leave_funds: {
+        Row: {
+          company_id: string
+          created_at: string
+          employee_id: string
+          id: string
+          note: string | null
+          total_days: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          note?: string | null
+          total_days?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          note?: string | null
+          total_days?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_leave_funds_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_leave_funds_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           address: string | null
@@ -2524,6 +2629,7 @@ export type Database = {
           jmbg: string | null
           job_title: string | null
           last_name: string
+          leave_days_default: number
           middle_name: string | null
           note: string | null
           org_unit_id: string | null
@@ -2557,6 +2663,7 @@ export type Database = {
           jmbg?: string | null
           job_title?: string | null
           last_name: string
+          leave_days_default?: number
           middle_name?: string | null
           note?: string | null
           org_unit_id?: string | null
@@ -2590,6 +2697,7 @@ export type Database = {
           jmbg?: string | null
           job_title?: string | null
           last_name?: string
+          leave_days_default?: number
           middle_name?: string | null
           note?: string | null
           org_unit_id?: string | null
@@ -8316,6 +8424,11 @@ export type Database = {
       }
     }
     Enums: {
+      absence_type:
+        | "godisnji_odmor"
+        | "bolovanje"
+        | "placeno_odsustvo"
+        | "neplaceno_odsustvo"
       access_level: "none" | "read" | "write" | "admin"
       account_type: "asset" | "liability" | "equity" | "revenue" | "expense"
       app_role: "super_admin" | "local_admin" | "user"
@@ -8469,6 +8582,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      absence_type: [
+        "godisnji_odmor",
+        "bolovanje",
+        "placeno_odsustvo",
+        "neplaceno_odsustvo",
+      ],
       access_level: ["none", "read", "write", "admin"],
       account_type: ["asset", "liability", "equity", "revenue", "expense"],
       app_role: ["super_admin", "local_admin", "user"],

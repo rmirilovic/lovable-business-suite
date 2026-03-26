@@ -35,6 +35,7 @@ export interface Employee {
   created_by: string;
   created_at: string;
   updated_at: string;
+  leave_days_default: number;
 }
 
 export const EMPLOYMENT_TYPE_LABELS: Record<string, string> = {

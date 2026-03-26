@@ -102,6 +102,10 @@ import Predmeti from "./pages/pisarnica/Predmeti";
 import PredmetEdit from "./pages/pisarnica/PredmetEdit";
 import Zaposleni from "./pages/zarade/Zaposleni";
 import EmployeeEdit from "./pages/zarade/EmployeeEdit";
+import Odsustva from "./pages/zarade/Odsustva";
+import AbsenceEdit from "./pages/zarade/AbsenceEdit";
+import KalendarOdsustva from "./pages/zarade/KalendarOdsustva";
+import FondOdmora from "./pages/zarade/FondOdmora";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -587,6 +591,26 @@ const App = () => (
               <Route path="/zarade/zaposleni/:id" element={
                 <ProtectedRoute requireCompany={false}>
                   <EmployeeEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/zarade/odsustva" element={
+                <ProtectedRoute>
+                  <Odsustva />
+                </ProtectedRoute>
+              } />
+              <Route path="/zarade/odsustva/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <AbsenceEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/zarade/kalendar" element={
+                <ProtectedRoute>
+                  <KalendarOdsustva />
+                </ProtectedRoute>
+              } />
+              <Route path="/zarade/fond-odmora" element={
+                <ProtectedRoute>
+                  <FondOdmora />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
