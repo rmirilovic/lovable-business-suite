@@ -13,7 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Trash2, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { toast } from "sonner";
 import {
   useEmployee,
