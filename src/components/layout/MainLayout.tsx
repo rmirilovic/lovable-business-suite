@@ -35,7 +35,7 @@ export function MainLayout({ children, title }: MainLayoutProps) {
     : user?.email || "Korisnik";
 
   return (
-    <div className="min-h-screen lg:h-screen bg-background flex overflow-x-hidden lg:overflow-hidden">
+    <div className="h-dvh bg-background flex overflow-hidden">
       <Sidebar
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
