@@ -37,7 +37,9 @@ export default function ObracunZarada() {
     });
   }, [calculations, search, typeFilter]);
 
-  const { sortedData, sortKey, sortDirection, handleSort } = useTableSort(filtered, "calculation_date", "desc");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("calculation_date", "desc");
+
+  const sortedData = sortItems(filtered, (item: any, col: string) => (item as any)[col]);
 
   const handleNew = async () => {
     const now = new Date();
@@ -68,7 +70,7 @@ export default function ObracunZarada() {
   const formatAmount = (n: number) => n.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   return (
-    <MainLayout>
+    <MainLayout title="Obračun zarada">
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
@@ -98,10 +100,10 @@ export default function ObracunZarada() {
           <Table>
             <TableHeader>
               <TableRow>
-                <SortableHeader label="Broj" sortKey="calculation_number" currentKey={sortKey} direction={sortDirection} onSort={handleSort} />
-                <SortableHeader label="Tip" sortKey="calculation_type" currentKey={sortKey} direction={sortDirection} onSort={handleSort} />
-                <SortableHeader label="Period" sortKey="period_month" currentKey={sortKey} direction={sortDirection} onSort={handleSort} />
-                <SortableHeader label="Datum" sortKey="calculation_date" currentKey={sortKey} direction={sortDirection} onSort={handleSort} />
+                <TableHead><SortableHeader label="Broj" column="calculation_number" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader label="Tip" column="calculation_type" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader label="Period" column="period_month" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader label="Datum" column="calculation_date" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead className="text-right">Bruto</TableHead>
                 <TableHead className="text-right">Neto</TableHead>
                 <TableHead className="text-right">Porez</TableHead>

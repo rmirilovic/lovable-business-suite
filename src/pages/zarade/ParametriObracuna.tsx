@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { usePayrollParameters, usePayrollParameterMutations, PayrollParameter } from "@/hooks/usePayrollParameters";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { format } from "date-fns";
@@ -37,39 +37,24 @@ export default function ParametriObracuna() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultForm);
 
-  const openNew = () => {
-    setEditingId(null);
-    setForm(defaultForm);
-    setDialogOpen(true);
-  };
+  const openNew = () => { setEditingId(null); setForm(defaultForm); setDialogOpen(true); };
 
   const openEdit = (p: PayrollParameter) => {
     setEditingId(p.id);
     setForm({
-      valid_from: p.valid_from,
-      valid_to: p.valid_to || "",
-      income_tax_rate: p.income_tax_rate,
-      pio_employee_rate: p.pio_employee_rate,
-      pio_employer_rate: p.pio_employer_rate,
-      health_employee_rate: p.health_employee_rate,
-      health_employer_rate: p.health_employer_rate,
-      unemployment_rate: p.unemployment_rate,
-      non_taxable_amount: p.non_taxable_amount,
-      min_base_pio: p.min_base_pio,
-      max_base_pio: p.max_base_pio,
-      min_base_health: p.min_base_health,
-      is_active: p.is_active,
-      note: p.note || "",
+      valid_from: p.valid_from, valid_to: p.valid_to || "",
+      income_tax_rate: p.income_tax_rate, pio_employee_rate: p.pio_employee_rate,
+      pio_employer_rate: p.pio_employer_rate, health_employee_rate: p.health_employee_rate,
+      health_employer_rate: p.health_employer_rate, unemployment_rate: p.unemployment_rate,
+      non_taxable_amount: p.non_taxable_amount, min_base_pio: p.min_base_pio,
+      max_base_pio: p.max_base_pio, min_base_health: p.min_base_health,
+      is_active: p.is_active, note: p.note || "",
     });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
-    const payload = {
-      ...form,
-      valid_to: form.valid_to || null,
-      note: form.note || null,
-    };
+    const payload = { ...form, valid_to: form.valid_to || null, note: form.note || null };
     if (editingId) {
       await updateParameter.mutateAsync({ id: editingId, ...payload });
     } else {
@@ -87,17 +72,13 @@ export default function ParametriObracuna() {
   const numField = (label: string, key: keyof typeof form, suffix = "%") => (
     <div className="space-y-1">
       <Label className="text-xs">{label} {suffix && <span className="text-muted-foreground">({suffix})</span>}</Label>
-      <Input
-        type="number"
-        step="0.01"
-        value={form[key] as number}
-        onChange={(e) => setForm({ ...form, [key]: parseFloat(e.target.value) || 0 })}
-      />
+      <Input type="number" step="0.01" value={form[key] as number}
+        onChange={(e) => setForm({ ...form, [key]: parseFloat(e.target.value) || 0 })} />
     </div>
   );
 
   return (
-    <MainLayout>
+    <MainLayout title="Parametri obračuna">
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
@@ -141,9 +122,7 @@ export default function ParametriObracuna() {
                   <TableCell>{p.unemployment_rate}%</TableCell>
                   <TableCell>{p.non_taxable_amount.toLocaleString("sr-RS")} RSD</TableCell>
                   <TableCell>
-                    <Badge variant={p.is_active ? "default" : "secondary"}>
-                      {p.is_active ? "Aktivan" : "Neaktivan"}
-                    </Badge>
+                    <Badge variant={p.is_active ? "default" : "secondary"}>{p.is_active ? "Aktivan" : "Neaktivan"}</Badge>
                   </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}>
@@ -173,7 +152,6 @@ export default function ParametriObracuna() {
                 <Input type="date" value={form.valid_to} onChange={(e) => setForm({ ...form, valid_to: e.target.value })} />
               </div>
             </div>
-
             <div className="border rounded-lg p-3 space-y-3">
               <h3 className="text-sm font-semibold text-foreground">Porez na dohodak</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -181,7 +159,6 @@ export default function ParametriObracuna() {
                 {numField("Neoporezivi iznos", "non_taxable_amount", "RSD")}
               </div>
             </div>
-
             <div className="border rounded-lg p-3 space-y-3">
               <h3 className="text-sm font-semibold text-foreground">Doprinosi za PIO</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -191,7 +168,6 @@ export default function ParametriObracuna() {
                 {numField("Max. osnovica", "max_base_pio", "RSD")}
               </div>
             </div>
-
             <div className="border rounded-lg p-3 space-y-3">
               <h3 className="text-sm font-semibold text-foreground">Doprinosi za zdravstvo</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -200,19 +176,14 @@ export default function ParametriObracuna() {
                 {numField("Min. osnovica", "min_base_health", "RSD")}
               </div>
             </div>
-
             <div className="border rounded-lg p-3 space-y-3">
               <h3 className="text-sm font-semibold text-foreground">Doprinos za nezaposlenost</h3>
-              <div className="grid grid-cols-1 gap-4">
-                {numField("Stopa", "unemployment_rate")}
-              </div>
+              {numField("Stopa", "unemployment_rate")}
             </div>
-
             <div className="flex items-center gap-3">
               <Switch checked={form.is_active} onCheckedChange={(c) => setForm({ ...form, is_active: c })} />
               <Label>Aktivni parametri</Label>
             </div>
-
             <div className="space-y-1">
               <Label className="text-xs">Napomena</Label>
               <Textarea value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} rows={2} />
