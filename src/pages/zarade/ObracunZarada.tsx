@@ -9,11 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search, Trash2 } from "lucide-react";
 import { usePayrollCalculations, usePayrollCalculationMutations, CALCULATION_TYPE_LABELS } from "@/hooks/usePayrollCalculations";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { toast } from "sonner";
+import { formatDate, formatPrice } from "@/lib/formatting";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
@@ -67,7 +67,7 @@ export default function ObracunZarada() {
     }
   };
 
-  const formatAmount = (n: number) => n.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatAmount = (n: number) => formatPrice(n);
 
   return (
     <MainLayout title="Obračun zarada">
@@ -122,7 +122,7 @@ export default function ObracunZarada() {
                   <TableCell className="font-medium">{c.calculation_number}</TableCell>
                   <TableCell>{CALCULATION_TYPE_LABELS[c.calculation_type] || c.calculation_type}</TableCell>
                   <TableCell>{MONTH_NAMES[c.period_month - 1]} {c.period_year}</TableCell>
-                  <TableCell>{format(new Date(c.calculation_date), "dd.MM.yyyy")}</TableCell>
+                  <TableCell>{formatDate(c.calculation_date)}</TableCell>
                   <TableCell className="text-right font-mono">{formatAmount(c.total_gross)}</TableCell>
                   <TableCell className="text-right font-mono">{formatAmount(c.total_net)}</TableCell>
                   <TableCell className="text-right font-mono">{formatAmount(c.total_tax)}</TableCell>

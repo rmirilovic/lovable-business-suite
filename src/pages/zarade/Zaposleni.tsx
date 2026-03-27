@@ -12,7 +12,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, UserPlus, Download, FileText, Printer } from "lucide-react";
 import { useEmployees, STATUS_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/hooks/useEmployees";
-import { format } from "date-fns";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -20,6 +19,7 @@ import { SortableHeader } from "@/components/ui/sortable-header";
 import { exportEmployeesToExcel, exportEmployeesToPdf, printEmployees } from "@/lib/employeeListExportUtils";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { toast } from "sonner";
+import { formatDate } from "@/lib/formatting";
 
 export default function Zaposleni() {
   const { data: employees, isLoading } = useEmployees();
@@ -185,7 +185,7 @@ export default function Zaposleni() {
                     <TableCell>{emp.job_title || "-"}</TableCell>
                     <TableCell>{EMPLOYMENT_TYPE_LABELS[emp.employment_type] || emp.employment_type}</TableCell>
                     <TableCell>
-                      {emp.employment_date ? format(new Date(emp.employment_date), "dd.MM.yyyy") : "-"}
+                      {emp.employment_date ? formatDate(emp.employment_date) : "-"}
                     </TableCell>
                     <TableCell>
                       <Badge variant={statusBadgeVariant(emp.status)}>

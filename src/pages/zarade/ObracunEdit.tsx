@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { ArrowLeft, Save, UserPlus, Calculator, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -22,6 +24,7 @@ import { useEmployees, Employee } from "@/hooks/useEmployees";
 import { calculatePayroll } from "@/lib/payrollCalculator";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatPrice, parseLocaleNumber } from "@/lib/formatting";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
@@ -200,7 +203,7 @@ export default function ObracunEdit() {
     );
   }, [items]);
 
-  const fmt = (n: number) => n.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n: number) => formatPrice(n);
 
   if (calcLoading) return <MainLayout title="Obračun zarada"><div className="p-8 text-center text-muted-foreground">Učitavanje...</div></MainLayout>;
 
@@ -257,14 +260,23 @@ export default function ObracunEdit() {
                   {MONTH_NAMES.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Input type="number" value={header.period_year} className="w-24" disabled={isPosted}
-                onChange={(e) => setHeader({ ...header, period_year: parseInt(e.target.value) || header.period_year })} />
+              <LocaleNumberInput
+                value={String(header.period_year)}
+                className="w-24"
+                decimalPlaces={0}
+                disabled={isPosted}
+                onChange={(value) => setHeader({ ...header, period_year: parseInt(String(parseLocaleNumber(value))) || header.period_year })}
+              />
             </div>
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum obračuna</Label>
-            <Input type="date" value={header.calculation_date} disabled={isPosted}
-              onChange={(e) => setHeader({ ...header, calculation_date: e.target.value })} />
+            <LocaleDateInput
+              value={header.calculation_date}
+              onChange={(value) => setHeader({ ...header, calculation_date: value })}
+              disabled={isPosted}
+              required
+            />
           </div>
         </div>
 
@@ -322,10 +334,12 @@ export default function ObracunEdit() {
                     {isPosted ? (
                       <span className="font-mono">{fmt(item.gross_salary || 0)}</span>
                     ) : (
-                      <Input type="number" step="0.01" className="text-right w-28 h-8 text-sm"
-                        value={item.gross_salary || ""}
-                        onChange={(e) => updateItemField(idx, "gross_salary", parseFloat(e.target.value) || 0)}
-                        onBlur={() => recalculateItem(idx)} />
+                      <LocaleNumberInput
+                        className="text-right w-28 h-8 text-sm"
+                        value={String(item.gross_salary ?? "")}
+                        onChange={(value) => updateItemField(idx, "gross_salary", parseLocaleNumber(value))}
+                        onBlur={() => recalculateItem(idx)}
+                      />
                     )}
                   </TableCell>
                   <TableCell className="text-right font-mono text-sm">{fmt(item.income_tax || 0)}</TableCell>
