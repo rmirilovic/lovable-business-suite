@@ -306,16 +306,39 @@ export default function AiAssistant() {
     }
   };
 
-  return (
+   return (
     <MainLayout title="AI Asistent">
-      <div className="flex h-[calc(100vh-8rem)] gap-4">
+      <div className="flex h-[calc(100vh-8rem)] gap-0 md:gap-4 relative">
+        {/* Mobile sidebar overlay */}
+        {isMobile && showSidebar && (
+          <div
+            className="fixed inset-0 bg-black/40 z-40"
+            onClick={() => setShowSidebar(false)}
+          />
+        )}
+
         {/* Conversations sidebar */}
-        <Card className="w-72 shrink-0 flex flex-col">
+        <Card
+          className={cn(
+            "flex flex-col z-50",
+            isMobile
+              ? "fixed inset-y-0 left-0 w-72 transition-transform duration-200 rounded-none"
+              : "w-72 shrink-0",
+            isMobile && !showSidebar && "-translate-x-full"
+          )}
+        >
           <div className="p-3 border-b space-y-2">
-            <Button onClick={handleNewConversation} className="w-full gap-2" size="sm">
-              <MessageSquarePlus className="w-4 h-4" />
-              Nova konverzacija
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={handleNewConversation} className="flex-1 gap-2" size="sm">
+                <MessageSquarePlus className="w-4 h-4" />
+                Nova konverzacija
+              </Button>
+              {isMobile && (
+                <Button size="icon" variant="ghost" className="shrink-0" onClick={() => setShowSidebar(false)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
             <Button
               onClick={() => activeConversationId && handleDeleteConversation(activeConversationId)}
               className="w-full"
@@ -346,7 +369,10 @@ export default function AiAssistant() {
                         ? "bg-accent text-accent-foreground"
                         : "hover:bg-muted"
                     )}
-                    onClick={() => setActiveConversationId(conv.id)}
+                    onClick={() => {
+                      setActiveConversationId(conv.id);
+                      if (isMobile) setShowSidebar(false);
+                    }}
                   >
                     <MessageSquare className="w-4 h-4 shrink-0 opacity-60" />
                     <span className="truncate flex-1 min-w-0">{conv.title}</span>
@@ -370,7 +396,21 @@ export default function AiAssistant() {
         </Card>
 
         {/* Chat area */}
-        <Card className="flex-1 flex flex-col">
+        <Card className="flex-1 flex flex-col min-w-0">
+          {/* Mobile header with menu button */}
+          {isMobile && (
+            <div className="p-2 border-b flex items-center gap-2">
+              <Button size="icon" variant="ghost" onClick={() => setShowSidebar(true)}>
+                <Menu className="w-5 h-5" />
+              </Button>
+              <span className="text-sm font-medium truncate">
+                {activeConversationId
+                  ? conversations.find((c) => c.id === activeConversationId)?.title || "Konverzacija"
+                  : "Nova konverzacija"}
+              </span>
+            </div>
+          )}
+
           {/* Messages */}
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4 max-w-3xl mx-auto">
@@ -382,15 +422,15 @@ export default function AiAssistant() {
                 </div>
               )}
               {messages.map((msg, i) => (
-                <div key={i} className={cn("flex gap-3", msg.role === "user" ? "justify-end" : "justify-start")}>
+                <div key={i} className={cn("flex gap-2 md:gap-3", msg.role === "user" ? "justify-end" : "justify-start")}>
                   {msg.role === "assistant" && (
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <Bot className="w-4 h-4 text-primary" />
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Bot className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
                     </div>
                   )}
                   <div
                     className={cn(
-                      "rounded-lg px-4 py-3 max-w-[80%] text-sm whitespace-pre-wrap",
+                      "rounded-lg px-3 py-2 md:px-4 md:py-3 max-w-[85%] md:max-w-[80%] text-sm whitespace-pre-wrap",
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted"
@@ -399,18 +439,18 @@ export default function AiAssistant() {
                     {msg.content}
                   </div>
                   {msg.role === "user" && (
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-primary-foreground" />
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+                      <User className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary-foreground" />
                     </div>
                   )}
                 </div>
               ))}
               {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Bot className="w-4 h-4 text-primary" />
+                <div className="flex gap-2 md:gap-3">
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Bot className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
                   </div>
-                  <div className="rounded-lg px-4 py-3 bg-muted">
+                  <div className="rounded-lg px-3 py-2 md:px-4 md:py-3 bg-muted">
                     <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                   </div>
                 </div>
@@ -420,7 +460,7 @@ export default function AiAssistant() {
           </ScrollArea>
 
           {/* Input */}
-          <div className="p-4 border-t">
+          <div className="p-2 md:p-4 border-t">
             <div className="max-w-3xl mx-auto">
               {attachedFiles.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -440,7 +480,7 @@ export default function AiAssistant() {
                   ))}
                 </div>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-1.5 md:gap-2">
                 <ChatFileUpload
                   files={attachedFiles}
                   onFilesChange={setAttachedFiles}
@@ -450,8 +490,8 @@ export default function AiAssistant() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Unesite pitanje ili priložite fajl..."
-                  className="min-h-[44px] max-h-32 resize-none"
+                  placeholder="Unesite pitanje..."
+                  className="min-h-[44px] max-h-32 resize-none text-sm"
                   rows={1}
                   disabled={isStreaming}
                 />
