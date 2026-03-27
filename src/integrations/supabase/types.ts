@@ -4992,6 +4992,301 @@ export type Database = {
           },
         ]
       }
+      payroll_calculation_items: {
+        Row: {
+          calculation_id: string
+          company_id: string
+          created_at: string
+          employee_id: string
+          employee_name: string
+          employee_number: string
+          gross_salary: number
+          health_employee: number
+          health_employer: number
+          hours_overtime: number
+          hours_regular: number
+          id: string
+          income_tax: number
+          item_order: number
+          meal_allowance: number
+          net_salary: number
+          non_taxable_amount: number
+          note: string | null
+          other_additions: number
+          other_deductions: number
+          pio_employee: number
+          pio_employer: number
+          tax_base: number
+          total_cost: number
+          total_employee_contributions: number
+          total_employer_contributions: number
+          transport_allowance: number
+          unemployment: number
+          worked_days: number
+          working_days: number
+        }
+        Insert: {
+          calculation_id: string
+          company_id: string
+          created_at?: string
+          employee_id: string
+          employee_name: string
+          employee_number: string
+          gross_salary?: number
+          health_employee?: number
+          health_employer?: number
+          hours_overtime?: number
+          hours_regular?: number
+          id?: string
+          income_tax?: number
+          item_order?: number
+          meal_allowance?: number
+          net_salary?: number
+          non_taxable_amount?: number
+          note?: string | null
+          other_additions?: number
+          other_deductions?: number
+          pio_employee?: number
+          pio_employer?: number
+          tax_base?: number
+          total_cost?: number
+          total_employee_contributions?: number
+          total_employer_contributions?: number
+          transport_allowance?: number
+          unemployment?: number
+          worked_days?: number
+          working_days?: number
+        }
+        Update: {
+          calculation_id?: string
+          company_id?: string
+          created_at?: string
+          employee_id?: string
+          employee_name?: string
+          employee_number?: string
+          gross_salary?: number
+          health_employee?: number
+          health_employer?: number
+          hours_overtime?: number
+          hours_regular?: number
+          id?: string
+          income_tax?: number
+          item_order?: number
+          meal_allowance?: number
+          net_salary?: number
+          non_taxable_amount?: number
+          note?: string | null
+          other_additions?: number
+          other_deductions?: number
+          pio_employee?: number
+          pio_employer?: number
+          tax_base?: number
+          total_cost?: number
+          total_employee_contributions?: number
+          total_employer_contributions?: number
+          transport_allowance?: number
+          unemployment?: number
+          worked_days?: number
+          working_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_calculation_items_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_calculation_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_calculation_items_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_calculations: {
+        Row: {
+          business_year_id: string
+          calculation_date: string
+          calculation_number: string
+          calculation_type: Database["public"]["Enums"]["payroll_calculation_type"]
+          company_id: string
+          created_at: string
+          created_by: string
+          id: string
+          note: string | null
+          parameter_id: string | null
+          period_month: number
+          period_year: number
+          posted_at: string | null
+          posted_by: string | null
+          status: string
+          total_cost: number
+          total_employee_contributions: number
+          total_employer_contributions: number
+          total_gross: number
+          total_meal_allowance: number
+          total_net: number
+          total_tax: number
+          total_transport_allowance: number
+          updated_at: string
+        }
+        Insert: {
+          business_year_id: string
+          calculation_date?: string
+          calculation_number: string
+          calculation_type?: Database["public"]["Enums"]["payroll_calculation_type"]
+          company_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          note?: string | null
+          parameter_id?: string | null
+          period_month: number
+          period_year: number
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          total_cost?: number
+          total_employee_contributions?: number
+          total_employer_contributions?: number
+          total_gross?: number
+          total_meal_allowance?: number
+          total_net?: number
+          total_tax?: number
+          total_transport_allowance?: number
+          updated_at?: string
+        }
+        Update: {
+          business_year_id?: string
+          calculation_date?: string
+          calculation_number?: string
+          calculation_type?: Database["public"]["Enums"]["payroll_calculation_type"]
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string | null
+          parameter_id?: string | null
+          period_month?: number
+          period_year?: number
+          posted_at?: string | null
+          posted_by?: string | null
+          status?: string
+          total_cost?: number
+          total_employee_contributions?: number
+          total_employer_contributions?: number
+          total_gross?: number
+          total_meal_allowance?: number
+          total_net?: number
+          total_tax?: number
+          total_transport_allowance?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_calculations_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_calculations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_calculations_parameter_id_fkey"
+            columns: ["parameter_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_parameters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_parameters: {
+        Row: {
+          company_id: string
+          created_at: string
+          health_employee_rate: number
+          health_employer_rate: number
+          id: string
+          income_tax_rate: number
+          is_active: boolean
+          max_base_pio: number
+          min_base_health: number
+          min_base_pio: number
+          non_taxable_amount: number
+          note: string | null
+          pio_employee_rate: number
+          pio_employer_rate: number
+          unemployment_rate: number
+          updated_at: string
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          health_employee_rate?: number
+          health_employer_rate?: number
+          id?: string
+          income_tax_rate?: number
+          is_active?: boolean
+          max_base_pio?: number
+          min_base_health?: number
+          min_base_pio?: number
+          non_taxable_amount?: number
+          note?: string | null
+          pio_employee_rate?: number
+          pio_employer_rate?: number
+          unemployment_rate?: number
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          health_employee_rate?: number
+          health_employer_rate?: number
+          id?: string
+          income_tax_rate?: number
+          is_active?: boolean
+          max_base_pio?: number
+          min_base_health?: number
+          min_base_pio?: number
+          non_taxable_amount?: number
+          note?: string | null
+          pio_employee_rate?: number
+          pio_employer_rate?: number
+          unemployment_rate?: number
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_parameters_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       popdv_report_cells: {
         Row: {
           auto_value: number
@@ -8452,6 +8747,12 @@ export type Database = {
         | "administracija"
         | "pisarnica"
         | "zarade"
+      payroll_calculation_type:
+        | "redovna_zarada"
+        | "ugovor_o_delu"
+        | "autorski_ugovor"
+        | "vlasnik"
+        | "penzioner"
       sales_document_type: "quote" | "invoice" | "delivery_note"
       svk_type: "0" | "1" | "2" | "6" | "8" | "9"
       warehouse_type: "1" | "2" | "6" | "9" | "12"
@@ -8612,6 +8913,13 @@ export const Constants = {
         "administracija",
         "pisarnica",
         "zarade",
+      ],
+      payroll_calculation_type: [
+        "redovna_zarada",
+        "ugovor_o_delu",
+        "autorski_ugovor",
+        "vlasnik",
+        "penzioner",
       ],
       sales_document_type: ["quote", "invoice", "delivery_note"],
       svk_type: ["0", "1", "2", "6", "8", "9"],
