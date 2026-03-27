@@ -15,11 +15,11 @@ import { useAbsences, ABSENCE_TYPE_LABELS, ABSENCE_TYPE_COLORS } from "@/hooks/u
 import { useAuth } from "@/contexts/AuthContext";
 import { exportAbsencesToExcel, exportAbsencesToPdf, printAbsences } from "@/lib/absenceExportUtils";
 import { useEmployees } from "@/hooks/useEmployees";
-import { format } from "date-fns";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { formatDate, formatInteger } from "@/lib/formatting";
 
 export default function Odsustva() {
   const { data: absences, isLoading } = useAbsences();
@@ -163,9 +163,9 @@ export default function Odsustva() {
                         {ABSENCE_TYPE_LABELS[a.absence_type]}
                       </Badge>
                     </TableCell>
-                    <TableCell>{format(new Date(a.start_date), "dd.MM.yyyy")}</TableCell>
-                    <TableCell>{format(new Date(a.end_date), "dd.MM.yyyy")}</TableCell>
-                    <TableCell className="text-right">{a.work_days}</TableCell>
+                    <TableCell>{formatDate(a.start_date)}</TableCell>
+                    <TableCell>{formatDate(a.end_date)}</TableCell>
+                    <TableCell className="text-right">{formatInteger(a.work_days)}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{a.note || ""}</TableCell>
                   </TableRow>
                 ))

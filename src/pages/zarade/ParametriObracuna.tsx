@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Plus, Trash2 } from "lucide-react";
 import { usePayrollParameters, usePayrollParameterMutations, PayrollParameter } from "@/hooks/usePayrollParameters";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { format } from "date-fns";
+import { formatDate, formatPrice, parseLocaleNumber, formatDecimal } from "@/lib/formatting";
 
 const defaultForm = {
   valid_from: new Date().toISOString().slice(0, 10),
@@ -72,8 +73,10 @@ export default function ParametriObracuna() {
   const numField = (label: string, key: keyof typeof form, suffix = "%") => (
     <div className="space-y-1">
       <Label className="text-xs">{label} {suffix && <span className="text-muted-foreground">({suffix})</span>}</Label>
-      <Input type="number" step="0.01" value={form[key] as number}
-        onChange={(e) => setForm({ ...form, [key]: parseFloat(e.target.value) || 0 })} />
+      <LocaleNumberInput
+        value={String(form[key] as number)}
+        onChange={(value) => setForm({ ...form, [key]: parseLocaleNumber(value) })}
+      />
     </div>
   );
 
@@ -112,15 +115,15 @@ export default function ParametriObracuna() {
                 <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Nema parametara. Dodajte nove.</TableCell></TableRow>
               ) : params.map((p) => (
                 <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEdit(p)}>
-                  <TableCell>{format(new Date(p.valid_from), "dd.MM.yyyy")}</TableCell>
-                  <TableCell>{p.valid_to ? format(new Date(p.valid_to), "dd.MM.yyyy") : "—"}</TableCell>
-                  <TableCell>{p.income_tax_rate}%</TableCell>
-                  <TableCell>{p.pio_employee_rate}%</TableCell>
-                  <TableCell>{p.pio_employer_rate}%</TableCell>
-                  <TableCell>{p.health_employee_rate}%</TableCell>
-                  <TableCell>{p.health_employer_rate}%</TableCell>
-                  <TableCell>{p.unemployment_rate}%</TableCell>
-                  <TableCell>{p.non_taxable_amount.toLocaleString("sr-RS")} RSD</TableCell>
+                  <TableCell>{formatDate(p.valid_from)}</TableCell>
+                  <TableCell>{p.valid_to ? formatDate(p.valid_to) : "—"}</TableCell>
+                  <TableCell>{formatDecimal(p.income_tax_rate)}%</TableCell>
+                  <TableCell>{formatDecimal(p.pio_employee_rate)}%</TableCell>
+                  <TableCell>{formatDecimal(p.pio_employer_rate)}%</TableCell>
+                  <TableCell>{formatDecimal(p.health_employee_rate)}%</TableCell>
+                  <TableCell>{formatDecimal(p.health_employer_rate)}%</TableCell>
+                  <TableCell>{formatDecimal(p.unemployment_rate)}%</TableCell>
+                  <TableCell>{formatPrice(p.non_taxable_amount)} RSD</TableCell>
                   <TableCell>
                     <Badge variant={p.is_active ? "default" : "secondary"}>{p.is_active ? "Aktivan" : "Neaktivan"}</Badge>
                   </TableCell>
@@ -145,11 +148,11 @@ export default function ParametriObracuna() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="text-xs">Važi od</Label>
-                <Input type="date" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} />
+                <LocaleDateInput value={form.valid_from} onChange={(value) => setForm({ ...form, valid_from: value })} required />
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">Važi do</Label>
-                <Input type="date" value={form.valid_to} onChange={(e) => setForm({ ...form, valid_to: e.target.value })} />
+                <LocaleDateInput value={form.valid_to} onChange={(value) => setForm({ ...form, valid_to: value })} />
               </div>
             </div>
             <div className="border rounded-lg p-3 space-y-3">
