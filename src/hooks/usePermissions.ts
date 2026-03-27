@@ -36,11 +36,31 @@ const ACCESS_LEVEL_ORDER: Record<AccessLevel, number> = {
   admin: 3,
 };
 
+const getModuleHierarchy = (moduleCode: string) => {
+  const parts = moduleCode.split(".");
+
+  return Array.from({ length: parts.length }, (_, index) =>
+    parts.slice(0, parts.length - index).join(".")
+  );
+};
+
 export function usePermissions(): UsePermissionsReturn {
   const { user, selectedCompany, isSuperAdmin, isLocalAdmin } = useAuth();
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [moduleAccess, setModuleAccess] = useState<Map<string, ModuleAccess>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
+
+  const resolveModuleAccess = useCallback(
+    (moduleCode: string): ModuleAccess | undefined => {
+      for (const code of getModuleHierarchy(moduleCode)) {
+        const access = moduleAccess.get(code);
+        if (access) return access;
+      }
+
+      return undefined;
+    },
+    [moduleAccess]
+  );
 
   const fetchUserRoles = useCallback(async () => {
     if (!user || !selectedCompany) {
@@ -142,36 +162,36 @@ export function usePermissions(): UsePermissionsReturn {
       // Super admin and local admin always have access
       if (isSuperAdmin || isLocalAdmin) return true;
 
-      const access = moduleAccess.get(moduleCode);
+      const access = resolveModuleAccess(moduleCode);
       if (!access) return false;
 
       return ACCESS_LEVEL_ORDER[access.accessLevel] >= ACCESS_LEVEL_ORDER[requiredLevel];
     },
-    [moduleAccess, isSuperAdmin, isLocalAdmin]
+    [resolveModuleAccess, isSuperAdmin, isLocalAdmin]
   );
 
   const getAccessLevel = useCallback(
     (moduleCode: string): AccessLevel => {
       if (isSuperAdmin || isLocalAdmin) return "admin";
-      return moduleAccess.get(moduleCode)?.accessLevel || "none";
+      return resolveModuleAccess(moduleCode)?.accessLevel || "none";
     },
-    [moduleAccess, isSuperAdmin, isLocalAdmin]
+    [resolveModuleAccess, isSuperAdmin, isLocalAdmin]
   );
 
   const canPost = useCallback(
     (moduleCode: string): boolean => {
       if (isSuperAdmin || isLocalAdmin) return true;
-      return moduleAccess.get(moduleCode)?.canPost || false;
+      return resolveModuleAccess(moduleCode)?.canPost || false;
     },
-    [moduleAccess, isSuperAdmin, isLocalAdmin]
+    [resolveModuleAccess, isSuperAdmin, isLocalAdmin]
   );
 
   const canUnpost = useCallback(
     (moduleCode: string): boolean => {
       if (isSuperAdmin || isLocalAdmin) return true;
-      return moduleAccess.get(moduleCode)?.canUnpost || false;
+      return resolveModuleAccess(moduleCode)?.canUnpost || false;
     },
-    [moduleAccess, isSuperAdmin, isLocalAdmin]
+    [resolveModuleAccess, isSuperAdmin, isLocalAdmin]
   );
 
   return {
