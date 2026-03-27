@@ -260,8 +260,13 @@ export default function ObracunEdit() {
                   {MONTH_NAMES.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Input type="number" value={header.period_year} className="w-24" disabled={isPosted}
-                onChange={(e) => setHeader({ ...header, period_year: parseInt(e.target.value) || header.period_year })} />
+              <LocaleNumberInput
+                value={String(header.period_year)}
+                className="w-24"
+                decimalPlaces={0}
+                disabled={isPosted}
+                onChange={(value) => setHeader({ ...header, period_year: parseInt(String(parseLocaleNumber(value))) || header.period_year })}
+              />
             </div>
           </div>
           <div className="space-y-1">
