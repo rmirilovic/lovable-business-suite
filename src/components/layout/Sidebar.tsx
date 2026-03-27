@@ -222,7 +222,9 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
     }
 
     if (permissionsLoading) {
-      return navigation.filter(item => !item.moduleCode || item.href === "/");
+      // Show all navigation items while permissions are loading
+      // to prevent flash-of-hidden-content for admin users
+      return navigation.filter(item => item.href !== "/admin");
     }
 
     return navigation.filter((item) => {
