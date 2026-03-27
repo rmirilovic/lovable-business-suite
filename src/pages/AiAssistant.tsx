@@ -296,6 +296,7 @@ export default function AiAssistant() {
     setMessages([]);
     setInput("");
     setAttachedFiles([]);
+    if (isMobile) setShowSidebar(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
