@@ -98,7 +98,7 @@ export default function Zaposleni() {
   const [historyEmployee, setHistoryEmployee] = useState<{ id: string; name: string } | null>(null);
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
 
-  const { data: orgUnits } = useOrganizationalUnits(selectedCompany?.id);
+  const { units: orgUnits } = useOrganizationalUnits(selectedCompany?.id);
   const orgUnitMap = useMemo(() => {
     const map = new Map<string, string>();
     orgUnits?.forEach((u) => map.set(u.id, `${u.code} - ${u.name}`));
