@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { parseLocaleNumber, formatNumber } from "@/lib/formatting";
+import { parseLocaleNumber } from "@/lib/formatting";
 
 const MONTH_NAMES = [
   "Januar", "Februar", "Mart", "April", "Maj", "Jun",
