@@ -29,6 +29,8 @@ export interface Employee {
   bank_account: string | null;
   is_active: boolean;
   is_owner: boolean;
+  is_disabled: boolean;
+  work_time_percent: number;
   status: string;
   termination_date: string | null;
   note: string | null;
@@ -43,6 +45,7 @@ export const EMPLOYMENT_TYPE_LABELS: Record<string, string> = {
   odredjeno: "Određeno",
   probni: "Probni rad",
   privremeni: "Privremeni",
+  penzioner: "Penzioner",
 };
 
 export const STATUS_LABELS: Record<string, string> = {

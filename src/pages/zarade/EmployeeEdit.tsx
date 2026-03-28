@@ -58,6 +58,8 @@ interface EmployeeForm {
   work_experience_months: string;
   bank_account: string;
   is_owner: boolean;
+  is_disabled: boolean;
+  work_time_percent: string;
   status: string;
   termination_date: string;
   note: string;
