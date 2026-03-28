@@ -58,6 +58,8 @@ interface EmployeeForm {
   work_experience_months: string;
   bank_account: string;
   is_owner: boolean;
+  is_disabled: boolean;
+  work_time_percent: string;
   status: string;
   termination_date: string;
   note: string;
@@ -86,6 +88,8 @@ const emptyForm: EmployeeForm = {
   work_experience_months: "0",
   bank_account: "",
   is_owner: false,
+  is_disabled: false,
+  work_time_percent: "100",
   status: "active",
   termination_date: "",
   note: "",
@@ -140,6 +144,8 @@ export default function EmployeeEdit() {
         work_experience_months: String(employee.work_experience_months || 0),
         bank_account: employee.bank_account || "",
         is_owner: employee.is_owner || false,
+        is_disabled: employee.is_disabled || false,
+        work_time_percent: String(employee.work_time_percent ?? 100),
         status: employee.status,
         termination_date: employee.termination_date || "",
         note: employee.note || "",
@@ -187,6 +193,8 @@ export default function EmployeeEdit() {
       bank_account: form.bank_account || null,
       is_active: form.status === "active",
       is_owner: form.is_owner,
+      is_disabled: form.is_disabled,
+      work_time_percent: parseInt(form.work_time_percent) || 100,
       status: form.status,
       termination_date: form.termination_date || null,
       note: form.note || null,
@@ -535,6 +543,24 @@ export default function EmployeeEdit() {
                 />
                 <Label htmlFor="is_owner" className="cursor-pointer">Vlasnik firme</Label>
               </div>
+              <div className="flex items-center gap-2 pt-6">
+                <Checkbox
+                  id="is_disabled"
+                  checked={form.is_disabled}
+                  onCheckedChange={(checked) => handleChange("is_disabled", checked === true)}
+                  disabled={!canWrite}
+                />
+                <Label htmlFor="is_disabled" className="cursor-pointer">Invalid</Label>
+              </div>
+              <div>
+                <Label>Procenat radnog vremena (%)</Label>
+                <LocaleNumberInput
+                  value={form.work_time_percent}
+                  onChange={(v) => handleChange("work_time_percent", v)}
+                  decimalPlaces={0}
+                  disabled={!canWrite}
+                />
+              </div>
             </div>
             <Separator className="my-4" />
             <div>
@@ -580,6 +606,8 @@ export default function EmployeeEdit() {
             work_experience_months: "Staž (meseci)",
             bank_account: "Tekući račun",
             is_owner: "Vlasnik firme",
+            is_disabled: "Invalid",
+            work_time_percent: "% radnog vremena",
             status: "Status",
             termination_date: "Datum prestanka",
             note: "Napomena",

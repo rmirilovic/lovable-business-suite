@@ -2625,6 +2625,7 @@ export type Database = {
           gender: string | null
           id: string
           is_active: boolean | null
+          is_disabled: boolean
           is_owner: boolean
           jmbg: string | null
           job_title: string | null
@@ -2640,6 +2641,7 @@ export type Database = {
           updated_at: string | null
           work_experience_months: number | null
           work_experience_years: number | null
+          work_time_percent: number
         }
         Insert: {
           address?: string | null
@@ -2659,6 +2661,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_active?: boolean | null
+          is_disabled?: boolean
           is_owner?: boolean
           jmbg?: string | null
           job_title?: string | null
@@ -2674,6 +2677,7 @@ export type Database = {
           updated_at?: string | null
           work_experience_months?: number | null
           work_experience_years?: number | null
+          work_time_percent?: number
         }
         Update: {
           address?: string | null
@@ -2693,6 +2697,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_active?: boolean | null
+          is_disabled?: boolean
           is_owner?: boolean
           jmbg?: string | null
           job_title?: string | null
@@ -2708,6 +2713,7 @@ export type Database = {
           updated_at?: string | null
           work_experience_months?: number | null
           work_experience_years?: number | null
+          work_time_percent?: number
         }
         Relationships: [
           {
