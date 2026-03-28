@@ -121,6 +121,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resolveSuperAdminFallback = async (userId: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "super_admin")
+      .maybeSingle();
+
+    if (error || !data) {
+      return false;
+    }
+
+    setUserRole("super_admin");
+    return true;
+  };
+
   useEffect(() => {
     let isMounted = true;
     let initialSessionChecked = false;
@@ -386,13 +402,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq("user_id", userId)
       .order("company_id");
 
-    if (!error && companyAssignments) {
+    if (!error && companyAssignments && companyAssignments.length > 0) {
       const companiesData = companyAssignments
         .map((assignment: any) => assignment.companies)
         .filter(Boolean) as Company[];
 
       await applyCompanySelection(companiesData);
       return true;
+    }
+
+    const isFallbackSuperAdmin = await resolveSuperAdminFallback(userId);
+    if (isFallbackSuperAdmin) {
+      return fetchUserCompanies(userId, true);
     }
 
     setCompanies([]);
