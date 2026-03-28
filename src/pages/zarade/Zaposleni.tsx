@@ -195,6 +195,20 @@ export default function Zaposleni() {
                         {STATUS_LABELS[emp.status] || emp.status}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        title="Istorija izmena"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHistoryEmployee({ id: emp.id, name: `${emp.last_name} ${emp.first_name}` });
+                        }}
+                      >
+                        <History className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
