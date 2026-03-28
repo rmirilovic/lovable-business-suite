@@ -57,7 +57,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isSuperAdmin = userRole === "super_admin";
   const isLocalAdmin = localAdminCompanyIds.length > 0;
 
-  const fetchUserRole = async (userId: string) => {
+  const applyCompanySelection = async (companiesData: Company[]) => {
+    setCompanies(companiesData);
+
+    if (companiesData.length === 0) {
+      setSelectedCompany(null);
+      setBusinessYears([]);
+      setSelectedYear(null);
+      localStorage.removeItem("selectedCompanyId");
+      localStorage.removeItem("selectedYearId");
+      return;
+    }
+
+    const savedCompanyId = localStorage.getItem("selectedCompanyId");
+    const savedCompany = companiesData.find((company) => company.id === savedCompanyId);
+    const nextCompany = savedCompany ?? companiesData[0];
+
+    if (!savedCompany && savedCompanyId) {
+      localStorage.removeItem("selectedCompanyId");
+    }
+
+    setSelectedCompany(nextCompany);
+    await fetchBusinessYears(nextCompany.id);
+  };
+
+  const fetchUserRole = async (userId: string): Promise<AppRole | null> => {
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")
@@ -65,20 +89,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error || !data || data.length === 0) {
       setUserRole(null);
-      return;
+      return null;
     }
 
     const roles = data.map((item) => item.role as AppRole);
 
     if (roles.includes("super_admin")) {
       setUserRole("super_admin");
-      return;
+      return "super_admin";
     }
 
-    setUserRole(roles[0] ?? null);
+    const nextRole = roles[0] ?? null;
+    setUserRole(nextRole);
+    return nextRole;
   };
 
-  const fetchLocalAdminCompanies = async (userId: string) => {
+  const fetchLocalAdminCompanies = async (userId: string): Promise<string[]> => {
     const { data, error } = await supabase
       .from("user_companies")
       .select("company_id")
@@ -86,9 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq("is_local_admin", true);
 
     if (!error && data) {
-      setLocalAdminCompanyIds(data.map((d) => d.company_id));
+      const companyIds = data.map((d) => d.company_id);
+      setLocalAdminCompanyIds(companyIds);
+      return companyIds;
     } else {
       setLocalAdminCompanyIds([]);
+      return [];
     }
   };
 
@@ -186,11 +215,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // which would unmount dialogs depending on companyId
       if (initialLoadDone) return;
 
-      await Promise.all([
-        fetchUserCompanies(userId),
+      const [nextUserRole] = await Promise.all([
         fetchUserRole(userId),
         fetchLocalAdminCompanies(userId),
       ]);
+
+      await fetchUserCompanies(userId, nextUserRole === "super_admin");
       setInitialLoadDone(true);
       setLoading(false);
     };
@@ -327,26 +357,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const fetchUserCompanies = async (userId: string): Promise<boolean> => {
-    const { data: companiesData, error } = await supabase
-      .from("companies")
-      .select("id, name, code");
+  const fetchUserCompanies = async (userId: string, isUserSuperAdmin: boolean): Promise<boolean> => {
+    if (isUserSuperAdmin) {
+      const { data: companiesData, error } = await supabase
+        .from("companies")
+        .select("id, name, code")
+        .order("code");
 
-    if (!error && companiesData) {
-      setCompanies(companiesData);
-      
-      const savedCompanyId = localStorage.getItem("selectedCompanyId");
-      const savedCompany = companiesData.find(c => c.id === savedCompanyId);
-      
-      if (savedCompany) {
-        setSelectedCompany(savedCompany);
-        await fetchBusinessYears(savedCompany.id);
-      } else if (companiesData.length > 0) {
-        setSelectedCompany(companiesData[0]);
-        await fetchBusinessYears(companiesData[0].id);
+      if (!error && companiesData) {
+        await applyCompanySelection(companiesData);
+        return true;
       }
+
+      setCompanies([]);
+      return false;
+    }
+
+    const { data: companyAssignments, error } = await supabase
+      .from("user_companies")
+      .select(`
+        company_id,
+        companies (
+          id,
+          name,
+          code
+        )
+      `)
+      .eq("user_id", userId)
+      .order("company_id");
+
+    if (!error && companyAssignments) {
+      const companiesData = companyAssignments
+        .map((assignment: any) => assignment.companies)
+        .filter(Boolean) as Company[];
+
+      await applyCompanySelection(companiesData);
       return true;
     }
+
+    setCompanies([]);
+    setSelectedCompany(null);
+    setBusinessYears([]);
+    setSelectedYear(null);
     return false;
   };
 
