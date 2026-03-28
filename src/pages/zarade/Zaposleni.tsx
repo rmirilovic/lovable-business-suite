@@ -157,17 +157,21 @@ export default function Zaposleni() {
   });
 
   const exportMeta = { companyName: selectedCompany?.name || "" };
+  const exportOpts = {
+    visibleColumns: ALL_COLUMNS.filter((c) => visibleColumns.includes(c.key)).map((c) => ({ key: c.key, label: c.label })),
+    orgUnitMap,
+  };
 
   const handleExcel = () => {
-    exportEmployeesToExcel(sorted, exportMeta);
+    exportEmployeesToExcel(sorted, exportMeta, exportOpts);
     toast.success("Excel izvezen");
   };
   const handlePdf = async () => {
-    await exportEmployeesToPdf(sorted, exportMeta);
+    await exportEmployeesToPdf(sorted, exportMeta, exportOpts);
     toast.success("PDF izvezen");
   };
   const handlePrint = async () => {
-    await printEmployees(sorted, exportMeta);
+    await printEmployees(sorted, exportMeta, exportOpts);
   };
 
   const statusBadgeVariant = (status: string) => {
