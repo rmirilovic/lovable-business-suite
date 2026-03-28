@@ -10,7 +10,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, UserPlus, Download, FileText, Printer } from "lucide-react";
+import { Search, UserPlus, Download, FileText, Printer, History } from "lucide-react";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { useEmployees, STATUS_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/hooks/useEmployees";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +29,7 @@ export default function Zaposleni() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("__all__");
+  const [historyEmployee, setHistoryEmployee] = useState<{ id: string; name: string } | null>(null);
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
 
   const canWrite = hasAccess("zarade.zaposleni", "write");
@@ -155,20 +157,21 @@ export default function Zaposleni() {
                 <TableHead className="w-[100px]">
                   <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
+                <TableHead className="w-[50px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    Učitavanje...
-                  </TableCell>
+                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                     Učitavanje...
+                   </TableCell>
                 </TableRow>
               ) : sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    {employees?.length === 0 ? "Nema unetih zaposlenih" : "Nema rezultata pretrage"}
-                  </TableCell>
+                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                     {employees?.length === 0 ? "Nema unetih zaposlenih" : "Nema rezultata pretrage"}
+                   </TableCell>
                 </TableRow>
               ) : (
                 sorted.map((emp) => (
@@ -192,6 +195,20 @@ export default function Zaposleni() {
                         {STATUS_LABELS[emp.status] || emp.status}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        title="Istorija izmena"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHistoryEmployee({ id: emp.id, name: `${emp.last_name} ${emp.first_name}` });
+                        }}
+                      >
+                        <History className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -203,6 +220,44 @@ export default function Zaposleni() {
           Ukupno: {sorted.length} zaposlenih
         </div>
       </div>
+
+      {historyEmployee && (
+        <DocumentHistoryDialog
+          open={!!historyEmployee}
+          onOpenChange={(open) => { if (!open) setHistoryEmployee(null); }}
+          documentId={historyEmployee.id}
+          documentName={historyEmployee.name}
+          documentType="employee"
+          fieldLabels={{
+            employee_number: "Šifra",
+            first_name: "Ime",
+            middle_name: "Srednje slovo",
+            last_name: "Prezime",
+            jmbg: "JMBG",
+            date_of_birth: "Datum rođenja",
+            gender: "Pol",
+            address: "Adresa",
+            city: "Grad",
+            postal_code: "Poštanski broj",
+            phone: "Telefon",
+            email: "Email",
+            education_level: "Nivo obrazovanja",
+            job_title: "Radno mesto",
+            org_unit_id: "Org. jedinica",
+            employment_date: "Datum zaposlenja",
+            employment_type: "Vrsta ugovora",
+            contract_end_date: "Datum isteka ugovora",
+            work_experience_years: "Staž (godine)",
+            work_experience_months: "Staž (meseci)",
+            bank_account: "Tekući račun",
+            is_owner: "Vlasnik firme",
+            status: "Status",
+            termination_date: "Datum prestanka",
+            note: "Napomena",
+            leave_days_default: "Fond GO (podrazumevano)",
+          }}
+        />
+      )}
     </MainLayout>
   );
 }
