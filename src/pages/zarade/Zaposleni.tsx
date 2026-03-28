@@ -157,6 +157,7 @@ export default function Zaposleni() {
                 <TableHead className="w-[100px]">
                   <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
+                <TableHead className="w-[50px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
