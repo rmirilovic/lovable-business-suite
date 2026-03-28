@@ -383,6 +383,8 @@ export default function Zaposleni() {
             work_experience_months: "Staž (meseci)",
             bank_account: "Tekući račun",
             is_owner: "Vlasnik firme",
+            is_disabled: "Invalid",
+            work_time_percent: "% radnog vremena",
             status: "Status",
             termination_date: "Datum prestanka",
             note: "Napomena",
