@@ -235,54 +235,54 @@ export default function EvidencijaRadnogVremena() {
                       </TableCell>
                       <TableCell className="p-1">
                         <LocaleNumberInput
-                          value={row.working_days}
-                          onValueChange={(v) => updateField(emp.id, "working_days", v)}
-                          decimals={0}
+                          value={String(row.working_days)}
+                          onChange={(v) => updateField(emp.id, "working_days", parseLocaleNumber(v))}
+                          decimalPlaces={0}
                           className="text-right h-8"
                           disabled={!canWrite}
                         />
                       </TableCell>
                       <TableCell className="p-1">
                         <LocaleNumberInput
-                          value={row.worked_days}
-                          onValueChange={(v) => updateField(emp.id, "worked_days", v)}
-                          decimals={0}
+                          value={String(row.worked_days)}
+                          onChange={(v) => updateField(emp.id, "worked_days", parseLocaleNumber(v))}
+                          decimalPlaces={0}
                           className="text-right h-8"
                           disabled={!canWrite}
                         />
                       </TableCell>
                       <TableCell className="p-1">
                         <LocaleNumberInput
-                          value={row.hours_regular}
-                          onValueChange={(v) => updateField(emp.id, "hours_regular", v)}
-                          decimals={2}
+                          value={String(row.hours_regular)}
+                          onChange={(v) => updateField(emp.id, "hours_regular", parseLocaleNumber(v))}
+                          decimalPlaces={2}
                           className="text-right h-8"
                           disabled={!canWrite}
                         />
                       </TableCell>
                       <TableCell className="p-1">
                         <LocaleNumberInput
-                          value={row.hours_overtime}
-                          onValueChange={(v) => updateField(emp.id, "hours_overtime", v)}
-                          decimals={2}
+                          value={String(row.hours_overtime)}
+                          onChange={(v) => updateField(emp.id, "hours_overtime", parseLocaleNumber(v))}
+                          decimalPlaces={2}
                           className="text-right h-8"
                           disabled={!canWrite}
                         />
                       </TableCell>
                       <TableCell className="p-1">
                         <LocaleNumberInput
-                          value={row.hours_holiday}
-                          onValueChange={(v) => updateField(emp.id, "hours_holiday", v)}
-                          decimals={2}
+                          value={String(row.hours_holiday)}
+                          onChange={(v) => updateField(emp.id, "hours_holiday", parseLocaleNumber(v))}
+                          decimalPlaces={2}
                           className="text-right h-8"
                           disabled={!canWrite}
                         />
                       </TableCell>
                       <TableCell className="p-1">
                         <LocaleNumberInput
-                          value={row.hours_night}
-                          onValueChange={(v) => updateField(emp.id, "hours_night", v)}
-                          decimals={2}
+                          value={String(row.hours_night)}
+                          onChange={(v) => updateField(emp.id, "hours_night", parseLocaleNumber(v))}
+                          decimalPlaces={2}
                           className="text-right h-8"
                           disabled={!canWrite}
                         />
