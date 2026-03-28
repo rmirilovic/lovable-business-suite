@@ -8059,6 +8059,78 @@ export type Database = {
           },
         ]
       }
+      work_hours: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          created_by: string
+          employee_id: string
+          hours_holiday: number
+          hours_night: number
+          hours_overtime: number
+          hours_regular: number
+          id: string
+          month: number
+          note: string | null
+          updated_at: string
+          worked_days: number
+          working_days: number
+          year: number
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          employee_id: string
+          hours_holiday?: number
+          hours_night?: number
+          hours_overtime?: number
+          hours_regular?: number
+          id?: string
+          month: number
+          note?: string | null
+          updated_at?: string
+          worked_days?: number
+          working_days?: number
+          year: number
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          employee_id?: string
+          hours_holiday?: number
+          hours_night?: number
+          hours_overtime?: number
+          hours_regular?: number
+          id?: string
+          month?: number
+          note?: string | null
+          updated_at?: string
+          worked_days?: number
+          working_days?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_hours_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_hours_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_order_items: {
         Row: {
           article_code: string
