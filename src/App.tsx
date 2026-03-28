@@ -632,6 +632,11 @@ const App = () => (
                   <ParametriObracuna />
                 </ProtectedRoute>
               } />
+              <Route path="/zarade/evidencija-sati" element={
+                <ProtectedRoute>
+                  <EvidencijaRadnogVremena />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
