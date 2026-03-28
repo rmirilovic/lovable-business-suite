@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { ArrowLeft, Save, Trash2, History } from "lucide-react";
@@ -232,7 +233,7 @@ export default function EmployeeEdit() {
 
   return (
     <MainLayout title={isNew ? "Novi zaposleni" : `${form.last_name} ${form.first_name}`}>
-      <div className="flex flex-col gap-4 max-w-5xl">
+      <div className="flex flex-col gap-4 max-w-5xl flex-1 min-h-0">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/zarade/zaposleni")}>
@@ -273,307 +274,309 @@ export default function EmployeeEdit() {
           </div>
         </div>
 
-        {/* Lični podaci */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Lični podaci</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label>Šifra zaposlenog *</Label>
-                <Input
-                  value={form.employee_number}
-                  onChange={(e) => handleChange("employee_number", e.target.value)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Ime *</Label>
-                <Input
-                  value={form.first_name}
-                  onChange={(e) => handleChange("first_name", e.target.value)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Srednje slovo</Label>
-                <Input
-                  value={form.middle_name}
-                  onChange={(e) => handleChange("middle_name", e.target.value.slice(0, 2))}
-                  maxLength={2}
-                  disabled={!canWrite}
-                  placeholder="SS"
-                />
-              </div>
-              <div>
-                <Label>Prezime *</Label>
-                <Input
-                  value={form.last_name}
-                  onChange={(e) => handleChange("last_name", e.target.value)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>JMBG</Label>
-                <Input
-                  value={form.jmbg}
-                  onChange={(e) => handleChange("jmbg", e.target.value)}
-                  maxLength={13}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Datum rođenja</Label>
-                <LocaleDateInput
-                  value={form.date_of_birth}
-                  onChange={(v) => handleChange("date_of_birth", v)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Pol</Label>
-                <Select value={form.gender} onValueChange={(v) => handleChange("gender", v)} disabled={!canWrite}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Izaberite" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="M">Muški</SelectItem>
-                    <SelectItem value="F">Ženski</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="licni" className="flex-1">
+          <TabsList>
+            <TabsTrigger value="licni">Lični podaci</TabsTrigger>
+            <TabsTrigger value="zaposlenje">Zaposlenje</TabsTrigger>
+            <TabsTrigger value="status">Status i ostalo</TabsTrigger>
+          </TabsList>
 
-        {/* Kontakt */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Kontakt i adresa</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-2">
-                <Label>Adresa</Label>
-                <Input
-                  value={form.address}
-                  onChange={(e) => handleChange("address", e.target.value)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Poštanski broj</Label>
-                <Input
-                  value={form.postal_code}
-                  onChange={(e) => handleChange("postal_code", e.target.value)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Grad</Label>
-                <Input
-                  value={form.city}
-                  onChange={(e) => handleChange("city", e.target.value)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Telefon</Label>
-                <Input
-                  value={form.phone}
-                  onChange={(e) => handleChange("phone", e.target.value)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  disabled={!canWrite}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Tab: Lični podaci */}
+          <TabsContent value="licni" className="space-y-4 mt-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Šifra zaposlenog *</Label>
+                    <Input
+                      value={form.employee_number}
+                      onChange={(e) => handleChange("employee_number", e.target.value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Ime *</Label>
+                    <Input
+                      value={form.first_name}
+                      onChange={(e) => handleChange("first_name", e.target.value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Srednje slovo</Label>
+                    <Input
+                      value={form.middle_name}
+                      onChange={(e) => handleChange("middle_name", e.target.value.slice(0, 2))}
+                      maxLength={2}
+                      disabled={!canWrite}
+                      placeholder="SS"
+                    />
+                  </div>
+                  <div>
+                    <Label>Prezime *</Label>
+                    <Input
+                      value={form.last_name}
+                      onChange={(e) => handleChange("last_name", e.target.value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>JMBG</Label>
+                    <Input
+                      value={form.jmbg}
+                      onChange={(e) => handleChange("jmbg", e.target.value)}
+                      maxLength={13}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Datum rođenja</Label>
+                    <LocaleDateInput
+                      value={form.date_of_birth}
+                      onChange={(v) => handleChange("date_of_birth", v)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Pol</Label>
+                    <Select value={form.gender} onValueChange={(v) => handleChange("gender", v)} disabled={!canWrite}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Izaberite" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M">Muški</SelectItem>
+                        <SelectItem value="F">Ženski</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Zaposlenje */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Podaci o zaposlenju</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label>Radno mesto</Label>
-                <Input
-                  value={form.job_title}
-                  onChange={(e) => handleChange("job_title", e.target.value)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Organizaciona jedinica</Label>
-                <Select value={form.org_unit_id} onValueChange={(v) => handleChange("org_unit_id", v)} disabled={!canWrite}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Izaberite" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {units.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.code} - {u.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Stručna sprema</Label>
-                <Select value={form.education_level} onValueChange={(v) => handleChange("education_level", v)} disabled={!canWrite}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Izaberite" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EDUCATION_LEVELS.map((lvl) => (
-                      <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Datum zaposlenja</Label>
-                <LocaleDateInput
-                  value={form.employment_date}
-                  onChange={(v) => handleChange("employment_date", v)}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Vrsta ugovora</Label>
-                <Select value={form.employment_type} onValueChange={(v) => handleChange("employment_type", v)} disabled={!canWrite}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(EMPLOYMENT_TYPE_LABELS).map(([val, label]) => (
-                      <SelectItem key={val} value={val}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {form.employment_type === "odredjeno" && (
+            <Card>
+              <CardContent className="pt-6">
+                <h3 className="text-sm font-medium text-muted-foreground mb-4">Kontakt i adresa</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2">
+                    <Label>Adresa</Label>
+                    <Input
+                      value={form.address}
+                      onChange={(e) => handleChange("address", e.target.value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Poštanski broj</Label>
+                    <Input
+                      value={form.postal_code}
+                      onChange={(e) => handleChange("postal_code", e.target.value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Grad</Label>
+                    <Input
+                      value={form.city}
+                      onChange={(e) => handleChange("city", e.target.value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Telefon</Label>
+                    <Input
+                      value={form.phone}
+                      onChange={(e) => handleChange("phone", e.target.value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => handleChange("email", e.target.value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tab: Zaposlenje */}
+          <TabsContent value="zaposlenje" className="mt-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Radno mesto</Label>
+                    <Input
+                      value={form.job_title}
+                      onChange={(e) => handleChange("job_title", e.target.value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Organizaciona jedinica</Label>
+                    <Select value={form.org_unit_id} onValueChange={(v) => handleChange("org_unit_id", v)} disabled={!canWrite}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Izaberite" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {units.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.code} - {u.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Stručna sprema</Label>
+                    <Select value={form.education_level} onValueChange={(v) => handleChange("education_level", v)} disabled={!canWrite}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Izaberite" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EDUCATION_LEVELS.map((lvl) => (
+                          <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Datum zaposlenja</Label>
+                    <LocaleDateInput
+                      value={form.employment_date}
+                      onChange={(v) => handleChange("employment_date", v)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Vrsta ugovora</Label>
+                    <Select value={form.employment_type} onValueChange={(v) => handleChange("employment_type", v)} disabled={!canWrite}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(EMPLOYMENT_TYPE_LABELS).map(([val, label]) => (
+                          <SelectItem key={val} value={val}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {form.employment_type === "odredjeno" && (
+                    <div>
+                      <Label>Ugovor do</Label>
+                      <LocaleDateInput
+                        value={form.contract_end_date}
+                        onChange={(v) => handleChange("contract_end_date", v)}
+                        disabled={!canWrite}
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <Label>Procenat radnog vremena (%)</Label>
+                    <LocaleNumberInput
+                      value={form.work_time_percent}
+                      onChange={(v) => handleChange("work_time_percent", v)}
+                      decimalPlaces={0}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Prethodni staž (godine)</Label>
+                    <LocaleNumberInput
+                      value={form.work_experience_years}
+                      onChange={(v) => handleChange("work_experience_years", v)}
+                      decimalPlaces={0}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Prethodni staž (meseci)</Label>
+                    <LocaleNumberInput
+                      value={form.work_experience_months}
+                      onChange={(v) => handleChange("work_experience_months", v)}
+                      decimalPlaces={0}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Tekući račun</Label>
+                    <Input
+                      value={form.bank_account}
+                      onChange={(e) => handleChange("bank_account", e.target.value)}
+                      placeholder="XXX-XXXXXXXXXXXXX-XX"
+                      disabled={!canWrite}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tab: Status i ostalo */}
+          <TabsContent value="status" className="mt-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>Status zaposlenog</Label>
+                    <Select value={form.status} onValueChange={(v) => handleChange("status", v)} disabled={!canWrite}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                          <SelectItem key={val} value={val}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {form.status === "terminated" && (
+                    <div>
+                      <Label>Datum prestanka</Label>
+                      <LocaleDateInput
+                        value={form.termination_date}
+                        onChange={(v) => handleChange("termination_date", v)}
+                        disabled={!canWrite}
+                      />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 pt-6">
+                    <Checkbox
+                      id="is_owner"
+                      checked={form.is_owner}
+                      onCheckedChange={(checked) => handleChange("is_owner", checked === true)}
+                      disabled={!canWrite}
+                    />
+                    <Label htmlFor="is_owner" className="cursor-pointer">Vlasnik firme</Label>
+                  </div>
+                  <div className="flex items-center gap-2 pt-6">
+                    <Checkbox
+                      id="is_disabled"
+                      checked={form.is_disabled}
+                      onCheckedChange={(checked) => handleChange("is_disabled", checked === true)}
+                      disabled={!canWrite}
+                    />
+                    <Label htmlFor="is_disabled" className="cursor-pointer">Invalid</Label>
+                  </div>
+                </div>
+                <Separator className="my-4" />
                 <div>
-                  <Label>Ugovor do</Label>
-                  <LocaleDateInput
-                    value={form.contract_end_date}
-                    onChange={(v) => handleChange("contract_end_date", v)}
+                  <Label>Napomena</Label>
+                  <Textarea
+                    value={form.note}
+                    onChange={(e) => handleChange("note", e.target.value)}
+                    rows={3}
                     disabled={!canWrite}
                   />
                 </div>
-              )}
-              <div>
-                <Label>Prethodni staž (godine)</Label>
-                <LocaleNumberInput
-                  value={form.work_experience_years}
-                  onChange={(v) => handleChange("work_experience_years", v)}
-                  decimalPlaces={0}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Prethodni staž (meseci)</Label>
-                <LocaleNumberInput
-                  value={form.work_experience_months}
-                  onChange={(v) => handleChange("work_experience_months", v)}
-                  decimalPlaces={0}
-                  disabled={!canWrite}
-                />
-              </div>
-              <div>
-                <Label>Tekući račun</Label>
-                <Input
-                  value={form.bank_account}
-                  onChange={(e) => handleChange("bank_account", e.target.value)}
-                  placeholder="XXX-XXXXXXXXXXXXX-XX"
-                  disabled={!canWrite}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label>Status zaposlenog</Label>
-                <Select value={form.status} onValueChange={(v) => handleChange("status", v)} disabled={!canWrite}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(STATUS_LABELS).map(([val, label]) => (
-                      <SelectItem key={val} value={val}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {form.status === "terminated" && (
-                <div>
-                  <Label>Datum prestanka</Label>
-                  <LocaleDateInput
-                    value={form.termination_date}
-                    onChange={(v) => handleChange("termination_date", v)}
-                    disabled={!canWrite}
-                  />
-                </div>
-              )}
-              <div className="flex items-center gap-2 pt-6">
-                <Checkbox
-                  id="is_owner"
-                  checked={form.is_owner}
-                  onCheckedChange={(checked) => handleChange("is_owner", checked === true)}
-                  disabled={!canWrite}
-                />
-                <Label htmlFor="is_owner" className="cursor-pointer">Vlasnik firme</Label>
-              </div>
-              <div className="flex items-center gap-2 pt-6">
-                <Checkbox
-                  id="is_disabled"
-                  checked={form.is_disabled}
-                  onCheckedChange={(checked) => handleChange("is_disabled", checked === true)}
-                  disabled={!canWrite}
-                />
-                <Label htmlFor="is_disabled" className="cursor-pointer">Invalid</Label>
-              </div>
-              <div>
-                <Label>Procenat radnog vremena (%)</Label>
-                <LocaleNumberInput
-                  value={form.work_time_percent}
-                  onChange={(v) => handleChange("work_time_percent", v)}
-                  decimalPlaces={0}
-                  disabled={!canWrite}
-                />
-              </div>
-            </div>
-            <Separator className="my-4" />
-            <div>
-              <Label>Napomena</Label>
-              <Textarea
-                value={form.note}
-                onChange={(e) => handleChange("note", e.target.value)}
-                rows={3}
-                disabled={!canWrite}
-              />
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {!isNew && id && (
