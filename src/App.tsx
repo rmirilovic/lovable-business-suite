@@ -109,6 +109,7 @@ import FondOdmora from "./pages/zarade/FondOdmora";
 import ObracunZarada from "./pages/zarade/ObracunZarada";
 import ObracunEdit from "./pages/zarade/ObracunEdit";
 import ParametriObracuna from "./pages/zarade/ParametriObracuna";
+import EvidencijaRadnogVremena from "./pages/zarade/EvidencijaRadnogVremena";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -629,6 +630,11 @@ const App = () => (
               <Route path="/zarade/parametri" element={
                 <ProtectedRoute>
                   <ParametriObracuna />
+                </ProtectedRoute>
+              } />
+              <Route path="/zarade/evidencija-sati" element={
+                <ProtectedRoute>
+                  <EvidencijaRadnogVremena />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />

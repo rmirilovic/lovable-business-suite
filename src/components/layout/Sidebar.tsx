@@ -138,6 +138,7 @@ const navigation: NavItem[] = [
     moduleCode: "zarade",
     children: [
       { label: "Zaposleni", href: "/zarade/zaposleni", moduleCode: "zarade.zaposleni" },
+      { label: "Evidencija radnog vremena", href: "/zarade/evidencija-sati", moduleCode: "zarade.evidencija_sati" },
       { label: "Obračun zarada", href: "/zarade/obracun", moduleCode: "zarade.obracun" },
       { label: "Parametri obračuna", href: "/zarade/parametri", moduleCode: "zarade.obracun" },
       { label: "Evidencija odsustva", href: "/zarade/odsustva", moduleCode: "zarade.odsustva" },
