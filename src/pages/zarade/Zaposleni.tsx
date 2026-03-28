@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,15 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Search, UserPlus, Download, FileText, Printer, History } from "lucide-react";
+import { Search, UserPlus, Download, FileText, Printer, History, Settings2 } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
-import { useEmployees, STATUS_LABELS, EMPLOYMENT_TYPE_LABELS } from "@/hooks/useEmployees";
+import { useEmployees, STATUS_LABELS, EMPLOYMENT_TYPE_LABELS, EDUCATION_LEVELS } from "@/hooks/useEmployees";
+import { useOrganizationalUnits } from "@/hooks/useOrganizationalUnits";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -21,6 +26,67 @@ import { exportEmployeesToExcel, exportEmployeesToPdf, printEmployees } from "@/
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/formatting";
+import { differenceInMonths } from "date-fns";
+
+interface ColumnDef {
+  key: string;
+  label: string;
+  defaultVisible: boolean;
+  width?: string;
+}
+
+const ALL_COLUMNS: ColumnDef[] = [
+  { key: "employee_number", label: "Šifra", defaultVisible: true, width: "80px" },
+  { key: "name", label: "Ime i prezime", defaultVisible: true },
+  { key: "jmbg", label: "JMBG", defaultVisible: true },
+  { key: "date_of_birth", label: "Datum rođenja", defaultVisible: false, width: "110px" },
+  { key: "address", label: "Kontakt adresa", defaultVisible: false },
+  { key: "city", label: "PB + Mesto", defaultVisible: false },
+  { key: "job_title", label: "Radno mesto", defaultVisible: true },
+  { key: "org_unit", label: "Org. jedinica", defaultVisible: false },
+  { key: "education_level", label: "Stručna sprema", defaultVisible: false },
+  { key: "employment_type", label: "Vrsta ugovora", defaultVisible: true },
+  { key: "employment_date", label: "Datum zaposlenja", defaultVisible: true, width: "120px" },
+  { key: "bank_account", label: "Tekući račun", defaultVisible: false },
+  { key: "work_experience", label: "Radni staž", defaultVisible: false, width: "100px" },
+  { key: "status", label: "Status", defaultVisible: true, width: "100px" },
+];
+
+const STORAGE_KEY = "zaposleni_visible_columns";
+
+function getStoredColumns(): string[] {
+  const defaultCols = ALL_COLUMNS.filter((c) => c.defaultVisible).map((c) => c.key);
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return defaultCols;
+    const parsed = JSON.parse(stored) as string[];
+    // Inject any new default-visible columns not in stored set
+    const allKeys = new Set(ALL_COLUMNS.map((c) => c.key));
+    const valid = parsed.filter((k) => allKeys.has(k));
+    for (const col of ALL_COLUMNS) {
+      if (col.defaultVisible && !valid.includes(col.key)) {
+        valid.push(col.key);
+      }
+    }
+    return valid.length > 0 ? valid : defaultCols;
+  } catch {
+    return defaultCols;
+  }
+}
+
+function computeTotalExperience(emp: { work_experience_years: number; work_experience_months: number; employment_date: string | null }): string {
+  let totalMonths = (emp.work_experience_years || 0) * 12 + (emp.work_experience_months || 0);
+  if (emp.employment_date) {
+    const start = new Date(emp.employment_date);
+    const now = new Date();
+    if (start <= now) {
+      totalMonths += differenceInMonths(now, start);
+    }
+  }
+  const years = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+  return `${String(years).padStart(2, "0")}G ${String(months).padStart(2, "0")}M`;
+}
 
 export default function Zaposleni() {
   const { data: employees, isLoading } = useEmployees();
@@ -31,6 +97,25 @@ export default function Zaposleni() {
   const [statusFilter, setStatusFilter] = useState("__all__");
   const [historyEmployee, setHistoryEmployee] = useState<{ id: string; name: string } | null>(null);
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
+
+  const { data: orgUnits } = useOrganizationalUnits(selectedCompany?.id);
+  const orgUnitMap = useMemo(() => {
+    const map = new Map<string, string>();
+    orgUnits?.forEach((u) => map.set(u.id, `${u.code} - ${u.name}`));
+    return map;
+  }, [orgUnits]);
+
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(getStoredColumns);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(visibleColumns));
+  }, [visibleColumns]);
+
+  const toggleColumn = (key: string) => {
+    setVisibleColumns((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
 
   const canWrite = hasAccess("zarade.zaposleni", "write");
 
@@ -56,9 +141,16 @@ export default function Zaposleni() {
       case "employee_number": return item.employee_number;
       case "name": return `${item.last_name} ${item.middle_name || ""} ${item.first_name}`;
       case "jmbg": return item.jmbg || "";
+      case "date_of_birth": return item.date_of_birth || "";
+      case "address": return item.address || "";
+      case "city": return `${item.postal_code || ""} ${item.city || ""}`;
       case "job_title": return item.job_title || "";
+      case "org_unit": return item.org_unit_id ? (orgUnitMap.get(item.org_unit_id) || "") : "";
+      case "education_level": return item.education_level || "";
       case "employment_type": return EMPLOYMENT_TYPE_LABELS[item.employment_type] || item.employment_type;
       case "employment_date": return item.employment_date || "";
+      case "bank_account": return item.bank_account || "";
+      case "work_experience": return computeTotalExperience(item);
       case "status": return item.status;
       default: return "";
     }
@@ -88,6 +180,48 @@ export default function Zaposleni() {
     }
   };
 
+  const isVisible = (key: string) => visibleColumns.includes(key);
+  const colCount = visibleColumns.length + 1; // +1 for history column
+
+  const renderCellValue = (emp: (typeof sorted)[0], key: string) => {
+    switch (key) {
+      case "employee_number":
+        return <span className="font-mono">{emp.employee_number}</span>;
+      case "name":
+        return <span className="font-medium">{emp.last_name} {emp.middle_name ? `(${emp.middle_name}) ` : ""}{emp.first_name}</span>;
+      case "jmbg":
+        return <span className="font-mono">{emp.jmbg || "-"}</span>;
+      case "date_of_birth":
+        return emp.date_of_birth ? formatDate(emp.date_of_birth) : "-";
+      case "address":
+        return emp.address || "-";
+      case "city":
+        return [emp.postal_code, emp.city].filter(Boolean).join(" ") || "-";
+      case "job_title":
+        return emp.job_title || "-";
+      case "org_unit":
+        return emp.org_unit_id ? (orgUnitMap.get(emp.org_unit_id) || "-") : "-";
+      case "education_level":
+        return emp.education_level || "-";
+      case "employment_type":
+        return EMPLOYMENT_TYPE_LABELS[emp.employment_type] || emp.employment_type;
+      case "employment_date":
+        return emp.employment_date ? formatDate(emp.employment_date) : "-";
+      case "bank_account":
+        return <span className="font-mono">{emp.bank_account || "-"}</span>;
+      case "work_experience":
+        return <span className="font-mono">{computeTotalExperience(emp)}</span>;
+      case "status":
+        return (
+          <Badge variant={statusBadgeVariant(emp.status)}>
+            {STATUS_LABELS[emp.status] || emp.status}
+          </Badge>
+        );
+      default:
+        return "-";
+    }
+  };
+
   return (
     <MainLayout title="Zaposleni">
       <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-hidden">
@@ -114,6 +248,26 @@ export default function Zaposleni() {
             </SelectContent>
           </Select>
           <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" title="Podesi kolone">
+                  <Settings2 className="w-4 h-4 mr-2" /> Kolone
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {ALL_COLUMNS.map((col) => (
+                  <DropdownMenuItem key={col.key} onSelect={(e) => e.preventDefault()}>
+                    <label className="flex items-center gap-2 cursor-pointer w-full">
+                      <Checkbox
+                        checked={visibleColumns.includes(col.key)}
+                        onCheckedChange={() => toggleColumn(col.key)}
+                      />
+                      <span className="text-sm">{col.label}</span>
+                    </label>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="outline" size="sm" onClick={handleExcel} title="Izvezi u Excel">
               <Download className="w-4 h-4 mr-2" /> Excel
             </Button>
@@ -136,40 +290,30 @@ export default function Zaposleni() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px]">
-                  <SortableHeader column="employee_number" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="name" label="Ime i prezime" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="jmbg" label="JMBG" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="job_title" label="Radno mesto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="employment_type" label="Vrsta ugovora" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="w-[120px]">
-                  <SortableHeader column="employment_date" label="Datum zaposlenja" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="w-[100px]">
-                  <SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
+                {ALL_COLUMNS.filter((c) => isVisible(c.key)).map((col) => (
+                  <TableHead key={col.key} style={col.width ? { width: col.width } : undefined}>
+                    <SortableHeader
+                      column={col.key}
+                      label={col.label}
+                      sortColumn={sortColumn}
+                      sortDirection={sortDirection}
+                      onSort={handleSort}
+                    />
+                  </TableHead>
+                ))}
                 <TableHead className="w-[50px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                   <TableCell colSpan={colCount} className="text-center py-8 text-muted-foreground">
                      Učitavanje...
                    </TableCell>
                 </TableRow>
               ) : sorted.length === 0 ? (
                 <TableRow>
-                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                   <TableCell colSpan={colCount} className="text-center py-8 text-muted-foreground">
                      {employees?.length === 0 ? "Nema unetih zaposlenih" : "Nema rezultata pretrage"}
                    </TableCell>
                 </TableRow>
@@ -180,21 +324,9 @@ export default function Zaposleni() {
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => navigate(`/zarade/zaposleni/${emp.id}`)}
                   >
-                    <TableCell className="font-mono">{emp.employee_number}</TableCell>
-                    <TableCell className="font-medium">
-                      {emp.last_name} {emp.middle_name ? `(${emp.middle_name}) ` : ""}{emp.first_name}
-                    </TableCell>
-                    <TableCell className="font-mono">{emp.jmbg || "-"}</TableCell>
-                    <TableCell>{emp.job_title || "-"}</TableCell>
-                    <TableCell>{EMPLOYMENT_TYPE_LABELS[emp.employment_type] || emp.employment_type}</TableCell>
-                    <TableCell>
-                      {emp.employment_date ? formatDate(emp.employment_date) : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={statusBadgeVariant(emp.status)}>
-                        {STATUS_LABELS[emp.status] || emp.status}
-                      </Badge>
-                    </TableCell>
+                    {ALL_COLUMNS.filter((c) => isVisible(c.key)).map((col) => (
+                      <TableCell key={col.key}>{renderCellValue(emp, col.key)}</TableCell>
+                    ))}
                     <TableCell>
                       <Button
                         variant="ghost"
