@@ -163,9 +163,9 @@ export default function Zaposleni() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    Učitavanje...
-                  </TableCell>
+                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                     Učitavanje...
+                   </TableCell>
                 </TableRow>
               ) : sorted.length === 0 ? (
                 <TableRow>
