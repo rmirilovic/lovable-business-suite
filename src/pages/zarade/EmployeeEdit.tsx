@@ -543,6 +543,24 @@ export default function EmployeeEdit() {
                 />
                 <Label htmlFor="is_owner" className="cursor-pointer">Vlasnik firme</Label>
               </div>
+              <div className="flex items-center gap-2 pt-6">
+                <Checkbox
+                  id="is_disabled"
+                  checked={form.is_disabled}
+                  onCheckedChange={(checked) => handleChange("is_disabled", checked === true)}
+                  disabled={!canWrite}
+                />
+                <Label htmlFor="is_disabled" className="cursor-pointer">Invalid</Label>
+              </div>
+              <div>
+                <Label>Procenat radnog vremena (%)</Label>
+                <LocaleNumberInput
+                  value={form.work_time_percent}
+                  onChange={(v) => handleChange("work_time_percent", v)}
+                  decimalPlaces={0}
+                  disabled={!canWrite}
+                />
+              </div>
             </div>
             <Separator className="my-4" />
             <div>
