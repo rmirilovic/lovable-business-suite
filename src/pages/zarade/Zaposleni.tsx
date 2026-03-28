@@ -29,6 +29,7 @@ export default function Zaposleni() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("__all__");
+  const [historyEmployee, setHistoryEmployee] = useState<{ id: string; name: string } | null>(null);
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
 
   const canWrite = hasAccess("zarade.zaposleni", "write");
