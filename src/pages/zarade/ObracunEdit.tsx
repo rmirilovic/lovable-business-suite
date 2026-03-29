@@ -52,7 +52,29 @@ export default function ObracunEdit() {
   });
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const isPosted = calculation?.status === "posted";
+
+  // Map of employee_id -> active deductions
+  const deductionsByEmployee = useMemo(() => {
+    const map: Record<string, EmployeeDeduction[]> = {};
+    activeDeductions?.forEach((d) => {
+      if (!d.is_active) return;
+      // Skip paid-off credits
+      if (d.is_credit && d.total_installments > 0 && d.paid_installments >= d.total_installments) return;
+      if (!map[d.employee_id]) map[d.employee_id] = [];
+      map[d.employee_id].push(d);
+    });
+    return map;
+  }, [activeDeductions]);
+
+  const toggleExpand = (idx: number) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (calculation) {
