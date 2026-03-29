@@ -193,6 +193,33 @@ export default function Obustave() {
         onOpenChange={setDialogOpen}
         deduction={editItem}
       />
+
+      {historyItem && (
+        <DocumentHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          documentId={historyItem.id}
+          documentName={`Obustava - ${historyItem.description}`}
+          documentType="employee_deduction"
+          fieldLabels={{
+            deduction_type: "Tip obustave",
+            description: "Opis",
+            creditor_name: "Kreditor",
+            reference_number: "Poziv na broj",
+            amount_per_installment: "Iznos rate",
+            total_amount: "Ukupan iznos",
+            total_installments: "Ukupno rata",
+            paid_installments: "Otplaćene rate",
+            paid_amount: "Otplaćeni iznos",
+            is_active: "Aktivna",
+            is_credit: "Kredit",
+            start_date: "Datum početka",
+            end_date: "Datum završetka",
+            note: "Napomena",
+            employee_id: "Zaposleni",
+          }}
+        />
+      )}
     </MainLayout>
   );
 }
