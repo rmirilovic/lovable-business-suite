@@ -119,16 +119,16 @@ export default function Obustave() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[200px]">Zaposleni</TableHead>
-                <TableHead className="min-w-[150px]">Tip</TableHead>
-                <TableHead className="min-w-[150px]">Opis</TableHead>
-                <TableHead className="min-w-[130px]">Kreditor</TableHead>
-                <TableHead className="min-w-[100px] text-right">Rata</TableHead>
-                <TableHead className="min-w-[80px] text-center">Otplaćeno</TableHead>
-                <TableHead className="min-w-[80px] text-center">Ukupno rata</TableHead>
-                <TableHead className="min-w-[100px] text-right">Ukupan iznos</TableHead>
-                <TableHead className="min-w-[80px] text-center">Status</TableHead>
-                <TableHead className="w-24"></TableHead>
+                <TableHead className="min-w-[200px]"><SortableHeader column="employee" label="Zaposleni" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="min-w-[150px]"><SortableHeader column="type" label="Tip" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="min-w-[150px]"><SortableHeader column="description" label="Opis" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="min-w-[130px]"><SortableHeader column="creditor" label="Kreditor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="min-w-[100px] text-right"><SortableHeader column="installment" label="Rata" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                <TableHead className="min-w-[80px] text-center"><SortableHeader column="paid" label="Otplaćeno" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
+                <TableHead className="min-w-[80px] text-center"><SortableHeader column="total_inst" label="Ukupno rata" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
+                <TableHead className="min-w-[100px] text-right"><SortableHeader column="total_amount" label="Ukupan iznos" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                <TableHead className="min-w-[80px] text-center"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
+                <TableHead className="w-28"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
