@@ -179,7 +179,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
                   <Label className="text-xs">Ukupan iznos kredita</Label>
                   <LocaleNumberInput
                     value={String(form.total_amount)}
-                    onChange={(v) => setForm({ ...form, total_amount: parseLocaleNumber(v) })}
+                    onChange={(v) => recalcInstallment({ total_amount: parseLocaleNumber(v) })}
                   />
                 </div>
                 <div className="space-y-1">
@@ -187,7 +187,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
                   <Input
                     type="number"
                     value={form.total_installments}
-                    onChange={(e) => setForm({ ...form, total_installments: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => recalcInstallment({ total_installments: parseInt(e.target.value) || 0 })}
                   />
                 </div>
                 <div className="space-y-1">
@@ -195,7 +195,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
                   <Input
                     type="number"
                     value={form.paid_installments}
-                    onChange={(e) => setForm({ ...form, paid_installments: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => recalcInstallment({ paid_installments: parseInt(e.target.value) || 0 })}
                   />
                 </div>
               </div>
@@ -205,7 +205,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
                   <Label className="text-xs">Otplaćeni iznos</Label>
                   <LocaleNumberInput
                     value={String(form.paid_amount)}
-                    onChange={(v) => setForm({ ...form, paid_amount: parseLocaleNumber(v) })}
+                    onChange={(v) => recalcInstallment({ paid_amount: parseLocaleNumber(v) })}
                   />
                 </div>
               </div>
