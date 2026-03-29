@@ -2558,6 +2558,87 @@ export type Database = {
           },
         ]
       }
+      employee_deductions: {
+        Row: {
+          amount_per_installment: number
+          company_id: string
+          created_at: string
+          creditor_name: string | null
+          deduction_type: string
+          description: string
+          employee_id: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          is_credit: boolean
+          note: string | null
+          paid_amount: number
+          paid_installments: number
+          reference_number: string | null
+          start_date: string | null
+          total_amount: number
+          total_installments: number
+          updated_at: string
+        }
+        Insert: {
+          amount_per_installment?: number
+          company_id: string
+          created_at?: string
+          creditor_name?: string | null
+          deduction_type?: string
+          description?: string
+          employee_id: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          is_credit?: boolean
+          note?: string | null
+          paid_amount?: number
+          paid_installments?: number
+          reference_number?: string | null
+          start_date?: string | null
+          total_amount?: number
+          total_installments?: number
+          updated_at?: string
+        }
+        Update: {
+          amount_per_installment?: number
+          company_id?: string
+          created_at?: string
+          creditor_name?: string | null
+          deduction_type?: string
+          description?: string
+          employee_id?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          is_credit?: boolean
+          note?: string | null
+          paid_amount?: number
+          paid_installments?: number
+          reference_number?: string | null
+          start_date?: string | null
+          total_amount?: number
+          total_installments?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_deductions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_deductions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_leave_funds: {
         Row: {
           company_id: string
@@ -4994,6 +5075,84 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_calculation_deductions: {
+        Row: {
+          amount: number
+          calculation_id: string
+          calculation_item_id: string
+          company_id: string
+          created_at: string
+          deduction_type: string
+          description: string
+          employee_deduction_id: string
+          employee_id: string
+          id: string
+          installment_number: number | null
+        }
+        Insert: {
+          amount?: number
+          calculation_id: string
+          calculation_item_id: string
+          company_id: string
+          created_at?: string
+          deduction_type: string
+          description?: string
+          employee_deduction_id: string
+          employee_id: string
+          id?: string
+          installment_number?: number | null
+        }
+        Update: {
+          amount?: number
+          calculation_id?: string
+          calculation_item_id?: string
+          company_id?: string
+          created_at?: string
+          deduction_type?: string
+          description?: string
+          employee_deduction_id?: string
+          employee_id?: string
+          id?: string
+          installment_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_calculation_deductions_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_calculation_deductions_calculation_item_id_fkey"
+            columns: ["calculation_item_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_calculation_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_calculation_deductions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_calculation_deductions_employee_deduction_id_fkey"
+            columns: ["employee_deduction_id"]
+            isOneToOne: false
+            referencedRelation: "employee_deductions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_calculation_deductions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
             referencedColumns: ["id"]
           },
         ]
