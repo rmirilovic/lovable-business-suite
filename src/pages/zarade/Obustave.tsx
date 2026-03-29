@@ -139,7 +139,7 @@ export default function Obustave() {
               ) : filtered.map((d) => {
                 const isPaidOff = d.is_credit && d.total_installments > 0 && d.paid_installments >= d.total_installments;
                 return (
-                  <TableRow key={d.id}>
+                  <TableRow key={d.id} className="cursor-pointer" onClick={() => { setEditItem(d); setDialogOpen(true); }}>
                     <TableCell className="font-medium text-sm">{empMap[d.employee_id] || d.employee_id}</TableCell>
                     <TableCell>
                       <Badge variant={d.is_credit ? "default" : "secondary"} className="text-xs">
