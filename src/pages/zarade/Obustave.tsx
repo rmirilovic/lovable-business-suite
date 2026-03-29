@@ -29,7 +29,7 @@ export default function Obustave() {
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState<EmployeeDeduction | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
