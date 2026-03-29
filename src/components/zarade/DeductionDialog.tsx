@@ -86,29 +86,63 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
 
   const isCredit = CREDIT_DEDUCTION_TYPES.includes(form.deduction_type);
 
-  // Auto-calculate installment amount + end date when credit fields change
-  const recalcInstallment = (updates: Partial<typeof form>) => {
-    const merged = { ...form, ...updates };
-    const total = merged.total_amount;
-    const installments = merged.total_installments;
-    const paidAmount = merged.paid_amount;
-    const remainingInstallments = Math.max(installments - merged.paid_installments, 1);
-    if (installments > 0 && total > 0) {
-      const remaining = Math.max(total - paidAmount, 0);
-      updates.amount_per_installment = Math.round((remaining / remainingInstallments) * 100) / 100;
-    }
-    // Auto-calc end_date: last day of (start_month + remaining installments)
-    const startDate = merged.start_date;
-    if (startDate && remainingInstallments > 0) {
-      try {
-        const start = new Date(startDate);
-        if (!isNaN(start.getTime())) {
-          const endMonth = addMonths(start, remainingInstallments - 1);
-          updates.end_date = format(lastDayOfMonth(endMonth), "yyyy-MM-dd");
+  const calculateCreditEndDate = (startDate: string, remainingInstallments: number) => {
+    try {
+      const start = new Date(startDate);
+      if (!isNaN(start.getTime())) {
+        const endMonth = addMonths(start, remainingInstallments - 1);
+        return format(lastDayOfMonth(endMonth), "yyyy-MM-dd");
+      }
+    } catch {}
+
+    return "";
+  };
+
+  // Auto-calculate installment amount when credit totals change
+  const recalcCreditFields = (updates: Partial<typeof form>) => {
+    setForm((prev) => {
+      const merged = { ...prev, ...updates };
+      const nextUpdates = { ...updates };
+      const total = merged.total_amount;
+      const installments = merged.total_installments;
+      const paidAmount = merged.paid_amount;
+      const paidInstallments = merged.paid_installments;
+      const remainingInstallments = Math.max(installments - paidInstallments, 1);
+
+      if (installments > 0 && total > 0) {
+        const remaining = Math.max(total - paidAmount, 0);
+        nextUpdates.amount_per_installment = Math.round((remaining / remainingInstallments) * 100) / 100;
+      }
+
+      if (merged.start_date && installments > 0 && remainingInstallments > 0) {
+        const calculatedEndDate = calculateCreditEndDate(merged.start_date, remainingInstallments);
+        if (calculatedEndDate) {
+          nextUpdates.end_date = calculatedEndDate;
         }
-      } catch {}
-    }
-    setForm((prev) => ({ ...prev, ...updates }));
+      }
+
+      return { ...prev, ...nextUpdates };
+    });
+  };
+
+  // Changing start date should only update the schedule dates, not overwrite a manually entered installment
+  const updateCreditStartDate = (startDate: string) => {
+    setForm((prev) => {
+      const merged = { ...prev, start_date: startDate };
+      const nextUpdates: Partial<typeof form> = { start_date: startDate };
+      const remainingInstallments = Math.max(merged.total_installments - merged.paid_installments, 1);
+
+      if (!startDate) {
+        nextUpdates.end_date = "";
+      } else if (merged.total_installments > 0 && remainingInstallments > 0) {
+        const calculatedEndDate = calculateCreditEndDate(startDate, remainingInstallments);
+        if (calculatedEndDate) {
+          nextUpdates.end_date = calculatedEndDate;
+        }
+      }
+
+      return { ...prev, ...nextUpdates };
+    });
   };
 
   const handleSave = async () => {
@@ -191,7 +225,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
                   <Label className="text-xs">Ukupan iznos kredita</Label>
                   <LocaleNumberInput
                     value={String(form.total_amount)}
-                    onChange={(v) => recalcInstallment({ total_amount: parseLocaleNumber(v) })}
+                    onChange={(v) => recalcCreditFields({ total_amount: parseLocaleNumber(v) })}
                   />
                 </div>
                 <div className="space-y-1">
@@ -199,7 +233,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
                   <Input
                     type="number"
                     value={form.total_installments}
-                    onChange={(e) => recalcInstallment({ total_installments: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => recalcCreditFields({ total_installments: parseInt(e.target.value) || 0 })}
                   />
                 </div>
                 <div className="space-y-1">
@@ -207,7 +241,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
                   <Input
                     type="number"
                     value={form.paid_installments}
-                    onChange={(e) => recalcInstallment({ paid_installments: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => recalcCreditFields({ paid_installments: parseInt(e.target.value) || 0 })}
                   />
                 </div>
               </div>
@@ -217,7 +251,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
                   <Label className="text-xs">Otplaćeni iznos</Label>
                   <LocaleNumberInput
                     value={String(form.paid_amount)}
-                    onChange={(v) => recalcInstallment({ paid_amount: parseLocaleNumber(v) })}
+                    onChange={(v) => recalcCreditFields({ paid_amount: parseLocaleNumber(v) })}
                   />
                 </div>
               </div>
@@ -253,7 +287,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label className="text-xs">Datum početka</Label>
-              <LocaleDateInput value={form.start_date} onChange={(v) => isCredit ? recalcInstallment({ start_date: v }) : setForm({ ...form, start_date: v })} />
+              <LocaleDateInput value={form.start_date} onChange={(v) => isCredit ? updateCreditStartDate(v) : setForm({ ...form, start_date: v })} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Datum završetka</Label>
