@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { ArrowLeft, Save, UserPlus, Calculator, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, UserPlus, Calculator, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import {
   usePayrollCalculation,
@@ -21,6 +21,7 @@ import {
 } from "@/hooks/usePayrollCalculations";
 import { useActivePayrollParameter } from "@/hooks/usePayrollParameters";
 import { useEmployees, Employee } from "@/hooks/useEmployees";
+import { useAllActiveDeductions, DEDUCTION_TYPE_LABELS, EmployeeDeduction } from "@/hooks/useEmployeeDeductions";
 import { calculatePayroll } from "@/lib/payrollCalculator";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { useAuth } from "@/contexts/AuthContext";
