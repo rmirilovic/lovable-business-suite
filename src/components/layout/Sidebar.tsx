@@ -101,6 +101,18 @@ const navigation: NavItem[] = [
     ],
   },
   {
+    label: "Partneri",
+    icon: Users,
+    moduleCode: "sifarnici.partneri",
+    children: [
+      { label: "Šifarnik partnera", href: "/sifarnici/partneri", moduleCode: "sifarnici.partneri" },
+      { label: "Kartice partnera", href: "/racunovodstvo/kartice-partnera", moduleCode: "racunovodstvo.kartice_partnera" },
+      { label: "Partneri po datumu valute", href: "/racunovodstvo/partneri-valuta", moduleCode: "racunovodstvo.kartice_partnera" },
+      { label: "Partneri po datumu DPO", href: "/racunovodstvo/partneri-dpo", moduleCode: "racunovodstvo.kartice_partnera" },
+      { label: "Dokumenti partnera", href: "/racunovodstvo/dokumenti-partnera", moduleCode: "racunovodstvo.kartice_partnera" },
+    ],
+  },
+  {
     label: "Magacin",
     icon: Warehouse,
     moduleCode: "robno",
@@ -145,18 +157,6 @@ const navigation: NavItem[] = [
       { label: "Evidencija odsustva", href: "/zarade/odsustva", moduleCode: "zarade.odsustva" },
       { label: "Kalendar odsustva", href: "/zarade/kalendar", moduleCode: "zarade.kalendar" },
       { label: "Fond godišnjeg odmora", href: "/zarade/fond-odmora", moduleCode: "zarade.fond_odmora" },
-    ],
-  },
-  {
-    label: "Partneri",
-    icon: Users,
-    moduleCode: "sifarnici.partneri",
-    children: [
-      { label: "Šifarnik partnera", href: "/sifarnici/partneri", moduleCode: "sifarnici.partneri" },
-      { label: "Kartice partnera", href: "/racunovodstvo/kartice-partnera", moduleCode: "racunovodstvo.kartice_partnera" },
-      { label: "Partneri po datumu valute", href: "/racunovodstvo/partneri-valuta", moduleCode: "racunovodstvo.kartice_partnera" },
-      { label: "Partneri po datumu DPO", href: "/racunovodstvo/partneri-dpo", moduleCode: "racunovodstvo.kartice_partnera" },
-      { label: "Dokumenti partnera", href: "/racunovodstvo/dokumenti-partnera", moduleCode: "racunovodstvo.kartice_partnera" },
     ],
   },
   {
