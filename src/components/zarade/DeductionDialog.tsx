@@ -237,7 +237,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label className="text-xs">Datum početka</Label>
-              <LocaleDateInput value={form.start_date} onChange={(v) => setForm({ ...form, start_date: v })} />
+              <LocaleDateInput value={form.start_date} onChange={(v) => isCredit ? recalcInstallment({ start_date: v }) : setForm({ ...form, start_date: v })} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Datum završetka</Label>
