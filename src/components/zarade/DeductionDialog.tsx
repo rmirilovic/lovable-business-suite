@@ -85,6 +85,20 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
 
   const isCredit = CREDIT_DEDUCTION_TYPES.includes(form.deduction_type);
 
+  // Auto-calculate installment amount when total/installments/paid change
+  const recalcInstallment = (updates: Partial<typeof form>) => {
+    const merged = { ...form, ...updates };
+    const total = merged.total_amount;
+    const installments = merged.total_installments;
+    const paidAmount = merged.paid_amount;
+    if (installments > 0 && total > 0) {
+      const remaining = Math.max(total - paidAmount, 0);
+      const remainingInstallments = Math.max(installments - merged.paid_installments, 1);
+      updates.amount_per_installment = Math.round((remaining / remainingInstallments) * 100) / 100;
+    }
+    setForm((prev) => ({ ...prev, ...updates }));
+  };
+
   const handleSave = async () => {
     if (!form.employee_id) return;
     const payload = {
