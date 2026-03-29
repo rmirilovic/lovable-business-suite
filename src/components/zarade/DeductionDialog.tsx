@@ -86,16 +86,27 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
 
   const isCredit = CREDIT_DEDUCTION_TYPES.includes(form.deduction_type);
 
-  // Auto-calculate installment amount when total/installments/paid change
+  // Auto-calculate installment amount + end date when credit fields change
   const recalcInstallment = (updates: Partial<typeof form>) => {
     const merged = { ...form, ...updates };
     const total = merged.total_amount;
     const installments = merged.total_installments;
     const paidAmount = merged.paid_amount;
+    const remainingInstallments = Math.max(installments - merged.paid_installments, 1);
     if (installments > 0 && total > 0) {
       const remaining = Math.max(total - paidAmount, 0);
-      const remainingInstallments = Math.max(installments - merged.paid_installments, 1);
       updates.amount_per_installment = Math.round((remaining / remainingInstallments) * 100) / 100;
+    }
+    // Auto-calc end_date: last day of (start_month + remaining installments)
+    const startDate = merged.start_date;
+    if (startDate && remainingInstallments > 0) {
+      try {
+        const start = new Date(startDate);
+        if (!isNaN(start.getTime())) {
+          const endMonth = addMonths(start, remainingInstallments - 1);
+          updates.end_date = format(lastDayOfMonth(endMonth), "yyyy-MM-dd");
+        }
+      } catch {}
     }
     setForm((prev) => ({ ...prev, ...updates }));
   };
