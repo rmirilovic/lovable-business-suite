@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { Plus, Search, Pencil, Trash2, History } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, History, Download, FileText, Printer } from "lucide-react";
 import { toast } from "sonner";
 import {
   useEmployeeDeductions,
@@ -21,11 +21,14 @@ import { DeductionDialog } from "@/components/zarade/DeductionDialog";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
+import { useAuth } from "@/contexts/AuthContext";
+import { exportDeductionsToExcel, exportDeductionsToPdf, printDeductions } from "@/lib/deductionListExportUtils";
 
 export default function Obustave() {
   const { data: deductions, isLoading } = useEmployeeDeductions();
   const { data: employees } = useEmployees();
   const { deleteDeduction } = useEmployeeDeductionMutations();
+  const { selectedCompany } = useAuth();
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -79,6 +82,20 @@ export default function Obustave() {
     deleteDeduction.mutate(id);
   };
 
+  const exportMeta = { companyName: selectedCompany?.name || "", empMap };
+
+  const handleExcel = () => {
+    exportDeductionsToExcel(filtered, exportMeta);
+    toast.success("Excel izvezen");
+  };
+  const handlePdf = async () => {
+    await exportDeductionsToPdf(filtered, exportMeta);
+    toast.success("PDF izvezen");
+  };
+  const handlePrint = async () => {
+    await printDeductions(filtered, exportMeta);
+  };
+
   return (
     <MainLayout title="Obustave od zarada">
       <div className="flex flex-col gap-4">
@@ -110,9 +127,20 @@ export default function Obustave() {
             </SelectContent>
           </Select>
           <div className="flex-1" />
-          <Button onClick={() => { setEditItem(null); setDialogOpen(true); }}>
-            <Plus className="w-4 h-4 mr-1" /> Nova obustava
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExcel} title="Izvezi u Excel">
+              <Download className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePdf} title="Izvezi u PDF">
+              <FileText className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint} title="Štampaj">
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
+            <Button onClick={() => { setEditItem(null); setDialogOpen(true); }}>
+              <Plus className="w-4 h-4 mr-1" /> Nova obustava
+            </Button>
+          </div>
         </div>
 
         <TableScrollContainer>
