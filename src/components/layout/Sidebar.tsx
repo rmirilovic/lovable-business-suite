@@ -217,6 +217,27 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
     }
   }, [location.pathname]);
 
+  const hasModuleAccess = (moduleCode?: string) => {
+    if (!moduleCode) return true;
+    if (isSuperAdmin || isLocalAdmin || permissionsLoading) return true;
+    return hasAccess(moduleCode);
+  };
+
+  const getFilteredChildren = (children: NavChild[], parentModuleCode?: string) => {
+    if (isSuperAdmin || isLocalAdmin || permissionsLoading) {
+      return children;
+    }
+
+    if (parentModuleCode && hasAccess(parentModuleCode)) {
+      return children;
+    }
+
+    return children.filter((child) => {
+      if (!child.moduleCode) return true;
+      return hasAccess(child.moduleCode);
+    });
+  };
+
   // Filter navigation based on permissions
   const getFilteredNavigation = () => {
     if (isSuperAdmin || isLocalAdmin) {
@@ -226,7 +247,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
     if (permissionsLoading) {
       // Show all navigation items while permissions are loading
       // to prevent flash-of-hidden-content for admin users
-      return navigation.filter(item => item.href !== "/admin");
+      return navigation.filter((item) => item.href !== "/admin");
     }
 
     return navigation.filter((item) => {
@@ -235,27 +256,10 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
         return isSuperAdmin || isLocalAdmin;
       }
       if (item.children) {
-        const accessibleChildren = item.children.filter(child => {
-          if (!child.moduleCode) return true;
-          return hasAccess(child.moduleCode);
-        });
-        return accessibleChildren.length > 0;
+        const accessibleChildren = getFilteredChildren(item.children, item.moduleCode);
+        return accessibleChildren.length > 0 || hasModuleAccess(item.moduleCode);
       }
-      if (item.moduleCode) {
-        return hasAccess(item.moduleCode);
-      }
-      return true;
-    });
-  };
-
-  const getFilteredChildren = (children: NavChild[]) => {
-    if (isSuperAdmin || isLocalAdmin) {
-      return children;
-    }
-
-    return children.filter(child => {
-      if (!child.moduleCode) return true;
-      return hasAccess(child.moduleCode);
+      return hasModuleAccess(item.moduleCode);
     });
   };
 
@@ -404,7 +408,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right" align="start" className="min-w-48">
                   <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">{item.label}</DropdownMenuLabel>
-                  {item.children && getFilteredChildren(item.children).map((child) => (
+                  {item.children && getFilteredChildren(item.children, item.moduleCode).map((child) => (
                     <DropdownMenuItem
                       key={child.href}
                       onClick={() => navigate(child.href)}
@@ -439,7 +443,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
                 </button>
                 {expandedItems.includes(item.label) && item.children && (
                   <div className="ml-8 mt-1 space-y-1">
-                    {getFilteredChildren(item.children).map((child) => (
+                    {getFilteredChildren(item.children, item.moduleCode).map((child) => (
                       <a
                         key={child.href}
                         href={child.href}
