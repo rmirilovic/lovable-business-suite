@@ -408,7 +408,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right" align="start" className="min-w-48">
                   <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">{item.label}</DropdownMenuLabel>
-                  {item.children && getFilteredChildren(item.children).map((child) => (
+                  {item.children && getFilteredChildren(item.children, item.moduleCode).map((child) => (
                     <DropdownMenuItem
                       key={child.href}
                       onClick={() => navigate(child.href)}
@@ -443,7 +443,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
                 </button>
                 {expandedItems.includes(item.label) && item.children && (
                   <div className="ml-8 mt-1 space-y-1">
-                    {getFilteredChildren(item.children).map((child) => (
+                    {getFilteredChildren(item.children, item.moduleCode).map((child) => (
                       <a
                         key={child.href}
                         href={child.href}
