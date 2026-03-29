@@ -156,10 +156,19 @@ export default function ObracunEdit() {
     toast.success(`Dodato ${active.length} zaposlenih`);
   };
 
+  // For credit deductions: if it's the last installment, use the remaining amount
+  const getEffectiveDeductionAmount = (d: EmployeeDeduction) => {
+    if (d.is_credit && d.total_amount > 0) {
+      const remaining = Math.max(d.total_amount - d.paid_amount, 0);
+      return Math.min(d.amount_per_installment, remaining);
+    }
+    return d.amount_per_installment;
+  };
+
   const getEmployeeDeductionsTotal = (employeeId: string | undefined) => {
     if (!employeeId) return 0;
     const deds = deductionsByEmployee[employeeId] || [];
-    return deds.reduce((sum, d) => sum + d.amount_per_installment, 0);
+    return deds.reduce((sum, d) => sum + getEffectiveDeductionAmount(d), 0);
   };
 
   const recalculateItem = (idx: number) => {
@@ -230,7 +239,7 @@ export default function ObracunEdit() {
         empContr: acc.empContr + (it.total_employee_contributions || 0),
         erlContr: acc.erlContr + (it.total_employer_contributions || 0),
         cost: acc.cost + (it.total_cost || 0),
-        deductions: acc.deductions + (deductionsByEmployee[it.employee_id || ""] || []).reduce((s, d) => s + d.amount_per_installment, 0),
+        deductions: acc.deductions + (deductionsByEmployee[it.employee_id || ""] || []).reduce((s, d) => s + getEffectiveDeductionAmount(d), 0),
       }),
       { gross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 }
     );
@@ -361,7 +370,7 @@ export default function ObracunEdit() {
                 <TableRow><TableCell colSpan={isPosted ? 10 : 11} className="text-center py-8 text-muted-foreground">Dodajte zaposlene u obračun</TableCell></TableRow>
               ) : items.map((item, idx) => {
                 const empDeds = deductionsByEmployee[item.employee_id || ""] || [];
-                const dedsTotal = empDeds.reduce((s, d) => s + d.amount_per_installment, 0);
+                const dedsTotal = empDeds.reduce((s, d) => s + getEffectiveDeductionAmount(d), 0);
                 const isExpanded = expandedRows.has(idx);
 
                 return (
@@ -420,7 +429,7 @@ export default function ObracunEdit() {
                         </TableCell>
                         <TableCell />
                         <TableCell />
-                        <TableCell className="text-right font-mono text-xs">{fmt(ded.amount_per_installment)}</TableCell>
+                        <TableCell className="text-right font-mono text-xs">{fmt(getEffectiveDeductionAmount(ded))}</TableCell>
                         <TableCell colSpan={isPosted ? 2 : 3} />
                       </TableRow>
                     ))}

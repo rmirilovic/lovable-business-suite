@@ -231,6 +231,22 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
               value={String(form.amount_per_installment)}
               onChange={(v) => setForm({ ...form, amount_per_installment: parseLocaleNumber(v) })}
             />
+            {isCredit && form.total_amount > 0 && form.total_installments > 0 && (() => {
+              const remaining = Math.max(form.total_amount - form.paid_amount, 0);
+              const remainingInstallments = Math.max(form.total_installments - form.paid_installments, 0);
+              if (remainingInstallments > 1) {
+                const regularTotal = form.amount_per_installment * (remainingInstallments - 1);
+                const lastInstallment = Math.round((remaining - regularTotal) * 100) / 100;
+                if (Math.abs(lastInstallment - form.amount_per_installment) > 0.01 && lastInstallment > 0) {
+                  return (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Poslednja rata ({form.paid_installments + remainingInstallments}/{form.total_installments}): <span className="font-semibold">{lastInstallment.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </p>
+                  );
+                }
+              }
+              return null;
+            })()}
           </div>
 
           {/* Dates */}
