@@ -114,11 +114,16 @@ export function useEmployeeDeductionMutations() {
   const updateDeduction = useMutation({
     mutationFn: async ({ id, ...data }: Partial<EmployeeDeduction> & { id: string }) => {
       const isCredit = CREDIT_DEDUCTION_TYPES.includes(data.deduction_type || "");
-      const { error } = await supabase
+      // Remove read-only fields that shouldn't be sent in update
+      const { company_id, created_at, updated_at, is_credit, ...updateData } = data as any;
+      const { data: result, error } = await supabase
         .from("employee_deductions")
-        .update({ ...data, is_credit: isCredit, updated_at: new Date().toISOString() } as any)
-        .eq("id", id);
+        .update({ ...updateData, is_credit: isCredit, updated_at: new Date().toISOString() } as any)
+        .eq("id", id)
+        .select()
+        .single();
       if (error) throw error;
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employee_deductions"] });
