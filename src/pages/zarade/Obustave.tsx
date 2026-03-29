@@ -168,7 +168,7 @@ export default function Obustave() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" onClick={() => { setEditItem(d); setDialogOpen(true); }}>
                           <Pencil className="w-4 h-4" />
                         </Button>
