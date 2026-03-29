@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -365,8 +365,8 @@ export default function ObracunEdit() {
                 const isExpanded = expandedRows.has(idx);
 
                 return (
-                  <> 
-                    <TableRow key={item.employee_id || idx}>
+                  <React.Fragment key={item.employee_id || idx}>
+                    <TableRow>
                       <TableCell className="px-1">
                         {empDeds.length > 0 && (
                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand(idx)}>
