@@ -454,12 +454,13 @@ export default function ObracunEdit() {
 
         {/* Summary cards */}
         {items.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
             {[
               { label: "Ukupno bruto", value: totals.gross },
               { label: "Ukupno porez", value: totals.tax },
               { label: "Doprinosi zaposleni", value: totals.empContr },
               { label: "Doprinosi poslodavac", value: totals.erlContr },
+              { label: "Obustave", value: totals.deductions },
               { label: "Ukupno neto", value: totals.net },
               { label: "Ukupan trošak", value: totals.cost },
             ].map((s) => (
