@@ -222,7 +222,7 @@ export default function ObracunEdit() {
   };
 
   const totals = useMemo(() => {
-    return items.reduce(
+    const base = items.reduce(
       (acc, it) => ({
         gross: acc.gross + (it.gross_salary || 0),
         net: acc.net + (it.net_salary || 0),
@@ -230,10 +230,12 @@ export default function ObracunEdit() {
         empContr: acc.empContr + (it.total_employee_contributions || 0),
         erlContr: acc.erlContr + (it.total_employer_contributions || 0),
         cost: acc.cost + (it.total_cost || 0),
+        deductions: acc.deductions + (deductionsByEmployee[it.employee_id || ""] || []).reduce((s, d) => s + d.amount_per_installment, 0),
       }),
-      { gross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0 }
+      { gross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 }
     );
-  }, [items]);
+    return base;
+  }, [items, deductionsByEmployee]);
 
   const fmt = (n: number) => formatPrice(n);
 
