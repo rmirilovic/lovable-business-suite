@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { Plus, Search, Pencil, Trash2, Filter } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, History } from "lucide-react";
 import { toast } from "sonner";
 import {
   useEmployeeDeductions,
@@ -18,16 +18,22 @@ import {
 import { useEmployees } from "@/hooks/useEmployees";
 import { formatPrice } from "@/lib/formatting";
 import { DeductionDialog } from "@/components/zarade/DeductionDialog";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 
 export default function Obustave() {
   const { data: deductions, isLoading } = useEmployeeDeductions();
   const { data: employees } = useEmployees();
   const { deleteDeduction } = useEmployeeDeductionMutations();
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState<EmployeeDeduction | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyItem, setHistoryItem] = useState<EmployeeDeduction | null>(null);
 
   const empMap = useMemo(() => {
     const m: Record<string, string> = {};
@@ -37,7 +43,7 @@ export default function Obustave() {
 
   const filtered = useMemo(() => {
     if (!deductions) return [];
-    return deductions.filter((d) => {
+    const list = deductions.filter((d) => {
       const empName = empMap[d.employee_id] || "";
       const matchSearch =
         !search ||
@@ -52,7 +58,21 @@ export default function Obustave() {
         (statusFilter === "paid_off" && d.is_credit && d.paid_installments >= d.total_installments && d.total_installments > 0);
       return matchSearch && matchType && matchStatus;
     });
-  }, [deductions, search, typeFilter, statusFilter, empMap]);
+    return sortItems(list, (item, col) => {
+      switch (col) {
+        case "employee": return empMap[item.employee_id] || "";
+        case "type": return DEDUCTION_TYPE_LABELS[item.deduction_type] || item.deduction_type;
+        case "description": return item.description;
+        case "creditor": return item.creditor_name || "";
+        case "installment": return item.amount_per_installment;
+        case "paid": return item.paid_installments;
+        case "total_inst": return item.total_installments;
+        case "total_amount": return item.total_amount;
+        case "status": return item.is_active ? 1 : 0;
+        default: return null;
+      }
+    });
+  }, [deductions, search, typeFilter, statusFilter, empMap, sortItems]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Da li ste sigurni?")) return;
@@ -99,16 +119,16 @@ export default function Obustave() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[200px]">Zaposleni</TableHead>
-                <TableHead className="min-w-[150px]">Tip</TableHead>
-                <TableHead className="min-w-[150px]">Opis</TableHead>
-                <TableHead className="min-w-[130px]">Kreditor</TableHead>
-                <TableHead className="min-w-[100px] text-right">Rata</TableHead>
-                <TableHead className="min-w-[80px] text-center">Otplaćeno</TableHead>
-                <TableHead className="min-w-[80px] text-center">Ukupno rata</TableHead>
-                <TableHead className="min-w-[100px] text-right">Ukupan iznos</TableHead>
-                <TableHead className="min-w-[80px] text-center">Status</TableHead>
-                <TableHead className="w-24"></TableHead>
+                <TableHead className="min-w-[200px]"><SortableHeader column="employee" label="Zaposleni" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="min-w-[150px]"><SortableHeader column="type" label="Tip" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="min-w-[150px]"><SortableHeader column="description" label="Opis" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="min-w-[130px]"><SortableHeader column="creditor" label="Kreditor" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="min-w-[100px] text-right"><SortableHeader column="installment" label="Rata" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                <TableHead className="min-w-[80px] text-center"><SortableHeader column="paid" label="Otplaćeno" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
+                <TableHead className="min-w-[80px] text-center"><SortableHeader column="total_inst" label="Ukupno rata" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
+                <TableHead className="min-w-[100px] text-right"><SortableHeader column="total_amount" label="Ukupan iznos" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                <TableHead className="min-w-[80px] text-center"><SortableHeader column="status" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" /></TableHead>
+                <TableHead className="w-28"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -152,6 +172,9 @@ export default function Obustave() {
                         <Button variant="ghost" size="icon" onClick={() => { setEditItem(d); setDialogOpen(true); }}>
                           <Pencil className="w-4 h-4" />
                         </Button>
+                        <Button variant="ghost" size="icon" onClick={() => { setHistoryItem(d); setHistoryOpen(true); }}>
+                          <History className="w-4 h-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id)}>
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
@@ -170,6 +193,33 @@ export default function Obustave() {
         onOpenChange={setDialogOpen}
         deduction={editItem}
       />
+
+      {historyItem && (
+        <DocumentHistoryDialog
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          documentId={historyItem.id}
+          documentName={`Obustava - ${historyItem.description}`}
+          documentType="employee_deduction"
+          fieldLabels={{
+            deduction_type: "Tip obustave",
+            description: "Opis",
+            creditor_name: "Kreditor",
+            reference_number: "Poziv na broj",
+            amount_per_installment: "Iznos rate",
+            total_amount: "Ukupan iznos",
+            total_installments: "Ukupno rata",
+            paid_installments: "Otplaćene rate",
+            paid_amount: "Otplaćeni iznos",
+            is_active: "Aktivna",
+            is_credit: "Kredit",
+            start_date: "Datum početka",
+            end_date: "Datum završetka",
+            note: "Napomena",
+            employee_id: "Zaposleni",
+          }}
+        />
+      )}
     </MainLayout>
   );
 }
