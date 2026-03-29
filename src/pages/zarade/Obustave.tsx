@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { Plus, Search, Pencil, Trash2, Filter } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, History } from "lucide-react";
 import { toast } from "sonner";
 import {
   useEmployeeDeductions,
@@ -18,6 +18,9 @@ import {
 import { useEmployees } from "@/hooks/useEmployees";
 import { formatPrice } from "@/lib/formatting";
 import { DeductionDialog } from "@/components/zarade/DeductionDialog";
+import { useTableSort } from "@/hooks/useTableSort";
+import { SortableHeader } from "@/components/ui/sortable-header";
+import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 
 export default function Obustave() {
   const { data: deductions, isLoading } = useEmployeeDeductions();
