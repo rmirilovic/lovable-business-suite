@@ -156,9 +156,16 @@ export default function ObracunEdit() {
     toast.success(`Dodato ${active.length} zaposlenih`);
   };
 
+  const getEmployeeDeductionsTotal = (employeeId: string | undefined) => {
+    if (!employeeId) return 0;
+    const deds = deductionsByEmployee[employeeId] || [];
+    return deds.reduce((sum, d) => sum + d.amount_per_installment, 0);
+  };
+
   const recalculateItem = (idx: number) => {
     if (!activeParam) { toast.error("Nema aktivnih parametara obračuna"); return; }
     const item = items[idx];
+    const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
     const result = calculatePayroll({
       grossSalary: item.gross_salary || 0,
       workingDays: item.working_days || 0,
@@ -168,7 +175,7 @@ export default function ObracunEdit() {
       mealAllowance: item.meal_allowance || 0,
       transportAllowance: item.transport_allowance || 0,
       otherAdditions: item.other_additions || 0,
-      otherDeductions: item.other_deductions || 0,
+      otherDeductions: deductionsTotal + (item.other_deductions || 0),
     }, activeParam);
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...result } : it)));
   };
@@ -177,6 +184,7 @@ export default function ObracunEdit() {
     if (!activeParam) { toast.error("Nema aktivnih parametara obračuna"); return; }
     setItems((prev) =>
       prev.map((item) => {
+        const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
         const result = calculatePayroll({
           grossSalary: item.gross_salary || 0,
           workingDays: item.working_days || 0,
@@ -186,7 +194,7 @@ export default function ObracunEdit() {
           mealAllowance: item.meal_allowance || 0,
           transportAllowance: item.transport_allowance || 0,
           otherAdditions: item.other_additions || 0,
-          otherDeductions: item.other_deductions || 0,
+          otherDeductions: deductionsTotal + (item.other_deductions || 0),
         }, activeParam);
         return { ...item, ...result };
       })
