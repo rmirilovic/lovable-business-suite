@@ -341,15 +341,14 @@ export default function ObracunEdit() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8"></TableHead>
                 <TableHead className="min-w-[60px]">Šifra</TableHead>
                 <TableHead className="min-w-[160px]">Zaposleni</TableHead>
                 <TableHead className="min-w-[120px] text-right">Bruto</TableHead>
                 <TableHead className="min-w-[100px] text-right">Porez</TableHead>
-                <TableHead className="min-w-[100px] text-right">PIO zap.</TableHead>
-                <TableHead className="min-w-[100px] text-right">Zdrav. zap.</TableHead>
-                <TableHead className="min-w-[80px] text-right">Nezap.</TableHead>
                 <TableHead className="min-w-[100px] text-right">Dop. zap.</TableHead>
                 <TableHead className="min-w-[100px] text-right">Dop. posl.</TableHead>
+                <TableHead className="min-w-[100px] text-right">Obustave</TableHead>
                 <TableHead className="min-w-[120px] text-right">Neto</TableHead>
                 <TableHead className="min-w-[120px] text-right">Trošak</TableHead>
                 {!isPosted && <TableHead className="w-20"></TableHead>}
@@ -357,48 +356,84 @@ export default function ObracunEdit() {
             </TableHeader>
             <TableBody>
               {!items.length ? (
-                <TableRow><TableCell colSpan={isPosted ? 11 : 12} className="text-center py-8 text-muted-foreground">Dodajte zaposlene u obračun</TableCell></TableRow>
-              ) : items.map((item, idx) => (
-                <TableRow key={item.employee_id || idx}>
-                  <TableCell className="font-mono text-xs">{item.employee_number}</TableCell>
-                  <TableCell className="font-medium text-sm">{item.employee_name}</TableCell>
-                  <TableCell className="text-right">
-                    {isPosted ? (
-                      <span className="font-mono">{fmt(item.gross_salary || 0)}</span>
-                    ) : (
-                      <LocaleNumberInput
-                        className="text-right w-28 h-8 text-sm"
-                        value={String(item.gross_salary ?? "")}
-                        onChange={(value) => updateItemField(idx, "gross_salary", parseLocaleNumber(value))}
-                        onBlur={() => recalculateItem(idx)}
-                      />
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right font-mono text-sm">{fmt(item.income_tax || 0)}</TableCell>
-                  <TableCell className="text-right font-mono text-sm">{fmt(item.pio_employee || 0)}</TableCell>
-                  <TableCell className="text-right font-mono text-sm">{fmt(item.health_employee || 0)}</TableCell>
-                  <TableCell className="text-right font-mono text-sm">{fmt(item.unemployment || 0)}</TableCell>
-                  <TableCell className="text-right font-mono text-sm">{fmt(item.total_employee_contributions || 0)}</TableCell>
-                  <TableCell className="text-right font-mono text-sm">{fmt(item.total_employer_contributions || 0)}</TableCell>
-                  <TableCell className="text-right font-mono text-sm font-semibold">{fmt(item.net_salary || 0)}</TableCell>
-                  <TableCell className="text-right font-mono text-sm">{fmt(item.total_cost || 0)}</TableCell>
-                  {!isPosted && (
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => removeItem(idx)}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                <TableRow><TableCell colSpan={isPosted ? 10 : 11} className="text-center py-8 text-muted-foreground">Dodajte zaposlene u obračun</TableCell></TableRow>
+              ) : items.map((item, idx) => {
+                const empDeds = deductionsByEmployee[item.employee_id || ""] || [];
+                const dedsTotal = empDeds.reduce((s, d) => s + d.amount_per_installment, 0);
+                const isExpanded = expandedRows.has(idx);
+
+                return (
+                  <> 
+                    <TableRow key={item.employee_id || idx}>
+                      <TableCell className="px-1">
+                        {empDeds.length > 0 && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand(idx)}>
+                            {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                          </Button>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">{item.employee_number}</TableCell>
+                      <TableCell className="font-medium text-sm">{item.employee_name}</TableCell>
+                      <TableCell className="text-right">
+                        {isPosted ? (
+                          <span className="font-mono">{fmt(item.gross_salary || 0)}</span>
+                        ) : (
+                          <LocaleNumberInput
+                            className="text-right w-28 h-8 text-sm"
+                            value={String(item.gross_salary ?? "")}
+                            onChange={(value) => updateItemField(idx, "gross_salary", parseLocaleNumber(value))}
+                            onBlur={() => recalculateItem(idx)}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.income_tax || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.total_employee_contributions || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.total_employer_contributions || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">
+                        {dedsTotal > 0 ? (
+                          <span className="text-destructive font-semibold">{fmt(dedsTotal)}</span>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt(item.net_salary || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.total_cost || 0)}</TableCell>
+                      {!isPosted && (
+                        <TableCell>
+                          <Button variant="ghost" size="icon" onClick={() => removeItem(idx)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                    {isExpanded && empDeds.map((ded) => (
+                      <TableRow key={ded.id} className="bg-muted/20">
+                        <TableCell />
+                        <TableCell />
+                        <TableCell colSpan={2} className="text-xs text-muted-foreground pl-8">
+                          {DEDUCTION_TYPE_LABELS[ded.deduction_type] || ded.deduction_type}
+                          {ded.description ? ` — ${ded.description}` : ""}
+                          {ded.creditor_name ? ` (${ded.creditor_name})` : ""}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground text-center">
+                          {ded.is_credit ? `Rata ${ded.paid_installments + 1}/${ded.total_installments}` : ""}
+                        </TableCell>
+                        <TableCell />
+                        <TableCell />
+                        <TableCell className="text-right font-mono text-xs">{fmt(ded.amount_per_installment)}</TableCell>
+                        <TableCell colSpan={isPosted ? 2 : 3} />
+                      </TableRow>
+                    ))}
+                  </>
+                );
+              })}
               {items.length > 0 && (
                 <TableRow className="border-t-2 font-semibold bg-muted/30">
+                  <TableCell />
                   <TableCell colSpan={2} className="text-right">UKUPNO:</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.gross)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.tax)}</TableCell>
-                  <TableCell colSpan={3}></TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.empContr)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.erlContr)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.deductions)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.net)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.cost)}</TableCell>
                   {!isPosted && <TableCell />}
