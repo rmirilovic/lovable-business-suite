@@ -424,7 +424,7 @@ export default function ObracunEdit() {
                         <TableCell colSpan={isPosted ? 2 : 3} />
                       </TableRow>
                     ))}
-                  </>
+                  </React.Fragment>
                 );
               })}
               {items.length > 0 && (
