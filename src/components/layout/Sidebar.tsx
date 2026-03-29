@@ -186,7 +186,7 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin, loading: authLoading } = useAuth();
   const { hasAccess, isLoading: permissionsLoading } = usePermissions();
 
   // Find which parent menu contains the active route
@@ -217,14 +217,18 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
     }
   }, [location.pathname]);
 
+  // While auth is still loading (role not yet determined), treat as full access
+  // to prevent race condition where permissions resolve before isSuperAdmin is set
+  const authStillLoading = authLoading;
+
   const hasModuleAccess = (moduleCode?: string) => {
     if (!moduleCode) return true;
-    if (isSuperAdmin || isLocalAdmin || permissionsLoading) return true;
+    if (isSuperAdmin || isLocalAdmin || permissionsLoading || authStillLoading) return true;
     return hasAccess(moduleCode);
   };
 
   const getFilteredChildren = (children: NavChild[], parentModuleCode?: string) => {
-    if (isSuperAdmin || isLocalAdmin || permissionsLoading) {
+    if (isSuperAdmin || isLocalAdmin || permissionsLoading || authStillLoading) {
       return children;
     }
 
@@ -244,7 +248,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
       return navigation.filter((item) => item.href !== "/admin" || isSuperAdmin || isLocalAdmin);
     }
 
-    if (permissionsLoading) {
+    if (permissionsLoading || authStillLoading) {
       // Show all navigation items while permissions are loading
       // to prevent flash-of-hidden-content for admin users
       return navigation.filter((item) => item.href !== "/admin");
