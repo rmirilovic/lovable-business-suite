@@ -43,7 +43,7 @@ export default function Obustave() {
 
   const filtered = useMemo(() => {
     if (!deductions) return [];
-    return deductions.filter((d) => {
+    const list = deductions.filter((d) => {
       const empName = empMap[d.employee_id] || "";
       const matchSearch =
         !search ||
@@ -58,7 +58,21 @@ export default function Obustave() {
         (statusFilter === "paid_off" && d.is_credit && d.paid_installments >= d.total_installments && d.total_installments > 0);
       return matchSearch && matchType && matchStatus;
     });
-  }, [deductions, search, typeFilter, statusFilter, empMap]);
+    return sortItems(list, (item, col) => {
+      switch (col) {
+        case "employee": return empMap[item.employee_id] || "";
+        case "type": return DEDUCTION_TYPE_LABELS[item.deduction_type] || item.deduction_type;
+        case "description": return item.description;
+        case "creditor": return item.creditor_name || "";
+        case "installment": return item.amount_per_installment;
+        case "paid": return item.paid_installments;
+        case "total_inst": return item.total_installments;
+        case "total_amount": return item.total_amount;
+        case "status": return item.is_active ? 1 : 0;
+        default: return null;
+      }
+    });
+  }, [deductions, search, typeFilter, statusFilter, empMap, sortItems]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Da li ste sigurni?")) return;
