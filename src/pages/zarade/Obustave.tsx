@@ -172,6 +172,9 @@ export default function Obustave() {
                         <Button variant="ghost" size="icon" onClick={() => { setEditItem(d); setDialogOpen(true); }}>
                           <Pencil className="w-4 h-4" />
                         </Button>
+                        <Button variant="ghost" size="icon" onClick={() => { setHistoryItem(d); setHistoryOpen(true); }}>
+                          <History className="w-4 h-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id)}>
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
