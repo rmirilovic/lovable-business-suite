@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { addMonths, lastDayOfMonth, format } from "date-fns";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,16 +86,27 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
 
   const isCredit = CREDIT_DEDUCTION_TYPES.includes(form.deduction_type);
 
-  // Auto-calculate installment amount when total/installments/paid change
+  // Auto-calculate installment amount + end date when credit fields change
   const recalcInstallment = (updates: Partial<typeof form>) => {
     const merged = { ...form, ...updates };
     const total = merged.total_amount;
     const installments = merged.total_installments;
     const paidAmount = merged.paid_amount;
+    const remainingInstallments = Math.max(installments - merged.paid_installments, 1);
     if (installments > 0 && total > 0) {
       const remaining = Math.max(total - paidAmount, 0);
-      const remainingInstallments = Math.max(installments - merged.paid_installments, 1);
       updates.amount_per_installment = Math.round((remaining / remainingInstallments) * 100) / 100;
+    }
+    // Auto-calc end_date: last day of (start_month + remaining installments)
+    const startDate = merged.start_date;
+    if (startDate && remainingInstallments > 0) {
+      try {
+        const start = new Date(startDate);
+        if (!isNaN(start.getTime())) {
+          const endMonth = addMonths(start, remainingInstallments - 1);
+          updates.end_date = format(lastDayOfMonth(endMonth), "yyyy-MM-dd");
+        }
+      } catch {}
     }
     setForm((prev) => ({ ...prev, ...updates }));
   };
@@ -225,7 +237,7 @@ export function DeductionDialog({ open, onOpenChange, deduction }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label className="text-xs">Datum početka</Label>
-              <LocaleDateInput value={form.start_date} onChange={(v) => setForm({ ...form, start_date: v })} />
+              <LocaleDateInput value={form.start_date} onChange={(v) => isCredit ? recalcInstallment({ start_date: v }) : setForm({ ...form, start_date: v })} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Datum završetka</Label>
