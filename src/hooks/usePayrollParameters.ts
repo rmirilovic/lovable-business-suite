@@ -21,6 +21,7 @@ export interface PayrollParameter {
   regres_daily: number;
   meal_daily: number;
   sick_leave_employer_rate: number;
+  seniority_bonus_rate: number;
   is_active: boolean;
   note: string | null;
   created_at: string;

@@ -5191,6 +5191,7 @@ export type Database = {
           pio_employee: number
           pio_employer: number
           regres: number
+          seniority_bonus: number
           tax_base: number
           total_cost: number
           total_employee_contributions: number
@@ -5224,6 +5225,7 @@ export type Database = {
           pio_employee?: number
           pio_employer?: number
           regres?: number
+          seniority_bonus?: number
           tax_base?: number
           total_cost?: number
           total_employee_contributions?: number
@@ -5257,6 +5259,7 @@ export type Database = {
           pio_employee?: number
           pio_employer?: number
           regres?: number
+          seniority_bonus?: number
           tax_base?: number
           total_cost?: number
           total_employee_contributions?: number
@@ -5414,6 +5417,7 @@ export type Database = {
           pio_employee_rate: number
           pio_employer_rate: number
           regres_daily: number
+          seniority_bonus_rate: number
           sick_leave_employer_rate: number
           unemployment_rate: number
           updated_at: string
@@ -5437,6 +5441,7 @@ export type Database = {
           pio_employee_rate?: number
           pio_employer_rate?: number
           regres_daily?: number
+          seniority_bonus_rate?: number
           sick_leave_employer_rate?: number
           unemployment_rate?: number
           updated_at?: string
@@ -5460,6 +5465,7 @@ export type Database = {
           pio_employee_rate?: number
           pio_employer_rate?: number
           regres_daily?: number
+          seniority_bonus_rate?: number
           sick_leave_employer_rate?: number
           unemployment_rate?: number
           updated_at?: string

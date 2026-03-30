@@ -104,6 +104,20 @@ export default function ObracunEdit() {
     return employeeDeductions.reduce((sum, deduction) => sum + getEffectiveDeductionAmount(deduction), 0);
   };
 
+  const calculateSeniorityBonus = (employeeId: string | undefined, baseSalary: number, ratio: number): number => {
+    if (!employeeId || !activeParam) return 0;
+    const emp = employees?.find((e) => e.id === employeeId);
+    if (!emp?.employment_date) return 0;
+    const start = new Date(emp.employment_date);
+    const now = new Date();
+    if (start > now) return 0;
+    const diffMs = now.getTime() - start.getTime();
+    const fullYears = Math.floor(diffMs / (365.25 * 24 * 60 * 60 * 1000));
+    if (fullYears <= 0) return 0;
+    const rate = (activeParam as any).seniority_bonus_rate ?? 0.4;
+    return Math.round(baseSalary * fullYears * rate / 100 * ratio * 100) / 100;
+  };
+
   const calculateItemValues = (item: Partial<PayrollCalculationItem>, inputMode: InputMode): Partial<PayrollCalculationItem> => {
     if (!activeParam) return item;
 
@@ -122,20 +136,18 @@ export default function ObracunEdit() {
     const transportAllowance = Math.round(transportMonthly * ratio * 100) / 100;
 
     const desiredNet = item.net_salary || 0;
-    // In bruto mode, gross_salary IS the base salary (without supplements)
-    // In neto mode, we reverse-calculate base salary from desired net minus supplements
     let baseSalary = item.gross_salary || 0;
     if (inputMode === "neto") {
-      // desiredNet = totalGross - contributions - tax - deductions
-      // totalGross = baseSalary + regres + meal + transport + otherAdditions
-      // We need to find baseSalary such that net = desiredNet
-      // Approach: calculate what total gross would yield desiredNet, then subtract supplements
       const totalGrossNeeded = calculateGrossFromNet(desiredNet + deductionsTotal, activeParam);
       baseSalary = Math.max(totalGrossNeeded - regres - mealAllowance - transportAllowance - (item.other_additions || 0), 0);
     }
 
+    // Seniority bonus based on base salary and years at employer
+    const seniorityBonus = calculateSeniorityBonus(item.employee_id, baseSalary, ratio);
+
     const result = calculatePayroll({
       baseSalary,
+      seniorityBonus,
       regres,
       mealAllowance,
       transportAllowance,
@@ -150,9 +162,8 @@ export default function ObracunEdit() {
     return {
       ...item,
       ...result,
-      // In bruto mode, gross_salary stores the base salary (user input)
-      // The displayed "Bruto" in the table is this base salary
       gross_salary: baseSalary,
+      seniority_bonus: seniorityBonus,
       other_deductions: 0,
       net_salary: inputMode === "neto" ? desiredNet : result.net_salary,
     };
@@ -244,6 +255,7 @@ export default function ObracunEdit() {
         net_salary: 0,
         total_cost: 0,
         ...wh,
+        seniority_bonus: 0,
         meal_allowance: 0,
         transport_allowance: 0,
         other_additions: 0,
@@ -294,6 +306,7 @@ export default function ObracunEdit() {
           net_salary: 0,
           total_cost: 0,
           ...wh,
+          seniority_bonus: 0,
           meal_allowance: 0,
           transport_allowance: 0,
           other_additions: 0,
@@ -396,16 +409,17 @@ export default function ObracunEdit() {
     }
   };
 
-  interface Totals { gross: number; regres: number; meal: number; transport: number; totalGross: number; net: number; tax: number; empContr: number; erlContr: number; cost: number; deductions: number; }
+  interface Totals { gross: number; seniority: number; regres: number; meal: number; transport: number; totalGross: number; net: number; tax: number; empContr: number; erlContr: number; cost: number; deductions: number; }
   const totals: Totals = useMemo(() => {
-    const init: Totals = { gross: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
+    const init: Totals = { gross: 0, seniority: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
     return items.reduce<Totals>((acc, item) => {
       return {
         gross: acc.gross + (item.gross_salary || 0),
+        seniority: acc.seniority + (item.seniority_bonus || 0),
         regres: acc.regres + (item.regres || 0),
         meal: acc.meal + (item.meal_allowance || 0),
         transport: acc.transport + (item.transport_allowance || 0),
-        totalGross: acc.totalGross + (item.gross_salary || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
+        totalGross: acc.totalGross + (item.gross_salary || 0) + (item.seniority_bonus || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
         net: acc.net + (item.net_salary || 0),
         tax: acc.tax + (item.income_tax || 0),
         empContr: acc.empContr + (item.total_employee_contributions || 0),
@@ -541,6 +555,7 @@ export default function ObracunEdit() {
                 <TableHead className="min-w-[110px] text-right">
                   {header.input_mode === "neto" ? <span className="text-muted-foreground">Osnovna <span className="text-xs">(izr.)</span></span> : "Osnovna"}
                 </TableHead>
+                <TableHead className="min-w-[80px] text-right">Min. rad</TableHead>
                 <TableHead className="min-w-[80px] text-right">Regres</TableHead>
                 <TableHead className="min-w-[80px] text-right">T. obrok</TableHead>
                 <TableHead className="min-w-[80px] text-right">Prevoz</TableHead>
@@ -559,7 +574,7 @@ export default function ObracunEdit() {
             <TableBody>
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={isPosted ? 16 : 17} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
+                  <TableCell colSpan={isPosted ? 17 : 18} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
                 </TableRow>
               ) : items.map((item, idx) => {
                 const employeeDeductions = deductionsByEmployee[item.employee_id || ""] || [];
@@ -592,10 +607,11 @@ export default function ObracunEdit() {
                           />
                         )}
                       </TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.seniority_bonus || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.regres || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.meal_allowance || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.transport_allowance || 0)}</TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt((item.gross_salary || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0))}</TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt((item.gross_salary || 0) + (item.seniority_bonus || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0))}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.income_tax || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employee_contributions || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employer_contributions || 0)}</TableCell>
@@ -648,6 +664,7 @@ export default function ObracunEdit() {
                   <TableCell />
                   <TableCell colSpan={4} className="text-right">UKUPNO:</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.gross)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.seniority)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.regres)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.meal)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.transport)}</TableCell>
@@ -674,6 +691,7 @@ export default function ObracunEdit() {
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
             {[
               { label: "Osnovna zarada", value: totals.gross },
+              { label: "Minuli rad", value: totals.seniority },
               { label: "Ukupno bruto", value: totals.totalGross },
               { label: "Ukupno porez", value: totals.tax },
               { label: "Doprinosi zaposleni", value: totals.empContr },

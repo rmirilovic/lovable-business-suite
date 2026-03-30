@@ -30,6 +30,7 @@ const defaultForm = {
   regres_daily: 0,
   meal_daily: 0,
   sick_leave_employer_rate: 65,
+  seniority_bonus_rate: 0.4,
   is_active: true,
   note: "",
 };
@@ -55,6 +56,7 @@ export default function ParametriObracuna() {
       regres_daily: (p as any).regres_daily ?? 0,
       meal_daily: (p as any).meal_daily ?? 0,
       sick_leave_employer_rate: (p as any).sick_leave_employer_rate ?? 65,
+      seniority_bonus_rate: (p as any).seniority_bonus_rate ?? 0.4,
       is_active: p.is_active, note: p.note || "",
     });
     setDialogOpen(true);
@@ -191,6 +193,13 @@ export default function ParametriObracuna() {
                 {numField("Regres (dnevni)", "regres_daily", "RSD")}
                 {numField("Topli obrok (dnevni)", "meal_daily", "RSD")}
               </div>
+            </div>
+            <div className="border rounded-lg p-3 space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Minuli rad</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {numField("Procenat po godini staža", "seniority_bonus_rate")}
+              </div>
+              <p className="text-xs text-muted-foreground">Procenat od osnovne zarade po punoj godini staža kod poslodavca. Podrazumevano 0,4%.</p>
             </div>
             <div className="border rounded-lg p-3 space-y-3">
               <h3 className="text-sm font-semibold text-foreground">Bolovanje na teret poslodavca</h3>

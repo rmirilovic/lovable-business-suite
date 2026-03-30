@@ -2,6 +2,7 @@ import { PayrollParameter } from "@/hooks/usePayrollParameters";
 
 export interface PayrollInput {
   baseSalary: number;
+  seniorityBonus: number;
   regres: number;
   mealAllowance: number;
   transportAllowance: number;
@@ -27,6 +28,7 @@ export interface PayrollResult {
   total_employer_contributions: number;
   net_salary: number;
   total_cost: number;
+  seniority_bonus: number;
   regres: number;
   meal_allowance: number;
   transport_allowance: number;
@@ -54,7 +56,7 @@ export function calculateGrossFromNet(desiredNet: number, params: PayrollParamet
   for (let i = 0; i < 20; i++) {
     const result = calculatePayroll({
       baseSalary: gross,
-      regres: 0, mealAllowance: 0, transportAllowance: 0,
+      seniorityBonus: 0, regres: 0, mealAllowance: 0, transportAllowance: 0,
       otherAdditions: 0, otherDeductions: 0,
       workingDays: 0, workedDays: 0,
       hoursRegular: 0, hoursOvertime: 0,
@@ -76,7 +78,7 @@ export function calculateGrossFromNet(desiredNet: number, params: PayrollParamet
 export function calculatePayroll(input: PayrollInput, params: PayrollParameter): PayrollResult {
   // Total gross includes all taxable supplements
   const gross = Math.round(
-    (input.baseSalary + input.regres + input.mealAllowance + input.transportAllowance + input.otherAdditions) * 100
+    (input.baseSalary + input.seniorityBonus + input.regres + input.mealAllowance + input.transportAllowance + input.otherAdditions) * 100
   ) / 100;
 
   // Contribution bases
@@ -121,6 +123,7 @@ export function calculatePayroll(input: PayrollInput, params: PayrollParameter):
     total_employer_contributions: totalEmployerContributions,
     net_salary: netSalary,
     total_cost: totalCost,
+    seniority_bonus: input.seniorityBonus,
     regres: input.regres,
     meal_allowance: input.mealAllowance,
     transport_allowance: input.transportAllowance,
