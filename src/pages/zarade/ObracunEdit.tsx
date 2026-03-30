@@ -86,6 +86,7 @@ export default function ObracunEdit() {
         period_month: calculation.period_month,
         period_year: calculation.period_year,
         note: calculation.note || "",
+        input_mode: ((calculation as any).input_mode as "bruto" | "neto") || "bruto",
       });
     }
   }, [calculation]);
