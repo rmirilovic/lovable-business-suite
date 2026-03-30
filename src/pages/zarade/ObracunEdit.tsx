@@ -61,6 +61,7 @@ export default function ObracunEdit() {
 
   // Fetch work hours for the calculation period
   const { data: workHoursData } = useWorkHours(header.period_year, header.period_month);
+  const { data: absences } = useAbsences();
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
