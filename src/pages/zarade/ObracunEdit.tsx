@@ -288,7 +288,7 @@ export default function ObracunEdit() {
         </div>
 
         {/* Header */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border rounded-lg p-4 bg-card">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 border rounded-lg p-4 bg-card">
           <div className="space-y-1">
             <Label className="text-xs">Broj obračuna</Label>
             <Input value={header.calculation_number} disabled={isPosted}
@@ -333,6 +333,17 @@ export default function ObracunEdit() {
               disabled={isPosted}
               required
             />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Režim unosa</Label>
+            <Select value={header.input_mode} disabled={isPosted}
+              onValueChange={(v) => setHeader({ ...header, input_mode: v as "bruto" | "neto" })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bruto">Unos Bruto</SelectItem>
+                <SelectItem value="neto">Unos Neto</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
