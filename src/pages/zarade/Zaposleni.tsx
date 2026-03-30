@@ -47,6 +47,7 @@ const ALL_COLUMNS: ColumnDef[] = [
   { key: "education_level", label: "Stručna sprema", defaultVisible: false },
   { key: "employment_type", label: "Vrsta ugovora", defaultVisible: true },
   { key: "employment_date", label: "Datum zaposlenja", defaultVisible: true, width: "120px" },
+  { key: "contracted_salary", label: "Ugovorena zarada", defaultVisible: false, width: "140px" },
   { key: "bank_account", label: "Tekući račun", defaultVisible: false },
   { key: "work_experience", label: "Radni staž", defaultVisible: false, width: "100px" },
   { key: "status", label: "Status", defaultVisible: true, width: "100px" },
@@ -149,6 +150,7 @@ export default function Zaposleni() {
       case "education_level": return item.education_level || "";
       case "employment_type": return EMPLOYMENT_TYPE_LABELS[item.employment_type] || item.employment_type;
       case "employment_date": return item.employment_date || "";
+      case "contracted_salary": return item.contracted_salary || 0;
       case "bank_account": return item.bank_account || "";
       case "work_experience": return computeTotalExperience(item);
       case "status": return item.status;
@@ -211,6 +213,8 @@ export default function Zaposleni() {
         return EMPLOYMENT_TYPE_LABELS[emp.employment_type] || emp.employment_type;
       case "employment_date":
         return emp.employment_date ? formatDate(emp.employment_date) : "-";
+      case "contracted_salary":
+        return <span className="text-right tabular-nums">{emp.contracted_salary ? new Intl.NumberFormat("sr-Latn-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(emp.contracted_salary) : "-"}</span>;
       case "bank_account":
         return <span className="font-mono">{emp.bank_account || "-"}</span>;
       case "work_experience":
