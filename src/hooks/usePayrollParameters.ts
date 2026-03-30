@@ -20,6 +20,7 @@ export interface PayrollParameter {
   min_base_health: number;
   regres_daily: number;
   meal_daily: number;
+  sick_leave_employer_rate: number;
   is_active: boolean;
   note: string | null;
   created_at: string;

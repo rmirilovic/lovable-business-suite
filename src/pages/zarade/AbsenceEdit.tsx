@@ -32,6 +32,7 @@ interface AbsenceForm {
   start_date: string;
   end_date: string;
   work_days: string;
+  compensation_rate: string;
   note: string;
 }
 
@@ -41,6 +42,7 @@ const emptyForm: AbsenceForm = {
   start_date: "",
   end_date: "",
   work_days: "0",
+  compensation_rate: "",
   note: "",
 };
 
@@ -86,6 +88,7 @@ export default function AbsenceEdit() {
         start_date: absence.start_date,
         end_date: absence.end_date,
         work_days: String(absence.work_days),
+        compensation_rate: absence.compensation_rate != null ? String(absence.compensation_rate) : "",
         note: absence.note || "",
       });
     }
@@ -98,6 +101,16 @@ export default function AbsenceEdit() {
         const s = field === "start_date" ? value : prev.start_date;
         const e = field === "end_date" ? value : prev.end_date;
         next.work_days = String(countWorkDays(s, e));
+      }
+      // Auto-set compensation rate for sick leave types
+      if (field === "absence_type") {
+        if (value === "bolovanje_poslodavac") {
+          next.compensation_rate = "65";
+        } else if (value === "bolovanje_rfzo" && !prev.compensation_rate) {
+          next.compensation_rate = "65";
+        } else if (value !== "bolovanje_rfzo" && value !== "bolovanje_poslodavac") {
+          next.compensation_rate = "";
+        }
       }
       return next;
     });
@@ -121,6 +134,7 @@ export default function AbsenceEdit() {
       start_date: form.start_date,
       end_date: form.end_date,
       work_days: parseInt(form.work_days) || 0,
+      compensation_rate: form.compensation_rate ? parseFloat(form.compensation_rate) : null,
       note: form.note || null,
       created_by: user.id,
     };
@@ -253,6 +267,38 @@ export default function AbsenceEdit() {
                   disabled={!canWrite}
                 />
               </div>
+              {(form.absence_type === "bolovanje_poslodavac" || form.absence_type === "bolovanje_rfzo") && (
+                <div>
+                  <Label>Procenat naknade (%)</Label>
+                  {form.absence_type === "bolovanje_rfzo" ? (
+                    <Select
+                      value={form.compensation_rate || "65"}
+                      onValueChange={(v) => handleChange("compensation_rate", v)}
+                      disabled={!canWrite}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="65">65%</SelectItem>
+                        <SelectItem value="100">100% (povreda na radu, trudnoća...)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <LocaleNumberInput
+                      value={form.compensation_rate || "65"}
+                      onChange={(v) => handleChange("compensation_rate", v)}
+                      decimalPlaces={0}
+                      disabled={!canWrite}
+                    />
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {form.absence_type === "bolovanje_poslodavac"
+                      ? "Procenat od prosečne zarade, važi za sve zaposlene. Može se promeniti."
+                      : "65% ili 100% u zavisnosti od vrste bolovanja (povreda na radu, trudnoća itd.)"}
+                  </p>
+                </div>
+              )}
             </div>
             <div className="mt-4">
               <Label>Napomena</Label>

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calculator, ChevronDown, ChevronRight, Save, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, Calculator, ChevronDown, ChevronRight, FileText, Save, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -26,8 +26,11 @@ import { Employee, useEmployees } from "@/hooks/useEmployees";
 import { DEDUCTION_TYPE_LABELS, EmployeeDeduction, useAllActiveDeductions } from "@/hooks/useEmployeeDeductions";
 import { useActivePayrollParameter } from "@/hooks/usePayrollParameters";
 import { useWorkHours } from "@/hooks/useWorkHours";
+import { useAbsences } from "@/hooks/useAbsences";
 import { parseLocaleNumber, formatPrice } from "@/lib/formatting";
 import { calculateGrossFromNet, calculatePayroll } from "@/lib/payrollCalculator";
+import { generateRfzoRefundPdf } from "@/lib/rfzoRefundPdfGenerator";
+import { initializePdfFonts } from "@/lib/pdfFonts";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
@@ -36,7 +39,7 @@ type InputMode = "bruto" | "neto";
 export default function ObracunEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { selectedYear } = useAuth();
+  const { selectedYear, selectedCompany } = useAuth();
   const isNew = id === "new";
 
   const { data: calculation, isLoading: calcLoading } = usePayrollCalculation(id);
@@ -58,6 +61,7 @@ export default function ObracunEdit() {
 
   // Fetch work hours for the calculation period
   const { data: workHoursData } = useWorkHours(header.period_year, header.period_month);
+  const { data: absences } = useAbsences();
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -190,6 +194,17 @@ export default function ObracunEdit() {
     };
   };
 
+  const isSickLeaveType = header.calculation_type === "bolovanje_poslodavac" || header.calculation_type === "bolovanje_rfzo";
+
+  const getEmployeeAbsenceForPeriod = (employeeId: string) => {
+    if (!absences) return null;
+    const absType = header.calculation_type === "bolovanje_poslodavac" ? "bolovanje_poslodavac" : "bolovanje_rfzo";
+    return absences.find(a =>
+      a.employee_id === employeeId &&
+      a.absence_type === absType
+    ) || null;
+  };
+
   const addEmployee = (employee: Employee) => {
     if (items.some((item) => item.employee_id === employee.id)) {
       toast.error("Zaposleni je već dodat");
@@ -197,6 +212,17 @@ export default function ObracunEdit() {
     }
 
     const wh = getWorkHoursForEmployee(employee.id);
+    const contractedSalary = (employee as any).contracted_salary || 0;
+
+    // For sick leave, use contracted salary as base (will be refined with avg salary on recalculate)
+    let initialGross = 0;
+    if (isSickLeaveType && contractedSalary > 0) {
+      const absence = getEmployeeAbsenceForPeriod(employee.id);
+      const rate = absence?.compensation_rate || (header.calculation_type === "bolovanje_poslodavac" ? (activeParam as any)?.sick_leave_employer_rate || 65 : 65);
+      initialGross = Math.round(contractedSalary * rate / 100 * 100) / 100;
+    } else if (contractedSalary > 0) {
+      initialGross = contractedSalary;
+    }
 
     setItems((prev) => [
       ...prev,
@@ -204,7 +230,7 @@ export default function ObracunEdit() {
         employee_id: employee.id,
         employee_number: employee.employee_number,
         employee_name: `${employee.last_name} ${employee.first_name}`,
-        gross_salary: 0,
+        gross_salary: initialGross,
         non_taxable_amount: activeParam?.non_taxable_amount || 25000,
         tax_base: 0,
         income_tax: 0,
@@ -239,11 +265,22 @@ export default function ObracunEdit() {
       ...prev,
       ...availableEmployees.map((employee) => {
         const wh = getWorkHoursForEmployee(employee.id);
+        const contractedSalary = (employee as any).contracted_salary || 0;
+
+        let initialGross = 0;
+        if (isSickLeaveType && contractedSalary > 0) {
+          const absence = getEmployeeAbsenceForPeriod(employee.id);
+          const rate = absence?.compensation_rate || (header.calculation_type === "bolovanje_poslodavac" ? (activeParam as any)?.sick_leave_employer_rate || 65 : 65);
+          initialGross = Math.round(contractedSalary * rate / 100 * 100) / 100;
+        } else if (contractedSalary > 0) {
+          initialGross = contractedSalary;
+        }
+
         return {
           employee_id: employee.id,
           employee_number: employee.employee_number,
           employee_name: `${employee.last_name} ${employee.first_name}`,
-          gross_salary: 0,
+          gross_salary: initialGross,
           non_taxable_amount: activeParam?.non_taxable_amount || 25000,
           tax_base: 0,
           income_tax: 0,
@@ -266,6 +303,49 @@ export default function ObracunEdit() {
     ]);
 
     toast.success(`Dodato ${availableEmployees.length} zaposlenih`);
+  };
+
+  const handleExportRfzoPdf = async () => {
+    if (header.calculation_type !== "bolovanje_rfzo") return;
+
+    await initializePdfFonts();
+    const company = selectedCompany as any;
+    const rfzoItems = items.map((item) => {
+      const emp = employees?.find(e => e.id === item.employee_id);
+      const absence = absences?.find(a => a.employee_id === item.employee_id && a.absence_type === "bolovanje_rfzo");
+      return {
+        employee_number: item.employee_number || "",
+        employee_name: item.employee_name || "",
+        jmbg: emp?.jmbg || "",
+        absence_start: absence?.start_date || "",
+        absence_end: absence?.end_date || "",
+        work_days: absence?.work_days || item.worked_days || 0,
+        compensation_rate: absence?.compensation_rate || 65,
+        average_salary: (emp as any)?.contracted_salary || item.gross_salary || 0,
+        daily_amount: item.worked_days ? Math.round((item.gross_salary || 0) / item.worked_days * 100) / 100 : 0,
+        total_amount: item.gross_salary || 0,
+        gross_salary: (item.gross_salary || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0),
+        pio_employee: item.pio_employee || 0,
+        health_employee: item.health_employee || 0,
+        unemployment: item.unemployment || 0,
+        income_tax: item.income_tax || 0,
+        pio_employer: item.pio_employer || 0,
+        health_employer: item.health_employer || 0,
+      };
+    });
+
+    const doc = generateRfzoRefundPdf({
+      companyName: company?.name || "",
+      companyPib: company?.pib || "",
+      companyMb: company?.mb || "",
+      companyAddress: company?.address || "",
+      periodMonth: header.period_month,
+      periodYear: header.period_year,
+      items: rfzoItems,
+    });
+
+    doc.save(`RFZO_Refundacija_${header.period_month}_${header.period_year}.pdf`);
+    toast.success("PDF za refundaciju generisan");
   };
 
   const recalculateItem = (idx: number) => {
@@ -366,6 +446,11 @@ export default function ObracunEdit() {
                 <Save className="mr-1 h-4 w-4" /> Sačuvaj
               </Button>
             </>
+          )}
+          {header.calculation_type === "bolovanje_rfzo" && items.length > 0 && (
+            <Button variant="outline" size="sm" onClick={handleExportRfzoPdf}>
+              <FileText className="mr-1 h-4 w-4" /> RFZO Refundacija PDF
+            </Button>
           )}
         </div>
 

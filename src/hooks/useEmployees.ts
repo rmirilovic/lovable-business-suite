@@ -35,6 +35,7 @@ export interface Employee {
   termination_date: string | null;
   note: string | null;
   transport_monthly: number;
+  contracted_salary: number;
   created_by: string;
   created_at: string;
   updated_at: string;

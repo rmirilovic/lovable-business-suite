@@ -65,6 +65,7 @@ interface EmployeeForm {
   termination_date: string;
   note: string;
   transport_monthly: string;
+  contracted_salary: string;
 }
 
 const emptyForm: EmployeeForm = {
@@ -96,6 +97,7 @@ const emptyForm: EmployeeForm = {
   termination_date: "",
   note: "",
   transport_monthly: "0",
+  contracted_salary: "0",
 };
 
 export default function EmployeeEdit() {
@@ -153,6 +155,7 @@ export default function EmployeeEdit() {
         termination_date: employee.termination_date || "",
         note: employee.note || "",
         transport_monthly: String((employee as any).transport_monthly ?? 0),
+        contracted_salary: String((employee as any).contracted_salary ?? 0),
       });
     }
   }, [employee]);
@@ -205,6 +208,7 @@ export default function EmployeeEdit() {
       created_by: user.id,
       leave_days_default: 20,
       transport_monthly: parseFloat(form.transport_monthly) || 0,
+      contracted_salary: parseFloat(form.contracted_salary) || 0,
     };
 
     try {
@@ -520,6 +524,14 @@ export default function EmployeeEdit() {
                     <LocaleNumberInput
                       value={form.transport_monthly}
                       onChange={(value) => handleChange("transport_monthly", value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
+                  <div>
+                    <Label>Ugovorena zarada (RSD)</Label>
+                    <LocaleNumberInput
+                      value={form.contracted_salary}
+                      onChange={(value) => handleChange("contracted_salary", value)}
                       disabled={!canWrite}
                     />
                   </div>
