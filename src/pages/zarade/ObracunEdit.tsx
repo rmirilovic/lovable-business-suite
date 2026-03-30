@@ -572,7 +572,7 @@ export default function ObracunEdit() {
             <TableBody>
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={isPosted ? 16 : 17} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
+                  <TableCell colSpan={isPosted ? 17 : 18} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
                 </TableRow>
               ) : items.map((item, idx) => {
                 const employeeDeductions = deductionsByEmployee[item.employee_id || ""] || [];

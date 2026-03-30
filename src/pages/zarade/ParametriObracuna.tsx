@@ -56,6 +56,7 @@ export default function ParametriObracuna() {
       regres_daily: (p as any).regres_daily ?? 0,
       meal_daily: (p as any).meal_daily ?? 0,
       sick_leave_employer_rate: (p as any).sick_leave_employer_rate ?? 65,
+      seniority_bonus_rate: (p as any).seniority_bonus_rate ?? 0.4,
       is_active: p.is_active, note: p.note || "",
     });
     setDialogOpen(true);
