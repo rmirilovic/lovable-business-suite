@@ -410,7 +410,7 @@ export default function ObracunEdit() {
                       <TableCell className="font-mono text-xs">{item.employee_number}</TableCell>
                       <TableCell className="font-medium text-sm">{item.employee_name}</TableCell>
                       <TableCell className="text-right">
-                        {isPosted ? (
+                        {isPosted || header.input_mode === "neto" ? (
                           <span className="font-mono">{fmt(item.gross_salary || 0)}</span>
                         ) : (
                           <LocaleNumberInput
@@ -429,7 +429,18 @@ export default function ObracunEdit() {
                           <span className="text-destructive font-semibold">{fmt(dedsTotal)}</span>
                         ) : "—"}
                       </TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt(item.net_salary || 0)}</TableCell>
+                      <TableCell className="text-right">
+                        {isPosted || header.input_mode === "bruto" ? (
+                          <span className="font-mono font-semibold">{fmt(item.net_salary || 0)}</span>
+                        ) : (
+                          <LocaleNumberInput
+                            className="text-right w-28 h-8 text-sm font-semibold"
+                            value={String(item.net_salary ?? "")}
+                            onChange={(value) => updateItemField(idx, "net_salary", parseLocaleNumber(value))}
+                            onBlur={() => recalculateItem(idx)}
+                          />
+                        )}
+                      </TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_cost || 0)}</TableCell>
                       {!isPosted && (
                         <TableCell>
