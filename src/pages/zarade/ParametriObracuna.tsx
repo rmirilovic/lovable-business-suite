@@ -181,6 +181,7 @@ export default function ParametriObracuna() {
                 {numField("Na teret zaposlenog", "health_employee_rate")}
                 {numField("Na teret poslodavca", "health_employer_rate")}
                 {numField("Min. osnovica", "min_base_health", "RSD")}
+              </div>
             </div>
             <div className="border rounded-lg p-3 space-y-3">
               <h3 className="text-sm font-semibold text-foreground">Dodaci na zaradu (dnevni iznosi)</h3>
