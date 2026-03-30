@@ -123,6 +123,7 @@ export function calculatePayroll(input: PayrollInput, params: PayrollParameter):
     total_employer_contributions: totalEmployerContributions,
     net_salary: netSalary,
     total_cost: totalCost,
+    seniority_bonus: input.seniorityBonus,
     regres: input.regres,
     meal_allowance: input.mealAllowance,
     transport_allowance: input.transportAllowance,
