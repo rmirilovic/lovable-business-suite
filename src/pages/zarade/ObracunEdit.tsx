@@ -542,7 +542,7 @@ export default function ObracunEdit() {
                       <TableRow key={deduction.id} className="bg-muted/20">
                         <TableCell />
                         <TableCell />
-                        <TableCell colSpan={5} className="pl-8 text-xs text-muted-foreground">
+                        <TableCell colSpan={7} className="pl-8 text-xs text-muted-foreground">
                           {DEDUCTION_TYPE_LABELS[deduction.deduction_type] || deduction.deduction_type}
                           {deduction.description ? ` — ${deduction.description}` : ""}
                           {deduction.creditor_name ? ` (${deduction.creditor_name})` : ""}
@@ -561,7 +561,7 @@ export default function ObracunEdit() {
               {items.length > 0 && (
                 <TableRow className="border-t-2 bg-muted/30 font-semibold">
                   <TableCell />
-                  <TableCell colSpan={2} className="text-right">UKUPNO:</TableCell>
+                  <TableCell colSpan={4} className="text-right">UKUPNO:</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.gross)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.regres)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.meal)}</TableCell>
