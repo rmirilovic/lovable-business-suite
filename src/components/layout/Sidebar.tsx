@@ -186,8 +186,11 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin, loading: authLoading } = useAuth();
+  const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin, loading: authLoading, initialLoadDone } = useAuth();
   const { hasAccess, isLoading: permissionsLoading } = usePermissions();
+
+  // Treat as full access while any part of the auth/permissions pipeline is still settling
+  const stillLoading = authLoading || !initialLoadDone || permissionsLoading;
 
   // Find which parent menu contains the active route
   const getActiveParent = () => {
