@@ -213,6 +213,8 @@ export default function Zaposleni() {
         return EMPLOYMENT_TYPE_LABELS[emp.employment_type] || emp.employment_type;
       case "employment_date":
         return emp.employment_date ? formatDate(emp.employment_date) : "-";
+      case "contracted_salary":
+        return <span className="text-right tabular-nums">{emp.contracted_salary ? new Intl.NumberFormat("sr-Latn-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(emp.contracted_salary) : "-"}</span>;
       case "bank_account":
         return <span className="font-mono">{emp.bank_account || "-"}</span>;
       case "work_experience":

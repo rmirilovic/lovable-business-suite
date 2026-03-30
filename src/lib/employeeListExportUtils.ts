@@ -62,6 +62,7 @@ function getCellValue(emp: Employee, key: string, orgUnitMap?: Map<string, strin
     case "education_level": return emp.education_level ? (EDUCATION_LEVELS[emp.education_level] || emp.education_level) : "-";
     case "employment_type": return EMPLOYMENT_TYPE_LABELS[emp.employment_type] || emp.employment_type;
     case "employment_date": return fmtDate(emp.employment_date);
+    case "contracted_salary": return emp.contracted_salary ? new Intl.NumberFormat("sr-Latn-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(emp.contracted_salary) : "-";
     case "bank_account": return emp.bank_account || "-";
     case "work_experience": return computeTotalExperience(emp);
     case "status": return STATUS_LABELS[emp.status] || emp.status;
