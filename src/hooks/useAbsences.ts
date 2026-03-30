@@ -11,6 +11,7 @@ export interface Absence {
   start_date: string;
   end_date: string;
   work_days: number;
+  compensation_rate: number | null;
   note: string | null;
   created_by: string;
   created_at: string;
@@ -20,6 +21,8 @@ export interface Absence {
 export const ABSENCE_TYPE_LABELS: Record<string, string> = {
   godisnji_odmor: "Godišnji odmor",
   bolovanje: "Bolovanje",
+  bolovanje_poslodavac: "Bolovanje na teret poslodavca (do 30 dana)",
+  bolovanje_rfzo: "Bolovanje na teret RFZO (preko 30 dana)",
   placeno_odsustvo: "Plaćeno odsustvo",
   neplaceno_odsustvo: "Neplaćeno odsustvo",
 };
@@ -27,6 +30,8 @@ export const ABSENCE_TYPE_LABELS: Record<string, string> = {
 export const ABSENCE_TYPE_COLORS: Record<string, string> = {
   godisnji_odmor: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
   bolovanje: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  bolovanje_poslodavac: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  bolovanje_rfzo: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
   placeno_odsustvo: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   neplaceno_odsustvo: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
 };

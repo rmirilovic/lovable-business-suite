@@ -5,6 +5,8 @@ import { toast } from "sonner";
 
 export const CALCULATION_TYPE_LABELS: Record<string, string> = {
   redovna_zarada: "Redovna zarada",
+  bolovanje_poslodavac: "Bolovanje na teret poslodavca",
+  bolovanje_rfzo: "Bolovanje na teret RFZO",
   ugovor_o_delu: "Ugovor o delu",
   autorski_ugovor: "Autorski ugovor",
   vlasnik: "Vlasnik",
