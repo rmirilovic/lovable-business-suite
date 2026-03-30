@@ -456,7 +456,7 @@ export default function ObracunEdit() {
             <TableBody>
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={isPosted ? 10 : 11} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
+                  <TableCell colSpan={isPosted ? 14 : 15} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
                 </TableRow>
               ) : items.map((item, idx) => {
                 const employeeDeductions = deductionsByEmployee[item.employee_id || ""] || [];
@@ -522,7 +522,7 @@ export default function ObracunEdit() {
                       <TableRow key={deduction.id} className="bg-muted/20">
                         <TableCell />
                         <TableCell />
-                        <TableCell colSpan={2} className="pl-8 text-xs text-muted-foreground">
+                        <TableCell colSpan={5} className="pl-8 text-xs text-muted-foreground">
                           {DEDUCTION_TYPE_LABELS[deduction.deduction_type] || deduction.deduction_type}
                           {deduction.description ? ` — ${deduction.description}` : ""}
                           {deduction.creditor_name ? ` (${deduction.creditor_name})` : ""}
@@ -530,8 +530,7 @@ export default function ObracunEdit() {
                         <TableCell className="text-center text-xs text-muted-foreground">
                           {deduction.is_credit ? `Rata ${deduction.paid_installments + 1}/${deduction.total_installments}` : ""}
                         </TableCell>
-                        <TableCell />
-                        <TableCell />
+                        <TableCell colSpan={3} />
                         <TableCell className="text-right font-mono text-xs">{fmt(getEffectiveDeductionAmount(deduction))}</TableCell>
                         <TableCell colSpan={isPosted ? 2 : 3} />
                       </TableRow>
@@ -567,7 +566,7 @@ export default function ObracunEdit() {
         </div>
 
         {items.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-7">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
             {[
               { label: "Osnovna zarada", value: totals.gross },
               { label: "Ukupno bruto", value: totals.totalGross },
