@@ -1,38 +1,41 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Calculator, ChevronDown, ChevronRight, Save, Trash2, UserPlus } from "lucide-react";
+import { toast } from "sonner";
+
 import { MainLayout } from "@/components/layout/MainLayout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { ArrowLeft, Save, UserPlus, Calculator, Trash2, ChevronDown, ChevronRight } from "lucide-react";
-import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
 import {
+  CALCULATION_TYPE_LABELS,
+  PayrollCalculationItem,
   usePayrollCalculation,
   usePayrollCalculationItems,
   usePayrollCalculationMutations,
-  CALCULATION_TYPE_LABELS,
-  PayrollCalculationItem,
 } from "@/hooks/usePayrollCalculations";
+import { Employee, useEmployees } from "@/hooks/useEmployees";
+import { DEDUCTION_TYPE_LABELS, EmployeeDeduction, useAllActiveDeductions } from "@/hooks/useEmployeeDeductions";
 import { useActivePayrollParameter } from "@/hooks/usePayrollParameters";
-import { useEmployees, Employee } from "@/hooks/useEmployees";
-import { useAllActiveDeductions, DEDUCTION_TYPE_LABELS, EmployeeDeduction } from "@/hooks/useEmployeeDeductions";
-import { calculatePayroll, calculateGrossFromNet } from "@/lib/payrollCalculator";
-import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { useAuth } from "@/contexts/AuthContext";
-import { formatPrice, parseLocaleNumber } from "@/lib/formatting";
+import { parseLocaleNumber, formatPrice } from "@/lib/formatting";
+import { calculateGrossFromNet, calculatePayroll } from "@/lib/payrollCalculator";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
+
+type InputMode = "bruto" | "neto";
 
 export default function ObracunEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, selectedYear } = useAuth();
+  const { selectedYear } = useAuth();
   const isNew = id === "new";
 
   const { data: calculation, isLoading: calcLoading } = usePayrollCalculation(id);
@@ -49,63 +52,118 @@ export default function ObracunEdit() {
     period_month: new Date().getMonth() + 1,
     period_year: selectedYear?.year || new Date().getFullYear(),
     note: "",
-    input_mode: "bruto" as "bruto" | "neto",
+    input_mode: "bruto" as InputMode,
   });
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const isPosted = calculation?.status === "posted";
 
-  // Map of employee_id -> active deductions
   const deductionsByEmployee = useMemo(() => {
     const map: Record<string, EmployeeDeduction[]> = {};
-    activeDeductions?.forEach((d) => {
-      if (!d.is_active) return;
-      // Skip paid-off credits
-      if (d.is_credit && d.total_installments > 0 && d.paid_installments >= d.total_installments) return;
-      if (!map[d.employee_id]) map[d.employee_id] = [];
-      map[d.employee_id].push(d);
+
+    activeDeductions?.forEach((deduction) => {
+      if (!deduction.is_active) return;
+      if (deduction.is_credit && deduction.total_installments > 0 && deduction.paid_installments >= deduction.total_installments) return;
+      if (!map[deduction.employee_id]) map[deduction.employee_id] = [];
+      map[deduction.employee_id].push(deduction);
     });
+
     return map;
   }, [activeDeductions]);
 
   const toggleExpand = (idx: number) => {
     setExpandedRows((prev) => {
       const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
       return next;
     });
   };
 
-  useEffect(() => {
-    if (calculation) {
-      setHeader({
-        calculation_number: calculation.calculation_number,
-        calculation_type: calculation.calculation_type,
-        calculation_date: calculation.calculation_date,
-        period_month: calculation.period_month,
-        period_year: calculation.period_year,
-        note: calculation.note || "",
-        input_mode: ((calculation as any).input_mode as "bruto" | "neto") || "bruto",
-      });
+  const getEffectiveDeductionAmount = (deduction: EmployeeDeduction) => {
+    if (deduction.is_credit && deduction.total_amount > 0) {
+      const remaining = Math.max(deduction.total_amount - deduction.paid_amount, 0);
+      return Math.min(deduction.amount_per_installment, remaining);
     }
+
+    return deduction.amount_per_installment;
+  };
+
+  const getEmployeeDeductionsTotal = (employeeId: string | undefined) => {
+    if (!employeeId) return 0;
+    const employeeDeductions = deductionsByEmployee[employeeId] || [];
+    return employeeDeductions.reduce((sum, deduction) => sum + getEffectiveDeductionAmount(deduction), 0);
+  };
+
+  const calculateItemValues = (item: Partial<PayrollCalculationItem>, inputMode: InputMode): Partial<PayrollCalculationItem> => {
+    if (!activeParam) return item;
+
+    const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
+    const manualOtherDeductions = 0;
+    const desiredNet = item.net_salary || 0;
+    const grossSalary = inputMode === "neto"
+      ? calculateGrossFromNet(desiredNet, activeParam)
+      : item.gross_salary || 0;
+
+    const result = calculatePayroll({
+      grossSalary,
+      workingDays: item.working_days || 0,
+      workedDays: item.worked_days || 0,
+      hoursRegular: item.hours_regular || 0,
+      hoursOvertime: item.hours_overtime || 0,
+      mealAllowance: item.meal_allowance || 0,
+      transportAllowance: item.transport_allowance || 0,
+      otherAdditions: item.other_additions || 0,
+      otherDeductions: deductionsTotal + manualOtherDeductions,
+    }, activeParam);
+
+    return {
+      ...item,
+      ...result,
+      other_deductions: manualOtherDeductions,
+      net_salary: inputMode === "neto" ? desiredNet : result.net_salary,
+    };
+  };
+
+  useEffect(() => {
+    if (!calculation) return;
+
+    setHeader({
+      calculation_number: calculation.calculation_number,
+      calculation_type: calculation.calculation_type,
+      calculation_date: calculation.calculation_date,
+      period_month: calculation.period_month,
+      period_year: calculation.period_year,
+      note: calculation.note || "",
+      input_mode: ((calculation as any).input_mode as InputMode) || "bruto",
+    });
   }, [calculation]);
 
   useEffect(() => {
-    if (savedItems) setItems(savedItems);
-  }, [savedItems]);
+    if (!savedItems) return;
 
-  const addEmployee = (emp: Employee) => {
-    if (items.some((i) => i.employee_id === emp.id)) {
+    if (!activeParam) {
+      setItems(savedItems.map((item) => ({ ...item, other_deductions: 0 })));
+      return;
+    }
+
+    const inputMode = ((calculation as any)?.input_mode as InputMode) || "bruto";
+    setItems(savedItems.map((item) => calculateItemValues(item, inputMode)));
+  }, [savedItems, activeParam, calculation, deductionsByEmployee]);
+
+  const addEmployee = (employee: Employee) => {
+    if (items.some((item) => item.employee_id === employee.id)) {
       toast.error("Zaposleni je već dodat");
       return;
     }
+
     setItems((prev) => [
       ...prev,
       {
-        employee_id: emp.id,
-        employee_number: emp.employee_number,
-        employee_name: `${emp.last_name} ${emp.first_name}`,
+        employee_id: employee.id,
+        employee_number: employee.employee_number,
+        employee_name: `${employee.last_name} ${employee.first_name}`,
         gross_salary: 0,
         non_taxable_amount: activeParam?.non_taxable_amount || 25000,
         tax_base: 0,
@@ -133,116 +191,76 @@ export default function ObracunEdit() {
 
   const addAllEmployees = () => {
     if (!employees) return;
-    const active = employees.filter((e) => e.is_active && !items.some((i) => i.employee_id === e.id));
-    if (!active.length) { toast.info("Svi aktivni zaposleni su već dodati"); return; }
+
+    const availableEmployees = employees.filter((employee) => employee.is_active && !items.some((item) => item.employee_id === employee.id));
+    if (!availableEmployees.length) {
+      toast.info("Svi aktivni zaposleni su već dodati");
+      return;
+    }
+
     setItems((prev) => [
       ...prev,
-      ...active.map((emp) => ({
-        employee_id: emp.id,
-        employee_number: emp.employee_number,
-        employee_name: `${emp.last_name} ${emp.first_name}`,
+      ...availableEmployees.map((employee) => ({
+        employee_id: employee.id,
+        employee_number: employee.employee_number,
+        employee_name: `${employee.last_name} ${employee.first_name}`,
         gross_salary: 0,
         non_taxable_amount: activeParam?.non_taxable_amount || 25000,
-        tax_base: 0, income_tax: 0,
-        pio_employee: 0, pio_employer: 0,
-        health_employee: 0, health_employer: 0,
+        tax_base: 0,
+        income_tax: 0,
+        pio_employee: 0,
+        pio_employer: 0,
+        health_employee: 0,
+        health_employer: 0,
         unemployment: 0,
-        total_employee_contributions: 0, total_employer_contributions: 0,
-        net_salary: 0, total_cost: 0,
-        working_days: 22, worked_days: 22,
-        hours_regular: 176, hours_overtime: 0,
-        meal_allowance: 0, transport_allowance: 0,
-        other_additions: 0, other_deductions: 0,
+        total_employee_contributions: 0,
+        total_employer_contributions: 0,
+        net_salary: 0,
+        total_cost: 0,
+        working_days: 22,
+        worked_days: 22,
+        hours_regular: 176,
+        hours_overtime: 0,
+        meal_allowance: 0,
+        transport_allowance: 0,
+        other_additions: 0,
+        other_deductions: 0,
       })),
     ]);
-    toast.success(`Dodato ${active.length} zaposlenih`);
-  };
 
-  // For credit deductions: if it's the last installment, use the remaining amount
-  const getEffectiveDeductionAmount = (d: EmployeeDeduction) => {
-    if (d.is_credit && d.total_amount > 0) {
-      const remaining = Math.max(d.total_amount - d.paid_amount, 0);
-      return Math.min(d.amount_per_installment, remaining);
-    }
-    return d.amount_per_installment;
-  };
-
-  const getEmployeeDeductionsTotal = (employeeId: string | undefined) => {
-    if (!employeeId) return 0;
-    const deds = deductionsByEmployee[employeeId] || [];
-    return deds.reduce((sum, d) => sum + getEffectiveDeductionAmount(d), 0);
+    toast.success(`Dodato ${availableEmployees.length} zaposlenih`);
   };
 
   const recalculateItem = (idx: number) => {
-    if (!activeParam) { toast.error("Nema aktivnih parametara obračuna"); return; }
-    const item = items[idx];
-    const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
-    const desiredNet = item.net_salary || 0;
-
-    let grossSalary = item.gross_salary || 0;
-    if (header.input_mode === "neto") {
-      grossSalary = calculateGrossFromNet(desiredNet, activeParam);
+    if (!activeParam) {
+      toast.error("Nema aktivnih parametara obračuna");
+      return;
     }
 
-    const result = calculatePayroll({
-      grossSalary,
-      workingDays: item.working_days || 0,
-      workedDays: item.worked_days || 0,
-      hoursRegular: item.hours_regular || 0,
-      hoursOvertime: item.hours_overtime || 0,
-      mealAllowance: item.meal_allowance || 0,
-      transportAllowance: item.transport_allowance || 0,
-      otherAdditions: item.other_additions || 0,
-      otherDeductions: deductionsTotal + (item.other_deductions || 0),
-    }, activeParam);
-
-    // In neto mode, preserve the user's entered net value (clean net)
-    // The calculated net_salary includes additions/deductions which differ
-    if (header.input_mode === "neto") {
-      result.net_salary = desiredNet;
-    }
-
-    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...result } : it)));
+    setItems((prev) => prev.map((item, index) => (index === idx ? calculateItemValues(item, header.input_mode) : item)));
   };
 
   const recalculateAll = () => {
-    if (!activeParam) { toast.error("Nema aktivnih parametara obračuna"); return; }
-    setItems((prev) =>
-      prev.map((item) => {
-        const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
-        const desiredNet = item.net_salary || 0;
-        let grossSalary = item.gross_salary || 0;
-        if (header.input_mode === "neto") {
-          grossSalary = calculateGrossFromNet(desiredNet, activeParam);
-        }
-        const result = calculatePayroll({
-          grossSalary,
-          workingDays: item.working_days || 0,
-          workedDays: item.worked_days || 0,
-          hoursRegular: item.hours_regular || 0,
-          hoursOvertime: item.hours_overtime || 0,
-          mealAllowance: item.meal_allowance || 0,
-          transportAllowance: item.transport_allowance || 0,
-          otherAdditions: item.other_additions || 0,
-          otherDeductions: deductionsTotal + (item.other_deductions || 0),
-        }, activeParam);
-        if (header.input_mode === "neto") {
-          result.net_salary = desiredNet;
-        }
-        return { ...item, ...result };
-      })
-    );
+    if (!activeParam) {
+      toast.error("Nema aktivnih parametara obračuna");
+      return;
+    }
+
+    setItems((prev) => prev.map((item) => calculateItemValues(item, header.input_mode)));
     toast.success("Obračun rekalkulisan");
   };
 
-  const removeItem = (idx: number) => setItems((prev) => prev.filter((_, i) => i !== idx));
+  const removeItem = (idx: number) => {
+    setItems((prev) => prev.filter((_, index) => index !== idx));
+  };
 
   const updateItemField = (idx: number, field: string, value: number) => {
-    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)));
+    setItems((prev) => prev.map((item, index) => (index === idx ? { ...item, [field]: value } : item)));
   };
 
   const handleSave = async () => {
     if (!id || isNew) return;
+
     try {
       await updateCalculation.mutateAsync({
         id,
@@ -250,37 +268,44 @@ export default function ObracunEdit() {
         note: header.note || null,
         parameter_id: activeParam?.id || null,
       } as any);
+
       await saveItems.mutateAsync({ calculationId: id, items });
-    } catch { /* handled by mutation */ }
+    } catch {
+      // handled by mutation
+    }
   };
 
   const totals = useMemo(() => {
-    const base = items.reduce(
-      (acc, it) => ({
-        gross: acc.gross + (it.gross_salary || 0),
-        net: acc.net + (it.net_salary || 0),
-        tax: acc.tax + (it.income_tax || 0),
-        empContr: acc.empContr + (it.total_employee_contributions || 0),
-        erlContr: acc.erlContr + (it.total_employer_contributions || 0),
-        cost: acc.cost + (it.total_cost || 0),
-        deductions: acc.deductions + (deductionsByEmployee[it.employee_id || ""] || []).reduce((s, d) => s + getEffectiveDeductionAmount(d), 0),
+    return items.reduce(
+      (acc, item) => ({
+        gross: acc.gross + (item.gross_salary || 0),
+        net: acc.net + (item.net_salary || 0),
+        tax: acc.tax + (item.income_tax || 0),
+        empContr: acc.empContr + (item.total_employee_contributions || 0),
+        erlContr: acc.erlContr + (item.total_employer_contributions || 0),
+        cost: acc.cost + (item.total_cost || 0),
+        deductions: acc.deductions + getEmployeeDeductionsTotal(item.employee_id),
       }),
-      { gross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 }
+      { gross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 },
     );
-    return base;
   }, [items, deductionsByEmployee]);
 
-  const fmt = (n: number) => formatPrice(n);
+  const fmt = (value: number) => formatPrice(value);
 
-  if (calcLoading) return <MainLayout title="Obračun zarada"><div className="p-8 text-center text-muted-foreground">Učitavanje...</div></MainLayout>;
+  if (calcLoading) {
+    return (
+      <MainLayout title="Obračun zarada">
+        <div className="p-8 text-center text-muted-foreground">Učitavanje...</div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout title={`Obračun ${header.calculation_number}`}>
       <div className="flex flex-col gap-4">
-        {/* Toolbar */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate("/zarade/obracun")}>
-            <ArrowLeft className="w-4 h-4 mr-1" /> Nazad
+            <ArrowLeft className="mr-1 h-4 w-4" /> Nazad
           </Button>
           <div className="flex-1" />
           <Badge variant={isPosted ? "default" : "secondary"} className="text-sm">
@@ -289,30 +314,27 @@ export default function ObracunEdit() {
           {!isPosted && (
             <>
               <Button variant="outline" size="sm" onClick={recalculateAll}>
-                <Calculator className="w-4 h-4 mr-1" /> Rekalkuliši sve
+                <Calculator className="mr-1 h-4 w-4" /> Rekalkuliši sve
               </Button>
               <Button size="sm" onClick={handleSave} disabled={updateCalculation.isPending || saveItems.isPending}>
-                <Save className="w-4 h-4 mr-1" /> Sačuvaj
+                <Save className="mr-1 h-4 w-4" /> Sačuvaj
               </Button>
             </>
           )}
         </div>
 
-        {/* Header */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 border rounded-lg p-4 bg-card">
+        <div className="grid grid-cols-1 gap-4 rounded-lg border bg-card p-4 md:grid-cols-5">
           <div className="space-y-1">
             <Label className="text-xs">Broj obračuna</Label>
-            <Input value={header.calculation_number} disabled={isPosted}
-              onChange={(e) => setHeader({ ...header, calculation_number: e.target.value })} />
+            <Input value={header.calculation_number} disabled={isPosted} onChange={(e) => setHeader({ ...header, calculation_number: e.target.value })} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Tip obračuna</Label>
-            <Select value={header.calculation_type} disabled={isPosted}
-              onValueChange={(v) => setHeader({ ...header, calculation_type: v })}>
+            <Select value={header.calculation_type} disabled={isPosted} onValueChange={(value) => setHeader({ ...header, calculation_type: value })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {Object.entries(CALCULATION_TYPE_LABELS).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                {Object.entries(CALCULATION_TYPE_LABELS).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>{value}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -320,11 +342,12 @@ export default function ObracunEdit() {
           <div className="space-y-1">
             <Label className="text-xs">Period</Label>
             <div className="flex gap-2">
-              <Select value={String(header.period_month)} disabled={isPosted}
-                onValueChange={(v) => setHeader({ ...header, period_month: parseInt(v) })}>
+              <Select value={String(header.period_month)} disabled={isPosted} onValueChange={(value) => setHeader({ ...header, period_month: parseInt(value) })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {MONTH_NAMES.map((m, i) => <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>)}
+                  {MONTH_NAMES.map((month, index) => (
+                    <SelectItem key={month} value={String(index + 1)}>{month}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <LocaleNumberInput
@@ -338,17 +361,11 @@ export default function ObracunEdit() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum obračuna</Label>
-            <LocaleDateInput
-              value={header.calculation_date}
-              onChange={(value) => setHeader({ ...header, calculation_date: value })}
-              disabled={isPosted}
-              required
-            />
+            <LocaleDateInput value={header.calculation_date} onChange={(value) => setHeader({ ...header, calculation_date: value })} disabled={isPosted} required />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Režim unosa</Label>
-            <Select value={header.input_mode} disabled={isPosted}
-              onValueChange={(v) => setHeader({ ...header, input_mode: v as "bruto" | "neto" })}>
+            <Select value={header.input_mode} disabled={isPosted} onValueChange={(value) => setHeader({ ...header, input_mode: value as InputMode })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="bruto">Unos Bruto</SelectItem>
@@ -358,74 +375,78 @@ export default function ObracunEdit() {
           </div>
         </div>
 
-        {/* Add employees */}
         {!isPosted && (
-          <div className="flex gap-2 flex-wrap">
-            <Select onValueChange={(empId) => {
-              const emp = employees?.find((e) => e.id === empId);
-              if (emp) addEmployee(emp);
+          <div className="flex flex-wrap gap-2">
+            <Select onValueChange={(employeeId) => {
+              const employee = employees?.find((entry) => entry.id === employeeId);
+              if (employee) addEmployee(employee);
             }}>
               <SelectTrigger className="w-[300px]">
                 <SelectValue placeholder="Dodaj zaposlenog..." />
               </SelectTrigger>
               <SelectContent>
-                {employees?.filter((e) => e.is_active).map((e) => (
-                  <SelectItem key={e.id} value={e.id}>
-                    {e.employee_number} - {e.last_name} {e.first_name}
+                {employees?.filter((employee) => employee.is_active).map((employee) => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    {employee.employee_number} - {employee.last_name} {employee.first_name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Button variant="outline" onClick={addAllEmployees}>
-              <UserPlus className="w-4 h-4 mr-1" /> Dodaj sve aktivne
+              <UserPlus className="mr-1 h-4 w-4" /> Dodaj sve aktivne
             </Button>
           </div>
         )}
 
-        {/* Items table */}
         <TableScrollContainer>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-8"></TableHead>
+                <TableHead className="w-8" />
                 <TableHead className="min-w-[60px]">Šifra</TableHead>
                 <TableHead className="min-w-[160px]">Zaposleni</TableHead>
-                <TableHead className="min-w-[120px] text-right">{header.input_mode === "neto" ? <span className="text-muted-foreground">Bruto <span className="text-xs">(izračunat)</span></span> : "Bruto"}</TableHead>
+                <TableHead className="min-w-[120px] text-right">
+                  {header.input_mode === "neto" ? <span className="text-muted-foreground">Bruto <span className="text-xs">(izračunat)</span></span> : "Bruto"}
+                </TableHead>
                 <TableHead className="min-w-[100px] text-right">Porez</TableHead>
                 <TableHead className="min-w-[100px] text-right">Dop. zap.</TableHead>
                 <TableHead className="min-w-[100px] text-right">Dop. posl.</TableHead>
                 <TableHead className="min-w-[100px] text-right">Obustave</TableHead>
-                <TableHead className="min-w-[120px] text-right">{header.input_mode === "neto" ? <span className="font-semibold">Neto <span className="text-xs">(unos)</span></span> : "Neto"}</TableHead>
+                <TableHead className="min-w-[120px] text-right">
+                  {header.input_mode === "neto" ? <span className="font-semibold">Neto <span className="text-xs">(unos)</span></span> : "Neto"}
+                </TableHead>
                 <TableHead className="min-w-[120px] text-right">Trošak</TableHead>
-                {!isPosted && <TableHead className="w-20"></TableHead>}
+                {!isPosted && <TableHead className="w-20" />}
               </TableRow>
             </TableHeader>
             <TableBody>
               {!items.length ? (
-                <TableRow><TableCell colSpan={isPosted ? 10 : 11} className="text-center py-8 text-muted-foreground">Dodajte zaposlene u obračun</TableCell></TableRow>
+                <TableRow>
+                  <TableCell colSpan={isPosted ? 10 : 11} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
+                </TableRow>
               ) : items.map((item, idx) => {
-                const empDeds = deductionsByEmployee[item.employee_id || ""] || [];
-                const dedsTotal = empDeds.reduce((s, d) => s + getEffectiveDeductionAmount(d), 0);
+                const employeeDeductions = deductionsByEmployee[item.employee_id || ""] || [];
+                const deductionsTotal = employeeDeductions.reduce((sum, deduction) => sum + getEffectiveDeductionAmount(deduction), 0);
                 const isExpanded = expandedRows.has(idx);
 
                 return (
                   <React.Fragment key={item.employee_id || idx}>
                     <TableRow>
                       <TableCell className="px-1">
-                        {empDeds.length > 0 && (
+                        {employeeDeductions.length > 0 && (
                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => toggleExpand(idx)}>
-                            {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                            {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                           </Button>
                         )}
                       </TableCell>
                       <TableCell className="font-mono text-xs">{item.employee_number}</TableCell>
-                      <TableCell className="font-medium text-sm">{item.employee_name}</TableCell>
+                      <TableCell className="text-sm font-medium">{item.employee_name}</TableCell>
                       <TableCell className="text-right">
                         {isPosted || header.input_mode === "neto" ? (
                           <span className="font-mono">{fmt(item.gross_salary || 0)}</span>
                         ) : (
                           <LocaleNumberInput
-                            className="text-right w-28 h-8 text-sm"
+                            className="h-8 w-28 text-right text-sm"
                             value={String(item.gross_salary ?? "")}
                             onChange={(value) => updateItemField(idx, "gross_salary", parseLocaleNumber(value))}
                             onBlur={() => recalculateItem(idx)}
@@ -436,16 +457,14 @@ export default function ObracunEdit() {
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employee_contributions || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employer_contributions || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">
-                        {dedsTotal > 0 ? (
-                          <span className="text-destructive font-semibold">{fmt(dedsTotal)}</span>
-                        ) : "—"}
+                        {deductionsTotal > 0 ? <span className="font-semibold text-destructive">{fmt(deductionsTotal)}</span> : "—"}
                       </TableCell>
                       <TableCell className="text-right">
                         {isPosted || header.input_mode === "bruto" ? (
                           <span className="font-mono font-semibold">{fmt(item.net_salary || 0)}</span>
                         ) : (
                           <LocaleNumberInput
-                            className="text-right w-28 h-8 text-sm font-semibold"
+                            className="h-8 w-28 text-right text-sm font-semibold"
                             value={String(item.net_salary ?? "")}
                             onChange={(value) => updateItemField(idx, "net_salary", parseLocaleNumber(value))}
                             onBlur={() => recalculateItem(idx)}
@@ -456,26 +475,26 @@ export default function ObracunEdit() {
                       {!isPosted && (
                         <TableCell>
                           <Button variant="ghost" size="icon" onClick={() => removeItem(idx)}>
-                            <Trash2 className="w-4 h-4 text-destructive" />
+                            <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </TableCell>
                       )}
                     </TableRow>
-                    {isExpanded && empDeds.map((ded) => (
-                      <TableRow key={ded.id} className="bg-muted/20">
+                    {isExpanded && employeeDeductions.map((deduction) => (
+                      <TableRow key={deduction.id} className="bg-muted/20">
                         <TableCell />
                         <TableCell />
-                        <TableCell colSpan={2} className="text-xs text-muted-foreground pl-8">
-                          {DEDUCTION_TYPE_LABELS[ded.deduction_type] || ded.deduction_type}
-                          {ded.description ? ` — ${ded.description}` : ""}
-                          {ded.creditor_name ? ` (${ded.creditor_name})` : ""}
+                        <TableCell colSpan={2} className="pl-8 text-xs text-muted-foreground">
+                          {DEDUCTION_TYPE_LABELS[deduction.deduction_type] || deduction.deduction_type}
+                          {deduction.description ? ` — ${deduction.description}` : ""}
+                          {deduction.creditor_name ? ` (${deduction.creditor_name})` : ""}
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground text-center">
-                          {ded.is_credit ? `Rata ${ded.paid_installments + 1}/${ded.total_installments}` : ""}
+                        <TableCell className="text-center text-xs text-muted-foreground">
+                          {deduction.is_credit ? `Rata ${deduction.paid_installments + 1}/${deduction.total_installments}` : ""}
                         </TableCell>
                         <TableCell />
                         <TableCell />
-                        <TableCell className="text-right font-mono text-xs">{fmt(getEffectiveDeductionAmount(ded))}</TableCell>
+                        <TableCell className="text-right font-mono text-xs">{fmt(getEffectiveDeductionAmount(deduction))}</TableCell>
                         <TableCell colSpan={isPosted ? 2 : 3} />
                       </TableRow>
                     ))}
@@ -483,7 +502,7 @@ export default function ObracunEdit() {
                 );
               })}
               {items.length > 0 && (
-                <TableRow className="border-t-2 font-semibold bg-muted/30">
+                <TableRow className="border-t-2 bg-muted/30 font-semibold">
                   <TableCell />
                   <TableCell colSpan={2} className="text-right">UKUPNO:</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.gross)}</TableCell>
@@ -500,16 +519,13 @@ export default function ObracunEdit() {
           </Table>
         </TableScrollContainer>
 
-        {/* Note */}
         <div className="space-y-1">
           <Label className="text-xs">Napomena</Label>
-          <Textarea value={header.note} disabled={isPosted} rows={2}
-            onChange={(e) => setHeader({ ...header, note: e.target.value })} />
+          <Textarea value={header.note} disabled={isPosted} rows={2} onChange={(e) => setHeader({ ...header, note: e.target.value })} />
         </div>
 
-        {/* Summary cards */}
         {items.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-7">
             {[
               { label: "Ukupno bruto", value: totals.gross },
               { label: "Ukupno porez", value: totals.tax },
@@ -518,10 +534,10 @@ export default function ObracunEdit() {
               { label: "Obustave", value: totals.deductions },
               { label: "Ukupno neto", value: totals.net },
               { label: "Ukupan trošak", value: totals.cost },
-            ].map((s) => (
-              <div key={s.label} className="border rounded-lg p-3 bg-card">
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-                <p className="text-lg font-bold font-mono text-foreground">{fmt(s.value)}</p>
+            ].map((summary) => (
+              <div key={summary.label} className="rounded-lg border bg-card p-3">
+                <p className="text-xs text-muted-foreground">{summary.label}</p>
+                <p className="text-lg font-bold text-foreground font-mono">{fmt(summary.value)}</p>
               </div>
             ))}
           </div>
