@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calculator, ChevronDown, ChevronRight, Save, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, Calculator, ChevronDown, ChevronRight, FileText, Save, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -26,8 +26,11 @@ import { Employee, useEmployees } from "@/hooks/useEmployees";
 import { DEDUCTION_TYPE_LABELS, EmployeeDeduction, useAllActiveDeductions } from "@/hooks/useEmployeeDeductions";
 import { useActivePayrollParameter } from "@/hooks/usePayrollParameters";
 import { useWorkHours } from "@/hooks/useWorkHours";
+import { useAbsences } from "@/hooks/useAbsences";
 import { parseLocaleNumber, formatPrice } from "@/lib/formatting";
 import { calculateGrossFromNet, calculatePayroll } from "@/lib/payrollCalculator";
+import { generateRfzoRefundPdf } from "@/lib/rfzoRefundPdfGenerator";
+import { initializePdfFonts } from "@/lib/pdfFonts";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
