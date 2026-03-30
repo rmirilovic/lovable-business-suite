@@ -25,6 +25,7 @@ import {
 import { Employee, useEmployees } from "@/hooks/useEmployees";
 import { DEDUCTION_TYPE_LABELS, EmployeeDeduction, useAllActiveDeductions } from "@/hooks/useEmployeeDeductions";
 import { useActivePayrollParameter } from "@/hooks/usePayrollParameters";
+import { useWorkHours } from "@/hooks/useWorkHours";
 import { parseLocaleNumber, formatPrice } from "@/lib/formatting";
 import { calculateGrossFromNet, calculatePayroll } from "@/lib/payrollCalculator";
 
@@ -54,6 +55,9 @@ export default function ObracunEdit() {
     note: "",
     input_mode: "bruto" as InputMode,
   });
+
+  // Fetch work hours for the calculation period
+  const { data: workHoursData } = useWorkHours(header.period_year, header.period_month);
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -176,11 +180,23 @@ export default function ObracunEdit() {
     setItems(savedItems.map((item) => calculateItemValues(item, inputMode)));
   }, [savedItems, activeParam, calculation, deductionsByEmployee]);
 
+  const getWorkHoursForEmployee = (employeeId: string) => {
+    const wh = workHoursData?.find((w) => w.employee_id === employeeId);
+    return {
+      working_days: wh?.working_days ?? 0,
+      worked_days: wh?.worked_days ?? 0,
+      hours_regular: wh?.hours_regular ?? 0,
+      hours_overtime: wh?.hours_overtime ?? 0,
+    };
+  };
+
   const addEmployee = (employee: Employee) => {
     if (items.some((item) => item.employee_id === employee.id)) {
       toast.error("Zaposleni je već dodat");
       return;
     }
+
+    const wh = getWorkHoursForEmployee(employee.id);
 
     setItems((prev) => [
       ...prev,
@@ -201,10 +217,7 @@ export default function ObracunEdit() {
         total_employer_contributions: 0,
         net_salary: 0,
         total_cost: 0,
-        working_days: 22,
-        worked_days: 22,
-        hours_regular: 176,
-        hours_overtime: 0,
+        ...wh,
         meal_allowance: 0,
         transport_allowance: 0,
         other_additions: 0,
@@ -224,32 +237,32 @@ export default function ObracunEdit() {
 
     setItems((prev) => [
       ...prev,
-      ...availableEmployees.map((employee) => ({
-        employee_id: employee.id,
-        employee_number: employee.employee_number,
-        employee_name: `${employee.last_name} ${employee.first_name}`,
-        gross_salary: 0,
-        non_taxable_amount: activeParam?.non_taxable_amount || 25000,
-        tax_base: 0,
-        income_tax: 0,
-        pio_employee: 0,
-        pio_employer: 0,
-        health_employee: 0,
-        health_employer: 0,
-        unemployment: 0,
-        total_employee_contributions: 0,
-        total_employer_contributions: 0,
-        net_salary: 0,
-        total_cost: 0,
-        working_days: 22,
-        worked_days: 22,
-        hours_regular: 176,
-        hours_overtime: 0,
-        meal_allowance: 0,
-        transport_allowance: 0,
-        other_additions: 0,
-        other_deductions: 0,
-      })),
+      ...availableEmployees.map((employee) => {
+        const wh = getWorkHoursForEmployee(employee.id);
+        return {
+          employee_id: employee.id,
+          employee_number: employee.employee_number,
+          employee_name: `${employee.last_name} ${employee.first_name}`,
+          gross_salary: 0,
+          non_taxable_amount: activeParam?.non_taxable_amount || 25000,
+          tax_base: 0,
+          income_tax: 0,
+          pio_employee: 0,
+          pio_employer: 0,
+          health_employee: 0,
+          health_employer: 0,
+          unemployment: 0,
+          total_employee_contributions: 0,
+          total_employer_contributions: 0,
+          net_salary: 0,
+          total_cost: 0,
+          ...wh,
+          meal_allowance: 0,
+          transport_allowance: 0,
+          other_additions: 0,
+          other_deductions: 0,
+        };
+      }),
     ]);
 
     toast.success(`Dodato ${availableEmployees.length} zaposlenih`);
@@ -270,7 +283,11 @@ export default function ObracunEdit() {
       return;
     }
 
-    setItems((prev) => prev.map((item) => calculateItemValues(item, header.input_mode)));
+    // Update work hours from evidence before recalculating
+    setItems((prev) => prev.map((item) => {
+      const wh = item.employee_id ? getWorkHoursForEmployee(item.employee_id) : {};
+      return calculateItemValues({ ...item, ...wh }, header.input_mode);
+    }));
     toast.success("Obračun rekalkulisan");
   };
 
@@ -434,6 +451,8 @@ export default function ObracunEdit() {
                 <TableHead className="w-8" />
                 <TableHead className="min-w-[60px]">Šifra</TableHead>
                 <TableHead className="min-w-[140px]">Zaposleni</TableHead>
+                <TableHead className="min-w-[50px] text-center">Rad. d.</TableHead>
+                <TableHead className="min-w-[50px] text-center">Odr. d.</TableHead>
                 <TableHead className="min-w-[110px] text-right">
                   {header.input_mode === "neto" ? <span className="text-muted-foreground">Osnovna <span className="text-xs">(izr.)</span></span> : "Osnovna"}
                 </TableHead>
@@ -455,7 +474,7 @@ export default function ObracunEdit() {
             <TableBody>
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={isPosted ? 14 : 15} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
+                  <TableCell colSpan={isPosted ? 16 : 17} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
                 </TableRow>
               ) : items.map((item, idx) => {
                 const employeeDeductions = deductionsByEmployee[item.employee_id || ""] || [];
@@ -474,6 +493,8 @@ export default function ObracunEdit() {
                       </TableCell>
                       <TableCell className="font-mono text-xs">{item.employee_number}</TableCell>
                       <TableCell className="text-sm font-medium">{item.employee_name}</TableCell>
+                      <TableCell className="text-center font-mono text-xs">{item.working_days || 0}</TableCell>
+                      <TableCell className="text-center font-mono text-xs">{item.worked_days || 0}</TableCell>
                       <TableCell className="text-right">
                         {isPosted || header.input_mode === "neto" ? (
                           <span className="font-mono">{fmt(item.gross_salary || 0)}</span>
@@ -521,7 +542,7 @@ export default function ObracunEdit() {
                       <TableRow key={deduction.id} className="bg-muted/20">
                         <TableCell />
                         <TableCell />
-                        <TableCell colSpan={5} className="pl-8 text-xs text-muted-foreground">
+                        <TableCell colSpan={7} className="pl-8 text-xs text-muted-foreground">
                           {DEDUCTION_TYPE_LABELS[deduction.deduction_type] || deduction.deduction_type}
                           {deduction.description ? ` — ${deduction.description}` : ""}
                           {deduction.creditor_name ? ` (${deduction.creditor_name})` : ""}
@@ -540,7 +561,7 @@ export default function ObracunEdit() {
               {items.length > 0 && (
                 <TableRow className="border-t-2 bg-muted/30 font-semibold">
                   <TableCell />
-                  <TableCell colSpan={2} className="text-right">UKUPNO:</TableCell>
+                  <TableCell colSpan={4} className="text-right">UKUPNO:</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.gross)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.regres)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.meal)}</TableCell>
