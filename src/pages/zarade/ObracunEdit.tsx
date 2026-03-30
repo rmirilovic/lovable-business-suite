@@ -194,6 +194,17 @@ export default function ObracunEdit() {
     };
   };
 
+  const isSickLeaveType = header.calculation_type === "bolovanje_poslodavac" || header.calculation_type === "bolovanje_rfzo";
+
+  const getEmployeeAbsenceForPeriod = (employeeId: string) => {
+    if (!absences) return null;
+    const absType = header.calculation_type === "bolovanje_poslodavac" ? "bolovanje_poslodavac" : "bolovanje_rfzo";
+    return absences.find(a =>
+      a.employee_id === employeeId &&
+      a.absence_type === absType
+    ) || null;
+  };
+
   const addEmployee = (employee: Employee) => {
     if (items.some((item) => item.employee_id === employee.id)) {
       toast.error("Zaposleni je već dodat");
@@ -201,6 +212,17 @@ export default function ObracunEdit() {
     }
 
     const wh = getWorkHoursForEmployee(employee.id);
+    const contractedSalary = (employee as any).contracted_salary || 0;
+
+    // For sick leave, use contracted salary as base (will be refined with avg salary on recalculate)
+    let initialGross = 0;
+    if (isSickLeaveType && contractedSalary > 0) {
+      const absence = getEmployeeAbsenceForPeriod(employee.id);
+      const rate = absence?.compensation_rate || (header.calculation_type === "bolovanje_poslodavac" ? (activeParam as any)?.sick_leave_employer_rate || 65 : 65);
+      initialGross = Math.round(contractedSalary * rate / 100 * 100) / 100;
+    } else if (contractedSalary > 0) {
+      initialGross = contractedSalary;
+    }
 
     setItems((prev) => [
       ...prev,
@@ -208,7 +230,7 @@ export default function ObracunEdit() {
         employee_id: employee.id,
         employee_number: employee.employee_number,
         employee_name: `${employee.last_name} ${employee.first_name}`,
-        gross_salary: 0,
+        gross_salary: initialGross,
         non_taxable_amount: activeParam?.non_taxable_amount || 25000,
         tax_base: 0,
         income_tax: 0,
