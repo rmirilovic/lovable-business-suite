@@ -203,8 +203,12 @@ export default function ObracunEdit() {
     setItems((prev) =>
       prev.map((item) => {
         const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
+        let grossSalary = item.gross_salary || 0;
+        if (header.input_mode === "neto") {
+          grossSalary = calculateGrossFromNet(item.net_salary || 0, activeParam);
+        }
         const result = calculatePayroll({
-          grossSalary: item.gross_salary || 0,
+          grossSalary,
           workingDays: item.working_days || 0,
           workedDays: item.worked_days || 0,
           hoursRegular: item.hours_regular || 0,
