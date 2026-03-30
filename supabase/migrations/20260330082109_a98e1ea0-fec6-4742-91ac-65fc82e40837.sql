@@ -1,0 +1,1 @@
+ALTER TABLE public.payroll_calculations ADD COLUMN IF NOT EXISTS input_mode text NOT NULL DEFAULT 'bruto';
