@@ -527,6 +527,14 @@ export default function EmployeeEdit() {
                       disabled={!canWrite}
                     />
                   </div>
+                  <div>
+                    <Label>Ugovorena zarada (RSD)</Label>
+                    <LocaleNumberInput
+                      value={form.contracted_salary}
+                      onChange={(value) => handleChange("contracted_salary", value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
