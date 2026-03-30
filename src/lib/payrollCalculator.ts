@@ -28,6 +28,7 @@ export interface PayrollResult {
   total_employer_contributions: number;
   net_salary: number;
   total_cost: number;
+  seniority_bonus: number;
   regres: number;
   meal_allowance: number;
   transport_allowance: number;

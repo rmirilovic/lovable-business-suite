@@ -67,6 +67,7 @@ export interface PayrollCalculationItem {
   regres: number;
   meal_allowance: number;
   transport_allowance: number;
+  seniority_bonus: number;
   other_additions: number;
   other_deductions: number;
   item_order: number;
