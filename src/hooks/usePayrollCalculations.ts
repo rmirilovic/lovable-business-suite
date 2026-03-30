@@ -189,12 +189,15 @@ export function usePayrollCalculationMutations() {
       if (items.length > 0) {
         const { error } = await supabase
           .from("payroll_calculation_items")
-          .insert(items.map((item, idx) => ({
-            ...item,
-            calculation_id: calculationId,
-            company_id: selectedCompany!.id,
-            item_order: idx,
-          })) as any);
+          .insert(items.map((item, idx) => {
+            const { id: _id, created_at: _ca, ...rest } = item;
+            return {
+              ...rest,
+              calculation_id: calculationId,
+              company_id: selectedCompany!.id,
+              item_order: idx,
+            };
+          }) as any);
         if (error) throw error;
       }
     },
