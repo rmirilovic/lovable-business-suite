@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { parseLocaleNumber } from "@/lib/formatting";
 import { ArrowLeft, Save, Trash2, History } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { toast } from "sonner";
