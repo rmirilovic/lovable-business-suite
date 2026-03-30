@@ -451,7 +451,8 @@ export default function ObracunEdit() {
                 <TableHead className="w-8" />
                 <TableHead className="min-w-[60px]">Šifra</TableHead>
                 <TableHead className="min-w-[140px]">Zaposleni</TableHead>
-                <TableHead className="min-w-[110px] text-right">
+                <TableHead className="min-w-[50px] text-center">Rad. d.</TableHead>
+                <TableHead className="min-w-[50px] text-center">Odr. d.</TableHead>
                   {header.input_mode === "neto" ? <span className="text-muted-foreground">Osnovna <span className="text-xs">(izr.)</span></span> : "Osnovna"}
                 </TableHead>
                 <TableHead className="min-w-[80px] text-right">Regres</TableHead>
