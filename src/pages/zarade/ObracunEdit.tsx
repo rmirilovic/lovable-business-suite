@@ -177,11 +177,11 @@ export default function ObracunEdit() {
     if (!activeParam) { toast.error("Nema aktivnih parametara obračuna"); return; }
     const item = items[idx];
     const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
+    const desiredNet = item.net_salary || 0;
 
     let grossSalary = item.gross_salary || 0;
     if (header.input_mode === "neto") {
-      // Reverse: user entered desired net, calculate gross
-      grossSalary = calculateGrossFromNet(item.net_salary || 0, activeParam);
+      grossSalary = calculateGrossFromNet(desiredNet, activeParam);
     }
 
     const result = calculatePayroll({
@@ -195,6 +195,13 @@ export default function ObracunEdit() {
       otherAdditions: item.other_additions || 0,
       otherDeductions: deductionsTotal + (item.other_deductions || 0),
     }, activeParam);
+
+    // In neto mode, preserve the user's entered net value (clean net)
+    // The calculated net_salary includes additions/deductions which differ
+    if (header.input_mode === "neto") {
+      result.net_salary = desiredNet;
+    }
+
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...result } : it)));
   };
 
@@ -203,9 +210,10 @@ export default function ObracunEdit() {
     setItems((prev) =>
       prev.map((item) => {
         const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
+        const desiredNet = item.net_salary || 0;
         let grossSalary = item.gross_salary || 0;
         if (header.input_mode === "neto") {
-          grossSalary = calculateGrossFromNet(item.net_salary || 0, activeParam);
+          grossSalary = calculateGrossFromNet(desiredNet, activeParam);
         }
         const result = calculatePayroll({
           grossSalary,
@@ -218,6 +226,9 @@ export default function ObracunEdit() {
           otherAdditions: item.other_additions || 0,
           otherDeductions: deductionsTotal + (item.other_deductions || 0),
         }, activeParam);
+        if (header.input_mode === "neto") {
+          result.net_salary = desiredNet;
+        }
         return { ...item, ...result };
       })
     );
