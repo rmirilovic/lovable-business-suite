@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { parseLocaleNumber } from "@/lib/formatting";
 import { ArrowLeft, Save, Trash2, History } from "lucide-react";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { toast } from "sonner";
@@ -207,8 +208,8 @@ export default function EmployeeEdit() {
       note: form.note || null,
       created_by: user.id,
       leave_days_default: 20,
-      transport_monthly: parseFloat(form.transport_monthly) || 0,
-      contracted_salary: parseFloat(form.contracted_salary) || 0,
+      transport_monthly: parseLocaleNumber(form.transport_monthly),
+      contracted_salary: parseLocaleNumber(form.contracted_salary),
     };
 
     try {
