@@ -273,47 +273,47 @@ export default function ObracunEdit() {
       return;
     }
 
-    setItems((prev) => [
-      ...prev,
-      ...availableEmployees.map((employee) => {
-        const wh = getWorkHoursForEmployee(employee.id);
-        const contractedSalary = (employee as any).contracted_salary || 0;
+    const newItems = availableEmployees.map((employee) => {
+      const wh = getWorkHoursForEmployee(employee.id);
+      const contractedSalary = (employee as any).contracted_salary || 0;
 
-        let initialGross = 0;
-        if (isSickLeaveType && contractedSalary > 0) {
-          const absence = getEmployeeAbsenceForPeriod(employee.id);
-          const rate = absence?.compensation_rate || (header.calculation_type === "bolovanje_poslodavac" ? (activeParam as any)?.sick_leave_employer_rate || 65 : 65);
-          initialGross = Math.round(contractedSalary * rate / 100 * 100) / 100;
-        } else if (contractedSalary > 0) {
-          initialGross = contractedSalary;
-        }
+      let initialGross = 0;
+      if (isSickLeaveType && contractedSalary > 0) {
+        const absence = getEmployeeAbsenceForPeriod(employee.id);
+        const rate = absence?.compensation_rate || (header.calculation_type === "bolovanje_poslodavac" ? (activeParam as any)?.sick_leave_employer_rate || 65 : 65);
+        initialGross = Math.round(contractedSalary * rate / 100 * 100) / 100;
+      } else if (contractedSalary > 0) {
+        initialGross = contractedSalary;
+      }
 
-        return {
-          employee_id: employee.id,
-          employee_number: employee.employee_number,
-          employee_name: `${employee.last_name} ${employee.first_name}`,
-          gross_salary: initialGross,
-          non_taxable_amount: activeParam?.non_taxable_amount || 25000,
-          tax_base: 0,
-          income_tax: 0,
-          pio_employee: 0,
-          pio_employer: 0,
-          health_employee: 0,
-          health_employer: 0,
-          unemployment: 0,
-          total_employee_contributions: 0,
-          total_employer_contributions: 0,
-          net_salary: 0,
-          total_cost: 0,
-          ...wh,
-          seniority_bonus: 0,
-          meal_allowance: 0,
-          transport_allowance: 0,
-          other_additions: 0,
-          other_deductions: 0,
-        };
-      }),
-    ]);
+      return calculateItemValues({
+        employee_id: employee.id,
+        employee_number: employee.employee_number,
+        employee_name: `${employee.last_name} ${employee.first_name}`,
+        gross_salary: initialGross,
+        non_taxable_amount: activeParam?.non_taxable_amount || 25000,
+        tax_base: 0,
+        income_tax: 0,
+        pio_employee: 0,
+        pio_employer: 0,
+        health_employee: 0,
+        health_employer: 0,
+        unemployment: 0,
+        total_employee_contributions: 0,
+        total_employer_contributions: 0,
+        net_salary: 0,
+        total_cost: 0,
+        ...wh,
+        seniority_bonus: 0,
+        regres: 0,
+        meal_allowance: 0,
+        transport_allowance: 0,
+        other_additions: 0,
+        other_deductions: 0,
+      }, header.input_mode);
+    });
+
+    setItems((prev) => [...prev, ...newItems]);
 
     toast.success(`Dodato ${availableEmployees.length} zaposlenih`);
   };
