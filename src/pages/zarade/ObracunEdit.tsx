@@ -25,6 +25,7 @@ import {
 import { Employee, useEmployees } from "@/hooks/useEmployees";
 import { DEDUCTION_TYPE_LABELS, EmployeeDeduction, useAllActiveDeductions } from "@/hooks/useEmployeeDeductions";
 import { useActivePayrollParameter } from "@/hooks/usePayrollParameters";
+import { useWorkHours } from "@/hooks/useWorkHours";
 import { parseLocaleNumber, formatPrice } from "@/lib/formatting";
 import { calculateGrossFromNet, calculatePayroll } from "@/lib/payrollCalculator";
 
@@ -44,6 +45,9 @@ export default function ObracunEdit() {
   const { data: employees } = useEmployees();
   const { data: activeDeductions } = useAllActiveDeductions();
   const { updateCalculation, saveItems } = usePayrollCalculationMutations();
+
+  // Fetch work hours for the calculation period
+  const { data: workHoursData } = useWorkHours(header.period_year, header.period_month);
 
   const [header, setHeader] = useState({
     calculation_number: "",
@@ -176,11 +180,23 @@ export default function ObracunEdit() {
     setItems(savedItems.map((item) => calculateItemValues(item, inputMode)));
   }, [savedItems, activeParam, calculation, deductionsByEmployee]);
 
+  const getWorkHoursForEmployee = (employeeId: string) => {
+    const wh = workHoursData?.find((w) => w.employee_id === employeeId);
+    return {
+      working_days: wh?.working_days ?? 0,
+      worked_days: wh?.worked_days ?? 0,
+      hours_regular: wh?.hours_regular ?? 0,
+      hours_overtime: wh?.hours_overtime ?? 0,
+    };
+  };
+
   const addEmployee = (employee: Employee) => {
     if (items.some((item) => item.employee_id === employee.id)) {
       toast.error("Zaposleni je već dodat");
       return;
     }
+
+    const wh = getWorkHoursForEmployee(employee.id);
 
     setItems((prev) => [
       ...prev,
@@ -201,10 +217,7 @@ export default function ObracunEdit() {
         total_employer_contributions: 0,
         net_salary: 0,
         total_cost: 0,
-        working_days: 22,
-        worked_days: 22,
-        hours_regular: 176,
-        hours_overtime: 0,
+        ...wh,
         meal_allowance: 0,
         transport_allowance: 0,
         other_additions: 0,
@@ -224,32 +237,32 @@ export default function ObracunEdit() {
 
     setItems((prev) => [
       ...prev,
-      ...availableEmployees.map((employee) => ({
-        employee_id: employee.id,
-        employee_number: employee.employee_number,
-        employee_name: `${employee.last_name} ${employee.first_name}`,
-        gross_salary: 0,
-        non_taxable_amount: activeParam?.non_taxable_amount || 25000,
-        tax_base: 0,
-        income_tax: 0,
-        pio_employee: 0,
-        pio_employer: 0,
-        health_employee: 0,
-        health_employer: 0,
-        unemployment: 0,
-        total_employee_contributions: 0,
-        total_employer_contributions: 0,
-        net_salary: 0,
-        total_cost: 0,
-        working_days: 22,
-        worked_days: 22,
-        hours_regular: 176,
-        hours_overtime: 0,
-        meal_allowance: 0,
-        transport_allowance: 0,
-        other_additions: 0,
-        other_deductions: 0,
-      })),
+      ...availableEmployees.map((employee) => {
+        const wh = getWorkHoursForEmployee(employee.id);
+        return {
+          employee_id: employee.id,
+          employee_number: employee.employee_number,
+          employee_name: `${employee.last_name} ${employee.first_name}`,
+          gross_salary: 0,
+          non_taxable_amount: activeParam?.non_taxable_amount || 25000,
+          tax_base: 0,
+          income_tax: 0,
+          pio_employee: 0,
+          pio_employer: 0,
+          health_employee: 0,
+          health_employer: 0,
+          unemployment: 0,
+          total_employee_contributions: 0,
+          total_employer_contributions: 0,
+          net_salary: 0,
+          total_cost: 0,
+          ...wh,
+          meal_allowance: 0,
+          transport_allowance: 0,
+          other_additions: 0,
+          other_deductions: 0,
+        };
+      }),
     ]);
 
     toast.success(`Dodato ${availableEmployees.length} zaposlenih`);
