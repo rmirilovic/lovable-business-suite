@@ -303,6 +303,10 @@ export default function ObracunEdit() {
     return items.reduce(
       (acc, item) => ({
         gross: acc.gross + (item.gross_salary || 0),
+        regres: acc.regres + ((item as any).regres || 0),
+        meal: acc.meal + (item.meal_allowance || 0),
+        transport: acc.transport + (item.transport_allowance || 0),
+        totalGross: acc.totalGross + (item.gross_salary || 0) + ((item as any).regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
         net: acc.net + (item.net_salary || 0),
         tax: acc.tax + (item.income_tax || 0),
         empContr: acc.empContr + (item.total_employee_contributions || 0),
@@ -310,7 +314,7 @@ export default function ObracunEdit() {
         cost: acc.cost + (item.total_cost || 0),
         deductions: acc.deductions + getEmployeeDeductionsTotal(item.employee_id),
       }),
-      { gross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 },
+      { gross: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 },
     );
   }, [items, deductionsByEmployee]);
 
@@ -428,19 +432,23 @@ export default function ObracunEdit() {
               <TableRow>
                 <TableHead className="w-8" />
                 <TableHead className="min-w-[60px]">Šifra</TableHead>
-                <TableHead className="min-w-[160px]">Zaposleni</TableHead>
-                <TableHead className="min-w-[120px] text-right">
-                  {header.input_mode === "neto" ? <span className="text-muted-foreground">Bruto <span className="text-xs">(izračunat)</span></span> : "Bruto"}
+                <TableHead className="min-w-[140px]">Zaposleni</TableHead>
+                <TableHead className="min-w-[110px] text-right">
+                  {header.input_mode === "neto" ? <span className="text-muted-foreground">Osnovna <span className="text-xs">(izr.)</span></span> : "Osnovna"}
                 </TableHead>
-                <TableHead className="min-w-[100px] text-right">Porez</TableHead>
-                <TableHead className="min-w-[100px] text-right">Dop. zap.</TableHead>
-                <TableHead className="min-w-[100px] text-right">Dop. posl.</TableHead>
-                <TableHead className="min-w-[100px] text-right">Obustave</TableHead>
-                <TableHead className="min-w-[120px] text-right">
+                <TableHead className="min-w-[80px] text-right">Regres</TableHead>
+                <TableHead className="min-w-[80px] text-right">T. obrok</TableHead>
+                <TableHead className="min-w-[80px] text-right">Prevoz</TableHead>
+                <TableHead className="min-w-[110px] text-right">Uk. bruto</TableHead>
+                <TableHead className="min-w-[90px] text-right">Porez</TableHead>
+                <TableHead className="min-w-[90px] text-right">Dop. zap.</TableHead>
+                <TableHead className="min-w-[90px] text-right">Dop. posl.</TableHead>
+                <TableHead className="min-w-[90px] text-right">Obustave</TableHead>
+                <TableHead className="min-w-[110px] text-right">
                   {header.input_mode === "neto" ? <span className="font-semibold">Neto <span className="text-xs">(unos)</span></span> : "Neto"}
                 </TableHead>
-                <TableHead className="min-w-[120px] text-right">Trošak</TableHead>
-                {!isPosted && <TableHead className="w-20" />}
+                <TableHead className="min-w-[110px] text-right">Trošak</TableHead>
+                {!isPosted && <TableHead className="w-16" />}
               </TableRow>
             </TableHeader>
             <TableBody>
