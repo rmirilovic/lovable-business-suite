@@ -267,6 +267,38 @@ export default function AbsenceEdit() {
                   disabled={!canWrite}
                 />
               </div>
+              {(form.absence_type === "bolovanje_poslodavac" || form.absence_type === "bolovanje_rfzo") && (
+                <div>
+                  <Label>Procenat naknade (%)</Label>
+                  {form.absence_type === "bolovanje_rfzo" ? (
+                    <Select
+                      value={form.compensation_rate || "65"}
+                      onValueChange={(v) => handleChange("compensation_rate", v)}
+                      disabled={!canWrite}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="65">65%</SelectItem>
+                        <SelectItem value="100">100% (povreda na radu, trudnoća...)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <LocaleNumberInput
+                      value={form.compensation_rate || "65"}
+                      onChange={(v) => handleChange("compensation_rate", v)}
+                      decimalPlaces={0}
+                      disabled={!canWrite}
+                    />
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {form.absence_type === "bolovanje_poslodavac"
+                      ? "Procenat od prosečne zarade, važi za sve zaposlene. Može se promeniti."
+                      : "65% ili 100% u zavisnosti od vrste bolovanja (povreda na radu, trudnoća itd.)"}
+                  </p>
+                </div>
+              )}
             </div>
             <div className="mt-4">
               <Label>Napomena</Label>
