@@ -447,6 +447,11 @@ export default function ObracunEdit() {
               </Button>
             </>
           )}
+          {header.calculation_type === "bolovanje_rfzo" && items.length > 0 && (
+            <Button variant="outline" size="sm" onClick={handleExportRfzoPdf}>
+              <FileText className="mr-1 h-4 w-4" /> RFZO Refundacija PDF
+            </Button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-4 rounded-lg border bg-card p-4 md:grid-cols-5">
