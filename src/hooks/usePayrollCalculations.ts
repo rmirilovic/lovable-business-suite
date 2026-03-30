@@ -62,6 +62,7 @@ export interface PayrollCalculationItem {
   worked_days: number;
   hours_regular: number;
   hours_overtime: number;
+  regres: number;
   meal_allowance: number;
   transport_allowance: number;
   other_additions: number;
