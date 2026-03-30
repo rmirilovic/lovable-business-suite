@@ -147,6 +147,8 @@ export function useEmployeeAbsenceSummary(employeeId?: string, year?: number) {
       const summary: Record<string, number> = {
         godisnji_odmor: 0,
         bolovanje: 0,
+        bolovanje_poslodavac: 0,
+        bolovanje_rfzo: 0,
         placeno_odsustvo: 0,
         neplaceno_odsustvo: 0,
       };
