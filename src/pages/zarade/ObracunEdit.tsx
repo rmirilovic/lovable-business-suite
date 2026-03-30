@@ -379,12 +379,12 @@ export default function ObracunEdit() {
                 <TableHead className="w-8"></TableHead>
                 <TableHead className="min-w-[60px]">Šifra</TableHead>
                 <TableHead className="min-w-[160px]">Zaposleni</TableHead>
-                <TableHead className="min-w-[120px] text-right">Bruto</TableHead>
+                <TableHead className="min-w-[120px] text-right">{header.input_mode === "neto" ? <span className="text-muted-foreground">Bruto <span className="text-xs">(izračunat)</span></span> : "Bruto"}</TableHead>
                 <TableHead className="min-w-[100px] text-right">Porez</TableHead>
                 <TableHead className="min-w-[100px] text-right">Dop. zap.</TableHead>
                 <TableHead className="min-w-[100px] text-right">Dop. posl.</TableHead>
                 <TableHead className="min-w-[100px] text-right">Obustave</TableHead>
-                <TableHead className="min-w-[120px] text-right">Neto</TableHead>
+                <TableHead className="min-w-[120px] text-right">{header.input_mode === "neto" ? <span className="font-semibold">Neto <span className="text-xs">(unos)</span></span> : "Neto"}</TableHead>
                 <TableHead className="min-w-[120px] text-right">Trošak</TableHead>
                 {!isPosted && <TableHead className="w-20"></TableHead>}
               </TableRow>
