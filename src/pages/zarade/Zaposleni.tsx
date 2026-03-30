@@ -150,6 +150,7 @@ export default function Zaposleni() {
       case "education_level": return item.education_level || "";
       case "employment_type": return EMPLOYMENT_TYPE_LABELS[item.employment_type] || item.employment_type;
       case "employment_date": return item.employment_date || "";
+      case "contracted_salary": return item.contracted_salary || 0;
       case "bank_account": return item.bank_account || "";
       case "work_experience": return computeTotalExperience(item);
       case "status": return item.status;
