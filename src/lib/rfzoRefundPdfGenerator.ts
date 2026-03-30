@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { setupSerbianFont } from "./pdfFonts";
+import { configurePdfFonts } from "./pdfFonts";
 import { formatPrice, formatDate } from "./formatting";
 
 interface RefundItem {
@@ -37,7 +37,7 @@ const MONTH_NAMES = ["januar", "februar", "mart", "april", "maj", "jun", "jul", 
 
 export function generateRfzoRefundPdf(options: RefundPdfOptions): jsPDF {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-  setupSerbianFont(doc);
+  configurePdfFonts(doc);
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 10;
