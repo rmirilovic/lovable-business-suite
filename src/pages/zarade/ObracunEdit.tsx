@@ -283,7 +283,11 @@ export default function ObracunEdit() {
       return;
     }
 
-    setItems((prev) => prev.map((item) => calculateItemValues(item, header.input_mode)));
+    // Update work hours from evidence before recalculating
+    setItems((prev) => prev.map((item) => {
+      const wh = item.employee_id ? getWorkHoursForEmployee(item.employee_id) : {};
+      return calculateItemValues({ ...item, ...wh }, header.input_mode);
+    }));
     toast.success("Obračun rekalkulisan");
   };
 
