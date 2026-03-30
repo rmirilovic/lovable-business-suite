@@ -64,6 +64,7 @@ interface EmployeeForm {
   status: string;
   termination_date: string;
   note: string;
+  transport_monthly: string;
 }
 
 const emptyForm: EmployeeForm = {
@@ -94,6 +95,7 @@ const emptyForm: EmployeeForm = {
   status: "active",
   termination_date: "",
   note: "",
+  transport_monthly: "0",
 };
 
 export default function EmployeeEdit() {
@@ -150,6 +152,7 @@ export default function EmployeeEdit() {
         status: employee.status,
         termination_date: employee.termination_date || "",
         note: employee.note || "",
+        transport_monthly: String((employee as any).transport_monthly ?? 0),
       });
     }
   }, [employee]);
@@ -201,6 +204,7 @@ export default function EmployeeEdit() {
       note: form.note || null,
       created_by: user.id,
       leave_days_default: 20,
+      transport_monthly: parseFloat(form.transport_monthly) || 0,
     };
 
     try {
