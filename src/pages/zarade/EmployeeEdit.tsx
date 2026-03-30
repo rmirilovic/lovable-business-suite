@@ -208,8 +208,8 @@ export default function EmployeeEdit() {
       note: form.note || null,
       created_by: user.id,
       leave_days_default: 20,
-      transport_monthly: parseFloat(form.transport_monthly) || 0,
-      contracted_salary: parseFloat(form.contracted_salary) || 0,
+      transport_monthly: parseLocaleNumber(form.transport_monthly),
+      contracted_salary: parseLocaleNumber(form.contracted_salary),
     };
 
     try {
