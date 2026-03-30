@@ -1,7 +1,8 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Save, Search } from "lucide-react";
 import { useEmployees } from "@/hooks/useEmployees";
-import { useWorkHours, useUpsertWorkHours, WorkHour } from "@/hooks/useWorkHours";
+import { useWorkHours, useUpsertWorkHours } from "@/hooks/useWorkHours";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
@@ -47,6 +48,10 @@ export default function EvidencijaRadnogVremena() {
   const { data: workHours, isLoading: whLoading } = useWorkHours(yearNum, selectedMonth);
   const upsertMutation = useUpsertWorkHours();
 
+  // Month-level defaults
+  const [monthWorkingDays, setMonthWorkingDays] = useState(0);
+  const [monthHolidayHours, setMonthHolidayHours] = useState(0);
+
   const activeEmployees = useMemo(() => {
     if (!employees) return [];
     return employees.filter((e) => e.is_active);
@@ -54,6 +59,19 @@ export default function EvidencijaRadnogVremena() {
 
   // Build editable rows from employees + existing work_hours
   const [editedRows, setEditedRows] = useState<Record<string, RowData>>({});
+
+  // Initialize month-level defaults from existing data
+  useEffect(() => {
+    if (workHours && workHours.length > 0) {
+      // Take working_days and holiday_hours from the first record as month-level default
+      const first = workHours[0];
+      setMonthWorkingDays(first.working_days);
+      setMonthHolidayHours(first.hours_holiday);
+    } else {
+      setMonthWorkingDays(0);
+      setMonthHolidayHours(0);
+    }
+  }, [workHours]);
 
   const getRowData = useCallback((empId: string): RowData => {
     if (editedRows[empId]) return editedRows[empId];
@@ -70,24 +88,110 @@ export default function EvidencijaRadnogVremena() {
         note: existing.note || "",
       };
     }
+    // Default for new: use month-level values
     return {
       employee_id: empId,
-      working_days: 0,
-      worked_days: 0,
-      hours_regular: 0,
+      working_days: monthWorkingDays,
+      worked_days: monthWorkingDays,
+      hours_regular: monthWorkingDays * 8,
       hours_overtime: 0,
-      hours_holiday: 0,
+      hours_holiday: monthHolidayHours,
       hours_night: 0,
       note: "",
     };
-  }, [editedRows, workHours]);
+  }, [editedRows, workHours, monthWorkingDays, monthHolidayHours]);
 
   const updateField = (empId: string, field: keyof RowData, value: number | string) => {
     const current = getRowData(empId);
+    const updated = { ...current, [field]: value };
+
+    // Auto-cascade: if worked_days changed, recalculate hours_regular
+    if (field === "worked_days") {
+      updated.hours_regular = (value as number) * 8;
+    }
+
     setEditedRows((prev) => ({
       ...prev,
-      [empId]: { ...current, [field]: value },
+      [empId]: updated,
     }));
+  };
+
+  // When month-level working days changes, apply to all employees that haven't been individually edited
+  const handleMonthWorkingDaysChange = (newDays: number) => {
+    const oldDays = monthWorkingDays;
+    setMonthWorkingDays(newDays);
+
+    // Update all rows where working_days still matches the old month-level value (not individually edited)
+    setEditedRows((prev) => {
+      const updated = { ...prev };
+      activeEmployees.forEach((emp) => {
+        const existing = workHours?.find((wh) => wh.employee_id === emp.id);
+        const currentRow = prev[emp.id] || (existing ? {
+          employee_id: emp.id,
+          working_days: existing.working_days,
+          worked_days: existing.worked_days,
+          hours_regular: existing.hours_regular,
+          hours_overtime: existing.hours_overtime,
+          hours_holiday: existing.hours_holiday,
+          hours_night: existing.hours_night,
+          note: existing.note || "",
+        } : null);
+
+        // If no individual edit exists, or working_days matches old month value — update
+        if (!currentRow || currentRow.working_days === oldDays) {
+          updated[emp.id] = {
+            employee_id: emp.id,
+            working_days: newDays,
+            worked_days: newDays,
+            hours_regular: newDays * 8,
+            hours_overtime: currentRow?.hours_overtime ?? 0,
+            hours_holiday: currentRow?.hours_holiday ?? monthHolidayHours,
+            hours_night: currentRow?.hours_night ?? 0,
+            note: currentRow?.note ?? "",
+          };
+        }
+      });
+      return updated;
+    });
+  };
+
+  // When month-level holiday hours changes, apply to all employees that haven't been individually edited
+  const handleMonthHolidayHoursChange = (newHours: number) => {
+    const oldHours = monthHolidayHours;
+    setMonthHolidayHours(newHours);
+
+    setEditedRows((prev) => {
+      const updated = { ...prev };
+      activeEmployees.forEach((emp) => {
+        const currentRow = prev[emp.id];
+        const existing = workHours?.find((wh) => wh.employee_id === emp.id);
+
+        const row = currentRow || (existing ? {
+          employee_id: emp.id,
+          working_days: existing.working_days,
+          worked_days: existing.worked_days,
+          hours_regular: existing.hours_regular,
+          hours_overtime: existing.hours_overtime,
+          hours_holiday: existing.hours_holiday,
+          hours_night: existing.hours_night,
+          note: existing.note || "",
+        } : null);
+
+        if (!row || row.hours_holiday === oldHours) {
+          updated[emp.id] = {
+            employee_id: emp.id,
+            working_days: row?.working_days ?? monthWorkingDays,
+            worked_days: row?.worked_days ?? monthWorkingDays,
+            hours_regular: row?.hours_regular ?? (monthWorkingDays * 8),
+            hours_overtime: row?.hours_overtime ?? 0,
+            hours_holiday: newHours,
+            hours_night: row?.hours_night ?? 0,
+            note: row?.note ?? "",
+          };
+        }
+      });
+      return updated;
+    });
   };
 
   // Reset edits when month/year changes
@@ -114,7 +218,6 @@ export default function EvidencijaRadnogVremena() {
   const handleSave = () => {
     if (!selectedCompany?.id || !selectedYear?.id || !user?.id) return;
 
-    // Collect all rows (edited + existing unchanged)
     const rows = filtered.map((emp) => {
       const row = getRowData(emp.id);
       return {
@@ -134,7 +237,6 @@ export default function EvidencijaRadnogVremena() {
       };
     });
 
-    // Only save rows that have any data
     const nonEmpty = rows.filter(
       (r) =>
         r.working_days > 0 ||
@@ -145,9 +247,7 @@ export default function EvidencijaRadnogVremena() {
         r.hours_night > 0
     );
 
-    if (nonEmpty.length === 0) {
-      return;
-    }
+    if (nonEmpty.length === 0) return;
 
     upsertMutation.mutate(nonEmpty as any);
   };
@@ -158,38 +258,65 @@ export default function EvidencijaRadnogVremena() {
   return (
     <MainLayout title="Evidencija radnog vremena">
       <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-hidden">
-        {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Pretraži zaposlene..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+        {/* Month-level defaults */}
+        <div className="flex flex-wrap items-end gap-4 rounded-lg border bg-card p-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Mesec</Label>
+            <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTH_NAMES.map((name, idx) => (
+                  <SelectItem key={idx + 1} value={String(idx + 1)}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Godina</Label>
+            <Input value={yearNum} disabled className="w-[80px] h-9" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Radnih dana u mesecu</Label>
+            <LocaleNumberInput
+              value={String(monthWorkingDays)}
+              onChange={(v) => handleMonthWorkingDaysChange(parseLocaleNumber(v))}
+              decimalPlaces={0}
+              className="w-[100px] h-9 text-right"
+              disabled={!canWrite}
             />
           </div>
-          <Select value={String(selectedMonth)} onValueChange={(v) => setSelectedMonth(Number(v))}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {MONTH_NAMES.map((name, idx) => (
-                <SelectItem key={idx + 1} value={String(idx + 1)}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="text-sm text-muted-foreground font-medium">
-            Godina: {yearNum}
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Sati praznika (mesečno)</Label>
+            <LocaleNumberInput
+              value={String(monthHolidayHours)}
+              onChange={(v) => handleMonthHolidayHoursChange(parseLocaleNumber(v))}
+              decimalPlaces={2}
+              className="w-[100px] h-9 text-right"
+              disabled={!canWrite}
+            />
           </div>
+          <div className="flex-1" />
           {canWrite && (
             <Button onClick={handleSave} disabled={upsertMutation.isPending || !hasEdits}>
               <Save className="w-4 h-4 mr-2" />
               {upsertMutation.isPending ? "Čuvanje..." : "Sačuvaj"}
             </Button>
           )}
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Pretraži zaposlene..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
         </div>
 
         {/* Table */}
