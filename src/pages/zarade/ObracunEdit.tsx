@@ -605,10 +605,11 @@ export default function ObracunEdit() {
                           />
                         )}
                       </TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.seniority_bonus || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.regres || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.meal_allowance || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.transport_allowance || 0)}</TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt((item.gross_salary || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0))}</TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt((item.gross_salary || 0) + (item.seniority_bonus || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0))}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.income_tax || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employee_contributions || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employer_contributions || 0)}</TableCell>
