@@ -34,6 +34,7 @@ export interface Employee {
   status: string;
   termination_date: string | null;
   note: string | null;
+  transport_monthly: number;
   created_by: string;
   created_at: string;
   updated_at: string;

@@ -100,28 +100,52 @@ export default function ObracunEdit() {
     if (!activeParam) return item;
 
     const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
-    const manualOtherDeductions = 0;
+    const workingDays = item.working_days || 0;
+    const workedDays = item.worked_days || 0;
+    const ratio = workingDays > 0 ? workedDays / workingDays : 0;
+
+    // Pro-rata supplements (taxable)
+    const regres = Math.round(((activeParam as any).regres_daily || 0) * workedDays * 100) / 100;
+    const mealAllowance = Math.round(((activeParam as any).meal_daily || 0) * workedDays * 100) / 100;
+
+    // Transport: get from employee record, pro-rata by days
+    const emp = employees?.find((e) => e.id === item.employee_id);
+    const transportMonthly = (emp as any)?.transport_monthly || item.transport_allowance || 0;
+    const transportAllowance = Math.round(transportMonthly * ratio * 100) / 100;
+
     const desiredNet = item.net_salary || 0;
-    const grossSalary = inputMode === "neto"
-      ? calculateGrossFromNet(desiredNet, activeParam)
-      : item.gross_salary || 0;
+    // In bruto mode, gross_salary IS the base salary (without supplements)
+    // In neto mode, we reverse-calculate base salary from desired net minus supplements
+    let baseSalary = item.gross_salary || 0;
+    if (inputMode === "neto") {
+      // desiredNet = totalGross - contributions - tax - deductions
+      // totalGross = baseSalary + regres + meal + transport + otherAdditions
+      // We need to find baseSalary such that net = desiredNet
+      // Approach: calculate what total gross would yield desiredNet, then subtract supplements
+      const totalGrossNeeded = calculateGrossFromNet(desiredNet + deductionsTotal, activeParam);
+      baseSalary = Math.max(totalGrossNeeded - regres - mealAllowance - transportAllowance - (item.other_additions || 0), 0);
+    }
 
     const result = calculatePayroll({
-      grossSalary,
-      workingDays: item.working_days || 0,
-      workedDays: item.worked_days || 0,
+      baseSalary,
+      regres,
+      mealAllowance,
+      transportAllowance,
+      workingDays,
+      workedDays,
       hoursRegular: item.hours_regular || 0,
       hoursOvertime: item.hours_overtime || 0,
-      mealAllowance: item.meal_allowance || 0,
-      transportAllowance: item.transport_allowance || 0,
       otherAdditions: item.other_additions || 0,
-      otherDeductions: deductionsTotal + manualOtherDeductions,
+      otherDeductions: deductionsTotal,
     }, activeParam);
 
     return {
       ...item,
       ...result,
-      other_deductions: manualOtherDeductions,
+      // In bruto mode, gross_salary stores the base salary (user input)
+      // The displayed "Bruto" in the table is this base salary
+      gross_salary: baseSalary,
+      other_deductions: 0,
       net_salary: inputMode === "neto" ? desiredNet : result.net_salary,
     };
   };
@@ -275,19 +299,25 @@ export default function ObracunEdit() {
     }
   };
 
-  const totals = useMemo(() => {
-    return items.reduce(
-      (acc, item) => ({
+  interface Totals { gross: number; regres: number; meal: number; transport: number; totalGross: number; net: number; tax: number; empContr: number; erlContr: number; cost: number; deductions: number; }
+  const totals: Totals = useMemo(() => {
+    const init: Totals = { gross: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
+    return items.reduce<Totals>((acc, item) => {
+      const r = (item as any).regres || 0;
+      return {
         gross: acc.gross + (item.gross_salary || 0),
+        regres: acc.regres + r,
+        meal: acc.meal + (item.meal_allowance || 0),
+        transport: acc.transport + (item.transport_allowance || 0),
+        totalGross: acc.totalGross + (item.gross_salary || 0) + r + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
         net: acc.net + (item.net_salary || 0),
         tax: acc.tax + (item.income_tax || 0),
         empContr: acc.empContr + (item.total_employee_contributions || 0),
         erlContr: acc.erlContr + (item.total_employer_contributions || 0),
         cost: acc.cost + (item.total_cost || 0),
         deductions: acc.deductions + getEmployeeDeductionsTotal(item.employee_id),
-      }),
-      { gross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 },
-    );
+      };
+    }, init);
   }, [items, deductionsByEmployee]);
 
   const fmt = (value: number) => formatPrice(value);
@@ -404,25 +434,29 @@ export default function ObracunEdit() {
               <TableRow>
                 <TableHead className="w-8" />
                 <TableHead className="min-w-[60px]">Šifra</TableHead>
-                <TableHead className="min-w-[160px]">Zaposleni</TableHead>
-                <TableHead className="min-w-[120px] text-right">
-                  {header.input_mode === "neto" ? <span className="text-muted-foreground">Bruto <span className="text-xs">(izračunat)</span></span> : "Bruto"}
+                <TableHead className="min-w-[140px]">Zaposleni</TableHead>
+                <TableHead className="min-w-[110px] text-right">
+                  {header.input_mode === "neto" ? <span className="text-muted-foreground">Osnovna <span className="text-xs">(izr.)</span></span> : "Osnovna"}
                 </TableHead>
-                <TableHead className="min-w-[100px] text-right">Porez</TableHead>
-                <TableHead className="min-w-[100px] text-right">Dop. zap.</TableHead>
-                <TableHead className="min-w-[100px] text-right">Dop. posl.</TableHead>
-                <TableHead className="min-w-[100px] text-right">Obustave</TableHead>
-                <TableHead className="min-w-[120px] text-right">
+                <TableHead className="min-w-[80px] text-right">Regres</TableHead>
+                <TableHead className="min-w-[80px] text-right">T. obrok</TableHead>
+                <TableHead className="min-w-[80px] text-right">Prevoz</TableHead>
+                <TableHead className="min-w-[110px] text-right">Uk. bruto</TableHead>
+                <TableHead className="min-w-[90px] text-right">Porez</TableHead>
+                <TableHead className="min-w-[90px] text-right">Dop. zap.</TableHead>
+                <TableHead className="min-w-[90px] text-right">Dop. posl.</TableHead>
+                <TableHead className="min-w-[90px] text-right">Obustave</TableHead>
+                <TableHead className="min-w-[110px] text-right">
                   {header.input_mode === "neto" ? <span className="font-semibold">Neto <span className="text-xs">(unos)</span></span> : "Neto"}
                 </TableHead>
-                <TableHead className="min-w-[120px] text-right">Trošak</TableHead>
-                {!isPosted && <TableHead className="w-20" />}
+                <TableHead className="min-w-[110px] text-right">Trošak</TableHead>
+                {!isPosted && <TableHead className="w-16" />}
               </TableRow>
             </TableHeader>
             <TableBody>
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={isPosted ? 10 : 11} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
+                  <TableCell colSpan={isPosted ? 14 : 15} className="py-8 text-center text-muted-foreground">Dodajte zaposlene u obračun</TableCell>
                 </TableRow>
               ) : items.map((item, idx) => {
                 const employeeDeductions = deductionsByEmployee[item.employee_id || ""] || [];
@@ -453,6 +487,10 @@ export default function ObracunEdit() {
                           />
                         )}
                       </TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt((item as any).regres || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.meal_allowance || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.transport_allowance || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt((item.gross_salary || 0) + ((item as any).regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0))}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.income_tax || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employee_contributions || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employer_contributions || 0)}</TableCell>
@@ -484,7 +522,7 @@ export default function ObracunEdit() {
                       <TableRow key={deduction.id} className="bg-muted/20">
                         <TableCell />
                         <TableCell />
-                        <TableCell colSpan={2} className="pl-8 text-xs text-muted-foreground">
+                        <TableCell colSpan={5} className="pl-8 text-xs text-muted-foreground">
                           {DEDUCTION_TYPE_LABELS[deduction.deduction_type] || deduction.deduction_type}
                           {deduction.description ? ` — ${deduction.description}` : ""}
                           {deduction.creditor_name ? ` (${deduction.creditor_name})` : ""}
@@ -492,8 +530,7 @@ export default function ObracunEdit() {
                         <TableCell className="text-center text-xs text-muted-foreground">
                           {deduction.is_credit ? `Rata ${deduction.paid_installments + 1}/${deduction.total_installments}` : ""}
                         </TableCell>
-                        <TableCell />
-                        <TableCell />
+                        <TableCell colSpan={3} />
                         <TableCell className="text-right font-mono text-xs">{fmt(getEffectiveDeductionAmount(deduction))}</TableCell>
                         <TableCell colSpan={isPosted ? 2 : 3} />
                       </TableRow>
@@ -506,6 +543,10 @@ export default function ObracunEdit() {
                   <TableCell />
                   <TableCell colSpan={2} className="text-right">UKUPNO:</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.gross)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.regres)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.meal)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.transport)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.totalGross)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.tax)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.empContr)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.erlContr)}</TableCell>
@@ -525,9 +566,10 @@ export default function ObracunEdit() {
         </div>
 
         {items.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-7">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
             {[
-              { label: "Ukupno bruto", value: totals.gross },
+              { label: "Osnovna zarada", value: totals.gross },
+              { label: "Ukupno bruto", value: totals.totalGross },
               { label: "Ukupno porez", value: totals.tax },
               { label: "Doprinosi zaposleni", value: totals.empContr },
               { label: "Doprinosi poslodavac", value: totals.erlContr },

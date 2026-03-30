@@ -2719,6 +2719,7 @@ export type Database = {
           postal_code: string | null
           status: string | null
           termination_date: string | null
+          transport_monthly: number
           updated_at: string | null
           work_experience_months: number | null
           work_experience_years: number | null
@@ -2755,6 +2756,7 @@ export type Database = {
           postal_code?: string | null
           status?: string | null
           termination_date?: string | null
+          transport_monthly?: number
           updated_at?: string | null
           work_experience_months?: number | null
           work_experience_years?: number | null
@@ -2791,6 +2793,7 @@ export type Database = {
           postal_code?: string | null
           status?: string | null
           termination_date?: string | null
+          transport_monthly?: number
           updated_at?: string | null
           work_experience_months?: number | null
           work_experience_years?: number | null
@@ -5181,6 +5184,7 @@ export type Database = {
           other_deductions: number
           pio_employee: number
           pio_employer: number
+          regres: number
           tax_base: number
           total_cost: number
           total_employee_contributions: number
@@ -5213,6 +5217,7 @@ export type Database = {
           other_deductions?: number
           pio_employee?: number
           pio_employer?: number
+          regres?: number
           tax_base?: number
           total_cost?: number
           total_employee_contributions?: number
@@ -5245,6 +5250,7 @@ export type Database = {
           other_deductions?: number
           pio_employee?: number
           pio_employer?: number
+          regres?: number
           tax_base?: number
           total_cost?: number
           total_employee_contributions?: number
@@ -5394,12 +5400,14 @@ export type Database = {
           income_tax_rate: number
           is_active: boolean
           max_base_pio: number
+          meal_daily: number
           min_base_health: number
           min_base_pio: number
           non_taxable_amount: number
           note: string | null
           pio_employee_rate: number
           pio_employer_rate: number
+          regres_daily: number
           unemployment_rate: number
           updated_at: string
           valid_from: string
@@ -5414,12 +5422,14 @@ export type Database = {
           income_tax_rate?: number
           is_active?: boolean
           max_base_pio?: number
+          meal_daily?: number
           min_base_health?: number
           min_base_pio?: number
           non_taxable_amount?: number
           note?: string | null
           pio_employee_rate?: number
           pio_employer_rate?: number
+          regres_daily?: number
           unemployment_rate?: number
           updated_at?: string
           valid_from?: string
@@ -5434,12 +5444,14 @@ export type Database = {
           income_tax_rate?: number
           is_active?: boolean
           max_base_pio?: number
+          meal_daily?: number
           min_base_health?: number
           min_base_pio?: number
           non_taxable_amount?: number
           note?: string | null
           pio_employee_rate?: number
           pio_employer_rate?: number
+          regres_daily?: number
           unemployment_rate?: number
           updated_at?: string
           valid_from?: string

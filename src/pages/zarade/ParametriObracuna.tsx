@@ -27,6 +27,8 @@ const defaultForm = {
   min_base_pio: 40880,
   max_base_pio: 584440,
   min_base_health: 40880,
+  regres_daily: 0,
+  meal_daily: 0,
   is_active: true,
   note: "",
 };
@@ -49,6 +51,8 @@ export default function ParametriObracuna() {
       health_employer_rate: p.health_employer_rate, unemployment_rate: p.unemployment_rate,
       non_taxable_amount: p.non_taxable_amount, min_base_pio: p.min_base_pio,
       max_base_pio: p.max_base_pio, min_base_health: p.min_base_health,
+      regres_daily: (p as any).regres_daily ?? 0,
+      meal_daily: (p as any).meal_daily ?? 0,
       is_active: p.is_active, note: p.note || "",
     });
     setDialogOpen(true);
@@ -177,6 +181,13 @@ export default function ParametriObracuna() {
                 {numField("Na teret zaposlenog", "health_employee_rate")}
                 {numField("Na teret poslodavca", "health_employer_rate")}
                 {numField("Min. osnovica", "min_base_health", "RSD")}
+              </div>
+            </div>
+            <div className="border rounded-lg p-3 space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Dodaci na zaradu (dnevni iznosi)</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {numField("Regres (dnevni)", "regres_daily", "RSD")}
+                {numField("Topli obrok (dnevni)", "meal_daily", "RSD")}
               </div>
             </div>
             <div className="border rounded-lg p-3 space-y-3">

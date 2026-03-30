@@ -18,6 +18,8 @@ export interface PayrollParameter {
   min_base_pio: number;
   max_base_pio: number;
   min_base_health: number;
+  regres_daily: number;
+  meal_daily: number;
   is_active: boolean;
   note: string | null;
   created_at: string;
