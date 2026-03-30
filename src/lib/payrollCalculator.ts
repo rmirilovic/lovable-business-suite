@@ -56,7 +56,7 @@ export function calculateGrossFromNet(desiredNet: number, params: PayrollParamet
   for (let i = 0; i < 20; i++) {
     const result = calculatePayroll({
       baseSalary: gross,
-      regres: 0, mealAllowance: 0, transportAllowance: 0,
+      seniorityBonus: 0, regres: 0, mealAllowance: 0, transportAllowance: 0,
       otherAdditions: 0, otherDeductions: 0,
       workingDays: 0, workedDays: 0,
       hoursRegular: 0, hoursOvertime: 0,
