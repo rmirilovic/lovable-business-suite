@@ -442,7 +442,7 @@ export default function ObracunEdit() {
 
   return (
     <MainLayout title={`Obračun ${header.calculation_number}`}>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-auto">
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate("/zarade/obracun")}>
             <ArrowLeft className="mr-1 h-4 w-4" /> Nazad
