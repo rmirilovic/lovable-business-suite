@@ -662,6 +662,7 @@ export default function ObracunEdit() {
                   <TableCell />
                   <TableCell colSpan={4} className="text-right">UKUPNO:</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.gross)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.seniority)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.regres)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.meal)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.transport)}</TableCell>
