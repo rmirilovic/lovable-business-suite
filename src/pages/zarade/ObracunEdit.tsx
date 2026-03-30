@@ -92,129 +92,27 @@ export default function ObracunEdit() {
   }, [calculation]);
 
   useEffect(() => {
-    if (savedItems) setItems(savedItems);
-  }, [savedItems]);
-
-  const addEmployee = (emp: Employee) => {
-    if (items.some((i) => i.employee_id === emp.id)) {
-      toast.error("Zaposleni je već dodat");
-      return;
-    }
-    setItems((prev) => [
-      ...prev,
-      {
-        employee_id: emp.id,
-        employee_number: emp.employee_number,
-        employee_name: `${emp.last_name} ${emp.first_name}`,
-        gross_salary: 0,
-        non_taxable_amount: activeParam?.non_taxable_amount || 25000,
-        tax_base: 0,
-        income_tax: 0,
-        pio_employee: 0,
-        pio_employer: 0,
-        health_employee: 0,
-        health_employer: 0,
-        unemployment: 0,
-        total_employee_contributions: 0,
-        total_employer_contributions: 0,
-        net_salary: 0,
-        total_cost: 0,
-        working_days: 22,
-        worked_days: 22,
-        hours_regular: 176,
-        hours_overtime: 0,
-        meal_allowance: 0,
-        transport_allowance: 0,
-        other_additions: 0,
+    if (savedItems) {
+      setItems(savedItems.map((item) => ({
+        ...item,
         other_deductions: 0,
-      },
-    ]);
-  };
-
-  const addAllEmployees = () => {
-    if (!employees) return;
-    const active = employees.filter((e) => e.is_active && !items.some((i) => i.employee_id === e.id));
-    if (!active.length) { toast.info("Svi aktivni zaposleni su već dodati"); return; }
-    setItems((prev) => [
-      ...prev,
-      ...active.map((emp) => ({
-        employee_id: emp.id,
-        employee_number: emp.employee_number,
-        employee_name: `${emp.last_name} ${emp.first_name}`,
-        gross_salary: 0,
-        non_taxable_amount: activeParam?.non_taxable_amount || 25000,
-        tax_base: 0, income_tax: 0,
-        pio_employee: 0, pio_employer: 0,
-        health_employee: 0, health_employer: 0,
-        unemployment: 0,
-        total_employee_contributions: 0, total_employer_contributions: 0,
-        net_salary: 0, total_cost: 0,
-        working_days: 22, worked_days: 22,
-        hours_regular: 176, hours_overtime: 0,
-        meal_allowance: 0, transport_allowance: 0,
-        other_additions: 0, other_deductions: 0,
-      })),
-    ]);
-    toast.success(`Dodato ${active.length} zaposlenih`);
-  };
-
-  // For credit deductions: if it's the last installment, use the remaining amount
-  const getEffectiveDeductionAmount = (d: EmployeeDeduction) => {
-    if (d.is_credit && d.total_amount > 0) {
-      const remaining = Math.max(d.total_amount - d.paid_amount, 0);
-      return Math.min(d.amount_per_installment, remaining);
+      })));
     }
-    return d.amount_per_installment;
-  };
-
-  const getEmployeeDeductionsTotal = (employeeId: string | undefined) => {
-    if (!employeeId) return 0;
-    const deds = deductionsByEmployee[employeeId] || [];
-    return deds.reduce((sum, d) => sum + getEffectiveDeductionAmount(d), 0);
-  };
-
-  const recalculateItem = (idx: number) => {
-    if (!activeParam) { toast.error("Nema aktivnih parametara obračuna"); return; }
-    const item = items[idx];
-    const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
-    const desiredNet = item.net_salary || 0;
-
-    let grossSalary = item.gross_salary || 0;
-    if (header.input_mode === "neto") {
-      grossSalary = calculateGrossFromNet(desiredNet, activeParam);
-    }
-
-    const result = calculatePayroll({
-      grossSalary,
-      workingDays: item.working_days || 0,
-      workedDays: item.worked_days || 0,
-      hoursRegular: item.hours_regular || 0,
-      hoursOvertime: item.hours_overtime || 0,
-      mealAllowance: item.meal_allowance || 0,
-      transportAllowance: item.transport_allowance || 0,
-      otherAdditions: item.other_additions || 0,
-      otherDeductions: deductionsTotal + (item.other_deductions || 0),
-    }, activeParam);
-
-    // In neto mode, preserve the user's entered net value (clean net)
-    // The calculated net_salary includes additions/deductions which differ
-    if (header.input_mode === "neto") {
-      result.net_salary = desiredNet;
-    }
-
-    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...result } : it)));
-  };
-
+  }, [savedItems]);
+...
   const recalculateAll = () => {
     if (!activeParam) { toast.error("Nema aktivnih parametara obračuna"); return; }
     setItems((prev) =>
       prev.map((item) => {
         const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
         const desiredNet = item.net_salary || 0;
+        const manualOtherDeductions = 0;
         let grossSalary = item.gross_salary || 0;
+
         if (header.input_mode === "neto") {
           grossSalary = calculateGrossFromNet(desiredNet, activeParam);
         }
+
         const result = calculatePayroll({
           grossSalary,
           workingDays: item.working_days || 0,
@@ -224,11 +122,14 @@ export default function ObracunEdit() {
           mealAllowance: item.meal_allowance || 0,
           transportAllowance: item.transport_allowance || 0,
           otherAdditions: item.other_additions || 0,
-          otherDeductions: deductionsTotal + (item.other_deductions || 0),
+          otherDeductions: deductionsTotal + manualOtherDeductions,
         }, activeParam);
+
+        result.other_deductions = manualOtherDeductions;
         if (header.input_mode === "neto") {
           result.net_salary = desiredNet;
         }
+
         return { ...item, ...result };
       })
     );
