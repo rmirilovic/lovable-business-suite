@@ -39,7 +39,7 @@ type InputMode = "bruto" | "neto";
 export default function ObracunEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { selectedYear } = useAuth();
+  const { selectedYear, selectedCompany } = useAuth();
   const isNew = id === "new";
 
   const { data: calculation, isLoading: calcLoading } = usePayrollCalculation(id);
