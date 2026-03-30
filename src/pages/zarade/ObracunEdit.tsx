@@ -689,6 +689,7 @@ export default function ObracunEdit() {
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
             {[
               { label: "Osnovna zarada", value: totals.gross },
+              { label: "Minuli rad", value: totals.seniority },
               { label: "Ukupno bruto", value: totals.totalGross },
               { label: "Ukupno porez", value: totals.tax },
               { label: "Doprinosi zaposleni", value: totals.empContr },
