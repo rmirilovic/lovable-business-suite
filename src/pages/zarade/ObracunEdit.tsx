@@ -493,6 +493,8 @@ export default function ObracunEdit() {
                       </TableCell>
                       <TableCell className="font-mono text-xs">{item.employee_number}</TableCell>
                       <TableCell className="text-sm font-medium">{item.employee_name}</TableCell>
+                      <TableCell className="text-center font-mono text-xs">{item.working_days || 0}</TableCell>
+                      <TableCell className="text-center font-mono text-xs">{item.worked_days || 0}</TableCell>
                       <TableCell className="text-right">
                         {isPosted || header.input_mode === "neto" ? (
                           <span className="font-mono">{fmt(item.gross_salary || 0)}</span>
