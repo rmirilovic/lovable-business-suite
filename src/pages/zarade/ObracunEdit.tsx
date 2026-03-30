@@ -46,9 +46,6 @@ export default function ObracunEdit() {
   const { data: activeDeductions } = useAllActiveDeductions();
   const { updateCalculation, saveItems } = usePayrollCalculationMutations();
 
-  // Fetch work hours for the calculation period
-  const { data: workHoursData } = useWorkHours(header.period_year, header.period_month);
-
   const [header, setHeader] = useState({
     calculation_number: "",
     calculation_type: "redovna_zarada",
@@ -58,6 +55,9 @@ export default function ObracunEdit() {
     note: "",
     input_mode: "bruto" as InputMode,
   });
+
+  // Fetch work hours for the calculation period
+  const { data: workHoursData } = useWorkHours(header.period_year, header.period_month);
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
