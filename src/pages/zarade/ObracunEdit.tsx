@@ -306,6 +306,7 @@ export default function ObracunEdit() {
           net_salary: 0,
           total_cost: 0,
           ...wh,
+          seniority_bonus: 0,
           meal_allowance: 0,
           transport_allowance: 0,
           other_additions: 0,
