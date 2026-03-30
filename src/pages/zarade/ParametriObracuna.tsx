@@ -27,6 +27,8 @@ const defaultForm = {
   min_base_pio: 40880,
   max_base_pio: 584440,
   min_base_health: 40880,
+  regres_daily: 0,
+  meal_daily: 0,
   is_active: true,
   note: "",
 };
