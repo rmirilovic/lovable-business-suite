@@ -51,6 +51,8 @@ export default function ParametriObracuna() {
       health_employer_rate: p.health_employer_rate, unemployment_rate: p.unemployment_rate,
       non_taxable_amount: p.non_taxable_amount, min_base_pio: p.min_base_pio,
       max_base_pio: p.max_base_pio, min_base_health: p.min_base_health,
+      regres_daily: (p as any).regres_daily ?? 0,
+      meal_daily: (p as any).meal_daily ?? 0,
       is_active: p.is_active, note: p.note || "",
     });
     setDialogOpen(true);

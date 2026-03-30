@@ -36,9 +36,6 @@ export interface Employee {
   note: string | null;
   transport_monthly: number;
   created_by: string;
-  termination_date: string | null;
-  note: string | null;
-  created_by: string;
   created_at: string;
   updated_at: string;
   leave_days_default: number;
