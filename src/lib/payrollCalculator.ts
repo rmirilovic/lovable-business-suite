@@ -78,7 +78,7 @@ export function calculateGrossFromNet(desiredNet: number, params: PayrollParamet
 export function calculatePayroll(input: PayrollInput, params: PayrollParameter): PayrollResult {
   // Total gross includes all taxable supplements
   const gross = Math.round(
-    (input.baseSalary + input.regres + input.mealAllowance + input.transportAllowance + input.otherAdditions) * 100
+    (input.baseSalary + input.seniorityBonus + input.regres + input.mealAllowance + input.transportAllowance + input.otherAdditions) * 100
   ) / 100;
 
   // Contribution bases
