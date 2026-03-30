@@ -2,6 +2,7 @@ import { PayrollParameter } from "@/hooks/usePayrollParameters";
 
 export interface PayrollInput {
   baseSalary: number;
+  seniorityBonus: number;
   regres: number;
   mealAllowance: number;
   transportAllowance: number;
