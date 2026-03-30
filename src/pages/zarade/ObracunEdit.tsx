@@ -100,28 +100,52 @@ export default function ObracunEdit() {
     if (!activeParam) return item;
 
     const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
-    const manualOtherDeductions = 0;
+    const workingDays = item.working_days || 0;
+    const workedDays = item.worked_days || 0;
+    const ratio = workingDays > 0 ? workedDays / workingDays : 0;
+
+    // Pro-rata supplements (taxable)
+    const regres = Math.round(((activeParam as any).regres_daily || 0) * workedDays * 100) / 100;
+    const mealAllowance = Math.round(((activeParam as any).meal_daily || 0) * workedDays * 100) / 100;
+
+    // Transport: get from employee record, pro-rata by days
+    const emp = employees?.find((e) => e.id === item.employee_id);
+    const transportMonthly = (emp as any)?.transport_monthly || item.transport_allowance || 0;
+    const transportAllowance = Math.round(transportMonthly * ratio * 100) / 100;
+
     const desiredNet = item.net_salary || 0;
-    const grossSalary = inputMode === "neto"
-      ? calculateGrossFromNet(desiredNet, activeParam)
-      : item.gross_salary || 0;
+    // In bruto mode, gross_salary IS the base salary (without supplements)
+    // In neto mode, we reverse-calculate base salary from desired net minus supplements
+    let baseSalary = item.gross_salary || 0;
+    if (inputMode === "neto") {
+      // desiredNet = totalGross - contributions - tax - deductions
+      // totalGross = baseSalary + regres + meal + transport + otherAdditions
+      // We need to find baseSalary such that net = desiredNet
+      // Approach: calculate what total gross would yield desiredNet, then subtract supplements
+      const totalGrossNeeded = calculateGrossFromNet(desiredNet + deductionsTotal, activeParam);
+      baseSalary = Math.max(totalGrossNeeded - regres - mealAllowance - transportAllowance - (item.other_additions || 0), 0);
+    }
 
     const result = calculatePayroll({
-      grossSalary,
-      workingDays: item.working_days || 0,
-      workedDays: item.worked_days || 0,
+      baseSalary,
+      regres,
+      mealAllowance,
+      transportAllowance,
+      workingDays,
+      workedDays,
       hoursRegular: item.hours_regular || 0,
       hoursOvertime: item.hours_overtime || 0,
-      mealAllowance: item.meal_allowance || 0,
-      transportAllowance: item.transport_allowance || 0,
       otherAdditions: item.other_additions || 0,
-      otherDeductions: deductionsTotal + manualOtherDeductions,
+      otherDeductions: deductionsTotal,
     }, activeParam);
 
     return {
       ...item,
       ...result,
-      other_deductions: manualOtherDeductions,
+      // In bruto mode, gross_salary stores the base salary (user input)
+      // The displayed "Bruto" in the table is this base salary
+      gross_salary: baseSalary,
+      other_deductions: 0,
       net_salary: inputMode === "neto" ? desiredNet : result.net_salary,
     };
   };
