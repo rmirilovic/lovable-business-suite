@@ -5288,6 +5288,7 @@ export type Database = {
           created_at: string
           created_by: string
           id: string
+          input_mode: string
           note: string | null
           parameter_id: string | null
           period_month: number
@@ -5314,6 +5315,7 @@ export type Database = {
           created_at?: string
           created_by: string
           id?: string
+          input_mode?: string
           note?: string | null
           parameter_id?: string | null
           period_month: number
@@ -5340,6 +5342,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           id?: string
+          input_mode?: string
           note?: string | null
           parameter_id?: string | null
           period_month?: number

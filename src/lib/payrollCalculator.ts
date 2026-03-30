@@ -40,6 +40,38 @@ export interface PayrollResult {
  * Calculate payroll per RS regulations.
  * Gross → contributions → tax → net
  */
+/**
+ * Calculate gross salary from desired net salary (reverse calculation).
+ * Net_clean = Gross - EmployeeContributions - IncomeTax
+ * Uses iterative approach to handle min/max base edge cases.
+ */
+export function calculateGrossFromNet(desiredNet: number, params: PayrollParameter): number {
+  if (desiredNet <= 0) return 0;
+
+  // Initial estimate using direct formula (assuming no min/max caps)
+  const rateSum = (params.pio_employee_rate + params.health_employee_rate + params.unemployment_rate + params.income_tax_rate) / 100;
+  const taxCredit = params.non_taxable_amount * params.income_tax_rate / 100;
+  let gross = (desiredNet - taxCredit) / (1 - rateSum);
+
+  // Iterative refinement (handles min/max base edge cases)
+  for (let i = 0; i < 20; i++) {
+    const result = calculatePayroll({
+      grossSalary: gross,
+      workingDays: 0, workedDays: 0,
+      hoursRegular: 0, hoursOvertime: 0,
+      mealAllowance: 0, transportAllowance: 0,
+      otherAdditions: 0, otherDeductions: 0,
+    }, params);
+    // Clean net = gross - contributions - tax (no additions/deductions)
+    const cleanNet = result.gross_salary - result.total_employee_contributions - result.income_tax;
+    const diff = desiredNet - cleanNet;
+    if (Math.abs(diff) < 0.01) break;
+    gross += diff;
+  }
+
+  return Math.round(gross * 100) / 100;
+}
+
 export function calculatePayroll(input: PayrollInput, params: PayrollParameter): PayrollResult {
   const gross = Math.round(input.grossSalary * 100) / 100;
 

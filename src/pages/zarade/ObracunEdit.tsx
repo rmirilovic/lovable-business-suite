@@ -22,7 +22,7 @@ import {
 import { useActivePayrollParameter } from "@/hooks/usePayrollParameters";
 import { useEmployees, Employee } from "@/hooks/useEmployees";
 import { useAllActiveDeductions, DEDUCTION_TYPE_LABELS, EmployeeDeduction } from "@/hooks/useEmployeeDeductions";
-import { calculatePayroll } from "@/lib/payrollCalculator";
+import { calculatePayroll, calculateGrossFromNet } from "@/lib/payrollCalculator";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, parseLocaleNumber } from "@/lib/formatting";
@@ -49,6 +49,7 @@ export default function ObracunEdit() {
     period_month: new Date().getMonth() + 1,
     period_year: selectedYear?.year || new Date().getFullYear(),
     note: "",
+    input_mode: "bruto" as "bruto" | "neto",
   });
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
@@ -85,6 +86,7 @@ export default function ObracunEdit() {
         period_month: calculation.period_month,
         period_year: calculation.period_year,
         note: calculation.note || "",
+        input_mode: ((calculation as any).input_mode as "bruto" | "neto") || "bruto",
       });
     }
   }, [calculation]);
@@ -175,8 +177,15 @@ export default function ObracunEdit() {
     if (!activeParam) { toast.error("Nema aktivnih parametara obračuna"); return; }
     const item = items[idx];
     const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
+
+    let grossSalary = item.gross_salary || 0;
+    if (header.input_mode === "neto") {
+      // Reverse: user entered desired net, calculate gross
+      grossSalary = calculateGrossFromNet(item.net_salary || 0, activeParam);
+    }
+
     const result = calculatePayroll({
-      grossSalary: item.gross_salary || 0,
+      grossSalary,
       workingDays: item.working_days || 0,
       workedDays: item.worked_days || 0,
       hoursRegular: item.hours_regular || 0,
@@ -194,8 +203,12 @@ export default function ObracunEdit() {
     setItems((prev) =>
       prev.map((item) => {
         const deductionsTotal = getEmployeeDeductionsTotal(item.employee_id);
+        let grossSalary = item.gross_salary || 0;
+        if (header.input_mode === "neto") {
+          grossSalary = calculateGrossFromNet(item.net_salary || 0, activeParam);
+        }
         const result = calculatePayroll({
-          grossSalary: item.gross_salary || 0,
+          grossSalary,
           workingDays: item.working_days || 0,
           workedDays: item.worked_days || 0,
           hoursRegular: item.hours_regular || 0,
@@ -275,7 +288,7 @@ export default function ObracunEdit() {
         </div>
 
         {/* Header */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border rounded-lg p-4 bg-card">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 border rounded-lg p-4 bg-card">
           <div className="space-y-1">
             <Label className="text-xs">Broj obračuna</Label>
             <Input value={header.calculation_number} disabled={isPosted}
@@ -321,6 +334,17 @@ export default function ObracunEdit() {
               required
             />
           </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Režim unosa</Label>
+            <Select value={header.input_mode} disabled={isPosted}
+              onValueChange={(v) => setHeader({ ...header, input_mode: v as "bruto" | "neto" })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bruto">Unos Bruto</SelectItem>
+                <SelectItem value="neto">Unos Neto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Add employees */}
@@ -355,12 +379,12 @@ export default function ObracunEdit() {
                 <TableHead className="w-8"></TableHead>
                 <TableHead className="min-w-[60px]">Šifra</TableHead>
                 <TableHead className="min-w-[160px]">Zaposleni</TableHead>
-                <TableHead className="min-w-[120px] text-right">Bruto</TableHead>
+                <TableHead className="min-w-[120px] text-right">{header.input_mode === "neto" ? <span className="text-muted-foreground">Bruto <span className="text-xs">(izračunat)</span></span> : "Bruto"}</TableHead>
                 <TableHead className="min-w-[100px] text-right">Porez</TableHead>
                 <TableHead className="min-w-[100px] text-right">Dop. zap.</TableHead>
                 <TableHead className="min-w-[100px] text-right">Dop. posl.</TableHead>
                 <TableHead className="min-w-[100px] text-right">Obustave</TableHead>
-                <TableHead className="min-w-[120px] text-right">Neto</TableHead>
+                <TableHead className="min-w-[120px] text-right">{header.input_mode === "neto" ? <span className="font-semibold">Neto <span className="text-xs">(unos)</span></span> : "Neto"}</TableHead>
                 <TableHead className="min-w-[120px] text-right">Trošak</TableHead>
                 {!isPosted && <TableHead className="w-20"></TableHead>}
               </TableRow>
@@ -386,7 +410,7 @@ export default function ObracunEdit() {
                       <TableCell className="font-mono text-xs">{item.employee_number}</TableCell>
                       <TableCell className="font-medium text-sm">{item.employee_name}</TableCell>
                       <TableCell className="text-right">
-                        {isPosted ? (
+                        {isPosted || header.input_mode === "neto" ? (
                           <span className="font-mono">{fmt(item.gross_salary || 0)}</span>
                         ) : (
                           <LocaleNumberInput
@@ -405,7 +429,18 @@ export default function ObracunEdit() {
                           <span className="text-destructive font-semibold">{fmt(dedsTotal)}</span>
                         ) : "—"}
                       </TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt(item.net_salary || 0)}</TableCell>
+                      <TableCell className="text-right">
+                        {isPosted || header.input_mode === "bruto" ? (
+                          <span className="font-mono font-semibold">{fmt(item.net_salary || 0)}</span>
+                        ) : (
+                          <LocaleNumberInput
+                            className="text-right w-28 h-8 text-sm font-semibold"
+                            value={String(item.net_salary ?? "")}
+                            onChange={(value) => updateItemField(idx, "net_salary", parseLocaleNumber(value))}
+                            onBlur={() => recalculateItem(idx)}
+                          />
+                        )}
+                      </TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_cost || 0)}</TableCell>
                       {!isPosted && (
                         <TableCell>
