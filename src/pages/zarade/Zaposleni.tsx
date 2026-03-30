@@ -47,6 +47,7 @@ const ALL_COLUMNS: ColumnDef[] = [
   { key: "education_level", label: "Stručna sprema", defaultVisible: false },
   { key: "employment_type", label: "Vrsta ugovora", defaultVisible: true },
   { key: "employment_date", label: "Datum zaposlenja", defaultVisible: true, width: "120px" },
+  { key: "contracted_salary", label: "Ugovorena zarada", defaultVisible: false, width: "140px" },
   { key: "bank_account", label: "Tekući račun", defaultVisible: false },
   { key: "work_experience", label: "Radni staž", defaultVisible: false, width: "100px" },
   { key: "status", label: "Status", defaultVisible: true, width: "100px" },
