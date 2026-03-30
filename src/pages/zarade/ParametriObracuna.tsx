@@ -30,6 +30,7 @@ const defaultForm = {
   regres_daily: 0,
   meal_daily: 0,
   sick_leave_employer_rate: 65,
+  seniority_bonus_rate: 0.4,
   is_active: true,
   note: "",
 };
