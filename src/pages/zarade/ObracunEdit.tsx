@@ -300,22 +300,23 @@ export default function ObracunEdit() {
   };
 
   const totals = useMemo(() => {
-    return items.reduce(
-      (acc, item) => ({
+    const init = { gross: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
+    return items.reduce((acc, item) => {
+      const r = (item as any).regres || 0;
+      return {
         gross: acc.gross + (item.gross_salary || 0),
-        regres: acc.regres + ((item as any).regres || 0),
+        regres: acc.regres + r,
         meal: acc.meal + (item.meal_allowance || 0),
         transport: acc.transport + (item.transport_allowance || 0),
-        totalGross: acc.totalGross + (item.gross_salary || 0) + ((item as any).regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
+        totalGross: acc.totalGross + (item.gross_salary || 0) + r + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
         net: acc.net + (item.net_salary || 0),
         tax: acc.tax + (item.income_tax || 0),
         empContr: acc.empContr + (item.total_employee_contributions || 0),
         erlContr: acc.erlContr + (item.total_employer_contributions || 0),
         cost: acc.cost + (item.total_cost || 0),
         deductions: acc.deductions + getEmployeeDeductionsTotal(item.employee_id),
-      }),
-      { gross: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 },
-    );
+      };
+    }, init);
   }, [items, deductionsByEmployee]);
 
   const fmt = (value: number) => formatPrice(value);
