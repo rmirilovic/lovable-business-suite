@@ -486,6 +486,10 @@ export default function ObracunEdit() {
                           />
                         )}
                       </TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt((item as any).regres || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.meal_allowance || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.transport_allowance || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt((item.gross_salary || 0) + ((item as any).regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0))}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.income_tax || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employee_contributions || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employer_contributions || 0)}</TableCell>
@@ -539,6 +543,10 @@ export default function ObracunEdit() {
                   <TableCell />
                   <TableCell colSpan={2} className="text-right">UKUPNO:</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.gross)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.regres)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.meal)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.transport)}</TableCell>
+                  <TableCell className="text-right font-mono">{fmt(totals.totalGross)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.tax)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.empContr)}</TableCell>
                   <TableCell className="text-right font-mono">{fmt(totals.erlContr)}</TableCell>
@@ -560,7 +568,8 @@ export default function ObracunEdit() {
         {items.length > 0 && (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-7">
             {[
-              { label: "Ukupno bruto", value: totals.gross },
+              { label: "Osnovna zarada", value: totals.gross },
+              { label: "Ukupno bruto", value: totals.totalGross },
               { label: "Ukupno porez", value: totals.tax },
               { label: "Doprinosi zaposleni", value: totals.empContr },
               { label: "Doprinosi poslodavac", value: totals.erlContr },
