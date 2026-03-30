@@ -2505,6 +2505,7 @@ export type Database = {
         Row: {
           absence_type: Database["public"]["Enums"]["absence_type"]
           company_id: string
+          compensation_rate: number | null
           created_at: string
           created_by: string
           employee_id: string
@@ -2518,6 +2519,7 @@ export type Database = {
         Insert: {
           absence_type: Database["public"]["Enums"]["absence_type"]
           company_id: string
+          compensation_rate?: number | null
           created_at?: string
           created_by: string
           employee_id: string
@@ -2531,6 +2533,7 @@ export type Database = {
         Update: {
           absence_type?: Database["public"]["Enums"]["absence_type"]
           company_id?: string
+          compensation_rate?: number | null
           created_at?: string
           created_by?: string
           employee_id?: string
@@ -2694,6 +2697,7 @@ export type Database = {
           city: string | null
           company_id: string
           contract_end_date: string | null
+          contracted_salary: number
           created_at: string | null
           created_by: string
           date_of_birth: string | null
@@ -2731,6 +2735,7 @@ export type Database = {
           city?: string | null
           company_id: string
           contract_end_date?: string | null
+          contracted_salary?: number
           created_at?: string | null
           created_by: string
           date_of_birth?: string | null
@@ -2768,6 +2773,7 @@ export type Database = {
           city?: string | null
           company_id?: string
           contract_end_date?: string | null
+          contracted_salary?: number
           created_at?: string | null
           created_by?: string
           date_of_birth?: string | null
@@ -5408,6 +5414,7 @@ export type Database = {
           pio_employee_rate: number
           pio_employer_rate: number
           regres_daily: number
+          sick_leave_employer_rate: number
           unemployment_rate: number
           updated_at: string
           valid_from: string
@@ -5430,6 +5437,7 @@ export type Database = {
           pio_employee_rate?: number
           pio_employer_rate?: number
           regres_daily?: number
+          sick_leave_employer_rate?: number
           unemployment_rate?: number
           updated_at?: string
           valid_from?: string
@@ -5452,6 +5460,7 @@ export type Database = {
           pio_employee_rate?: number
           pio_employer_rate?: number
           regres_daily?: number
+          sick_leave_employer_rate?: number
           unemployment_rate?: number
           updated_at?: string
           valid_from?: string
