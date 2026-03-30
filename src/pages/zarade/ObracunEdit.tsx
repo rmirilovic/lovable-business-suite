@@ -299,9 +299,10 @@ export default function ObracunEdit() {
     }
   };
 
-  const totals = useMemo(() => {
-    const init = { gross: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
-    return items.reduce((acc, item) => {
+  interface Totals { gross: number; regres: number; meal: number; transport: number; totalGross: number; net: number; tax: number; empContr: number; erlContr: number; cost: number; deductions: number; }
+  const totals: Totals = useMemo(() => {
+    const init: Totals = { gross: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
+    return items.reduce<Totals>((acc, item) => {
       const r = (item as any).regres || 0;
       return {
         gross: acc.gross + (item.gross_salary || 0),
