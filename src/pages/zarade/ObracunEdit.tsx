@@ -687,26 +687,6 @@ export default function ObracunEdit() {
           <Textarea value={header.note} disabled={isPosted} rows={2} onChange={(e) => setHeader({ ...header, note: e.target.value })} />
         </div>
 
-        {items.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
-            {[
-              { label: "Osnovna zarada", value: totals.gross },
-              { label: "Minuli rad", value: totals.seniority },
-              { label: "Ukupno bruto", value: totals.totalGross },
-              { label: "Ukupno porez", value: totals.tax },
-              { label: "Doprinosi zaposleni", value: totals.empContr },
-              { label: "Doprinosi poslodavac", value: totals.erlContr },
-              { label: "Obustave", value: totals.deductions },
-              { label: "Ukupno neto", value: totals.net },
-              { label: "Ukupan trošak", value: totals.cost },
-            ].map((summary) => (
-              <div key={summary.label} className="rounded-lg border bg-card p-3">
-                <p className="text-xs text-muted-foreground">{summary.label}</p>
-                <p className="text-lg font-bold text-foreground font-mono">{fmt(summary.value)}</p>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </MainLayout>
   );
