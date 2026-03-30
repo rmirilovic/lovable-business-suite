@@ -22,7 +22,7 @@ import {
 import { useActivePayrollParameter } from "@/hooks/usePayrollParameters";
 import { useEmployees, Employee } from "@/hooks/useEmployees";
 import { useAllActiveDeductions, DEDUCTION_TYPE_LABELS, EmployeeDeduction } from "@/hooks/useEmployeeDeductions";
-import { calculatePayroll } from "@/lib/payrollCalculator";
+import { calculatePayroll, calculateGrossFromNet } from "@/lib/payrollCalculator";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatPrice, parseLocaleNumber } from "@/lib/formatting";
