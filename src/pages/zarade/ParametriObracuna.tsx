@@ -195,6 +195,13 @@ export default function ParametriObracuna() {
               </div>
             </div>
             <div className="border rounded-lg p-3 space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Minuli rad</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {numField("Procenat po godini staža", "seniority_bonus_rate")}
+              </div>
+              <p className="text-xs text-muted-foreground">Procenat od osnovne zarade po punoj godini staža kod poslodavca. Podrazumevano 0,4%.</p>
+            </div>
+            <div className="border rounded-lg p-3 space-y-3">
               <h3 className="text-sm font-semibold text-foreground">Bolovanje na teret poslodavca</h3>
               <div className="grid grid-cols-2 gap-4">
                 {numField("Procenat naknade", "sick_leave_employer_rate")}
