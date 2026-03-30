@@ -29,6 +29,7 @@ const defaultForm = {
   min_base_health: 40880,
   regres_daily: 0,
   meal_daily: 0,
+  sick_leave_employer_rate: 65,
   is_active: true,
   note: "",
 };
@@ -53,6 +54,7 @@ export default function ParametriObracuna() {
       max_base_pio: p.max_base_pio, min_base_health: p.min_base_health,
       regres_daily: (p as any).regres_daily ?? 0,
       meal_daily: (p as any).meal_daily ?? 0,
+      sick_leave_employer_rate: (p as any).sick_leave_employer_rate ?? 65,
       is_active: p.is_active, note: p.note || "",
     });
     setDialogOpen(true);
@@ -189,6 +191,13 @@ export default function ParametriObracuna() {
                 {numField("Regres (dnevni)", "regres_daily", "RSD")}
                 {numField("Topli obrok (dnevni)", "meal_daily", "RSD")}
               </div>
+            </div>
+            <div className="border rounded-lg p-3 space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">Bolovanje na teret poslodavca</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {numField("Procenat naknade", "sick_leave_employer_rate")}
+              </div>
+              <p className="text-xs text-muted-foreground">Podrazumevani procenat prosečne zarade za bolovanja do 30 dana. Može se menjati.</p>
             </div>
             <div className="border rounded-lg p-3 space-y-3">
               <h3 className="text-sm font-semibold text-foreground">Doprinos za nezaposlenost</h3>
