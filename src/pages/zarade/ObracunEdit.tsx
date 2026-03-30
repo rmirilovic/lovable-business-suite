@@ -303,13 +303,12 @@ export default function ObracunEdit() {
   const totals: Totals = useMemo(() => {
     const init: Totals = { gross: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
     return items.reduce<Totals>((acc, item) => {
-      const r = (item as any).regres || 0;
       return {
         gross: acc.gross + (item.gross_salary || 0),
-        regres: acc.regres + r,
+        regres: acc.regres + (item.regres || 0),
         meal: acc.meal + (item.meal_allowance || 0),
         transport: acc.transport + (item.transport_allowance || 0),
-        totalGross: acc.totalGross + (item.gross_salary || 0) + r + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
+        totalGross: acc.totalGross + (item.gross_salary || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
         net: acc.net + (item.net_salary || 0),
         tax: acc.tax + (item.income_tax || 0),
         empContr: acc.empContr + (item.total_employee_contributions || 0),
@@ -487,10 +486,10 @@ export default function ObracunEdit() {
                           />
                         )}
                       </TableCell>
-                      <TableCell className="text-right font-mono text-sm">{fmt((item as any).regres || 0)}</TableCell>
+                      <TableCell className="text-right font-mono text-sm">{fmt(item.regres || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.meal_allowance || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.transport_allowance || 0)}</TableCell>
-                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt((item.gross_salary || 0) + ((item as any).regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0))}</TableCell>
+                      <TableCell className="text-right font-mono text-sm font-semibold">{fmt((item.gross_salary || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0))}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.income_tax || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employee_contributions || 0)}</TableCell>
                       <TableCell className="text-right font-mono text-sm">{fmt(item.total_employer_contributions || 0)}</TableCell>
