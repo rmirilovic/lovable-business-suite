@@ -104,6 +104,20 @@ export default function ObracunEdit() {
     return employeeDeductions.reduce((sum, deduction) => sum + getEffectiveDeductionAmount(deduction), 0);
   };
 
+  const calculateSeniorityBonus = (employeeId: string | undefined, baseSalary: number, ratio: number): number => {
+    if (!employeeId || !activeParam) return 0;
+    const emp = employees?.find((e) => e.id === employeeId);
+    if (!emp?.employment_date) return 0;
+    const start = new Date(emp.employment_date);
+    const now = new Date();
+    if (start > now) return 0;
+    const diffMs = now.getTime() - start.getTime();
+    const fullYears = Math.floor(diffMs / (365.25 * 24 * 60 * 60 * 1000));
+    if (fullYears <= 0) return 0;
+    const rate = (activeParam as any).seniority_bonus_rate ?? 0.4;
+    return Math.round(baseSalary * fullYears * rate / 100 * ratio * 100) / 100;
+  };
+
   const calculateItemValues = (item: Partial<PayrollCalculationItem>, inputMode: InputMode): Partial<PayrollCalculationItem> => {
     if (!activeParam) return item;
 
@@ -122,20 +136,18 @@ export default function ObracunEdit() {
     const transportAllowance = Math.round(transportMonthly * ratio * 100) / 100;
 
     const desiredNet = item.net_salary || 0;
-    // In bruto mode, gross_salary IS the base salary (without supplements)
-    // In neto mode, we reverse-calculate base salary from desired net minus supplements
     let baseSalary = item.gross_salary || 0;
     if (inputMode === "neto") {
-      // desiredNet = totalGross - contributions - tax - deductions
-      // totalGross = baseSalary + regres + meal + transport + otherAdditions
-      // We need to find baseSalary such that net = desiredNet
-      // Approach: calculate what total gross would yield desiredNet, then subtract supplements
       const totalGrossNeeded = calculateGrossFromNet(desiredNet + deductionsTotal, activeParam);
       baseSalary = Math.max(totalGrossNeeded - regres - mealAllowance - transportAllowance - (item.other_additions || 0), 0);
     }
 
+    // Seniority bonus based on base salary and years at employer
+    const seniorityBonus = calculateSeniorityBonus(item.employee_id, baseSalary, ratio);
+
     const result = calculatePayroll({
       baseSalary,
+      seniorityBonus,
       regres,
       mealAllowance,
       transportAllowance,
@@ -150,9 +162,8 @@ export default function ObracunEdit() {
     return {
       ...item,
       ...result,
-      // In bruto mode, gross_salary stores the base salary (user input)
-      // The displayed "Bruto" in the table is this base salary
       gross_salary: baseSalary,
+      seniority_bonus: seniorityBonus,
       other_deductions: 0,
       net_salary: inputMode === "neto" ? desiredNet : result.net_salary,
     };
