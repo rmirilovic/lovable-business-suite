@@ -49,6 +49,7 @@ export default function ObracunEdit() {
     period_month: new Date().getMonth() + 1,
     period_year: selectedYear?.year || new Date().getFullYear(),
     note: "",
+    input_mode: "bruto" as "bruto" | "neto",
   });
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
