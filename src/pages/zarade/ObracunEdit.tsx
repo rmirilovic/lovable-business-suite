@@ -407,16 +407,17 @@ export default function ObracunEdit() {
     }
   };
 
-  interface Totals { gross: number; regres: number; meal: number; transport: number; totalGross: number; net: number; tax: number; empContr: number; erlContr: number; cost: number; deductions: number; }
+  interface Totals { gross: number; seniority: number; regres: number; meal: number; transport: number; totalGross: number; net: number; tax: number; empContr: number; erlContr: number; cost: number; deductions: number; }
   const totals: Totals = useMemo(() => {
-    const init: Totals = { gross: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
+    const init: Totals = { gross: 0, seniority: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
     return items.reduce<Totals>((acc, item) => {
       return {
         gross: acc.gross + (item.gross_salary || 0),
+        seniority: acc.seniority + (item.seniority_bonus || 0),
         regres: acc.regres + (item.regres || 0),
         meal: acc.meal + (item.meal_allowance || 0),
         transport: acc.transport + (item.transport_allowance || 0),
-        totalGross: acc.totalGross + (item.gross_salary || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
+        totalGross: acc.totalGross + (item.gross_salary || 0) + (item.seniority_bonus || 0) + (item.regres || 0) + (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0),
         net: acc.net + (item.net_salary || 0),
         tax: acc.tax + (item.income_tax || 0),
         empContr: acc.empContr + (item.total_employee_contributions || 0),
