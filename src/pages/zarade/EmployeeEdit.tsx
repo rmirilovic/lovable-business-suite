@@ -515,6 +515,14 @@ export default function EmployeeEdit() {
                       disabled={!canWrite}
                     />
                   </div>
+                  <div>
+                    <Label>Mesečni iznos prevoza (RSD)</Label>
+                    <LocaleNumberInput
+                      value={form.transport_monthly}
+                      onChange={(value) => handleChange("transport_monthly", value)}
+                      disabled={!canWrite}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
