@@ -111,6 +111,11 @@ import ObracunEdit from "./pages/zarade/ObracunEdit";
 import ParametriObracuna from "./pages/zarade/ParametriObracuna";
 import EvidencijaRadnogVremena from "./pages/zarade/EvidencijaRadnogVremena";
 import Obustave from "./pages/zarade/Obustave";
+import OsnovnaSredstva from "./pages/osnovna-sredstva/OsnovnaSredstva";
+import FixedAssetEdit from "./pages/osnovna-sredstva/FixedAssetEdit";
+import ObracunAmortizacije from "./pages/osnovna-sredstva/ObracunAmortizacije";
+import GrupeOS from "./pages/osnovna-sredstva/GrupeOS";
+import PopisnaListaOS from "./pages/osnovna-sredstva/PopisnaListaOS";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
