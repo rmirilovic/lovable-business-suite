@@ -159,7 +159,8 @@ export default function ObracunAmortizacije() {
           for (const item of depreciationItems) {
             const state = assetState.get(item.id)!;
             const remaining = state.current - state.residual;
-            const amount = Math.round(Math.min(item.monthlyAmount, Math.max(0, remaining)) * 100) / 100;
+            const proratedAmount = calcMonthlyDep(item, m, year);
+            const amount = Math.round(Math.min(proratedAmount, Math.max(0, remaining)) * 100) / 100;
             if (amount <= 0) continue;
 
             allChanges.push({
