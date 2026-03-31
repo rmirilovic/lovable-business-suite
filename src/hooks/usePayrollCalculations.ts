@@ -127,7 +127,7 @@ export function usePayrollCalculationItems(calculationId: string | undefined) {
 }
 
 export function usePayrollCalculationMutations() {
-  const { selectedCompany, selectedYear } = useAuth();
+  const { selectedCompany, selectedYear, user } = useAuth();
   const queryClient = useQueryClient();
 
   const createCalculation = useMutation({
@@ -210,5 +210,51 @@ export function usePayrollCalculationMutations() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  return { createCalculation, updateCalculation, deleteCalculation, saveItems };
+  const postCalculation = useMutation({
+    mutationFn: async (calculationId: string) => {
+      if (!user?.id) throw new Error("Korisnik nije prijavljen");
+
+      const { data, error } = await supabase.rpc("post_payroll_calculation" as any, {
+        _calculation_id: calculationId,
+        _user_id: user.id,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payroll_calculations"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll_calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      toast.success("Obračun zarada je uspešno proknjižen");
+    },
+    onError: (error: any) => {
+      toast.error(`Greška pri knjiženju: ${error.message}`);
+    },
+  });
+
+  const unpostCalculation = useMutation({
+    mutationFn: async (calculationId: string) => {
+      if (!user?.id) throw new Error("Korisnik nije prijavljen");
+
+      const { data, error } = await supabase.rpc("unpost_payroll_calculation" as any, {
+        _calculation_id: calculationId,
+        _user_id: user.id,
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payroll_calculations"] });
+      queryClient.invalidateQueries({ queryKey: ["payroll_calculation"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      toast.success("Knjiženje obračuna je poništeno");
+    },
+    onError: (error: any) => {
+      toast.error(`Greška pri poništavanju: ${error.message}`);
+    },
+  });
+
+  return { createCalculation, updateCalculation, deleteCalculation, saveItems, postCalculation, unpostCalculation };
 }

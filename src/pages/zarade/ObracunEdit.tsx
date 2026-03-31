@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calculator, ChevronDown, ChevronRight, FileText, Save, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, BookCheck, Calculator, ChevronDown, ChevronRight, Download, FileText, Save, Trash2, Undo2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -31,6 +31,9 @@ import { parseLocaleNumber, formatPrice } from "@/lib/formatting";
 import { calculateGrossFromNet, calculatePayroll } from "@/lib/payrollCalculator";
 import { generateRfzoRefundPdf } from "@/lib/rfzoRefundPdfGenerator";
 import { initializePdfFonts } from "@/lib/pdfFonts";
+import { generatePppPdXml, buildPppPdItems, type PppPdData } from "@/lib/pppPdXmlGenerator";
+import { generatePppPdPdf, type PppPdPdfRow } from "@/lib/pppPdPdfGenerator";
+import { DateActionDialog } from "@/components/shared/DateActionDialog";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
@@ -47,7 +50,7 @@ export default function ObracunEdit() {
   const { data: activeParam } = useActivePayrollParameter();
   const { data: employees } = useEmployees();
   const { data: activeDeductions } = useAllActiveDeductions();
-  const { updateCalculation, saveItems } = usePayrollCalculationMutations();
+  const { updateCalculation, saveItems, postCalculation, unpostCalculation } = usePayrollCalculationMutations();
 
   const [header, setHeader] = useState({
     calculation_number: "",
@@ -65,6 +68,7 @@ export default function ObracunEdit() {
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [postDialogOpen, setPostDialogOpen] = useState(false);
   const isPosted = calculation?.status === "posted";
 
   const deductionsByEmployee = useMemo(() => {
@@ -409,6 +413,121 @@ export default function ObracunEdit() {
     }
   };
 
+  const handlePostConfirm = async (date: string) => {
+    if (!id || isNew) return;
+    try {
+      await updateCalculation.mutateAsync({
+        id,
+        ...header,
+        calculation_date: date,
+        note: header.note || null,
+        parameter_id: activeParam?.id || null,
+      } as any);
+      await saveItems.mutateAsync({ calculationId: id, items });
+      await postCalculation.mutateAsync(id);
+      setPostDialogOpen(false);
+    } catch {
+      // handled by mutation
+    }
+  };
+
+  const handleUnpost = async () => {
+    if (!id || isNew) return;
+    if (!confirm("Da li ste sigurni da želite da poništite knjiženje?")) return;
+    try {
+      await unpostCalculation.mutateAsync(id);
+    } catch {
+      // handled by mutation
+    }
+  };
+
+  const getIncomeTypeCode = () => {
+    switch (header.calculation_type) {
+      case "redovna_zarada": return "0 00 101 01";
+      case "bolovanje_poslodavac": return "0 00 102 01";
+      case "bolovanje_rfzo": return "0 00 201 01";
+      case "ugovor_o_delu": return "0 00 601 12";
+      case "autorski_ugovor": return "0 00 602 12";
+      case "vlasnik": return "0 00 101 02";
+      case "penzioner": return "0 00 101 10";
+      default: return "0 00 101 01";
+    }
+  };
+
+  const handleExportPppPdXml = () => {
+    const company = selectedCompany as any;
+    const employeeMap: Record<string, { jmbg?: string; first_name?: string; last_name?: string }> = {};
+    employees?.forEach((e) => {
+      employeeMap[e.id] = { jmbg: (e as any).jmbg, first_name: e.first_name, last_name: e.last_name };
+    });
+
+    const pppPdData: PppPdData = {
+      vrstaPrijave: "1",
+      datumPlacanja: header.calculation_date,
+      datumOstvarivanja: header.calculation_date,
+      pib: company?.pib || "",
+      mb: company?.mb || "",
+      nazivIsplatioca: company?.name || "",
+      sediste: company?.city || "",
+      email: company?.email || "",
+      telefon: company?.phone || "",
+      calculationType: header.calculation_type,
+      periodMonth: header.period_month,
+      periodYear: header.period_year,
+      items: buildPppPdItems(items, employeeMap),
+    };
+
+    const xml = generatePppPdXml(pppPdData);
+    const blob = new Blob([xml], { type: "application/xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `PPP-PD_${header.calculation_number}_${header.period_month}_${header.period_year}.xml`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("PPP-PD XML exportovan");
+  };
+
+  const handleExportPppPdPdf = async () => {
+    await initializePdfFonts();
+    const company = selectedCompany as any;
+    const sifra = getIncomeTypeCode();
+
+    const pdfRows: PppPdPdfRow[] = items.map((item, idx) => {
+      const emp = employees?.find((e) => e.id === item.employee_id);
+      const bruto = (item.gross_salary || 0) + (item.seniority_bonus || 0) + (item.regres || 0) +
+        (item.meal_allowance || 0) + (item.transport_allowance || 0) + (item.other_additions || 0);
+      return {
+        redBr: idx + 1,
+        jmbg: (emp as any)?.jmbg || "",
+        imePrezime: item.employee_name || "",
+        sifraVrstePrihoda: sifra,
+        brutoPrihod: bruto,
+        osnovicaZaPorez: item.tax_base || 0,
+        porez: item.income_tax || 0,
+        pioZaposleni: item.pio_employee || 0,
+        zdravstvoZaposleni: item.health_employee || 0,
+        nezaposlenost: item.unemployment || 0,
+        pioPoslodavac: item.pio_employer || 0,
+        zdravstvoPoslodavac: item.health_employer || 0,
+      };
+    });
+
+    const doc = await generatePppPdPdf({
+      rows: pdfRows,
+      companyName: company?.name || "",
+      companyPib: company?.pib || "",
+      datumPlacanja: header.calculation_date,
+      periodMonth: header.period_month,
+      periodYear: header.period_year,
+      calculationType: header.calculation_type,
+      calculationNumber: header.calculation_number,
+    });
+
+    doc.save(`PPP-PD_${header.calculation_number}_${header.period_month}_${header.period_year}.pdf`);
+    toast.success("PPP-PD PDF generisan");
+  };
+
   interface Totals { gross: number; seniority: number; regres: number; meal: number; transport: number; totalGross: number; net: number; tax: number; empContr: number; erlContr: number; cost: number; deductions: number; }
   const totals: Totals = useMemo(() => {
     const init: Totals = { gross: 0, seniority: 0, regres: 0, meal: 0, transport: 0, totalGross: 0, net: 0, tax: 0, empContr: 0, erlContr: 0, cost: 0, deductions: 0 };
@@ -459,6 +578,26 @@ export default function ObracunEdit() {
               <Button size="sm" onClick={handleSave} disabled={updateCalculation.isPending || saveItems.isPending}>
                 <Save className="mr-1 h-4 w-4" /> Sačuvaj
               </Button>
+              {items.length > 0 && (
+                <Button size="sm" variant="default" onClick={() => setPostDialogOpen(true)}>
+                  <BookCheck className="mr-1 h-4 w-4" /> Proknjiži
+                </Button>
+              )}
+            </>
+          )}
+          {isPosted && (
+            <Button variant="outline" size="sm" onClick={handleUnpost}>
+              <Undo2 className="mr-1 h-4 w-4" /> Poništi knjiženje
+            </Button>
+          )}
+          {items.length > 0 && (
+            <>
+              <Button variant="outline" size="sm" onClick={handleExportPppPdPdf}>
+                <FileText className="mr-1 h-4 w-4" /> PPP-PD PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportPppPdXml}>
+                <Download className="mr-1 h-4 w-4" /> PPP-PD XML
+              </Button>
             </>
           )}
           {header.calculation_type === "bolovanje_rfzo" && items.length > 0 && (
@@ -467,6 +606,15 @@ export default function ObracunEdit() {
             </Button>
           )}
         </div>
+
+        <DateActionDialog
+          open={postDialogOpen}
+          onOpenChange={setPostDialogOpen}
+          title="Knjiženje obračuna zarada"
+          label="Datum knjiženja"
+          defaultDate={header.calculation_date}
+          onConfirm={handlePostConfirm}
+        />
 
         <div className="grid grid-cols-1 gap-4 rounded-lg border bg-card p-4 md:grid-cols-5">
           <div className="space-y-1">
