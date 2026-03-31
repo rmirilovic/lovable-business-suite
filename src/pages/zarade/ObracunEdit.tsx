@@ -611,9 +611,8 @@ export default function ObracunEdit() {
           open={postDialogOpen}
           onOpenChange={setPostDialogOpen}
           title="Knjiženje obračuna zarada"
-          description="Izaberite datum knjiženja. Biće kreiran nalog u glavnoj knjizi sa standardnim kontima RS (520, 522, 450, 451, 452, 453)."
+          label="Datum knjiženja"
           defaultDate={header.calculation_date}
-          actionLabel="Proknjiži"
           onConfirm={handlePostConfirm}
         />
 
