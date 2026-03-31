@@ -186,7 +186,7 @@ export default function FixedAssetEdit() {
           </div>
         </div>
 
-        {/* Basic info */}
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-6 mt-6">
         <Card>
           <CardHeader><CardTitle>Osnovni podaci</CardTitle></CardHeader>
           <CardContent>
