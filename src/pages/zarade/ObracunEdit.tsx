@@ -31,6 +31,9 @@ import { parseLocaleNumber, formatPrice } from "@/lib/formatting";
 import { calculateGrossFromNet, calculatePayroll } from "@/lib/payrollCalculator";
 import { generateRfzoRefundPdf } from "@/lib/rfzoRefundPdfGenerator";
 import { initializePdfFonts } from "@/lib/pdfFonts";
+import { generatePppPdXml, buildPppPdItems, type PppPdData } from "@/lib/pppPdXmlGenerator";
+import { generatePppPdPdf, type PppPdPdfRow } from "@/lib/pppPdPdfGenerator";
+import { DateActionDialog } from "@/components/shared/DateActionDialog";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
