@@ -54,6 +54,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const intentionalSignOutRef = useRef(false);
   const mountTimeRef = useRef(Date.now());
+  const initialLoadDoneRef = useRef(false);
+  const userDataLoadingRef = useRef(false);
+
+  const updateInitialLoadDone = (value: boolean) => {
+    initialLoadDoneRef.current = value;
+    setInitialLoadDone(value);
+  };
 
   const isSuperAdmin = userRole === "super_admin";
   const isLocalAdmin = localAdminCompanyIds.length > 0;
@@ -158,6 +165,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
+  const resetAuthState = () => {
+    userDataLoadingRef.current = false;
+    setCompanies([]);
+    setBusinessYears([]);
+    setSelectedCompany(null);
+    setSelectedYear(null);
+    setUserRole(null);
+    setLocalAdminCompanyIds([]);
+    setAccessibleCompanyIds([]);
+    updateInitialLoadDone(false);
+  };
+
   useEffect(() => {
     let isMounted = true;
     let initialSessionChecked = false;
@@ -166,9 +185,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const origin = window.location.origin;
 
-    // --- Session handoff between tabs ---
-    // Use BroadcastChannel for cross-tab session sharing (works for right-click "Open in new tab")
-    // Falls back to postMessage for iframe/opener scenarios
     let bc: BroadcastChannel | null = null;
     try {
       bc = new BroadcastChannel("erp_session_sync");
@@ -177,7 +193,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const handleSessionRequest = async () => {
-      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      const {
+        data: { session: freshSession },
+      } = await supabase.auth.getSession();
       if (freshSession?.access_token && freshSession?.refresh_token) {
         const payload = {
           type: "SESSION_RESPONSE",
@@ -200,12 +218,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       void supabase.auth.setSession({ access_token, refresh_token });
     };
 
-    // BroadcastChannel handler
     if (bc) {
       bc.onmessage = (event: MessageEvent) => {
         const msg = event.data as any;
         if (msg?.type === "REQUEST_SESSION") {
-          handleSessionRequest();
+          void handleSessionRequest();
           return;
         }
         if (msg?.type === "SESSION_RESPONSE" && msg?.payload?.access_token && msg?.payload?.refresh_token) {
@@ -215,7 +232,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
-    // postMessage handler (for iframe/opener scenarios)
     const messageHandler = (event: MessageEvent) => {
       if (event.origin !== origin) return;
       const msg = event.data as any;
@@ -247,32 +263,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.addEventListener("message", messageHandler);
 
     const loadUserData = async (userId: string) => {
-      // If data is already loaded (e.g. tab refocus triggering SIGNED_IN),
-      // skip re-fetching to avoid resetting selectedCompany/selectedYear
-      // which would unmount dialogs depending on companyId
-      if (initialLoadDone) return;
+      if (initialLoadDoneRef.current || userDataLoadingRef.current) return;
 
-      const [nextUserRole, , roleCompanyIds] = await Promise.all([
-        fetchUserRole(userId),
-        fetchLocalAdminCompanies(userId),
-        fetchAccessibleCompanyIds(userId),
-      ]);
+      userDataLoadingRef.current = true;
 
-      await fetchUserCompanies(userId, nextUserRole === "super_admin", roleCompanyIds);
-      setInitialLoadDone(true);
-      setLoading(false);
+      try {
+        const [nextUserRole, , roleCompanyIds] = await Promise.all([
+          fetchUserRole(userId),
+          fetchLocalAdminCompanies(userId),
+          fetchAccessibleCompanyIds(userId),
+        ]);
+
+        if (!isMounted) return;
+
+        await fetchUserCompanies(userId, nextUserRole === "super_admin", roleCompanyIds);
+
+        if (!isMounted) return;
+
+        updateInitialLoadDone(true);
+      } finally {
+        userDataLoadingRef.current = false;
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!isMounted) return;
 
-      console.log("[AuthContext] onAuthStateChange:", event, "user:", !!nextSession?.user, "initialSessionChecked:", initialSessionChecked, "awaitingHandoff:", awaitingHandoff);
+      console.log(
+        "[AuthContext] onAuthStateChange:",
+        event,
+        "user:",
+        !!nextSession?.user,
+        "initialSessionChecked:",
+        initialSessionChecked,
+        "awaitingHandoff:",
+        awaitingHandoff,
+        "initialLoadDone:",
+        initialLoadDoneRef.current,
+        "userDataLoading:",
+        userDataLoadingRef.current
+      );
 
       sessionRef.current = nextSession;
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
 
-      // IMPORTANT: prevent redirect-to-login while waiting for session handoff
       if (awaitingHandoff && !nextSession?.user) {
         setLoading(true);
         return;
@@ -280,12 +318,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         if (nextSession?.user) {
-          // Only show loading spinner on initial load, not on subsequent SIGNED_IN events
-          // (e.g. token refresh on tab focus) to avoid unmounting the current page
-          if (!initialLoadDone) {
+          if (!initialLoadDoneRef.current && !userDataLoadingRef.current) {
             setLoading(true);
+            void loadUserData(nextSession.user.id);
           }
-          loadUserData(nextSession.user.id);
         } else if (initialSessionChecked) {
           setLoading(false);
         }
@@ -293,9 +329,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (event === "SIGNED_OUT") {
-        // If this is NOT an intentional sign-out and we're within 15s of mount,
-        // this is likely a revoked refresh token in a newly opened tab.
-        // Try handoff before giving up.
         const timeSinceMount = Date.now() - mountTimeRef.current;
         if (!intentionalSignOutRef.current && timeSinceMount < 15000 && !awaitingHandoff) {
           console.log("[AuthContext] SIGNED_OUT likely from revoked token - attempting handoff rescue, timeSinceMount:", timeSinceMount);
@@ -305,41 +338,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (window.opener) {
             try {
               window.opener.postMessage({ type: "REQUEST_SESSION" }, origin);
-            } catch { /* ignore */ }
+            } catch {
+              // ignore
+            }
           }
           handoffTimeout = window.setTimeout(() => {
             awaitingHandoff = false;
             if (!isMounted) return;
             console.log("[AuthContext] Handoff rescue timeout - signing out");
-            setCompanies([]);
-            setBusinessYears([]);
-            setSelectedCompany(null);
-            setSelectedYear(null);
-            setUserRole(null);
-            setLocalAdminCompanyIds([]);
-            setAccessibleCompanyIds([]);
-            setInitialLoadDone(false);
+            resetAuthState();
             setLoading(false);
           }, 4000);
           return;
         }
         intentionalSignOutRef.current = false;
-        setCompanies([]);
-        setBusinessYears([]);
-        setSelectedCompany(null);
-        setSelectedYear(null);
-        setUserRole(null);
-        setLocalAdminCompanyIds([]);
-        setAccessibleCompanyIds([]);
-        setInitialLoadDone(false);
+        resetAuthState();
         setLoading(false);
         return;
       }
 
-      // For TOKEN_REFRESHED/USER_UPDATED - load user data if not yet loaded (e.g. session handoff to new tab)
-      if (nextSession?.user && !initialLoadDone) {
+      if (nextSession?.user && !initialLoadDoneRef.current && !userDataLoadingRef.current) {
         setLoading(true);
-        loadUserData(nextSession.user.id);
+        void loadUserData(nextSession.user.id);
         return;
       }
       if (initialSessionChecked) {
@@ -350,7 +370,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       if (!isMounted) return;
 
-      console.log("[AuthContext] getSession result:", "user:", !!initialSession?.user, "initialLoadDone:", initialLoadDone);
+      console.log("[AuthContext] getSession result:", "user:", !!initialSession?.user, "initialLoadDone:", initialLoadDoneRef.current);
 
       initialSessionChecked = true;
       sessionRef.current = initialSession;
@@ -358,16 +378,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(initialSession?.user ?? null);
 
       if (!initialSession?.user) {
-        // No session - request from other tabs via BroadcastChannel and/or opener
         awaitingHandoff = true;
         setLoading(true);
 
         console.log("[AuthContext] No session found, requesting handoff...");
 
-        // Try BroadcastChannel first (works for right-click "Open in new tab")
         bc?.postMessage({ type: "REQUEST_SESSION" });
 
-        // Also try opener for iframe scenarios
         if (window.opener) {
           try {
             window.opener.postMessage({ type: "REQUEST_SESSION" }, origin);
@@ -460,10 +477,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!error && yearsData) {
       setBusinessYears(yearsData);
-      
+
       const savedYearId = localStorage.getItem("selectedYearId");
-      const savedYear = yearsData.find(y => y.id === savedYearId);
-      
+      const savedYear = yearsData.find((y) => y.id === savedYearId);
+
       if (savedYear) {
         setSelectedYear(savedYear);
       } else if (yearsData.length > 0) {
@@ -475,7 +492,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (selectedCompany) {
       localStorage.setItem("selectedCompanyId", selectedCompany.id);
-      fetchBusinessYears(selectedCompany.id);
+      void fetchBusinessYears(selectedCompany.id);
     }
   }, [selectedCompany]);
 
@@ -512,7 +529,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -533,14 +550,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     sessionRef.current = null;
-    setCompanies([]);
-    setBusinessYears([]);
-    setSelectedCompany(null);
-    setSelectedYear(null);
-    setUserRole(null);
-    setLocalAdminCompanyIds([]);
-    setAccessibleCompanyIds([]);
-    setInitialLoadDone(false);
+    resetAuthState();
     localStorage.removeItem("selectedCompanyId");
     localStorage.removeItem("selectedYearId");
     try {
