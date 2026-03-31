@@ -160,7 +160,7 @@ export default function FixedAssetEdit() {
     setChangeForm({
       change_type: "depreciation",
       change_date: format(new Date(), "yyyy-MM-dd"),
-      amount: 0,
+      amount: "0",
       description: "",
       document_reference: "",
     });
