@@ -140,63 +140,37 @@ export default function ObracunAmortizacije() {
 
         toast.success(`Obračun amortizacije za ${months[Number(selectedMonth)]} ${year} izvršen za ${changes.length} sredstava`);
       } else {
-        // Full year – insert 12 monthly changes per asset
-        const allChanges: any[] = [];
-        // Track running values per asset
-        const assetState = new Map(
-          depreciationItems.map((item) => [item.id, {
-            accumulated: Number(item.accumulated_depreciation),
-            current: Number(item.current_value),
-            residual: Number(item.residual_value),
-            acquisition: Number(item.acquisition_value),
-          }])
-        );
+      // Full year – insert one record per asset
+        const changeDate = `${year}-12-31`;
+        const changes = depreciationItems
+          .filter((item) => item.totalAmount > 0)
+          .map((item) => ({
+            company_id: selectedCompany!.id,
+            fixed_asset_id: item.id,
+            change_type: "depreciation" as const,
+            change_date: changeDate,
+            amount: item.totalAmount,
+            description: `Amortizacija za godinu ${year}`,
+            created_by: user!.id,
+          }));
 
-        for (let m = 0; m < 12; m++) {
-          const monthNum = m + 1;
-          const changeDate = `${year}-${String(monthNum).padStart(2, "0")}-${new Date(year, monthNum, 0).getDate()}`;
-
-          for (const item of depreciationItems) {
-            const state = assetState.get(item.id)!;
-            const remaining = state.current - state.residual;
-            const proratedAmount = calcMonthlyDep(item, m, year);
-            const amount = Math.round(Math.min(proratedAmount, Math.max(0, remaining)) * 100) / 100;
-            if (amount <= 0) continue;
-
-            allChanges.push({
-              company_id: selectedCompany!.id,
-              fixed_asset_id: item.id,
-              change_type: "depreciation",
-              change_date: changeDate,
-              amount,
-              description: `Amortizacija za ${months[m]} ${year}`,
-              created_by: user!.id,
-            });
-
-            state.accumulated += amount;
-            state.current = state.acquisition - state.accumulated;
-          }
-        }
-
-        if (allChanges.length) {
-          const { error } = await supabase.from("fixed_asset_changes").insert(allChanges);
+        if (changes.length) {
+          const { error } = await supabase.from("fixed_asset_changes").insert(changes);
           if (error) throw error;
         }
 
-        // Update final asset values
-        for (const item of depreciationItems) {
-          const state = assetState.get(item.id)!;
-          if (state.accumulated === Number(item.accumulated_depreciation)) continue;
+        for (const item of depreciationItems.filter((i) => i.totalAmount > 0)) {
+          const newAccum = Number(item.accumulated_depreciation) + item.totalAmount;
+          const newCurrent = Number(item.acquisition_value) - newAccum;
           const updates: any = {
-            accumulated_depreciation: Math.round(state.accumulated * 100) / 100,
-            current_value: Math.round(Math.max(0, state.current) * 100) / 100,
+            accumulated_depreciation: Math.round(newAccum * 100) / 100,
+            current_value: Math.round(Math.max(0, newCurrent) * 100) / 100,
           };
-          if (state.current <= state.residual) updates.status = "fully_depreciated";
+          if (newCurrent <= item.residual_value) updates.status = "fully_depreciated";
           await supabase.from("fixed_assets").update(updates).eq("id", item.id);
         }
 
-        const assetCount = new Set(allChanges.map((c) => c.fixed_asset_id)).size;
-        toast.success(`Godišnji obračun amortizacije za ${year} izvršen za ${assetCount} sredstava (${allChanges.length} promena)`);
+        toast.success(`Godišnji obračun amortizacije za ${year} izvršen za ${changes.length} sredstava`);
       }
 
       queryClient.invalidateQueries({ queryKey: ["fixed_assets"] });
