@@ -160,6 +160,17 @@ const navigation: NavItem[] = [
     ],
   },
   {
+    label: "Osnovna sredstva",
+    icon: Landmark,
+    moduleCode: "osnovna_sredstva",
+    children: [
+      { label: "Kartoni OS", href: "/osnovna-sredstva/kartoni", moduleCode: "osnovna_sredstva.kartoni" },
+      { label: "Amortizacione grupe", href: "/osnovna-sredstva/grupe", moduleCode: "osnovna_sredstva.grupe" },
+      { label: "Obračun amortizacije", href: "/osnovna-sredstva/amortizacija", moduleCode: "osnovna_sredstva.amortizacija" },
+      { label: "Popisna lista OS", href: "/osnovna-sredstva/popis", moduleCode: "osnovna_sredstva.popis" },
+    ],
+  },
+  {
     label: "Zarade",
     icon: Briefcase,
     moduleCode: "zarade",
