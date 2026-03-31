@@ -42,7 +42,7 @@ export function useFixedAssetGroups() {
       if (group.id) {
         const { data, error } = await supabase
           .from("fixed_asset_groups")
-          .update(group)
+          .update(group as any)
           .eq("id", group.id)
           .select()
           .single();
@@ -51,7 +51,7 @@ export function useFixedAssetGroups() {
       } else {
         const { data, error } = await supabase
           .from("fixed_asset_groups")
-          .insert(group)
+          .insert(group as any)
           .select()
           .single();
         if (error) throw error;

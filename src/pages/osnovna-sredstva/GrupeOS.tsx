@@ -75,7 +75,7 @@ export default function GrupeOS() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout title="Amortizacione grupe">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Amortizacione grupe</h1>

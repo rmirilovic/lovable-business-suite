@@ -93,7 +93,7 @@ export default function ObracunAmortizacije() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout title="Obračun amortizacije">
       <div className="space-y-4">
         <h1 className="text-2xl font-bold text-foreground">Obračun amortizacije</h1>
 

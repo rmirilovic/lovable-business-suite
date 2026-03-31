@@ -144,7 +144,7 @@ export function useFixedAssetChanges(assetId?: string) {
     mutationFn: async (change: Omit<FixedAssetChange, "id" | "created_at">) => {
       const { data, error } = await supabase
         .from("fixed_asset_changes")
-        .insert(change)
+        .insert(change as any)
         .select()
         .single();
       if (error) throw error;
