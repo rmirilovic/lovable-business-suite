@@ -220,19 +220,19 @@ export default function FixedAssetEdit() {
               </div>
               <div>
                 <Label>Nabavna vrednost</Label>
-                <Input type="number" value={form.acquisition_value} onChange={(e) => setForm({ ...form, acquisition_value: Number(e.target.value) })} />
+                <LocaleNumberInput value={form.acquisition_value} onChange={(v) => setForm({ ...form, acquisition_value: v })} />
               </div>
               <div>
                 <Label>Rezidualna vrednost</Label>
-                <Input type="number" value={form.residual_value} onChange={(e) => setForm({ ...form, residual_value: Number(e.target.value) })} />
+                <LocaleNumberInput value={form.residual_value} onChange={(v) => setForm({ ...form, residual_value: v })} />
               </div>
               <div>
                 <Label>Stopa amortizacije (%)</Label>
-                <Input type="number" value={form.depreciation_rate} onChange={(e) => setForm({ ...form, depreciation_rate: Number(e.target.value) })} />
+                <LocaleNumberInput value={form.depreciation_rate} onChange={(v) => setForm({ ...form, depreciation_rate: v })} />
               </div>
               <div>
                 <Label>Vek trajanja (meseci)</Label>
-                <Input type="number" value={form.useful_life_months || ""} onChange={(e) => setForm({ ...form, useful_life_months: Number(e.target.value) || 0 })} />
+                <LocaleNumberInput value={form.useful_life_months} onChange={(v) => setForm({ ...form, useful_life_months: v })} decimalPlaces={0} allowEmpty />
               </div>
               <div>
                 <Label>Lokacija</Label>
