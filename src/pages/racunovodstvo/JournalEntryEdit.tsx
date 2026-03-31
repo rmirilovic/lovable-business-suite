@@ -58,6 +58,7 @@ const SOURCE_DOCUMENT_LABELS: Record<string, string> = {
   advance_invoice: "Avansni račun",
   credit_note: "Knjižno odobrenje",
   received_credit_note: "Primljeno knjižno odobrenje",
+  payroll_calculation: "Obračun zarada",
 };
 
 export default function JournalEntryEdit() {
