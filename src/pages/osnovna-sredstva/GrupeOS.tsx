@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { parseLocaleNumber } from "@/lib/formatting";
 import { useFixedAssetGroups, FixedAssetGroup } from "@/hooks/useFixedAssetGroups";
 import { useFixedAssets } from "@/hooks/useFixedAssets";
 import { useAuth } from "@/contexts/AuthContext";
@@ -174,7 +176,7 @@ export default function GrupeOS() {
             </div>
             <div>
               <Label>Stopa amortizacije (%)</Label>
-              <Input type="number" value={editGroup?.depreciation_rate || 0} onChange={(e) => setEditGroup({ ...editGroup, depreciation_rate: Number(e.target.value) })} />
+              <LocaleNumberInput value={String(editGroup?.depreciation_rate ?? 0)} onChange={(v) => setEditGroup({ ...editGroup, depreciation_rate: parseLocaleNumber(v) })} />
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>

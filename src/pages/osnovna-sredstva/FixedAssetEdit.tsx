@@ -14,10 +14,11 @@ import { ArrowLeft, Plus, Trash2, Save } from "lucide-react";
 import { useFixedAsset, useFixedAssets, useFixedAssetChanges } from "@/hooks/useFixedAssets";
 import { useFixedAssetGroups } from "@/hooks/useFixedAssetGroups";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatNumber } from "@/lib/formatting";
+import { formatNumber, formatDate, parseLocaleNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 
 const changeTypeLabels: Record<string, string> = {
   acquisition: "Nabavka",
@@ -46,10 +47,10 @@ export default function FixedAssetEdit() {
     group_id: "",
     acquisition_date: format(new Date(), "yyyy-MM-dd"),
     activation_date: "",
-    acquisition_value: 0,
-    residual_value: 0,
-    depreciation_rate: 0,
-    useful_life_months: 0,
+    acquisition_value: "0",
+    residual_value: "0",
+    depreciation_rate: "0",
+    useful_life_months: "",
     location: "",
     responsible_person: "",
     invoice_reference: "",
@@ -61,7 +62,7 @@ export default function FixedAssetEdit() {
   const [changeForm, setChangeForm] = useState({
     change_type: "depreciation" as string,
     change_date: format(new Date(), "yyyy-MM-dd"),
-    amount: 0,
+    amount: "0",
     description: "",
     document_reference: "",
   });
@@ -75,10 +76,10 @@ export default function FixedAssetEdit() {
         group_id: asset.group_id || "",
         acquisition_date: asset.acquisition_date,
         activation_date: asset.activation_date || "",
-        acquisition_value: asset.acquisition_value,
-        residual_value: asset.residual_value,
-        depreciation_rate: asset.depreciation_rate,
-        useful_life_months: asset.useful_life_months || 0,
+        acquisition_value: String(asset.acquisition_value),
+        residual_value: String(asset.residual_value),
+        depreciation_rate: String(asset.depreciation_rate),
+        useful_life_months: asset.useful_life_months ? String(asset.useful_life_months) : "",
         location: asset.location || "",
         responsible_person: asset.responsible_person || "",
         invoice_reference: asset.invoice_reference || "",
@@ -93,7 +94,7 @@ export default function FixedAssetEdit() {
     if (form.group_id && groups) {
       const grp = groups.find((g) => g.id === form.group_id);
       if (grp) {
-        setForm((prev) => ({ ...prev, depreciation_rate: grp.depreciation_rate }));
+        setForm((prev) => ({ ...prev, depreciation_rate: String(grp.depreciation_rate) }));
       }
     }
   }, [form.group_id, groups]);
@@ -103,6 +104,10 @@ export default function FixedAssetEdit() {
       toast.error("Inventarni broj i naziv su obavezni");
       return;
     }
+    const acqVal = parseLocaleNumber(form.acquisition_value);
+    const resVal = parseLocaleNumber(form.residual_value);
+    const depRate = parseLocaleNumber(form.depreciation_rate);
+    const lifeMonths = form.useful_life_months ? parseInt(form.useful_life_months) : null;
     try {
       const result = await upsertAsset.mutateAsync({
         ...(isNew ? {} : { id }),
@@ -113,11 +118,11 @@ export default function FixedAssetEdit() {
         group_id: form.group_id || null,
         acquisition_date: form.acquisition_date,
         activation_date: form.activation_date || null,
-        acquisition_value: form.acquisition_value,
-        current_value: isNew ? form.acquisition_value : undefined,
-        residual_value: form.residual_value,
-        depreciation_rate: form.depreciation_rate,
-        useful_life_months: form.useful_life_months || null,
+        acquisition_value: acqVal,
+        current_value: isNew ? acqVal : undefined,
+        residual_value: resVal,
+        depreciation_rate: depRate,
+        useful_life_months: lifeMonths,
         location: form.location || null,
         responsible_person: form.responsible_person || null,
         invoice_reference: form.invoice_reference || null,
@@ -132,16 +137,16 @@ export default function FixedAssetEdit() {
   };
 
   const handleAddChange = async () => {
-    if (!changeForm.amount) {
+    const amountVal = parseLocaleNumber(changeForm.amount);
+    if (!amountVal) {
       toast.error("Iznos je obavezan");
-      return;
     }
     await addChange.mutateAsync({
       company_id: selectedCompany!.id,
       fixed_asset_id: id!,
       change_type: changeForm.change_type,
       change_date: changeForm.change_date,
-      amount: changeForm.amount,
+      amount: amountVal,
       description: changeForm.description || null,
       document_reference: changeForm.document_reference || null,
       created_by: user!.id,
@@ -150,7 +155,7 @@ export default function FixedAssetEdit() {
     setChangeForm({
       change_type: "depreciation",
       change_date: format(new Date(), "yyyy-MM-dd"),
-      amount: 0,
+      amount: "0",
       description: "",
       document_reference: "",
     });
@@ -215,19 +220,19 @@ export default function FixedAssetEdit() {
               </div>
               <div>
                 <Label>Nabavna vrednost</Label>
-                <Input type="number" value={form.acquisition_value} onChange={(e) => setForm({ ...form, acquisition_value: Number(e.target.value) })} />
+                <LocaleNumberInput value={form.acquisition_value} onChange={(v) => setForm({ ...form, acquisition_value: v })} />
               </div>
               <div>
                 <Label>Rezidualna vrednost</Label>
-                <Input type="number" value={form.residual_value} onChange={(e) => setForm({ ...form, residual_value: Number(e.target.value) })} />
+                <LocaleNumberInput value={form.residual_value} onChange={(v) => setForm({ ...form, residual_value: v })} />
               </div>
               <div>
                 <Label>Stopa amortizacije (%)</Label>
-                <Input type="number" value={form.depreciation_rate} onChange={(e) => setForm({ ...form, depreciation_rate: Number(e.target.value) })} />
+                <LocaleNumberInput value={form.depreciation_rate} onChange={(v) => setForm({ ...form, depreciation_rate: v })} />
               </div>
               <div>
                 <Label>Vek trajanja (meseci)</Label>
-                <Input type="number" value={form.useful_life_months || ""} onChange={(e) => setForm({ ...form, useful_life_months: Number(e.target.value) || 0 })} />
+                <LocaleNumberInput value={form.useful_life_months} onChange={(v) => setForm({ ...form, useful_life_months: v })} decimalPlaces={0} allowEmpty />
               </div>
               <div>
                 <Label>Lokacija</Label>
@@ -323,7 +328,7 @@ export default function FixedAssetEdit() {
                   ) : (
                     changes.map((ch) => (
                       <TableRow key={ch.id}>
-                        <TableCell>{format(new Date(ch.change_date), "dd.MM.yyyy")}</TableCell>
+                        <TableCell>{formatDate(ch.change_date)}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{changeTypeLabels[ch.change_type] || ch.change_type}</Badge>
                         </TableCell>
@@ -367,7 +372,7 @@ export default function FixedAssetEdit() {
             </div>
             <div>
               <Label>Iznos</Label>
-              <Input type="number" value={changeForm.amount} onChange={(e) => setChangeForm({ ...changeForm, amount: Number(e.target.value) })} />
+              <LocaleNumberInput value={changeForm.amount} onChange={(v) => setChangeForm({ ...changeForm, amount: v })} />
             </div>
             <div>
               <Label>Opis</Label>

@@ -7,8 +7,7 @@ import { Printer, FileDown } from "lucide-react";
 import { useFixedAssets } from "@/hooks/useFixedAssets";
 import { useFixedAssetGroups } from "@/hooks/useFixedAssetGroups";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatNumber } from "@/lib/formatting";
-import { format } from "date-fns";
+import { formatNumber, formatDate } from "@/lib/formatting";
 
 export default function PopisnaListaOS() {
   const { selectedCompany } = useAuth();
@@ -48,7 +47,7 @@ export default function PopisnaListaOS() {
           .font-bold { font-weight: bold; }
         </style></head><body>
         <h2>Popisna lista osnovnih sredstava</h2>
-        <p>${selectedCompany?.name} — ${format(new Date(), "dd.MM.yyyy")}</p>
+        <p>${selectedCompany?.name} — ${formatDate(new Date())}</p>
         ${printContent}
         </body></html>
       `);
@@ -70,7 +69,7 @@ export default function PopisnaListaOS() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Popisna lista — {selectedCompany?.name} — {format(new Date(), "dd.MM.yyyy")}
+              Popisna lista — {selectedCompany?.name} — {formatDate(new Date())}
             </CardTitle>
           </CardHeader>
           <CardContent>
