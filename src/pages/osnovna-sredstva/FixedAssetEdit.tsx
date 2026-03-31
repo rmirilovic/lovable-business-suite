@@ -19,11 +19,6 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { useAuth } from "@/contexts/AuthContext";
-import { formatNumber } from "@/lib/formatting";
-import { format } from "date-fns";
-import { toast } from "sonner";
-import { LocaleDateInput } from "@/components/ui/locale-date-input";
 
 const changeTypeLabels: Record<string, string> = {
   acquisition: "Nabavka",
