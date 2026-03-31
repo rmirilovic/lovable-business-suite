@@ -109,6 +109,10 @@ export default function FixedAssetEdit() {
       toast.error("Inventarni broj i naziv su obavezni");
       return;
     }
+    const acqVal = parseLocaleNumber(form.acquisition_value);
+    const resVal = parseLocaleNumber(form.residual_value);
+    const depRate = parseLocaleNumber(form.depreciation_rate);
+    const lifeMonths = form.useful_life_months ? parseInt(form.useful_life_months) : null;
     try {
       const result = await upsertAsset.mutateAsync({
         ...(isNew ? {} : { id }),
@@ -119,11 +123,11 @@ export default function FixedAssetEdit() {
         group_id: form.group_id || null,
         acquisition_date: form.acquisition_date,
         activation_date: form.activation_date || null,
-        acquisition_value: form.acquisition_value,
-        current_value: isNew ? form.acquisition_value : undefined,
-        residual_value: form.residual_value,
-        depreciation_rate: form.depreciation_rate,
-        useful_life_months: form.useful_life_months || null,
+        acquisition_value: acqVal,
+        current_value: isNew ? acqVal : undefined,
+        residual_value: resVal,
+        depreciation_rate: depRate,
+        useful_life_months: lifeMonths,
         location: form.location || null,
         responsible_person: form.responsible_person || null,
         invoice_reference: form.invoice_reference || null,
