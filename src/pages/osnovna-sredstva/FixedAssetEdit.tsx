@@ -67,7 +67,7 @@ export default function FixedAssetEdit() {
   const [changeForm, setChangeForm] = useState({
     change_type: "depreciation" as string,
     change_date: format(new Date(), "yyyy-MM-dd"),
-    amount: 0,
+    amount: "0",
     description: "",
     document_reference: "",
   });
