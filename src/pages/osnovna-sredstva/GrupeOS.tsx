@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { parseLocaleNumber } from "@/lib/formatting";
 import { useFixedAssetGroups, FixedAssetGroup } from "@/hooks/useFixedAssetGroups";
 import { useFixedAssets } from "@/hooks/useFixedAssets";
 import { useAuth } from "@/contexts/AuthContext";
