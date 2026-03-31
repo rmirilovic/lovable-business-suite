@@ -348,6 +348,7 @@ export default function FixedAssetEdit() {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
 
       {/* Add Change Dialog */}
