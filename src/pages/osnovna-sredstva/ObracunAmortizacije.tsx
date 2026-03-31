@@ -36,18 +36,64 @@ export default function ObracunAmortizacije() {
 
   const activeAssets = assets?.filter((a) => a.status === "active" && a.current_value > a.residual_value) || [];
 
-  const monthCount = periodMode === "year" ? 12 : 1;
+  /**
+   * Calculate prorated depreciation for a specific month.
+   * If activation_date is after the period end → 0.
+   * If activation_date is within the month → prorate by days.
+   * Otherwise → full monthly amount.
+   */
+  const calcMonthlyDep = (asset: typeof activeAssets[number], monthIndex: number, calcYear: number) => {
+    const yearRate = asset.depreciation_rate / 100;
+    const fullMonthly = ((asset.acquisition_value - asset.residual_value) * yearRate) / 12;
+
+    const activationDate = asset.activation_date ? new Date(asset.activation_date) : null;
+    if (!activationDate) return fullMonthly; // no activation date, assume full
+
+    const periodStart = new Date(calcYear, monthIndex, 1);
+    const periodEnd = new Date(calcYear, monthIndex + 1, 0); // last day of month
+    const daysInMonth = periodEnd.getDate();
+
+    // Asset not yet activated by end of this month
+    if (activationDate > periodEnd) return 0;
+
+    // Asset activated within this month → prorate
+    if (activationDate > periodStart) {
+      const activeDays = Math.floor((periodEnd.getTime() - activationDate.getTime()) / 86400000) + 1;
+      return (fullMonthly * activeDays) / daysInMonth;
+    }
+
+    // Activated before this month → full amount
+    return fullMonthly;
+  };
+
+  const selectedMonthNum = Number(selectedMonth);
 
   const depreciationItems = activeAssets.map((asset) => {
-    const yearRate = asset.depreciation_rate / 100;
-    const monthlyAmount = ((asset.acquisition_value - asset.residual_value) * yearRate) / 12;
-    const remaining = asset.current_value - asset.residual_value;
-    // For full year: cap total at remaining value
-    const totalAmount = Math.min(monthlyAmount * monthCount, Math.max(0, remaining));
     const group = groups?.find((g) => g.id === asset.group_id);
+    const remaining = asset.current_value - asset.residual_value;
+
+    let totalAmount: number;
+    if (periodMode === "year") {
+      // Sum prorated amounts for all 12 months, capped at remaining
+      let sum = 0;
+      let runningRemaining = remaining;
+      for (let m = 0; m < 12; m++) {
+        const dep = Math.min(calcMonthlyDep(asset, m, year), Math.max(0, runningRemaining));
+        sum += dep;
+        runningRemaining -= dep;
+      }
+      totalAmount = sum;
+    } else {
+      const dep = calcMonthlyDep(asset, selectedMonthNum, year);
+      totalAmount = Math.min(dep, Math.max(0, remaining));
+    }
+
+    const yearRate = asset.depreciation_rate / 100;
+    const fullMonthly = ((asset.acquisition_value - asset.residual_value) * yearRate) / 12;
+
     return {
       ...asset,
-      monthlyAmount: Math.round((monthlyAmount) * 100) / 100,
+      monthlyAmount: Math.round(fullMonthly * 100) / 100,
       totalAmount: Math.round(totalAmount * 100) / 100,
       groupName: group ? `${group.code} - ${group.name}` : "-",
     };
