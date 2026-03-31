@@ -372,7 +372,7 @@ export default function FixedAssetEdit() {
             </div>
             <div>
               <Label>Iznos</Label>
-              <Input type="number" value={changeForm.amount} onChange={(e) => setChangeForm({ ...changeForm, amount: Number(e.target.value) })} />
+              <LocaleNumberInput value={changeForm.amount} onChange={(v) => setChangeForm({ ...changeForm, amount: v })} />
             </div>
             <div>
               <Label>Opis</Label>
