@@ -2822,6 +2822,213 @@ export type Database = {
           },
         ]
       }
+      fixed_asset_changes: {
+        Row: {
+          amount: number
+          change_date: string
+          change_type: Database["public"]["Enums"]["fixed_asset_change_type"]
+          company_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          document_reference: string | null
+          fixed_asset_id: string
+          id: string
+        }
+        Insert: {
+          amount?: number
+          change_date?: string
+          change_type: Database["public"]["Enums"]["fixed_asset_change_type"]
+          company_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          document_reference?: string | null
+          fixed_asset_id: string
+          id?: string
+        }
+        Update: {
+          amount?: number
+          change_date?: string
+          change_type?: Database["public"]["Enums"]["fixed_asset_change_type"]
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          document_reference?: string | null
+          fixed_asset_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_asset_changes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_asset_changes_fixed_asset_id_fkey"
+            columns: ["fixed_asset_id"]
+            isOneToOne: false
+            referencedRelation: "fixed_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fixed_asset_groups: {
+        Row: {
+          account_code: string | null
+          accumulated_depreciation_account: string | null
+          code: string
+          company_id: string
+          created_at: string
+          depreciation_expense_account: string | null
+          depreciation_rate: number
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          account_code?: string | null
+          accumulated_depreciation_account?: string | null
+          code: string
+          company_id: string
+          created_at?: string
+          depreciation_expense_account?: string | null
+          depreciation_rate?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          account_code?: string | null
+          accumulated_depreciation_account?: string | null
+          code?: string
+          company_id?: string
+          created_at?: string
+          depreciation_expense_account?: string | null
+          depreciation_rate?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_asset_groups_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fixed_assets: {
+        Row: {
+          accumulated_depreciation: number
+          acquisition_date: string
+          acquisition_value: number
+          activation_date: string | null
+          company_id: string
+          created_at: string
+          created_by: string
+          current_value: number
+          depreciation_rate: number
+          description: string | null
+          group_id: string | null
+          id: string
+          inventory_number: string
+          invoice_reference: string | null
+          location: string | null
+          name: string
+          note: string | null
+          residual_value: number
+          responsible_person: string | null
+          status: string
+          supplier_id: string | null
+          updated_at: string
+          useful_life_months: number | null
+        }
+        Insert: {
+          accumulated_depreciation?: number
+          acquisition_date?: string
+          acquisition_value?: number
+          activation_date?: string | null
+          company_id: string
+          created_at?: string
+          created_by: string
+          current_value?: number
+          depreciation_rate?: number
+          description?: string | null
+          group_id?: string | null
+          id?: string
+          inventory_number: string
+          invoice_reference?: string | null
+          location?: string | null
+          name: string
+          note?: string | null
+          residual_value?: number
+          responsible_person?: string | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string
+          useful_life_months?: number | null
+        }
+        Update: {
+          accumulated_depreciation?: number
+          acquisition_date?: string
+          acquisition_value?: number
+          activation_date?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          current_value?: number
+          depreciation_rate?: number
+          description?: string | null
+          group_id?: string | null
+          id?: string
+          inventory_number?: string
+          invoice_reference?: string | null
+          location?: string | null
+          name?: string
+          note?: string | null
+          residual_value?: number
+          responsible_person?: string | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string
+          useful_life_months?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_assets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "fixed_asset_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixed_assets_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goods_purchase_invoice_items: {
         Row: {
           article_id: string | null
@@ -9021,6 +9228,14 @@ export type Database = {
         | "decimal"
         | "date"
       document_status: "draft" | "approved" | "posted" | "cancelled" | "renewed"
+      fixed_asset_change_type:
+        | "acquisition"
+        | "depreciation"
+        | "write_off"
+        | "disposal"
+        | "revaluation"
+        | "value_adjustment"
+        | "transfer"
       module_type:
         | "sifarnici"
         | "robno_materijalno"
@@ -9187,6 +9402,15 @@ export const Constants = {
         "date",
       ],
       document_status: ["draft", "approved", "posted", "cancelled", "renewed"],
+      fixed_asset_change_type: [
+        "acquisition",
+        "depreciation",
+        "write_off",
+        "disposal",
+        "revaluation",
+        "value_adjustment",
+        "transfer",
+      ],
       module_type: [
         "sifarnici",
         "robno_materijalno",

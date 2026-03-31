@@ -17,6 +17,7 @@ import {
   Bot,
   Mail,
   Briefcase,
+  Landmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -156,6 +157,17 @@ const navigation: NavItem[] = [
       { label: "Bruto bilans", href: "/racunovodstvo/bruto-bilans", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "POPDV", href: "/racunovodstvo/popdv", moduleCode: "racunovodstvo.nalozi" },
       { label: "PP-PDV Prijava", href: "/racunovodstvo/pp-pdv", moduleCode: "racunovodstvo.nalozi" },
+    ],
+  },
+  {
+    label: "Osnovna sredstva",
+    icon: Landmark,
+    moduleCode: "osnovna_sredstva",
+    children: [
+      { label: "Kartoni OS", href: "/osnovna-sredstva/kartoni", moduleCode: "osnovna_sredstva.kartoni" },
+      { label: "Amortizacione grupe", href: "/osnovna-sredstva/grupe", moduleCode: "osnovna_sredstva.grupe" },
+      { label: "Obračun amortizacije", href: "/osnovna-sredstva/amortizacija", moduleCode: "osnovna_sredstva.amortizacija" },
+      { label: "Popisna lista OS", href: "/osnovna-sredstva/popis", moduleCode: "osnovna_sredstva.popis" },
     ],
   },
   {

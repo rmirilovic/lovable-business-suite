@@ -111,6 +111,11 @@ import ObracunEdit from "./pages/zarade/ObracunEdit";
 import ParametriObracuna from "./pages/zarade/ParametriObracuna";
 import EvidencijaRadnogVremena from "./pages/zarade/EvidencijaRadnogVremena";
 import Obustave from "./pages/zarade/Obustave";
+import OsnovnaSredstva from "./pages/osnovna-sredstva/OsnovnaSredstva";
+import FixedAssetEdit from "./pages/osnovna-sredstva/FixedAssetEdit";
+import ObracunAmortizacije from "./pages/osnovna-sredstva/ObracunAmortizacije";
+import GrupeOS from "./pages/osnovna-sredstva/GrupeOS";
+import PopisnaListaOS from "./pages/osnovna-sredstva/PopisnaListaOS";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -641,6 +646,31 @@ const App = () => (
               <Route path="/zarade/obustave" element={
                 <ProtectedRoute>
                   <Obustave />
+                </ProtectedRoute>
+              } />
+              <Route path="/osnovna-sredstva/kartoni" element={
+                <ProtectedRoute>
+                  <OsnovnaSredstva />
+                </ProtectedRoute>
+              } />
+              <Route path="/osnovna-sredstva/kartoni/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <FixedAssetEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/osnovna-sredstva/grupe" element={
+                <ProtectedRoute>
+                  <GrupeOS />
+                </ProtectedRoute>
+              } />
+              <Route path="/osnovna-sredstva/amortizacija" element={
+                <ProtectedRoute>
+                  <ObracunAmortizacije />
+                </ProtectedRoute>
+              } />
+              <Route path="/osnovna-sredstva/popis" element={
+                <ProtectedRoute>
+                  <PopisnaListaOS />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
