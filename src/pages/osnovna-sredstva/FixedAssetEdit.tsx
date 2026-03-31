@@ -99,7 +99,7 @@ export default function FixedAssetEdit() {
     if (form.group_id && groups) {
       const grp = groups.find((g) => g.id === form.group_id);
       if (grp) {
-        setForm((prev) => ({ ...prev, depreciation_rate: grp.depreciation_rate }));
+        setForm((prev) => ({ ...prev, depreciation_rate: String(grp.depreciation_rate) }));
       }
     }
   }, [form.group_id, groups]);
