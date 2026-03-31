@@ -171,8 +171,8 @@ export default function FixedAssetEdit() {
 
   return (
     <MainLayout title="Karton osnovnog sredstva">
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col min-h-0 flex-1">
+        <div className="flex items-center gap-4 shrink-0">
           <Button variant="ghost" size="icon" onClick={() => navigate("/osnovna-sredstva/kartoni")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -186,7 +186,7 @@ export default function FixedAssetEdit() {
           </div>
         </div>
 
-        {/* Basic info */}
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-6 mt-6">
         <Card>
           <CardHeader><CardTitle>Osnovni podaci</CardTitle></CardHeader>
           <CardContent>
@@ -348,6 +348,7 @@ export default function FixedAssetEdit() {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
 
       {/* Add Change Dialog */}
