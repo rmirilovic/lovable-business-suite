@@ -7,8 +7,7 @@ import { Printer, FileDown } from "lucide-react";
 import { useFixedAssets } from "@/hooks/useFixedAssets";
 import { useFixedAssetGroups } from "@/hooks/useFixedAssetGroups";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatNumber } from "@/lib/formatting";
-import { format } from "date-fns";
+import { formatNumber, formatDate } from "@/lib/formatting";
 
 export default function PopisnaListaOS() {
   const { selectedCompany } = useAuth();
