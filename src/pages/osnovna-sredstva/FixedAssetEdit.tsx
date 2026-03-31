@@ -158,7 +158,7 @@ export default function FixedAssetEdit() {
 
   if (!isNew && isLoading) {
     return (
-      <MainLayout>
+      <MainLayout title="Osnovno sredstvo">
         <div className="flex items-center justify-center py-12 text-muted-foreground">Učitavanje...</div>
       </MainLayout>
     );
