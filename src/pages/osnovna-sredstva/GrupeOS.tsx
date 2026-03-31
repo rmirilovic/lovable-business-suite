@@ -176,7 +176,7 @@ export default function GrupeOS() {
             </div>
             <div>
               <Label>Stopa amortizacije (%)</Label>
-              <Input type="number" value={editGroup?.depreciation_rate || 0} onChange={(e) => setEditGroup({ ...editGroup, depreciation_rate: Number(e.target.value) })} />
+              <LocaleNumberInput value={String(editGroup?.depreciation_rate ?? 0)} onChange={(v) => setEditGroup({ ...editGroup, depreciation_rate: parseLocaleNumber(v) })} />
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
