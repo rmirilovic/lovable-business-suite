@@ -68,6 +68,7 @@ export default function ObracunEdit() {
 
   const [items, setItems] = useState<Partial<PayrollCalculationItem>[]>([]);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [postDialogOpen, setPostDialogOpen] = useState(false);
   const isPosted = calculation?.status === "posted";
 
   const deductionsByEmployee = useMemo(() => {
