@@ -328,7 +328,7 @@ export default function FixedAssetEdit() {
                   ) : (
                     changes.map((ch) => (
                       <TableRow key={ch.id}>
-                        <TableCell>{format(new Date(ch.change_date), "dd.MM.yyyy")}</TableCell>
+                        <TableCell>{formatDate(ch.change_date)}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{changeTypeLabels[ch.change_type] || ch.change_type}</Badge>
                         </TableCell>
