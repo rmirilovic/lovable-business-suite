@@ -50,7 +50,7 @@ export default function ObracunEdit() {
   const { data: activeParam } = useActivePayrollParameter();
   const { data: employees } = useEmployees();
   const { data: activeDeductions } = useAllActiveDeductions();
-  const { updateCalculation, saveItems } = usePayrollCalculationMutations();
+  const { updateCalculation, saveItems, postCalculation, unpostCalculation } = usePayrollCalculationMutations();
 
   const [header, setHeader] = useState({
     calculation_number: "",
