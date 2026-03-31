@@ -47,7 +47,7 @@ export default function PopisnaListaOS() {
           .font-bold { font-weight: bold; }
         </style></head><body>
         <h2>Popisna lista osnovnih sredstava</h2>
-        <p>${selectedCompany?.name} — ${format(new Date(), "dd.MM.yyyy")}</p>
+        <p>${selectedCompany?.name} — ${formatDate(new Date())}</p>
         ${printContent}
         </body></html>
       `);
