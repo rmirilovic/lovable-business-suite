@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calculator, ChevronDown, ChevronRight, FileText, Save, Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, BookCheck, Calculator, ChevronDown, ChevronRight, Download, FileText, Save, Trash2, Undo2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { MainLayout } from "@/components/layout/MainLayout";
