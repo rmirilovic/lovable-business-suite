@@ -17,6 +17,7 @@ import {
   Bot,
   Mail,
   Briefcase,
+  Landmark,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
