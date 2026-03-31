@@ -69,7 +69,7 @@ export default function PopisnaListaOS() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Popisna lista — {selectedCompany?.name} — {format(new Date(), "dd.MM.yyyy")}
+              Popisna lista — {selectedCompany?.name} — {formatDate(new Date())}
             </CardTitle>
           </CardHeader>
           <CardContent>
