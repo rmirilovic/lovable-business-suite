@@ -648,6 +648,31 @@ const App = () => (
                   <Obustave />
                 </ProtectedRoute>
               } />
+              <Route path="/osnovna-sredstva/kartoni" element={
+                <ProtectedRoute>
+                  <OsnovnaSredstva />
+                </ProtectedRoute>
+              } />
+              <Route path="/osnovna-sredstva/kartoni/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <FixedAssetEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/osnovna-sredstva/grupe" element={
+                <ProtectedRoute>
+                  <GrupeOS />
+                </ProtectedRoute>
+              } />
+              <Route path="/osnovna-sredstva/amortizacija" element={
+                <ProtectedRoute>
+                  <ObracunAmortizacije />
+                </ProtectedRoute>
+              } />
+              <Route path="/osnovna-sredstva/popis" element={
+                <ProtectedRoute>
+                  <PopisnaListaOS />
+                </ProtectedRoute>
+              } />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
