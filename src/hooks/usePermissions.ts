@@ -45,7 +45,7 @@ const getModuleHierarchy = (moduleCode: string) => {
 };
 
 export function usePermissions(): UsePermissionsReturn {
-  const { user, selectedCompany, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { user, selectedCompany, isSuperAdmin, isLocalAdmin, initialLoadDone } = useAuth();
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [moduleAccess, setModuleAccess] = useState<Map<string, ModuleAccess>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
@@ -63,10 +63,15 @@ export function usePermissions(): UsePermissionsReturn {
   );
 
   const fetchUserRoles = useCallback(async () => {
-    if (!user || !selectedCompany) {
+    if (!user) {
       setUserRoles([]);
       setModuleAccess(new Map());
       setIsLoading(false);
+      return;
+    }
+
+    if (!initialLoadDone || !selectedCompany) {
+      setIsLoading(true);
       return;
     }
 
@@ -80,7 +85,6 @@ export function usePermissions(): UsePermissionsReturn {
     }
 
     try {
-      // Fetch assigned roles
       const { data: roleAssignments, error: rolesError } = await supabase
         .from("user_role_assignments")
         .select(`
@@ -109,14 +113,13 @@ export function usePermissions(): UsePermissionsReturn {
 
       setUserRoles(roles);
 
-      // Fetch all module permissions for user's roles
       if (roles.length === 0) {
         setModuleAccess(new Map());
         setIsLoading(false);
         return;
       }
 
-      const roleIds = roles.map(r => r.id);
+      const roleIds = roles.map((role) => role.id);
       const { data: permissions, error: permError } = await supabase
         .from("role_permissions")
         .select("module_code, access_level, can_post, can_unpost")
@@ -124,13 +127,12 @@ export function usePermissions(): UsePermissionsReturn {
 
       if (permError) throw permError;
 
-      // Build module access map (take max access level if multiple roles)
       const accessMap = new Map<string, ModuleAccess>();
-      
+
       for (const perm of permissions || []) {
         const existing = accessMap.get(perm.module_code);
         const newLevel = perm.access_level as AccessLevel;
-        
+
         if (!existing || ACCESS_LEVEL_ORDER[newLevel] > ACCESS_LEVEL_ORDER[existing.accessLevel]) {
           accessMap.set(perm.module_code, {
             moduleCode: perm.module_code,
@@ -139,7 +141,6 @@ export function usePermissions(): UsePermissionsReturn {
             canUnpost: perm.can_unpost || existing?.canUnpost || false,
           });
         } else if (existing) {
-          // Keep max access level but merge workflow permissions
           existing.canPost = existing.canPost || perm.can_post;
           existing.canUnpost = existing.canUnpost || perm.can_unpost;
         }
@@ -151,15 +152,14 @@ export function usePermissions(): UsePermissionsReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [user, selectedCompany, isSuperAdmin, isLocalAdmin]);
+  }, [user, selectedCompany, isSuperAdmin, isLocalAdmin, initialLoadDone]);
 
   useEffect(() => {
-    fetchUserRoles();
+    void fetchUserRoles();
   }, [fetchUserRoles]);
 
   const hasAccess = useCallback(
     (moduleCode: string, requiredLevel: AccessLevel = "read"): boolean => {
-      // Super admin and local admin always have access
       if (isSuperAdmin || isLocalAdmin) return true;
 
       const access = resolveModuleAccess(moduleCode);
