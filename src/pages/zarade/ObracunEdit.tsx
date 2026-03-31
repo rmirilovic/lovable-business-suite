@@ -643,12 +643,16 @@ export default function ObracunEdit() {
                   ))}
                 </SelectContent>
               </Select>
-              <LocaleNumberInput
+              <Input
+                type="text"
+                inputMode="numeric"
                 value={String(header.period_year)}
                 className="w-24"
-                decimalPlaces={0}
                 disabled={isPosted}
-                onChange={(value) => setHeader({ ...header, period_year: parseInt(String(parseLocaleNumber(value))) || header.period_year })}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "");
+                  if (val.length <= 4) setHeader({ ...header, period_year: parseInt(val) || header.period_year });
+                }}
               />
             </div>
           </div>
