@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const sessionRef = useRef<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [accessibleCompanyIds, setAccessibleCompanyIds] = useState<string[]>([]);
   const [businessYears, setBusinessYears] = useState<BusinessYear[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedYear, setSelectedYear] = useState<BusinessYear | null>(null);
@@ -57,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isSuperAdmin = userRole === "super_admin";
   const isLocalAdmin = localAdminCompanyIds.length > 0;
 
-  const applyCompanySelection = async (companiesData: Company[]) => {
+  const applyCompanySelection = async (companiesData: Company[], allowedCompanyIds: string[] = []) => {
     setCompanies(companiesData);
 
     if (companiesData.length === 0) {
@@ -70,8 +71,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const savedCompanyId = localStorage.getItem("selectedCompanyId");
-    const savedCompany = companiesData.find((company) => company.id === savedCompanyId);
-    const nextCompany = savedCompany ?? companiesData[0];
+    const savedCompanyAllowed =
+      !!savedCompanyId && (allowedCompanyIds.length === 0 || allowedCompanyIds.includes(savedCompanyId));
+    const savedCompany = savedCompanyAllowed
+      ? companiesData.find((company) => company.id === savedCompanyId)
+      : undefined;
+    const fallbackCompany =
+      (allowedCompanyIds.length > 0
+        ? companiesData.find((company) => allowedCompanyIds.includes(company.id))
+        : companiesData[0]) ?? companiesData[0];
+    const nextCompany = savedCompany ?? fallbackCompany;
 
     if (!savedCompany && savedCompanyId) {
       localStorage.removeItem("selectedCompanyId");
@@ -119,6 +128,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLocalAdminCompanyIds([]);
       return [];
     }
+  };
+
+  const fetchAccessibleCompanyIds = async (userId: string): Promise<string[]> => {
+    const { data, error } = await supabase
+      .from("user_role_assignments")
+      .select("company_id")
+      .eq("user_id", userId)
+      .eq("is_active", true);
+
+    const companyIds = !error && data ? [...new Set(data.map((item) => item.company_id))] : [];
+    setAccessibleCompanyIds(companyIds);
+    return companyIds;
   };
 
   const resolveSuperAdminFallback = async (userId: string): Promise<boolean> => {
@@ -231,12 +252,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // which would unmount dialogs depending on companyId
       if (initialLoadDone) return;
 
-      const [nextUserRole] = await Promise.all([
+      const [nextUserRole, , roleCompanyIds] = await Promise.all([
         fetchUserRole(userId),
         fetchLocalAdminCompanies(userId),
+        fetchAccessibleCompanyIds(userId),
       ]);
 
-      await fetchUserCompanies(userId, nextUserRole === "super_admin");
+      await fetchUserCompanies(userId, nextUserRole === "super_admin", roleCompanyIds);
       setInitialLoadDone(true);
       setLoading(false);
     };
@@ -295,6 +317,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setSelectedYear(null);
             setUserRole(null);
             setLocalAdminCompanyIds([]);
+            setAccessibleCompanyIds([]);
             setInitialLoadDone(false);
             setLoading(false);
           }, 4000);
@@ -307,6 +330,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSelectedYear(null);
         setUserRole(null);
         setLocalAdminCompanyIds([]);
+        setAccessibleCompanyIds([]);
         setInitialLoadDone(false);
         setLoading(false);
         return;
@@ -373,7 +397,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const fetchUserCompanies = async (userId: string, isUserSuperAdmin: boolean): Promise<boolean> => {
+  const fetchUserCompanies = async (
+    userId: string,
+    isUserSuperAdmin: boolean,
+    roleCompanyIds: string[] = []
+  ): Promise<boolean> => {
     if (isUserSuperAdmin) {
       const { data: companiesData, error } = await supabase
         .from("companies")
@@ -407,7 +435,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .map((assignment: any) => assignment.companies)
         .filter(Boolean) as Company[];
 
-      await applyCompanySelection(companiesData);
+      await applyCompanySelection(companiesData, roleCompanyIds);
       return true;
     }
 
@@ -452,6 +480,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [selectedCompany]);
 
   useEffect(() => {
+    if (
+      !selectedCompany ||
+      isSuperAdmin ||
+      isLocalAdmin ||
+      accessibleCompanyIds.length === 0 ||
+      accessibleCompanyIds.includes(selectedCompany.id)
+    ) {
+      return;
+    }
+
+    const fallbackCompany = companies.find((company) => accessibleCompanyIds.includes(company.id));
+    if (fallbackCompany) {
+      setSelectedCompany(fallbackCompany);
+    }
+  }, [selectedCompany, companies, accessibleCompanyIds, isSuperAdmin, isLocalAdmin]);
+
+  useEffect(() => {
     if (selectedYear) {
       localStorage.setItem("selectedYearId", selectedYear.id);
     }
@@ -494,6 +539,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSelectedYear(null);
     setUserRole(null);
     setLocalAdminCompanyIds([]);
+    setAccessibleCompanyIds([]);
     setInitialLoadDone(false);
     localStorage.removeItem("selectedCompanyId");
     localStorage.removeItem("selectedYearId");
