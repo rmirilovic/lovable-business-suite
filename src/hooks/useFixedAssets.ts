@@ -183,9 +183,61 @@ export function useFixedAssetChanges(assetId?: string) {
   });
 
   const deleteChange = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("fixed_asset_changes").delete().eq("id", id);
+    mutationFn: async (changeId: string) => {
+      // Get the change before deleting to know the asset
+      const { data: change } = await supabase
+        .from("fixed_asset_changes")
+        .select("fixed_asset_id")
+        .eq("id", changeId)
+        .single();
+
+      const { error } = await supabase.from("fixed_asset_changes").delete().eq("id", changeId);
       if (error) throw error;
+
+      if (change) {
+        // Recalculate from remaining changes
+        const { data: remaining } = await supabase
+          .from("fixed_asset_changes")
+          .select("change_type, amount")
+          .eq("fixed_asset_id", change.fixed_asset_id);
+
+        const { data: asset } = await supabase
+          .from("fixed_assets")
+          .select("acquisition_value, residual_value")
+          .eq("id", change.fixed_asset_id)
+          .single();
+
+        if (asset) {
+          let totalDepreciation = 0;
+          let acquisitionAdjustment = 0;
+          for (const ch of remaining || []) {
+            if (ch.change_type === "depreciation") {
+              totalDepreciation += Number(ch.amount);
+            } else if (ch.change_type === "write_off") {
+              totalDepreciation = Number(asset.acquisition_value);
+            } else if (ch.change_type === "revaluation" || ch.change_type === "value_adjustment") {
+              acquisitionAdjustment += Number(ch.amount);
+            }
+          }
+          const effectiveAcquisition = Number(asset.acquisition_value) + acquisitionAdjustment;
+          const currentValue = Math.max(0, effectiveAcquisition - totalDepreciation);
+          const hasWriteOff = (remaining || []).some((c) => c.change_type === "write_off");
+          const hasDisposal = (remaining || []).some((c) => c.change_type === "disposal");
+          const status = hasWriteOff
+            ? "written_off"
+            : hasDisposal
+            ? "disposed"
+            : currentValue <= Number(asset.residual_value)
+            ? "fully_depreciated"
+            : "active";
+
+          await supabase.from("fixed_assets").update({
+            accumulated_depreciation: Math.round(totalDepreciation * 100) / 100,
+            current_value: Math.round(currentValue * 100) / 100,
+            status,
+          }).eq("id", change.fixed_asset_id);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fixed_asset_changes", assetId] });
