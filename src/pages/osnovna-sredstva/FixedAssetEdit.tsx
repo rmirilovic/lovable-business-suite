@@ -142,9 +142,9 @@ export default function FixedAssetEdit() {
   };
 
   const handleAddChange = async () => {
-    if (!changeForm.amount) {
+    const amountVal = parseLocaleNumber(changeForm.amount);
+    if (!amountVal) {
       toast.error("Iznos je obavezan");
-      return;
     }
     await addChange.mutateAsync({
       company_id: selectedCompany!.id,
