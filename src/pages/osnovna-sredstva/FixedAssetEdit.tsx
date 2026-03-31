@@ -151,7 +151,7 @@ export default function FixedAssetEdit() {
       fixed_asset_id: id!,
       change_type: changeForm.change_type,
       change_date: changeForm.change_date,
-      amount: changeForm.amount,
+      amount: amountVal,
       description: changeForm.description || null,
       document_reference: changeForm.document_reference || null,
       created_by: user!.id,
