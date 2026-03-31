@@ -578,6 +578,26 @@ export default function ObracunEdit() {
               <Button size="sm" onClick={handleSave} disabled={updateCalculation.isPending || saveItems.isPending}>
                 <Save className="mr-1 h-4 w-4" /> Sačuvaj
               </Button>
+              {items.length > 0 && (
+                <Button size="sm" variant="default" onClick={() => setPostDialogOpen(true)}>
+                  <BookCheck className="mr-1 h-4 w-4" /> Proknjiži
+                </Button>
+              )}
+            </>
+          )}
+          {isPosted && (
+            <Button variant="outline" size="sm" onClick={handleUnpost}>
+              <Undo2 className="mr-1 h-4 w-4" /> Poništi knjiženje
+            </Button>
+          )}
+          {items.length > 0 && (
+            <>
+              <Button variant="outline" size="sm" onClick={handleExportPppPdPdf}>
+                <FileText className="mr-1 h-4 w-4" /> PPP-PD PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportPppPdXml}>
+                <Download className="mr-1 h-4 w-4" /> PPP-PD XML
+              </Button>
             </>
           )}
           {header.calculation_type === "bolovanje_rfzo" && items.length > 0 && (
@@ -586,6 +606,16 @@ export default function ObracunEdit() {
             </Button>
           )}
         </div>
+
+        <DateActionDialog
+          open={postDialogOpen}
+          onOpenChange={setPostDialogOpen}
+          title="Knjiženje obračuna zarada"
+          description="Izaberite datum knjiženja. Biće kreiran nalog u glavnoj knjizi sa standardnim kontima RS (520, 522, 450, 451, 452, 453)."
+          defaultDate={header.calculation_date}
+          actionLabel="Proknjiži"
+          onConfirm={handlePostConfirm}
+        />
 
         <div className="grid grid-cols-1 gap-4 rounded-lg border bg-card p-4 md:grid-cols-5">
           <div className="space-y-1">
