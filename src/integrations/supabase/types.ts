@@ -5304,6 +5304,7 @@ export type Database = {
           created_by: string
           id: string
           input_mode: string
+          journal_entry_id: string | null
           note: string | null
           parameter_id: string | null
           period_month: number
@@ -5331,6 +5332,7 @@ export type Database = {
           created_by: string
           id?: string
           input_mode?: string
+          journal_entry_id?: string | null
           note?: string | null
           parameter_id?: string | null
           period_month: number
@@ -5358,6 +5360,7 @@ export type Database = {
           created_by?: string
           id?: string
           input_mode?: string
+          journal_entry_id?: string | null
           note?: string | null
           parameter_id?: string | null
           period_month?: number
@@ -5388,6 +5391,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_calculations_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
             referencedColumns: ["id"]
           },
           {
@@ -8878,6 +8888,10 @@ export type Database = {
         Args: { _requisition_id: string; _user_id: string }
         Returns: string
       }
+      post_payroll_calculation: {
+        Args: { _calculation_id: string; _user_id: string }
+        Returns: string
+      }
       post_price_adjustment: {
         Args: { _adjustment_id: string; _user_id: string }
         Returns: undefined
@@ -8958,6 +8972,10 @@ export type Database = {
       }
       unpost_material_requisition: {
         Args: { _requisition_id: string; _user_id: string }
+        Returns: boolean
+      }
+      unpost_payroll_calculation: {
+        Args: { _calculation_id: string; _user_id: string }
         Returns: boolean
       }
       unpost_price_adjustment: {
