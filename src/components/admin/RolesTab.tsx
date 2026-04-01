@@ -510,8 +510,8 @@ export function RolesTab() {
                         if (q && !modMatches && !childrenMatch) return null;
                         return (
                           <React.Fragment key={mod.code}>
-                            <TableRow>
-                              <TableCell className="pl-8">{mod.name}</TableCell>
+                            <TableRow className="border-l-2 border-l-primary/20">
+                              <TableCell className="pl-8 font-medium">{mod.name}</TableCell>
                               <TableCell>
                                 <Select value={perm.access_level} onValueChange={(v) => updatePermission(mod.code, "access_level", v)} disabled={!canManageRoles}>
                                   <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
