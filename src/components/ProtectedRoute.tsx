@@ -27,8 +27,8 @@ export function ProtectedRoute({
     return <Navigate to="/auth" replace />;
   }
 
-  // Wait for role data to load before checking admin access
-  if (requireAdmin && userRole === null && localAdminCompanyIds.length === 0) {
+  // Wait for full auth bootstrap before checking admin access
+  if (requireAdmin && !initialLoadDone) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Učitavanje...</div>
