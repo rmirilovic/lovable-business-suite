@@ -472,9 +472,9 @@ export function RolesTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {moduleTree?.map((parent) => (
-                    <React.Fragment key={parent.code}>
-                      <TableRow className="bg-muted/50">
+                  {sortedFilteredTree.map((parent) => {
+                    const isCollapsed = collapsedGroups.has(parent.code);
+                    return (
                         <TableCell className="font-semibold">{parent.name}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
