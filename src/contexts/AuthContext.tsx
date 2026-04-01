@@ -337,6 +337,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      if (event === "TOKEN_REFRESHED") {
+        // Token was refreshed — session/user refs are already updated above.
+        // Do NOT re-run loadUserData; role & permission state is still valid.
+        console.log("[AuthContext] TOKEN_REFRESHED — keeping existing role state");
+        return;
+      }
+
       if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         if (nextSession?.user) {
           if (!initialLoadDoneRef.current && !userDataLoadingRef.current) {
