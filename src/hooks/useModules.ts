@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -35,21 +36,37 @@ export function useModules() {
 export function useModuleTree() {
   const { data: modules, isLoading, error } = useModules();
 
-  const tree = modules?.reduce((acc, mod) => {
-    if (!mod.parent_code) {
-      acc.push({
-        ...mod,
-        children: (modules.filter((m) => m.parent_code === mod.code) || []).map((child) => ({
-          ...child,
-          children: modules.filter((m) => m.parent_code === child.code).map((gc) => ({
-            ...gc,
-            children: [],
-          })),
-        })),
-      });
+  const tree = useMemo(() => {
+    if (!modules) return undefined;
+
+    // Build a map of parent_code -> children for efficient lookup
+    const childrenMap = new Map<string, Module[]>();
+    const topLevel: Module[] = [];
+
+    for (const mod of modules) {
+      if (!mod.parent_code) {
+        topLevel.push(mod);
+      } else {
+        const siblings = childrenMap.get(mod.parent_code) || [];
+        siblings.push(mod);
+        childrenMap.set(mod.parent_code, siblings);
+      }
     }
-    return acc;
-  }, [] as ModuleWithChildren[]);
+
+    // Build tree recursively (supports any depth)
+    const buildChildren = (parentCode: string, depth: number): ModuleWithChildren[] => {
+      const children = childrenMap.get(parentCode) || [];
+      return children.map((child) => ({
+        ...child,
+        children: depth < 3 ? buildChildren(child.code, depth + 1) : [],
+      }));
+    };
+
+    return topLevel.map((mod) => ({
+      ...mod,
+      children: buildChildren(mod.code, 1),
+    })) as ModuleWithChildren[];
+  }, [modules]);
 
   return { tree, isLoading, error };
 }
