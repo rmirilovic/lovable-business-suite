@@ -115,7 +115,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
   };
 
   const isActive = (href: string) => location.pathname === href;
-  const isParentActive = (children?: NavChild[]) =>
+  const isParentActive = (children?: NavigationChild[]) =>
     children?.some((child) => location.pathname === child.href);
 
   const handleSignOut = async () => {
