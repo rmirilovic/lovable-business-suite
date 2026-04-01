@@ -191,6 +191,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLocalAdminCompanyIds([]);
     setAccessibleCompanyIds([]);
     updateInitialLoadDone(false);
+    localStorage.removeItem("cachedUserRole");
+    localStorage.removeItem("cachedLocalAdminCompanyIds");
   };
 
   const loadUserData = async (userId: string) => {
