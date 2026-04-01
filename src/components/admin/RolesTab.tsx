@@ -531,7 +531,7 @@ export function RolesTab() {
                               if (q && !parent.name.toLowerCase().includes(q) && !mod.name.toLowerCase().includes(q) && !subMod.name.toLowerCase().includes(q)) return null;
                               const subPerm = permissionsMap[subMod.code] || { access_level: "none", can_post: false, can_unpost: false };
                               return (
-                                <TableRow key={subMod.code} className="bg-muted/20">
+                                <TableRow key={subMod.code} className="bg-muted/20 border-l-2 border-l-primary/30">
                                   <TableCell className="pl-14 text-sm text-muted-foreground">↳ {subMod.name}</TableCell>
                                   <TableCell>
                                     <Select value={subPerm.access_level} onValueChange={(v) => updatePermission(subMod.code, "access_level", v)} disabled={!canManageRoles}>
