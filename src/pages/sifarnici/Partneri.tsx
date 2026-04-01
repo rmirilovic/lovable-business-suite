@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { usePartners, usePartnerGroups, LEGAL_STATUS_LABELS, Partner } from "@/hooks/usePartners";
 import { PartnerDetailsDialog } from "@/components/partneri/PartnerDetailsDialog";
+import { PartnerHistoryDialog } from "@/components/partneri/PartnerHistoryDialog";
 import { PartnerGroupsDialog } from "@/components/partneri/PartnerGroupsDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
