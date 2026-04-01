@@ -473,159 +473,79 @@ export function RolesTab() {
                 </TableHeader>
                 <TableBody>
                   {sortedFilteredTree.map((parent) => {
-                    const isCollapsed = collapsedGroups.has(parent.code);
+                    const isCollapsed = collapsedGroups.has(parent.code) && !moduleSearch.trim();
                     return (
-                        <TableCell className="font-semibold">{parent.name}</TableCell>
-                        <TableCell>
+                    <React.Fragment key={parent.code}>
+                      <TableRow className="bg-muted/50 cursor-pointer" onClick={() => toggleGroup(parent.code)}>
+                        <TableCell className="font-semibold">
+                          <span className="inline-flex items-center gap-1">
+                            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                            {parent.name}
+                          </span>
+                        </TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-1">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setAllChildrenAccessLevel(parent.code, "admin")}
-                              disabled={!canManageRoles}
-                              className="text-xs h-7"
-                            >
-                              Puna prava
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setAllChildrenAccessLevel(parent.code, "none")}
-                              disabled={!canManageRoles}
-                              className="text-xs h-7"
-                            >
-                              Bez pristupa
-                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setAllChildrenAccessLevel(parent.code, "admin")} disabled={!canManageRoles} className="text-xs h-7">Puna prava</Button>
+                            <Button variant="outline" size="sm" onClick={() => setAllChildrenAccessLevel(parent.code, "none")} disabled={!canManageRoles} className="text-xs h-7">Bez pristupa</Button>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-1 justify-center">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setAllChildrenCanPost(parent.code, true)}
-                              disabled={!canManageRoles}
-                              className="text-xs h-7 px-2"
-                            >
-                              Sve
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setAllChildrenCanPost(parent.code, false)}
-                              disabled={!canManageRoles}
-                              className="text-xs h-7 px-2"
-                            >
-                              Ništa
-                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setAllChildrenCanPost(parent.code, true)} disabled={!canManageRoles} className="text-xs h-7 px-2">Sve</Button>
+                            <Button variant="outline" size="sm" onClick={() => setAllChildrenCanPost(parent.code, false)} disabled={!canManageRoles} className="text-xs h-7 px-2">Ništa</Button>
                           </div>
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                           <div className="flex gap-1 justify-center">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setAllChildrenCanUnpost(parent.code, true)}
-                              disabled={!canManageRoles}
-                              className="text-xs h-7 px-2"
-                            >
-                              Sve
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setAllChildrenCanUnpost(parent.code, false)}
-                              disabled={!canManageRoles}
-                              className="text-xs h-7 px-2"
-                            >
-                              Ništa
-                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setAllChildrenCanUnpost(parent.code, true)} disabled={!canManageRoles} className="text-xs h-7 px-2">Sve</Button>
+                            <Button variant="outline" size="sm" onClick={() => setAllChildrenCanUnpost(parent.code, false)} disabled={!canManageRoles} className="text-xs h-7 px-2">Ništa</Button>
                           </div>
                         </TableCell>
                       </TableRow>
-                      {parent.children.map((mod) => {
-                        const perm = permissionsMap[mod.code] || {
-                          access_level: "none",
-                          can_post: false,
-                          can_unpost: false,
-                        };
+                      {!isCollapsed && parent.children.map((mod) => {
+                        const perm = permissionsMap[mod.code] || { access_level: "none", can_post: false, can_unpost: false };
+                        const q = moduleSearch.toLowerCase();
+                        const modMatches = !q || parent.name.toLowerCase().includes(q) || mod.name.toLowerCase().includes(q);
+                        const childrenMatch = mod.children?.some((gc) => gc.name.toLowerCase().includes(q));
+                        if (q && !modMatches && !childrenMatch) return null;
                         return (
                           <React.Fragment key={mod.code}>
                             <TableRow>
                               <TableCell className="pl-8">{mod.name}</TableCell>
                               <TableCell>
-                                <Select
-                                  value={perm.access_level}
-                                  onValueChange={(v) => updatePermission(mod.code, "access_level", v)}
-                                  disabled={!canManageRoles}
-                                >
-                                  <SelectTrigger className="w-40">
-                                    <SelectValue />
-                                  </SelectTrigger>
+                                <Select value={perm.access_level} onValueChange={(v) => updatePermission(mod.code, "access_level", v)} disabled={!canManageRoles}>
+                                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                                   <SelectContent>
-                                    {ACCESS_LEVELS.map((level) => (
-                                      <SelectItem key={level.value} value={level.value}>
-                                        {level.label}
-                                      </SelectItem>
-                                    ))}
+                                    {ACCESS_LEVELS.map((level) => (<SelectItem key={level.value} value={level.value}>{level.label}</SelectItem>))}
                                   </SelectContent>
                                 </Select>
                               </TableCell>
                               <TableCell className="text-center">
-                                <Checkbox
-                                  checked={perm.can_post}
-                                  onCheckedChange={(v) => updatePermission(mod.code, "can_post", !!v)}
-                                  disabled={!canManageRoles || perm.access_level === "none"}
-                                />
+                                <Checkbox checked={perm.can_post} onCheckedChange={(v) => updatePermission(mod.code, "can_post", !!v)} disabled={!canManageRoles || perm.access_level === "none"} />
                               </TableCell>
                               <TableCell className="text-center">
-                                <Checkbox
-                                  checked={perm.can_unpost}
-                                  onCheckedChange={(v) => updatePermission(mod.code, "can_unpost", !!v)}
-                                  disabled={!canManageRoles || perm.access_level === "none"}
-                                />
+                                <Checkbox checked={perm.can_unpost} onCheckedChange={(v) => updatePermission(mod.code, "can_unpost", !!v)} disabled={!canManageRoles || perm.access_level === "none"} />
                               </TableCell>
                             </TableRow>
                             {mod.children?.map((subMod) => {
-                              const subPerm = permissionsMap[subMod.code] || {
-                                access_level: "none",
-                                can_post: false,
-                                can_unpost: false,
-                              };
+                              if (q && !parent.name.toLowerCase().includes(q) && !mod.name.toLowerCase().includes(q) && !subMod.name.toLowerCase().includes(q)) return null;
+                              const subPerm = permissionsMap[subMod.code] || { access_level: "none", can_post: false, can_unpost: false };
                               return (
                                 <TableRow key={subMod.code} className="bg-muted/20">
                                   <TableCell className="pl-14 text-sm text-muted-foreground">↳ {subMod.name}</TableCell>
                                   <TableCell>
-                                    <Select
-                                      value={subPerm.access_level}
-                                      onValueChange={(v) => updatePermission(subMod.code, "access_level", v)}
-                                      disabled={!canManageRoles}
-                                    >
-                                      <SelectTrigger className="w-40">
-                                        <SelectValue />
-                                      </SelectTrigger>
+                                    <Select value={subPerm.access_level} onValueChange={(v) => updatePermission(subMod.code, "access_level", v)} disabled={!canManageRoles}>
+                                      <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                                       <SelectContent>
-                                        {ACCESS_LEVELS.map((level) => (
-                                          <SelectItem key={level.value} value={level.value}>
-                                            {level.label}
-                                          </SelectItem>
-                                        ))}
+                                        {ACCESS_LEVELS.map((level) => (<SelectItem key={level.value} value={level.value}>{level.label}</SelectItem>))}
                                       </SelectContent>
                                     </Select>
                                   </TableCell>
                                   <TableCell className="text-center">
-                                    <Checkbox
-                                      checked={subPerm.can_post}
-                                      onCheckedChange={(v) => updatePermission(subMod.code, "can_post", !!v)}
-                                      disabled={!canManageRoles || subPerm.access_level === "none"}
-                                    />
+                                    <Checkbox checked={subPerm.can_post} onCheckedChange={(v) => updatePermission(subMod.code, "can_post", !!v)} disabled={!canManageRoles || subPerm.access_level === "none"} />
                                   </TableCell>
                                   <TableCell className="text-center">
-                                    <Checkbox
-                                      checked={subPerm.can_unpost}
-                                      onCheckedChange={(v) => updatePermission(subMod.code, "can_unpost", !!v)}
-                                      disabled={!canManageRoles || subPerm.access_level === "none"}
-                                    />
+                                    <Checkbox checked={subPerm.can_unpost} onCheckedChange={(v) => updatePermission(subMod.code, "can_unpost", !!v)} disabled={!canManageRoles || subPerm.access_level === "none"} />
                                   </TableCell>
                                 </TableRow>
                               );
@@ -634,7 +554,8 @@ export function RolesTab() {
                         );
                       })}
                     </React.Fragment>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}
