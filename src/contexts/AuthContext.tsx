@@ -115,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error || !data || data.length === 0) {
       setUserRole(null);
+      localStorage.removeItem("cachedUserRole");
       return null;
     }
 
@@ -122,11 +123,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (roles.includes("super_admin")) {
       setUserRole("super_admin");
+      localStorage.setItem("cachedUserRole", "super_admin");
       return "super_admin";
     }
 
     const nextRole = roles[0] ?? null;
     setUserRole(nextRole);
+    if (nextRole) localStorage.setItem("cachedUserRole", nextRole);
+    else localStorage.removeItem("cachedUserRole");
     return nextRole;
   };
 
