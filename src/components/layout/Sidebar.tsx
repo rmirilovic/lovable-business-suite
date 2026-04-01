@@ -64,7 +64,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
     return hasAccess(moduleCode);
   };
 
-  const getFilteredChildren = (children: NavChild[], parentModuleCode?: string) => {
+  const getFilteredChildren = (children: NavigationChild[], parentModuleCode?: string) => {
     if (isSuperAdmin || isLocalAdmin || stillLoading) {
       return children;
     }
@@ -115,7 +115,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
   };
 
   const isActive = (href: string) => location.pathname === href;
-  const isParentActive = (children?: NavChild[]) =>
+  const isParentActive = (children?: NavigationChild[]) =>
     children?.some((child) => location.pathname === child.href);
 
   const handleSignOut = async () => {
