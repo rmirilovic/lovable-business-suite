@@ -686,6 +686,18 @@ export default function Partneri() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Istorija izmena"
+                          onClick={() => {
+                            setHistoryPartner(partner);
+                            setIsHistoryOpen(true);
+                          }}
+                        >
+                          <History className="w-4 h-4" />
+                        </Button>
                         {canEdit && (
                           <>
                             <Button
