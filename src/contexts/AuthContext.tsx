@@ -72,6 +72,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setInitialLoadDone(value);
   };
 
+  const applySessionState = (nextSession: Session | null) => {
+    sessionRef.current = nextSession;
+    setSession(nextSession);
+    setUser(nextSession?.user ?? null);
+  };
+
   const isSuperAdmin = userRole === "super_admin";
   const isLocalAdmin = localAdminCompanyIds.length > 0;
 
@@ -113,7 +119,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select("role")
       .eq("user_id", userId);
 
-    if (error || !data || data.length === 0) {
+    if (error) {
+      console.error("[AuthContext] Failed to fetch user role, keeping previous role state:", error);
+      return userRole;
+    }
+
+    if (!data || data.length === 0) {
       setUserRole(null);
       localStorage.removeItem("cachedUserRole");
       return null;
@@ -141,16 +152,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq("user_id", userId)
       .eq("is_local_admin", true);
 
-    if (!error && data) {
-      const companyIds = data.map((d) => d.company_id);
-      setLocalAdminCompanyIds(companyIds);
-      localStorage.setItem("cachedLocalAdminCompanyIds", JSON.stringify(companyIds));
-      return companyIds;
-    } else {
-      setLocalAdminCompanyIds([]);
-      localStorage.removeItem("cachedLocalAdminCompanyIds");
-      return [];
+    if (error) {
+      console.error("[AuthContext] Failed to fetch local admin companies, keeping previous admin state:", error);
+      return localAdminCompanyIds;
     }
+
+    const companyIds = (data ?? []).map((d) => d.company_id);
+    setLocalAdminCompanyIds(companyIds);
+
+    if (companyIds.length > 0) {
+      localStorage.setItem("cachedLocalAdminCompanyIds", JSON.stringify(companyIds));
+    } else {
+      localStorage.removeItem("cachedLocalAdminCompanyIds");
+    }
+
+    return companyIds;
   };
 
   const fetchAccessibleCompanyIds = async (userId: string): Promise<string[]> => {
@@ -160,7 +176,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq("user_id", userId)
       .eq("is_active", true);
 
-    const companyIds = !error && data ? [...new Set(data.map((item) => item.company_id))] : [];
+    if (error) {
+      console.error("[AuthContext] Failed to fetch accessible companies, keeping previous company scope:", error);
+      return accessibleCompanyIds;
+    }
+
+    const companyIds = data ? [...new Set(data.map((item) => item.company_id))] : [];
     setAccessibleCompanyIds(companyIds);
     return companyIds;
   };
@@ -310,6 +331,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("message", messageHandler);
 
+    const triggerHandoffRescue = (timeSinceMount: number) => {
+      console.log("[AuthContext] SIGNED_OUT likely from revoked token - attempting handoff rescue, timeSinceMount:", timeSinceMount);
+      awaitingHandoff = true;
+      setLoading(true);
+      bc?.postMessage({ type: "REQUEST_SESSION" });
+      if (window.opener) {
+        try {
+          window.opener.postMessage({ type: "REQUEST_SESSION" }, origin);
+        } catch {
+          // ignore
+        }
+      }
+      handoffTimeout = window.setTimeout(() => {
+        awaitingHandoff = false;
+        if (!isMounted) return;
+        console.log("[AuthContext] Handoff rescue timeout - signing out");
+        applySessionState(null);
+        resetAuthState();
+        setLoading(false);
+      }, 4000);
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!isMounted) return;
 
@@ -328,21 +371,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userDataLoadingRef.current
       );
 
-      sessionRef.current = nextSession;
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-
       if (awaitingHandoff && !nextSession?.user) {
         setLoading(true);
         return;
       }
 
       if (event === "TOKEN_REFRESHED") {
+        applySessionState(nextSession);
         // Token was refreshed — session/user refs are already updated above.
         // Do NOT re-run loadUserData; role & permission state is still valid.
         console.log("[AuthContext] TOKEN_REFRESHED — keeping existing role state");
         return;
       }
+
+      if (event === "SIGNED_OUT") {
+        if (!intentionalSignOutRef.current) {
+          setLoading(true);
+
+          void supabase.auth.getSession().then(({ data: { session: freshSession } }) => {
+            if (!isMounted) return;
+
+            if (freshSession?.user) {
+              console.log("[AuthContext] Ignoring transient SIGNED_OUT because session is still active");
+              applySessionState(freshSession);
+
+              if (!initialLoadDoneRef.current && !userDataLoadingRef.current) {
+                void loadUserData(freshSession.user.id);
+              } else {
+                setLoading(false);
+              }
+
+              return;
+            }
+
+            applySessionState(null);
+
+            const timeSinceMount = Date.now() - mountTimeRef.current;
+            if (timeSinceMount < 15000 && !awaitingHandoff) {
+              triggerHandoffRescue(timeSinceMount);
+              return;
+            }
+
+            intentionalSignOutRef.current = false;
+            resetAuthState();
+            setLoading(false);
+          });
+
+          return;
+        }
+
+        intentionalSignOutRef.current = false;
+        applySessionState(null);
+        resetAuthState();
+        setLoading(false);
+        return;
+      }
+
+      applySessionState(nextSession);
 
       if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         if (nextSession?.user) {
@@ -353,35 +438,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (initialSessionChecked) {
           setLoading(false);
         }
-        return;
-      }
-
-      if (event === "SIGNED_OUT") {
-        const timeSinceMount = Date.now() - mountTimeRef.current;
-        if (!intentionalSignOutRef.current && timeSinceMount < 15000 && !awaitingHandoff) {
-          console.log("[AuthContext] SIGNED_OUT likely from revoked token - attempting handoff rescue, timeSinceMount:", timeSinceMount);
-          awaitingHandoff = true;
-          setLoading(true);
-          bc?.postMessage({ type: "REQUEST_SESSION" });
-          if (window.opener) {
-            try {
-              window.opener.postMessage({ type: "REQUEST_SESSION" }, origin);
-            } catch {
-              // ignore
-            }
-          }
-          handoffTimeout = window.setTimeout(() => {
-            awaitingHandoff = false;
-            if (!isMounted) return;
-            console.log("[AuthContext] Handoff rescue timeout - signing out");
-            resetAuthState();
-            setLoading(false);
-          }, 4000);
-          return;
-        }
-        intentionalSignOutRef.current = false;
-        resetAuthState();
-        setLoading(false);
         return;
       }
 
@@ -401,9 +457,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log("[AuthContext] getSession result:", "user:", !!initialSession?.user, "initialLoadDone:", initialLoadDoneRef.current);
 
       initialSessionChecked = true;
-      sessionRef.current = initialSession;
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
+      applySessionState(initialSession);
 
       if (!initialSession?.user) {
         awaitingHandoff = true;
