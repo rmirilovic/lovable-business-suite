@@ -108,11 +108,36 @@ export function RolesTab() {
   };
 
   const handleOpenPermissions = (role: Role) => {
-    // Reset permissions map - will be populated by useEffect when data loads
     setPermissionsMap({});
+    setModuleSearch("");
+    setCollapsedGroups(new Set());
     setEditingRole(role);
     setIsPermissionsDialogOpen(true);
   };
+
+  const toggleGroup = (code: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      return next;
+    });
+  };
+
+  const sortedFilteredTree = useMemo(() => {
+    if (!moduleTree) return [];
+    const sorted = [...moduleTree].sort((a, b) => a.name.localeCompare(b.name, "sr"));
+    if (!moduleSearch.trim()) return sorted;
+    const q = moduleSearch.toLowerCase();
+    return sorted.filter((parent) => {
+      if (parent.name.toLowerCase().includes(q)) return true;
+      return parent.children.some(
+        (child) =>
+          child.name.toLowerCase().includes(q) ||
+          child.children?.some((gc) => gc.name.toLowerCase().includes(q))
+      );
+    });
+  }, [moduleTree, moduleSearch]);
 
   const handleSave = async () => {
     if (!formData.code.trim() || !formData.name.trim()) {
