@@ -851,6 +851,16 @@ export default function Partneri() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Partner History Dialog */}
+      {historyPartner && (
+        <PartnerHistoryDialog
+          open={isHistoryOpen}
+          onOpenChange={setIsHistoryOpen}
+          partnerId={historyPartner.id}
+          partnerName={historyPartner.name}
+        />
+      )}
       </div>
     </MainLayout>
   );
