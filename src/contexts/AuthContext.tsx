@@ -51,8 +51,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [businessYears, setBusinessYears] = useState<BusinessYear[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedYear, setSelectedYear] = useState<BusinessYear | null>(null);
-  const [userRole, setUserRole] = useState<AppRole | null>(null);
-  const [localAdminCompanyIds, setLocalAdminCompanyIds] = useState<string[]>([]);
+  const [userRole, setUserRole] = useState<AppRole | null>(() => {
+    const cached = localStorage.getItem("cachedUserRole");
+    return cached ? (cached as AppRole) : null;
+  });
+  const [localAdminCompanyIds, setLocalAdminCompanyIds] = useState<string[]>(() => {
+    try {
+      const cached = localStorage.getItem("cachedLocalAdminCompanyIds");
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  });
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const intentionalSignOutRef = useRef(false);
   const mountTimeRef = useRef(Date.now());
