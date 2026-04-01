@@ -98,6 +98,8 @@ export default function Partneri() {
 
   const [groupsDialogOpen, setGroupsDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [historyPartner, setHistoryPartner] = useState<Partner | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(saved.currentPage ?? 1);
