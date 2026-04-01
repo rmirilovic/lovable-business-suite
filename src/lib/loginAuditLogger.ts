@@ -77,3 +77,30 @@ export async function recordLoginAudit(
     console.error("Failed to record login audit:", error);
   }
 }
+
+export async function updateLoginAuditCompany(
+  userId: string,
+  companyId: string,
+  companyName: string
+) {
+  try {
+    // Find the most recent audit entry for this user that has no company set
+    const { data: recent } = await (supabase as any)
+      .from("login_audit_log")
+      .select("id")
+      .eq("user_id", userId)
+      .is("company_id", null)
+      .order("login_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (recent?.id) {
+      await (supabase as any)
+        .from("login_audit_log")
+        .update({ company_id: companyId, company_name: companyName })
+        .eq("id", recent.id);
+    }
+  } catch {
+    // Silent fail - don't disrupt UX
+  }
+}
