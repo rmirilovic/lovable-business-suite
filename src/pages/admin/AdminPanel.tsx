@@ -47,8 +47,7 @@ export default function AdminPanel() {
   return (
     <MainLayout title="Administracija">
       <div className="space-y-6">
-        {isSuperAdmin && (
-          <Card>
+        <Card>
             <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <CardTitle className="text-lg">Osveži navigaciju</CardTitle>
