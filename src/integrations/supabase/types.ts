@@ -4376,6 +4376,57 @@ export type Database = {
           },
         ]
       }
+      login_audit_log: {
+        Row: {
+          browser: string | null
+          company_id: string | null
+          company_name: string | null
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          locale: string | null
+          login_at: string
+          os: string | null
+          screen_resolution: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          browser?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          locale?: string | null
+          login_at?: string
+          os?: string | null
+          screen_resolution?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          browser?: string | null
+          company_id?: string | null
+          company_name?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          locale?: string | null
+          login_at?: string
+          os?: string | null
+          screen_resolution?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       material_norm_items: {
         Row: {
           article_code: string

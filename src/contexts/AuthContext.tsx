@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { recordLoginAudit } from "@/lib/loginAuditLogger";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -524,10 +525,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [selectedYear]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    if (!error && data?.user) {
+      const meta = data.user.user_metadata;
+      const fullName = [meta?.first_name, meta?.last_name].filter(Boolean).join(" ") || undefined;
+      // Fire and forget - don't block login
+      void recordLoginAudit(data.user.id, data.user.email, fullName);
+    }
     return { error };
   };
 
