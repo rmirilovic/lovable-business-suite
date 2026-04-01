@@ -144,9 +144,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!error && data) {
       const companyIds = data.map((d) => d.company_id);
       setLocalAdminCompanyIds(companyIds);
+      localStorage.setItem("cachedLocalAdminCompanyIds", JSON.stringify(companyIds));
       return companyIds;
     } else {
       setLocalAdminCompanyIds([]);
+      localStorage.removeItem("cachedLocalAdminCompanyIds");
       return [];
     }
   };
