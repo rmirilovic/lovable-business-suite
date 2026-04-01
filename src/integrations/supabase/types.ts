@@ -5082,6 +5082,39 @@ export type Database = {
           },
         ]
       }
+      partner_history: {
+        Row: {
+          change_type: string
+          changed_at: string
+          changed_by: string
+          company_id: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          partner_id: string
+        }
+        Insert: {
+          change_type: string
+          changed_at?: string
+          changed_by: string
+          company_id: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          partner_id: string
+        }
+        Update: {
+          change_type?: string
+          changed_at?: string
+          changed_by?: string
+          company_id?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          partner_id?: string
+        }
+        Relationships: []
+      }
       partners: {
         Row: {
           activity_code: string | null

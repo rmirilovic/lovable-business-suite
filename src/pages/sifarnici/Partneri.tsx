@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { usePartners, usePartnerGroups, LEGAL_STATUS_LABELS, Partner } from "@/hooks/usePartners";
 import { PartnerDetailsDialog } from "@/components/partneri/PartnerDetailsDialog";
+import { PartnerHistoryDialog } from "@/components/partneri/PartnerHistoryDialog";
 import { PartnerGroupsDialog } from "@/components/partneri/PartnerGroupsDialog";
 import { InlineEditCell } from "@/components/sifarnici/InlineEditCell";
 import { InlineSelectCell } from "@/components/sifarnici/InlineSelectCell";
@@ -96,6 +98,8 @@ export default function Partneri() {
 
   const [groupsDialogOpen, setGroupsDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [historyPartner, setHistoryPartner] = useState<Partner | null>(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(saved.currentPage ?? 1);
@@ -682,6 +686,18 @@ export default function Partneri() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Istorija izmena"
+                          onClick={() => {
+                            setHistoryPartner(partner);
+                            setIsHistoryOpen(true);
+                          }}
+                        >
+                          <History className="w-4 h-4" />
+                        </Button>
                         {canEdit && (
                           <>
                             <Button
@@ -835,6 +851,16 @@ export default function Partneri() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Partner History Dialog */}
+      {historyPartner && (
+        <PartnerHistoryDialog
+          open={isHistoryOpen}
+          onOpenChange={setIsHistoryOpen}
+          partnerId={historyPartner.id}
+          partnerName={historyPartner.name}
+        />
+      )}
       </div>
     </MainLayout>
   );
