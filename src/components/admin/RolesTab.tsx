@@ -26,8 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Pencil, Trash2, Shield, Settings2, Users, Search, ChevronDown, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Shield, Settings2, Search, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -40,14 +39,48 @@ import {
   Role,
   RolePermission,
 } from "@/hooks/useRoles";
-import { useModuleTree, Module, ModuleWithChildren } from "@/hooks/useModules";
+import { useModules } from "@/hooks/useModules";
+import {
+  buildPermissionSections,
+  collectPermissionCodes,
+  type PermissionDisplayNode,
+} from "@/lib/buildPermissionSections";
 
 const ACCESS_LEVELS = [
-  { value: "none", label: "Bez pristupa", color: "bg-muted text-muted-foreground" },
-  { value: "read", label: "Čitanje", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
-  { value: "write", label: "Pisanje", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
-  { value: "admin", label: "Puna prava", color: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" },
-];
+  { value: "none", label: "Bez pristupa" },
+  { value: "read", label: "Čitanje" },
+  { value: "write", label: "Pisanje" },
+  { value: "admin", label: "Puna prava" },
+] as const;
+
+type PermissionState = {
+  access_level: string;
+  can_post: boolean;
+  can_unpost: boolean;
+};
+
+const DEFAULT_PERMISSION: PermissionState = {
+  access_level: "none",
+  can_post: false,
+  can_unpost: false,
+};
+
+const filterNodes = (nodes: PermissionDisplayNode[], query: string): PermissionDisplayNode[] =>
+  nodes.flatMap((node) => {
+    const matches = node.name.toLowerCase().includes(query);
+    const filteredChildren = matches ? node.children : filterNodes(node.children, query);
+
+    if (!matches && filteredChildren.length === 0) {
+      return [];
+    }
+
+    return [
+      {
+        ...node,
+        children: filteredChildren,
+      },
+    ];
+  });
 
 export function RolesTab() {
   const { selectedCompany, isSuperAdmin, isLocalAdmin } = useAuth();
@@ -59,25 +92,22 @@ export function RolesTab() {
     name: "",
     description: "",
   });
-  const [permissionsMap, setPermissionsMap] = useState<
-    Record<string, { access_level: string; can_post: boolean; can_unpost: boolean }>
-  >({});
+  const [permissionsMap, setPermissionsMap] = useState<Record<string, PermissionState>>({});
   const [moduleSearch, setModuleSearch] = useState("");
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const { data: roles, isLoading } = useRoles(selectedCompany?.id);
   const { data: permissions, isLoading: permissionsLoading } = useRolePermissions(editingRole?.id);
-  const { tree: moduleTree, isLoading: modulesLoading } = useModuleTree();
+  const { data: modules, isLoading: modulesLoading } = useModules();
 
-  // Update permissionsMap when permissions data is loaded
   useEffect(() => {
     if (permissions && isPermissionsDialogOpen) {
-      const map: typeof permissionsMap = {};
-      permissions.forEach((p) => {
-        map[p.module_code] = {
-          access_level: p.access_level,
-          can_post: p.can_post,
-          can_unpost: p.can_unpost,
+      const map: Record<string, PermissionState> = {};
+      permissions.forEach((permission) => {
+        map[permission.module_code] = {
+          access_level: permission.access_level,
+          can_post: permission.can_post,
+          can_unpost: permission.can_unpost,
         };
       });
       setPermissionsMap(map);
@@ -90,6 +120,30 @@ export function RolesTab() {
   const savePermissions = useSaveRolePermissions();
 
   const canManageRoles = isSuperAdmin || isLocalAdmin;
+
+  const permissionSections = useMemo(() => {
+    if (!modules) return [];
+    return buildPermissionSections(modules);
+  }, [modules]);
+
+  const filteredSections = useMemo(() => {
+    if (!moduleSearch.trim()) return permissionSections;
+
+    const query = moduleSearch.toLowerCase();
+
+    return permissionSections.flatMap((section) => {
+      if (section.name.toLowerCase().includes(query)) {
+        return [section];
+      }
+
+      const children = filterNodes(section.children, query);
+      if (children.length === 0) {
+        return [];
+      }
+
+      return [{ ...section, children }];
+    });
+  }, [permissionSections, moduleSearch]);
 
   const handleOpenCreate = () => {
     setEditingRole(null);
@@ -115,29 +169,17 @@ export function RolesTab() {
     setIsPermissionsDialogOpen(true);
   };
 
-  const toggleGroup = (code: string) => {
+  const toggleGroup = (groupKey: string) => {
     setCollapsedGroups((prev) => {
       const next = new Set(prev);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
+      if (next.has(groupKey)) {
+        next.delete(groupKey);
+      } else {
+        next.add(groupKey);
+      }
       return next;
     });
   };
-
-  const sortedFilteredTree = useMemo(() => {
-    if (!moduleTree) return [];
-    const sorted = [...moduleTree].sort((a, b) => a.name.localeCompare(b.name, "sr"));
-    if (!moduleSearch.trim()) return sorted;
-    const q = moduleSearch.toLowerCase();
-    return sorted.filter((parent) => {
-      if (parent.name.toLowerCase().includes(q)) return true;
-      return parent.children.some(
-        (child) =>
-          child.name.toLowerCase().includes(q) ||
-          child.children?.some((gc) => gc.name.toLowerCase().includes(q))
-      );
-    });
-  }, [moduleTree, moduleSearch]);
 
   const handleSave = async () => {
     if (!formData.code.trim() || !formData.name.trim()) {
@@ -185,7 +227,7 @@ export function RolesTab() {
     if (!editingRole) return;
 
     const permsToSave: Omit<RolePermission, "id">[] = Object.entries(permissionsMap)
-      .filter(([_, value]) => value.access_level !== "none")
+      .filter(([, value]) => value.access_level !== "none")
       .map(([moduleCode, value]) => ({
         role_id: editingRole.id,
         module_code: moduleCode,
@@ -204,94 +246,101 @@ export function RolesTab() {
 
   const updatePermission = (
     moduleCode: string,
-    field: "access_level" | "can_post" | "can_unpost",
-    value: string | boolean
+    field: keyof PermissionState,
+    value: string | boolean,
   ) => {
     setPermissionsMap((prev) => ({
       ...prev,
       [moduleCode]: {
-        access_level: prev[moduleCode]?.access_level || "none",
-        can_post: prev[moduleCode]?.can_post || false,
-        can_unpost: prev[moduleCode]?.can_unpost || false,
+        ...DEFAULT_PERMISSION,
+        ...prev[moduleCode],
         [field]: value,
       },
     }));
   };
 
-  const setAllChildrenAccessLevel = (parentCode: string, level: string) => {
-    const parent = moduleTree?.find((m) => m.code === parentCode);
-    if (!parent) return;
-
+  const updateCodes = (codes: string[], updater: (current: PermissionState) => PermissionState) => {
     setPermissionsMap((prev) => {
       const updated = { ...prev };
-      parent.children.forEach((child) => {
-        updated[child.code] = {
-          access_level: level,
-          can_post: level === "none" ? false : prev[child.code]?.can_post || false,
-          can_unpost: level === "none" ? false : prev[child.code]?.can_unpost || false,
-        };
-        child.children?.forEach((gc) => {
-          updated[gc.code] = {
-            access_level: level,
-            can_post: level === "none" ? false : prev[gc.code]?.can_post || false,
-            can_unpost: level === "none" ? false : prev[gc.code]?.can_unpost || false,
-          };
-        });
+
+      codes.forEach((code) => {
+        updated[code] = updater({ ...DEFAULT_PERMISSION, ...prev[code] });
       });
+
       return updated;
     });
   };
 
-  const setAllChildrenCanPost = (parentCode: string, value: boolean) => {
-    const parent = moduleTree?.find((m) => m.code === parentCode);
-    if (!parent) return;
+  const setAccessForNodes = (nodes: PermissionDisplayNode[], level: string) => {
+    const codes = collectPermissionCodes(nodes);
+    updateCodes(codes, (current) => ({
+      access_level: level,
+      can_post: level === "none" ? false : current.can_post,
+      can_unpost: level === "none" ? false : current.can_unpost,
+    }));
+  };
 
-    setPermissionsMap((prev) => {
-      const updated = { ...prev };
-      parent.children.forEach((child) => {
-        const current = prev[child.code] || { access_level: "none", can_post: false, can_unpost: false };
-        if (current.access_level !== "none") {
-          updated[child.code] = { ...current, can_post: value };
-        }
-        child.children?.forEach((gc) => {
-          const gcCurrent = prev[gc.code] || { access_level: "none", can_post: false, can_unpost: false };
-          if (gcCurrent.access_level !== "none") {
-            updated[gc.code] = { ...gcCurrent, can_post: value };
-          }
-        });
-      });
-      return updated;
+  const setCanPostForNodes = (nodes: PermissionDisplayNode[], value: boolean) => {
+    const codes = collectPermissionCodes(nodes);
+    updateCodes(codes, (current) =>
+      current.access_level === "none" ? current : { ...current, can_post: value },
+    );
+  };
+
+  const setCanUnpostForNodes = (nodes: PermissionDisplayNode[], value: boolean) => {
+    const codes = collectPermissionCodes(nodes);
+    updateCodes(codes, (current) =>
+      current.access_level === "none" ? current : { ...current, can_unpost: value },
+    );
+  };
+
+  const renderNodes = (nodes: PermissionDisplayNode[], depth = 0): React.ReactNode =>
+    nodes.map((node) => {
+      const permission = permissionsMap[node.code] || DEFAULT_PERMISSION;
+      const indentClass = depth === 0 ? "pl-8 font-medium" : depth === 1 ? "pl-14 text-sm text-muted-foreground" : "pl-20 text-sm text-muted-foreground";
+      const rowClass = depth === 0 ? "border-l-2 border-l-border" : "bg-muted/20 border-l-2 border-l-border";
+
+      return (
+        <React.Fragment key={node.key}>
+          <TableRow className={rowClass}>
+            <TableCell className={indentClass}>{depth > 0 ? `↳ ${node.name}` : node.name}</TableCell>
+            <TableCell>
+              <Select
+                value={permission.access_level}
+                onValueChange={(value) => updatePermission(node.code, "access_level", value)}
+                disabled={!canManageRoles}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ACCESS_LEVELS.map((level) => (
+                    <SelectItem key={level.value} value={level.value}>
+                      {level.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </TableCell>
+            <TableCell className="text-center">
+              <Checkbox
+                checked={permission.can_post}
+                onCheckedChange={(value) => updatePermission(node.code, "can_post", !!value)}
+                disabled={!canManageRoles || permission.access_level === "none"}
+              />
+            </TableCell>
+            <TableCell className="text-center">
+              <Checkbox
+                checked={permission.can_unpost}
+                onCheckedChange={(value) => updatePermission(node.code, "can_unpost", !!value)}
+                disabled={!canManageRoles || permission.access_level === "none"}
+              />
+            </TableCell>
+          </TableRow>
+          {node.children.length > 0 ? renderNodes(node.children, depth + 1) : null}
+        </React.Fragment>
+      );
     });
-  };
-
-  const setAllChildrenCanUnpost = (parentCode: string, value: boolean) => {
-    const parent = moduleTree?.find((m) => m.code === parentCode);
-    if (!parent) return;
-
-    setPermissionsMap((prev) => {
-      const updated = { ...prev };
-      parent.children.forEach((child) => {
-        const current = prev[child.code] || { access_level: "none", can_post: false, can_unpost: false };
-        if (current.access_level !== "none") {
-          updated[child.code] = { ...current, can_unpost: value };
-        }
-        child.children?.forEach((gc) => {
-          const gcCurrent = prev[gc.code] || { access_level: "none", can_post: false, can_unpost: false };
-          if (gcCurrent.access_level !== "none") {
-            updated[gc.code] = { ...gcCurrent, can_unpost: value };
-          }
-        });
-      });
-      return updated;
-    });
-  };
-
-  const getAccessLevelBadge = (level: string) => {
-    const config = ACCESS_LEVELS.find((a) => a.value === level);
-    return config ? (
-      <Badge className={config.color}>{config.label}</Badge>
-    ) : null;
-  };
 
   if (!selectedCompany) {
     return (
@@ -340,9 +389,7 @@ export function RolesTab() {
                 <TableRow key={role.id}>
                   <TableCell className="font-mono">{role.code}</TableCell>
                   <TableCell className="font-medium">{role.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {role.description || "-"}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{role.description || "-"}</TableCell>
                   <TableCell>
                     {role.is_system ? (
                       <Badge variant="secondary">Sistemska</Badge>
@@ -390,7 +437,6 @@ export function RolesTab() {
         )}
       </div>
 
-      {/* Create/Edit Role Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -428,10 +474,7 @@ export function RolesTab() {
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Otkaži
               </Button>
-              <Button
-                onClick={handleSave}
-                disabled={createRole.isPending || updateRole.isPending}
-              >
+              <Button onClick={handleSave} disabled={createRole.isPending || updateRole.isPending}>
                 {editingRole ? "Sačuvaj" : "Kreiraj"}
               </Button>
             </div>
@@ -439,13 +482,10 @@ export function RolesTab() {
         </DialogContent>
       </Dialog>
 
-      {/* Permissions Dialog */}
       <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>
-              Dozvole za ulogu: {editingRole?.name}
-            </DialogTitle>
+            <DialogTitle>Dozvole za ulogu: {editingRole?.name}</DialogTitle>
           </DialogHeader>
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -459,7 +499,7 @@ export function RolesTab() {
           <div className="flex-1 overflow-auto">
             {modulesLoading || permissionsLoading ? (
               <div className="p-4 text-center text-muted-foreground">Učitavanje...</div>
-            ) : sortedFilteredTree.length === 0 ? (
+            ) : filteredSections.length === 0 ? (
               <div className="p-4 text-center text-muted-foreground">Nema rezultata za „{moduleSearch}"</div>
             ) : (
               <Table>
@@ -472,88 +512,87 @@ export function RolesTab() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedFilteredTree.map((parent) => {
-                    const isCollapsed = collapsedGroups.has(parent.code) && !moduleSearch.trim();
+                  {filteredSections.map((section) => {
+                    const isCollapsed = collapsedGroups.has(section.key) && !moduleSearch.trim();
+
                     return (
-                    <React.Fragment key={parent.code}>
-                      <TableRow className="bg-muted/50 cursor-pointer" onClick={() => toggleGroup(parent.code)}>
-                        <TableCell className="font-semibold">
-                          <span className="inline-flex items-center gap-1">
-                            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                            {parent.name}
-                          </span>
-                        </TableCell>
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <div className="flex gap-1">
-                            <Button variant="outline" size="sm" onClick={() => setAllChildrenAccessLevel(parent.code, "admin")} disabled={!canManageRoles} className="text-xs h-7">Puna prava</Button>
-                            <Button variant="outline" size="sm" onClick={() => setAllChildrenAccessLevel(parent.code, "none")} disabled={!canManageRoles} className="text-xs h-7">Bez pristupa</Button>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex gap-1 justify-center">
-                            <Button variant="outline" size="sm" onClick={() => setAllChildrenCanPost(parent.code, true)} disabled={!canManageRoles} className="text-xs h-7 px-2">Sve</Button>
-                            <Button variant="outline" size="sm" onClick={() => setAllChildrenCanPost(parent.code, false)} disabled={!canManageRoles} className="text-xs h-7 px-2">Ništa</Button>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex gap-1 justify-center">
-                            <Button variant="outline" size="sm" onClick={() => setAllChildrenCanUnpost(parent.code, true)} disabled={!canManageRoles} className="text-xs h-7 px-2">Sve</Button>
-                            <Button variant="outline" size="sm" onClick={() => setAllChildrenCanUnpost(parent.code, false)} disabled={!canManageRoles} className="text-xs h-7 px-2">Ništa</Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      {!isCollapsed && parent.children.map((mod) => {
-                        const perm = permissionsMap[mod.code] || { access_level: "none", can_post: false, can_unpost: false };
-                        const q = moduleSearch.toLowerCase();
-                        const modMatches = !q || parent.name.toLowerCase().includes(q) || mod.name.toLowerCase().includes(q);
-                        const childrenMatch = mod.children?.some((gc) => gc.name.toLowerCase().includes(q));
-                        if (q && !modMatches && !childrenMatch) return null;
-                        return (
-                          <React.Fragment key={mod.code}>
-                            <TableRow className="border-l-2 border-l-primary/20">
-                              <TableCell className="pl-8 font-medium">{mod.name}</TableCell>
-                              <TableCell>
-                                <Select value={perm.access_level} onValueChange={(v) => updatePermission(mod.code, "access_level", v)} disabled={!canManageRoles}>
-                                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                                  <SelectContent>
-                                    {ACCESS_LEVELS.map((level) => (<SelectItem key={level.value} value={level.value}>{level.label}</SelectItem>))}
-                                  </SelectContent>
-                                </Select>
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Checkbox checked={perm.can_post} onCheckedChange={(v) => updatePermission(mod.code, "can_post", !!v)} disabled={!canManageRoles || perm.access_level === "none"} />
-                              </TableCell>
-                              <TableCell className="text-center">
-                                <Checkbox checked={perm.can_unpost} onCheckedChange={(v) => updatePermission(mod.code, "can_unpost", !!v)} disabled={!canManageRoles || perm.access_level === "none"} />
-                              </TableCell>
-                            </TableRow>
-                            {mod.children?.map((subMod) => {
-                              if (q && !parent.name.toLowerCase().includes(q) && !mod.name.toLowerCase().includes(q) && !subMod.name.toLowerCase().includes(q)) return null;
-                              const subPerm = permissionsMap[subMod.code] || { access_level: "none", can_post: false, can_unpost: false };
-                              return (
-                                <TableRow key={subMod.code} className="bg-muted/20 border-l-2 border-l-primary/30">
-                                  <TableCell className="pl-14 text-sm text-muted-foreground">↳ {subMod.name}</TableCell>
-                                  <TableCell>
-                                    <Select value={subPerm.access_level} onValueChange={(v) => updatePermission(subMod.code, "access_level", v)} disabled={!canManageRoles}>
-                                      <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                                      <SelectContent>
-                                        {ACCESS_LEVELS.map((level) => (<SelectItem key={level.value} value={level.value}>{level.label}</SelectItem>))}
-                                      </SelectContent>
-                                    </Select>
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    <Checkbox checked={subPerm.can_post} onCheckedChange={(v) => updatePermission(subMod.code, "can_post", !!v)} disabled={!canManageRoles || subPerm.access_level === "none"} />
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    <Checkbox checked={subPerm.can_unpost} onCheckedChange={(v) => updatePermission(subMod.code, "can_unpost", !!v)} disabled={!canManageRoles || subPerm.access_level === "none"} />
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
-                          </React.Fragment>
-                        );
-                      })}
-                    </React.Fragment>
+                      <React.Fragment key={section.key}>
+                        <TableRow className="bg-muted/50 cursor-pointer" onClick={() => toggleGroup(section.key)}>
+                          <TableCell className="font-semibold">
+                            <span className="inline-flex items-center gap-1">
+                              {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              {section.name}
+                            </span>
+                          </TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setAccessForNodes(section.children, "admin")}
+                                disabled={!canManageRoles}
+                                className="text-xs h-7"
+                              >
+                                Puna prava
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setAccessForNodes(section.children, "none")}
+                                disabled={!canManageRoles}
+                                className="text-xs h-7"
+                              >
+                                Bez pristupa
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex gap-1 justify-center">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCanPostForNodes(section.children, true)}
+                                disabled={!canManageRoles}
+                                className="text-xs h-7 px-2"
+                              >
+                                Sve
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCanPostForNodes(section.children, false)}
+                                disabled={!canManageRoles}
+                                className="text-xs h-7 px-2"
+                              >
+                                Ništa
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex gap-1 justify-center">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCanUnpostForNodes(section.children, true)}
+                                disabled={!canManageRoles}
+                                className="text-xs h-7 px-2"
+                              >
+                                Sve
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCanUnpostForNodes(section.children, false)}
+                                disabled={!canManageRoles}
+                                className="text-xs h-7 px-2"
+                              >
+                                Ništa
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {!isCollapsed ? renderNodes(section.children) : null}
+                      </React.Fragment>
                     );
                   })}
                 </TableBody>
