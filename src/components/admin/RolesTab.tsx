@@ -62,6 +62,8 @@ export function RolesTab() {
   const [permissionsMap, setPermissionsMap] = useState<
     Record<string, { access_level: string; can_post: boolean; can_unpost: boolean }>
   >({});
+  const [moduleSearch, setModuleSearch] = useState("");
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const { data: roles, isLoading } = useRoles(selectedCompany?.id);
   const { data: permissions, isLoading: permissionsLoading } = useRolePermissions(editingRole?.id);
