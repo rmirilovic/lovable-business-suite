@@ -64,7 +64,7 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
     return hasAccess(moduleCode);
   };
 
-  const getFilteredChildren = (children: NavChild[], parentModuleCode?: string) => {
+  const getFilteredChildren = (children: NavigationChild[], parentModuleCode?: string) => {
     if (isSuperAdmin || isLocalAdmin || stillLoading) {
       return children;
     }
