@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { recordLoginAudit } from "@/lib/loginAuditLogger";
+import { recordLoginAudit, updateLoginAuditCompany } from "@/lib/loginAuditLogger";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -498,6 +498,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (selectedCompany) {
       localStorage.setItem("selectedCompanyId", selectedCompany.id);
       void fetchBusinessYears(selectedCompany.id);
+      // Update the most recent login audit entry with the selected company
+      if (user) {
+        void updateLoginAuditCompany(user.id, selectedCompany.id, selectedCompany.name);
+      }
     }
   }, [selectedCompany]);
 
