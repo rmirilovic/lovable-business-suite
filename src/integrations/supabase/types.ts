@@ -9298,6 +9298,7 @@ export type Database = {
         | "administracija"
         | "pisarnica"
         | "zarade"
+        | "osnovna_sredstva"
       payroll_calculation_type:
         | "redovna_zarada"
         | "ugovor_o_delu"
@@ -9473,6 +9474,7 @@ export const Constants = {
         "administracija",
         "pisarnica",
         "zarade",
+        "osnovna_sredstva",
       ],
       payroll_calculation_type: [
         "redovna_zarada",
