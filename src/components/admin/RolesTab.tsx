@@ -447,9 +447,20 @@ export function RolesTab() {
               Dozvole za ulogu: {editingRole?.name}
             </DialogTitle>
           </DialogHeader>
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              value={moduleSearch}
+              onChange={(e) => setModuleSearch(e.target.value)}
+              placeholder="Pretraži module..."
+              className="pl-9"
+            />
+          </div>
           <div className="flex-1 overflow-auto">
             {modulesLoading || permissionsLoading ? (
               <div className="p-4 text-center text-muted-foreground">Učitavanje...</div>
+            ) : sortedFilteredTree.length === 0 ? (
+              <div className="p-4 text-center text-muted-foreground">Nema rezultata za „{moduleSearch}"</div>
             ) : (
               <Table>
                 <TableHeader>
