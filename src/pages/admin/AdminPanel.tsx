@@ -71,7 +71,6 @@ export default function AdminPanel() {
               </p>
             </CardContent>
           </Card>
-        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex flex-wrap h-auto gap-1 w-full">
