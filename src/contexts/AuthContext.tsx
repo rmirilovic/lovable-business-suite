@@ -32,6 +32,7 @@ interface AuthContextType {
   localAdminCompanyIds: string[];
   setSelectedCompany: (company: Company | null) => void;
   setSelectedYear: (year: BusinessYear | null) => void;
+  refreshAuthState: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -177,6 +178,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateInitialLoadDone(false);
   };
 
+  const loadUserData = async (userId: string) => {
+    if (initialLoadDoneRef.current || userDataLoadingRef.current) return;
+
+    userDataLoadingRef.current = true;
+
+    try {
+      const [nextUserRole, , roleCompanyIds] = await Promise.all([
+        fetchUserRole(userId),
+        fetchLocalAdminCompanies(userId),
+        fetchAccessibleCompanyIds(userId),
+      ]);
+
+      await fetchUserCompanies(userId, nextUserRole === "super_admin", roleCompanyIds);
+
+      updateInitialLoadDone(true);
+    } finally {
+      userDataLoadingRef.current = false;
+      setLoading(false);
+    }
+  };
+
+  const refreshAuthState = async () => {
+    const currentUserId = sessionRef.current?.user?.id ?? user?.id;
+    if (!currentUserId || userDataLoadingRef.current) return;
+
+    updateInitialLoadDone(false);
+    setLoading(true);
+    await loadUserData(currentUserId);
+  };
+
   useEffect(() => {
     let isMounted = true;
     let initialSessionChecked = false;
@@ -261,33 +292,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     window.addEventListener("message", messageHandler);
-
-    const loadUserData = async (userId: string) => {
-      if (initialLoadDoneRef.current || userDataLoadingRef.current) return;
-
-      userDataLoadingRef.current = true;
-
-      try {
-        const [nextUserRole, , roleCompanyIds] = await Promise.all([
-          fetchUserRole(userId),
-          fetchLocalAdminCompanies(userId),
-          fetchAccessibleCompanyIds(userId),
-        ]);
-
-        if (!isMounted) return;
-
-        await fetchUserCompanies(userId, nextUserRole === "super_admin", roleCompanyIds);
-
-        if (!isMounted) return;
-
-        updateInitialLoadDone(true);
-      } finally {
-        userDataLoadingRef.current = false;
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!isMounted) return;
@@ -577,6 +581,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localAdminCompanyIds,
         setSelectedCompany,
         setSelectedYear,
+        refreshAuthState,
         signIn,
         signUp,
         signOut,
