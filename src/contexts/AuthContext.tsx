@@ -51,8 +51,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [businessYears, setBusinessYears] = useState<BusinessYear[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedYear, setSelectedYear] = useState<BusinessYear | null>(null);
-  const [userRole, setUserRole] = useState<AppRole | null>(null);
-  const [localAdminCompanyIds, setLocalAdminCompanyIds] = useState<string[]>([]);
+  const [userRole, setUserRole] = useState<AppRole | null>(() => {
+    const cached = localStorage.getItem("cachedUserRole");
+    return cached ? (cached as AppRole) : null;
+  });
+  const [localAdminCompanyIds, setLocalAdminCompanyIds] = useState<string[]>(() => {
+    try {
+      const cached = localStorage.getItem("cachedLocalAdminCompanyIds");
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  });
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const intentionalSignOutRef = useRef(false);
   const mountTimeRef = useRef(Date.now());
@@ -107,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error || !data || data.length === 0) {
       setUserRole(null);
+      localStorage.removeItem("cachedUserRole");
       return null;
     }
 
@@ -114,11 +123,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (roles.includes("super_admin")) {
       setUserRole("super_admin");
+      localStorage.setItem("cachedUserRole", "super_admin");
       return "super_admin";
     }
 
     const nextRole = roles[0] ?? null;
     setUserRole(nextRole);
+    if (nextRole) localStorage.setItem("cachedUserRole", nextRole);
+    else localStorage.removeItem("cachedUserRole");
     return nextRole;
   };
 
@@ -132,9 +144,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!error && data) {
       const companyIds = data.map((d) => d.company_id);
       setLocalAdminCompanyIds(companyIds);
+      localStorage.setItem("cachedLocalAdminCompanyIds", JSON.stringify(companyIds));
       return companyIds;
     } else {
       setLocalAdminCompanyIds([]);
+      localStorage.removeItem("cachedLocalAdminCompanyIds");
       return [];
     }
   };
@@ -177,6 +191,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLocalAdminCompanyIds([]);
     setAccessibleCompanyIds([]);
     updateInitialLoadDone(false);
+    localStorage.removeItem("cachedUserRole");
+    localStorage.removeItem("cachedLocalAdminCompanyIds");
   };
 
   const loadUserData = async (userId: string) => {
@@ -318,6 +334,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (awaitingHandoff && !nextSession?.user) {
         setLoading(true);
+        return;
+      }
+
+      if (event === "TOKEN_REFRESHED") {
+        // Token was refreshed — session/user refs are already updated above.
+        // Do NOT re-run loadUserData; role & permission state is still valid.
+        console.log("[AuthContext] TOKEN_REFRESHED — keeping existing role state");
         return;
       }
 
