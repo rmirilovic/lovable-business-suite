@@ -336,6 +336,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const handleSessionResponse = (access_token: string, refresh_token: string) => {
+      if (signedOutPermanentlyRef.current) return;
       awaitingHandoff = false;
       if (handoffTimeout) {
         window.clearTimeout(handoffTimeout);
