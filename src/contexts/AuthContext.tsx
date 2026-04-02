@@ -734,6 +734,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     intentionalSignOutRef.current = true;
+    signedOutPermanentlyRef.current = true;
+    cancelPendingSignOutCheck();
     // Always clear local state, even if the API call fails (e.g. session_not_found)
     setUser(null);
     setSession(null);
