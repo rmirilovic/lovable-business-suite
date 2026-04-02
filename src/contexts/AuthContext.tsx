@@ -420,6 +420,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         event,
         "user:",
         !!nextSession?.user,
+        "signedOutPermanently:",
+        signedOutPermanentlyRef.current,
         "initialSessionChecked:",
         initialSessionChecked,
         "awaitingHandoff:",
@@ -429,6 +431,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         "userDataLoading:",
         userDataLoadingRef.current
       );
+
+      // Block any session restoration after intentional sign-out
+      if (signedOutPermanentlyRef.current && event !== "SIGNED_OUT") {
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+          console.log("[AuthContext] Blocking session restoration after intentional sign-out, event:", event);
+          return;
+        }
+      }
 
       if (awaitingHandoff && !nextSession?.user) {
         setLoading(true);
@@ -441,14 +451,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "TOKEN_REFRESHED") {
         applySessionState(nextSession);
-        // Token was refreshed — session/user refs are already updated above.
-        // Do NOT re-run loadUserData; role & permission state is still valid.
         console.log("[AuthContext] TOKEN_REFRESHED — keeping existing role state");
         return;
       }
 
       if (event === "SIGNED_OUT") {
         if (!intentionalSignOutRef.current) {
+          // If permanently signed out, don't try to rescue
+          if (signedOutPermanentlyRef.current) {
+            applySessionState(null);
+            resetAuthState();
+            setLoading(false);
+            return;
+          }
+
           cancelPendingSignOutCheck();
           pendingSignOutCheckRef.current = window.setTimeout(() => {
             pendingSignOutCheckRef.current = null;
@@ -456,7 +472,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             void supabase.auth.getSession().then(({ data: { session: freshSession } }) => {
               if (!isMounted) return;
 
-              if (freshSession?.user) {
+              if (freshSession?.user && !signedOutPermanentlyRef.current) {
                 console.log("[AuthContext] Ignoring transient SIGNED_OUT because session is still active");
                 applySessionState(freshSession);
 
@@ -471,7 +487,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
 
               const timeSinceMount = Date.now() - mountTimeRef.current;
-              if (timeSinceMount < 15000 && !awaitingHandoff) {
+              if (timeSinceMount < 15000 && !awaitingHandoff && !signedOutPermanentlyRef.current) {
                 triggerHandoffRescue(timeSinceMount);
                 return;
               }
