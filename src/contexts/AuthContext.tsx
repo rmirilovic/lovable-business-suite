@@ -720,6 +720,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id, loading, initialLoadDone, userRole, localAdminCompanyIds.length]);
 
   const signIn = async (email: string, password: string) => {
+    signedOutPermanentlyRef.current = false;
     const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
