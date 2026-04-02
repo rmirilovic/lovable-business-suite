@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const localAdminCompanyIdsRef = useRef<string[]>(localAdminCompanyIds);
   const accessibleCompanyIdsRef = useRef<string[]>(accessibleCompanyIds);
   const pendingSignOutCheckRef = useRef<number | null>(null);
+  const signedOutPermanentlyRef = useRef(false);
   const superAdminRecoveryInFlightRef = useRef(false);
 
   const updateInitialLoadDone = (value: boolean) => {
