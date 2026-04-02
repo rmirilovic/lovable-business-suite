@@ -66,13 +66,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const mountTimeRef = useRef(Date.now());
   const initialLoadDoneRef = useRef(false);
   const userDataLoadingRef = useRef(false);
+  const userRoleRef = useRef<AppRole | null>(userRole);
+  const localAdminCompanyIdsRef = useRef<string[]>(localAdminCompanyIds);
+  const accessibleCompanyIdsRef = useRef<string[]>(accessibleCompanyIds);
+  const pendingSignOutCheckRef = useRef<number | null>(null);
 
   const updateInitialLoadDone = (value: boolean) => {
     initialLoadDoneRef.current = value;
     setInitialLoadDone(value);
   };
 
+  useEffect(() => {
+    userRoleRef.current = userRole;
+  }, [userRole]);
+
+  useEffect(() => {
+    localAdminCompanyIdsRef.current = localAdminCompanyIds;
+  }, [localAdminCompanyIds]);
+
+  useEffect(() => {
+    accessibleCompanyIdsRef.current = accessibleCompanyIds;
+  }, [accessibleCompanyIds]);
+
+  const cancelPendingSignOutCheck = () => {
+    if (pendingSignOutCheckRef.current) {
+      window.clearTimeout(pendingSignOutCheckRef.current);
+      pendingSignOutCheckRef.current = null;
+    }
+  };
+
   const applySessionState = (nextSession: Session | null) => {
+    if (nextSession?.user) {
+      cancelPendingSignOutCheck();
+    }
     sessionRef.current = nextSession;
     setSession(nextSession);
     setUser(nextSession?.user ?? null);
@@ -114,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchUserRole = async (userId: string): Promise<AppRole | null> => {
+    const previousRole = userRoleRef.current;
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")
@@ -121,10 +148,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.error("[AuthContext] Failed to fetch user role, keeping previous role state:", error);
-      return userRole;
+      return previousRole;
     }
 
     if (!data || data.length === 0) {
+      if (previousRole && sessionRef.current?.user?.id === userId) {
+        console.warn("[AuthContext] Empty role result while session is active, preserving cached role state");
+        return previousRole;
+      }
+
       setUserRole(null);
       localStorage.removeItem("cachedUserRole");
       return null;
@@ -146,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchLocalAdminCompanies = async (userId: string): Promise<string[]> => {
+    const previousCompanyIds = localAdminCompanyIdsRef.current;
     const { data, error } = await supabase
       .from("user_companies")
       .select("company_id")
@@ -154,10 +187,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.error("[AuthContext] Failed to fetch local admin companies, keeping previous admin state:", error);
-      return localAdminCompanyIds;
+      return previousCompanyIds;
     }
 
     const companyIds = (data ?? []).map((d) => d.company_id);
+
+    if (companyIds.length === 0 && previousCompanyIds.length > 0 && sessionRef.current?.user?.id === userId) {
+      console.warn("[AuthContext] Empty local admin result while session is active, preserving cached admin companies");
+      return previousCompanyIds;
+    }
+
     setLocalAdminCompanyIds(companyIds);
 
     if (companyIds.length > 0) {
@@ -170,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchAccessibleCompanyIds = async (userId: string): Promise<string[]> => {
+    const previousCompanyIds = accessibleCompanyIdsRef.current;
     const { data, error } = await supabase
       .from("user_role_assignments")
       .select("company_id")
@@ -178,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.error("[AuthContext] Failed to fetch accessible companies, keeping previous company scope:", error);
-      return accessibleCompanyIds;
+      return previousCompanyIds;
     }
 
     const companyIds = data ? [...new Set(data.map((item) => item.company_id))] : [];
@@ -203,6 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const resetAuthState = () => {
+    cancelPendingSignOutCheck();
     userDataLoadingRef.current = false;
     setCompanies([]);
     setBusinessYears([]);
@@ -376,6 +417,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      if (nextSession?.user) {
+        cancelPendingSignOutCheck();
+      }
+
       if (event === "TOKEN_REFRESHED") {
         applySessionState(nextSession);
         // Token was refreshed — session/user refs are already updated above.
@@ -386,36 +431,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "SIGNED_OUT") {
         if (!intentionalSignOutRef.current) {
-          setLoading(true);
+          cancelPendingSignOutCheck();
+          pendingSignOutCheckRef.current = window.setTimeout(() => {
+            pendingSignOutCheckRef.current = null;
 
-          void supabase.auth.getSession().then(({ data: { session: freshSession } }) => {
-            if (!isMounted) return;
+            void supabase.auth.getSession().then(({ data: { session: freshSession } }) => {
+              if (!isMounted) return;
 
-            if (freshSession?.user) {
-              console.log("[AuthContext] Ignoring transient SIGNED_OUT because session is still active");
-              applySessionState(freshSession);
+              if (freshSession?.user) {
+                console.log("[AuthContext] Ignoring transient SIGNED_OUT because session is still active");
+                applySessionState(freshSession);
 
-              if (!initialLoadDoneRef.current && !userDataLoadingRef.current) {
-                void loadUserData(freshSession.user.id);
-              } else {
-                setLoading(false);
+                if (!initialLoadDoneRef.current && !userDataLoadingRef.current) {
+                  setLoading(true);
+                  void loadUserData(freshSession.user.id);
+                } else {
+                  setLoading(false);
+                }
+
+                return;
               }
 
-              return;
-            }
+              const timeSinceMount = Date.now() - mountTimeRef.current;
+              if (timeSinceMount < 15000 && !awaitingHandoff) {
+                triggerHandoffRescue(timeSinceMount);
+                return;
+              }
 
-            applySessionState(null);
-
-            const timeSinceMount = Date.now() - mountTimeRef.current;
-            if (timeSinceMount < 15000 && !awaitingHandoff) {
-              triggerHandoffRescue(timeSinceMount);
-              return;
-            }
-
-            intentionalSignOutRef.current = false;
-            resetAuthState();
-            setLoading(false);
-          });
+              applySessionState(null);
+              intentionalSignOutRef.current = false;
+              resetAuthState();
+              setLoading(false);
+            });
+          }, 2500);
 
           return;
         }
@@ -489,6 +537,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       isMounted = false;
+      cancelPendingSignOutCheck();
       if (handoffTimeout) window.clearTimeout(handoffTimeout);
       window.removeEventListener("message", messageHandler);
       bc?.close();
