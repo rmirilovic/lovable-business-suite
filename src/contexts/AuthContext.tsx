@@ -6,6 +6,8 @@ import { recordLoginAudit, updateLoginAuditCompany } from "@/lib/loginAuditLogge
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
+const INTENTIONAL_SIGN_OUT_STORAGE_KEY = "erp.intentionalSignOut";
+
 interface Company {
   id: string;
   name: string;
@@ -70,7 +72,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const localAdminCompanyIdsRef = useRef<string[]>(localAdminCompanyIds);
   const accessibleCompanyIdsRef = useRef<string[]>(accessibleCompanyIds);
   const pendingSignOutCheckRef = useRef<number | null>(null);
-  const signedOutPermanentlyRef = useRef(false);
+  const signedOutPermanentlyRef = useRef(
+    (() => {
+      try {
+        return localStorage.getItem(INTENTIONAL_SIGN_OUT_STORAGE_KEY) === "true";
+      } catch {
+        return false;
+      }
+    })()
+  );
   const superAdminRecoveryInFlightRef = useRef(false);
 
   const updateInitialLoadDone = (value: boolean) => {
@@ -97,6 +107,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const setIntentionalSignOutState = (value: boolean) => {
+    signedOutPermanentlyRef.current = value;
+    try {
+      if (value) {
+        localStorage.setItem(INTENTIONAL_SIGN_OUT_STORAGE_KEY, "true");
+      } else {
+        localStorage.removeItem(INTENTIONAL_SIGN_OUT_STORAGE_KEY);
+      }
+    } catch {
+      // ignore storage failures
+    }
+  };
+
+  const clearPersistedAuthStorage = () => {
+    const clearStorage = (storage: Storage | null | undefined) => {
+      if (!storage) return;
+
+      const keysToRemove: string[] = [];
+      for (let index = 0; index < storage.length; index += 1) {
+        const key = storage.key(index);
+        if (!key) continue;
+
+        if (key === "supabase.auth.token" || (key.startsWith("sb-") && key.includes("auth-token"))) {
+          keysToRemove.push(key);
+        }
+      }
+
+      keysToRemove.forEach((key) => storage.removeItem(key));
+    };
+
+    try {
+      clearStorage(window.localStorage);
+      clearStorage(window.sessionStorage);
+    } catch {
+      // ignore storage failures
+    }
+  };
+
   const applySessionState = (nextSession: Session | null) => {
     if (nextSession?.user) {
       cancelPendingSignOutCheck();
@@ -104,6 +152,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionRef.current = nextSession;
     setSession(nextSession);
     setUser(nextSession?.user ?? null);
+  };
+
+  const clearClientAuthState = () => {
+    cancelPendingSignOutCheck();
+    applySessionState(null);
+    resetAuthState();
+    localStorage.removeItem("selectedCompanyId");
+    localStorage.removeItem("selectedYearId");
+    clearPersistedAuthStorage();
+    setLoading(false);
   };
 
   const isSuperAdmin = userRole === "super_admin";
@@ -320,9 +378,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const handleSessionRequest = async () => {
-      const {
-        data: { session: freshSession },
-      } = await supabase.auth.getSession();
+      if (signedOutPermanentlyRef.current) return;
+
+      const freshSession = sessionRef.current;
       if (freshSession?.access_token && freshSession?.refresh_token) {
         const payload = {
           type: "SESSION_RESPONSE",
@@ -349,6 +407,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (bc) {
       bc.onmessage = (event: MessageEvent) => {
         const msg = event.data as any;
+        if (msg?.type === "FORCE_SIGN_OUT") {
+          awaitingHandoff = false;
+          if (handoffTimeout) {
+            window.clearTimeout(handoffTimeout);
+            handoffTimeout = null;
+          }
+          intentionalSignOutRef.current = false;
+          setIntentionalSignOutState(true);
+          clearClientAuthState();
+          return;
+        }
         if (msg?.type === "REQUEST_SESSION") {
           void handleSessionRequest();
           return;
@@ -364,21 +433,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event.origin !== origin) return;
       const msg = event.data as any;
 
+      if (msg?.type === "FORCE_SIGN_OUT") {
+        awaitingHandoff = false;
+        if (handoffTimeout) {
+          window.clearTimeout(handoffTimeout);
+          handoffTimeout = null;
+        }
+        intentionalSignOutRef.current = false;
+        setIntentionalSignOutState(true);
+        clearClientAuthState();
+        return;
+      }
+
       if (msg?.type === "REQUEST_SESSION") {
-        supabase.auth.getSession().then(({ data: { session: freshSession } }) => {
-          if (freshSession?.access_token && freshSession?.refresh_token && event.source) {
-            (event.source as Window).postMessage(
-              {
-                type: "SESSION_RESPONSE",
-                payload: {
-                  access_token: freshSession.access_token,
-                  refresh_token: freshSession.refresh_token,
-                },
+        const freshSession = sessionRef.current;
+        if (
+          !signedOutPermanentlyRef.current &&
+          freshSession?.access_token &&
+          freshSession?.refresh_token &&
+          event.source
+        ) {
+          (event.source as Window).postMessage(
+            {
+              type: "SESSION_RESPONSE",
+              payload: {
+                access_token: freshSession.access_token,
+                refresh_token: freshSession.refresh_token,
               },
-              origin
-            );
-          }
-        });
+            },
+            origin
+          );
+        }
         return;
       }
 
@@ -459,9 +544,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!intentionalSignOutRef.current) {
           // If permanently signed out, don't try to rescue
           if (signedOutPermanentlyRef.current) {
-            applySessionState(null);
-            resetAuthState();
-            setLoading(false);
+            clearClientAuthState();
             return;
           }
 
@@ -492,10 +575,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return;
               }
 
-              applySessionState(null);
               intentionalSignOutRef.current = false;
-              resetAuthState();
-              setLoading(false);
+              clearClientAuthState();
             });
           }, 2500);
 
@@ -503,9 +584,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         intentionalSignOutRef.current = false;
-        applySessionState(null);
-        resetAuthState();
-        setLoading(false);
+        clearClientAuthState();
         return;
       }
 
@@ -540,6 +619,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       initialSessionChecked = true;
       applySessionState(initialSession);
+
+      if (signedOutPermanentlyRef.current) {
+        clearClientAuthState();
+        return;
+      }
 
       if (!initialSession?.user) {
         awaitingHandoff = true;
@@ -720,7 +804,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id, loading, initialLoadDone, userRole, localAdminCompanyIds.length]);
 
   const signIn = async (email: string, password: string) => {
-    signedOutPermanentlyRef.current = false;
+    setIntentionalSignOutState(false);
     const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -735,6 +819,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
+    setIntentionalSignOutState(false);
     const redirectUrl = `${window.location.origin}/`;
 
     const { error } = await supabase.auth.signUp({
@@ -753,19 +838,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     intentionalSignOutRef.current = true;
-    signedOutPermanentlyRef.current = true;
-    cancelPendingSignOutCheck();
-    // Always clear local state, even if the API call fails (e.g. session_not_found)
-    setUser(null);
-    setSession(null);
-    sessionRef.current = null;
-    resetAuthState();
-    localStorage.removeItem("selectedCompanyId");
-    localStorage.removeItem("selectedYearId");
+    setIntentionalSignOutState(true);
+    clearClientAuthState();
+
     try {
-      await supabase.auth.signOut();
+      const bc = new BroadcastChannel("erp_session_sync");
+      bc.postMessage({ type: "FORCE_SIGN_OUT" });
+      bc.close();
+    } catch {
+      // ignore BroadcastChannel failures
+    }
+
+    try {
+      if (window.opener) {
+        window.opener.postMessage({ type: "FORCE_SIGN_OUT" }, window.location.origin);
+      }
+    } catch {
+      // ignore cross-window messaging failures
+    }
+
+    try {
+      await supabase.auth.signOut({ scope: "local" });
     } catch {
       // Ignore errors - local state is already cleared
+    } finally {
+      intentionalSignOutRef.current = false;
     }
   };
 
