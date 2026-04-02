@@ -29,6 +29,7 @@ import { Search, Shield, Users, Building2, UserPlus, KeyRound, Copy } from "luci
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -531,7 +532,8 @@ export function UsersTab() {
       </div>
 
       <div className="erp-card overflow-hidden">
-        {loading ? (
+        <TableScrollContainer>
+          {loading ? (
           <div className="p-8 text-center text-muted-foreground">
             Učitavanje...
           </div>
@@ -541,7 +543,7 @@ export function UsersTab() {
             <p>Nema pronađenih korisnika</p>
           </div>
         ) : (
-          <Table>
+          <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Email</TableHead>
@@ -624,7 +626,8 @@ export function UsersTab() {
               ))}
             </TableBody>
           </Table>
-        )}
+          )}
+        </TableScrollContainer>
       </div>
 
       {/* Reset Password Dialog */}

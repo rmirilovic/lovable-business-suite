@@ -28,6 +28,7 @@ import {
 import { Plus, Calendar, Lock, Unlock, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 
 interface Company {
   id: string;
@@ -281,7 +282,8 @@ export function BusinessYearsTab() {
       </div>
 
       <div className="erp-card overflow-hidden">
-        {loading ? (
+        <TableScrollContainer>
+          {loading ? (
           <div className="p-8 text-center text-muted-foreground">
             Učitavanje...
           </div>
@@ -291,7 +293,7 @@ export function BusinessYearsTab() {
             <p>Nema poslovnih godina</p>
           </div>
         ) : (
-          <Table>
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Firma</TableHead>
@@ -365,8 +367,9 @@ export function BusinessYearsTab() {
               ))}
             </TableBody>
           </Table>
-        )}
-      </div>
+          )}
+        </TableScrollContainer>
+      </div>  
     </div>
   );
 }
