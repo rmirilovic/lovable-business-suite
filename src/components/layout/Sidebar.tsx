@@ -86,9 +86,9 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
     }
 
     if (stillLoading) {
-      // Show all navigation items while permissions are loading
-      // to prevent flash-of-hidden-content for admin users
-      return navigation.filter((item) => item.href !== "/admin");
+      // Show full navigation while auth/permissions are stabilizing
+      // to avoid flicker for admin-only sections during token rotation.
+      return navigation;
     }
 
     return navigation.filter((item) => {
