@@ -46,7 +46,7 @@ export default function AdminPanel() {
 
   return (
     <MainLayout title="Administracija">
-      <div className="space-y-6">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6">
         <Card>
             <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">

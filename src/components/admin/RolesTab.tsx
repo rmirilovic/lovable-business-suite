@@ -40,6 +40,7 @@ import {
   RolePermission,
 } from "@/hooks/useRoles";
 import { useModules } from "@/hooks/useModules";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import {
   buildPermissionSections,
   collectPermissionCodes,
@@ -365,7 +366,8 @@ export function RolesTab() {
       </div>
 
       <div className="erp-card overflow-hidden">
-        {isLoading ? (
+        <TableScrollContainer>
+          {isLoading ? (
           <div className="p-8 text-center text-muted-foreground">Učitavanje...</div>
         ) : !roles || roles.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
@@ -374,7 +376,7 @@ export function RolesTab() {
             <p className="text-sm mt-2">Kreirajte uloge za kontrolu pristupa korisnika</p>
           </div>
         ) : (
-          <Table>
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Šifra</TableHead>
@@ -434,8 +436,9 @@ export function RolesTab() {
               ))}
             </TableBody>
           </Table>
-        )}
-      </div>
+          )}
+        </TableScrollContainer>
+      </div>  
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
