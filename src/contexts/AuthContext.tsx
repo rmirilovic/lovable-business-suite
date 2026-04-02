@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const localAdminCompanyIdsRef = useRef<string[]>(localAdminCompanyIds);
   const accessibleCompanyIdsRef = useRef<string[]>(accessibleCompanyIds);
   const pendingSignOutCheckRef = useRef<number | null>(null);
+  const superAdminRecoveryInFlightRef = useRef(false);
 
   const updateInitialLoadDone = (value: boolean) => {
     initialLoadDoneRef.current = value;
@@ -148,10 +149,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.error("[AuthContext] Failed to fetch user role, keeping previous role state:", error);
+
+      if (!previousRole) {
+        const recovered = await resolveSuperAdminFallback(userId);
+        if (recovered) {
+          localStorage.setItem("cachedUserRole", "super_admin");
+          return "super_admin";
+        }
+      }
+
       return previousRole;
     }
 
     if (!data || data.length === 0) {
+      const recovered = await resolveSuperAdminFallback(userId);
+      if (recovered) {
+        localStorage.setItem("cachedUserRole", "super_admin");
+        return "super_admin";
+      }
+
       if (previousRole && sessionRef.current?.user?.id === userId) {
         console.warn("[AuthContext] Empty role result while session is active, preserving cached role state");
         return previousRole;
@@ -653,6 +669,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("selectedYearId", selectedYear.id);
     }
   }, [selectedYear]);
+
+  useEffect(() => {
+    if (
+      !user?.id ||
+      loading ||
+      !initialLoadDone ||
+      userRole ||
+      localAdminCompanyIds.length > 0 ||
+      superAdminRecoveryInFlightRef.current
+    ) {
+      return;
+    }
+
+    superAdminRecoveryInFlightRef.current = true;
+
+    void (async () => {
+      try {
+        const recovered = await resolveSuperAdminFallback(user.id);
+
+        if (!recovered || userDataLoadingRef.current) {
+          return;
+        }
+
+        updateInitialLoadDone(false);
+        setLoading(true);
+        await loadUserData(user.id);
+      } finally {
+        superAdminRecoveryInFlightRef.current = false;
+      }
+    })();
+  }, [user?.id, loading, initialLoadDone, userRole, localAdminCompanyIds.length]);
 
   const signIn = async (email: string, password: string) => {
     const { error, data } = await supabase.auth.signInWithPassword({
