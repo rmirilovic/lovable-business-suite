@@ -70,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const localAdminCompanyIdsRef = useRef<string[]>(localAdminCompanyIds);
   const accessibleCompanyIdsRef = useRef<string[]>(accessibleCompanyIds);
   const pendingSignOutCheckRef = useRef<number | null>(null);
+  const signedOutPermanentlyRef = useRef(false);
   const superAdminRecoveryInFlightRef = useRef(false);
 
   const updateInitialLoadDone = (value: boolean) => {
@@ -335,6 +336,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const handleSessionResponse = (access_token: string, refresh_token: string) => {
+      if (signedOutPermanentlyRef.current) return;
       awaitingHandoff = false;
       if (handoffTimeout) {
         window.clearTimeout(handoffTimeout);
@@ -418,6 +420,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         event,
         "user:",
         !!nextSession?.user,
+        "signedOutPermanently:",
+        signedOutPermanentlyRef.current,
         "initialSessionChecked:",
         initialSessionChecked,
         "awaitingHandoff:",
@@ -427,6 +431,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         "userDataLoading:",
         userDataLoadingRef.current
       );
+
+      // Block any session restoration after intentional sign-out
+      if (signedOutPermanentlyRef.current && event !== "SIGNED_OUT") {
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+          console.log("[AuthContext] Blocking session restoration after intentional sign-out, event:", event);
+          return;
+        }
+      }
 
       if (awaitingHandoff && !nextSession?.user) {
         setLoading(true);
@@ -439,14 +451,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "TOKEN_REFRESHED") {
         applySessionState(nextSession);
-        // Token was refreshed — session/user refs are already updated above.
-        // Do NOT re-run loadUserData; role & permission state is still valid.
         console.log("[AuthContext] TOKEN_REFRESHED — keeping existing role state");
         return;
       }
 
       if (event === "SIGNED_OUT") {
         if (!intentionalSignOutRef.current) {
+          // If permanently signed out, don't try to rescue
+          if (signedOutPermanentlyRef.current) {
+            applySessionState(null);
+            resetAuthState();
+            setLoading(false);
+            return;
+          }
+
           cancelPendingSignOutCheck();
           pendingSignOutCheckRef.current = window.setTimeout(() => {
             pendingSignOutCheckRef.current = null;
@@ -454,7 +472,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             void supabase.auth.getSession().then(({ data: { session: freshSession } }) => {
               if (!isMounted) return;
 
-              if (freshSession?.user) {
+              if (freshSession?.user && !signedOutPermanentlyRef.current) {
                 console.log("[AuthContext] Ignoring transient SIGNED_OUT because session is still active");
                 applySessionState(freshSession);
 
@@ -469,7 +487,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
 
               const timeSinceMount = Date.now() - mountTimeRef.current;
-              if (timeSinceMount < 15000 && !awaitingHandoff) {
+              if (timeSinceMount < 15000 && !awaitingHandoff && !signedOutPermanentlyRef.current) {
                 triggerHandoffRescue(timeSinceMount);
                 return;
               }
@@ -702,6 +720,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id, loading, initialLoadDone, userRole, localAdminCompanyIds.length]);
 
   const signIn = async (email: string, password: string) => {
+    signedOutPermanentlyRef.current = false;
     const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -734,6 +753,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     intentionalSignOutRef.current = true;
+    signedOutPermanentlyRef.current = true;
+    cancelPendingSignOutCheck();
     // Always clear local state, even if the API call fails (e.g. session_not_found)
     setUser(null);
     setSession(null);
