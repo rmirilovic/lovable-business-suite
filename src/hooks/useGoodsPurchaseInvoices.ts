@@ -35,6 +35,9 @@ export interface GoodsPurchaseInvoice {
   posted_by: string | null;
   journal_entry_id: string | null;
   goods_receipt_id: string | null;
+  customs_declaration_number: string | null;
+  customs_declaration_date: string | null;
+  customs_office_code: string | null;
   currency: string;
   exchange_rate: number;
   created_by: string;
@@ -107,6 +110,9 @@ export interface GoodsPurchaseInvoiceFormData {
   note: string | null;
   internal_note: string | null;
   goods_receipt_id?: string | null;
+  customs_declaration_number?: string | null;
+  customs_declaration_date?: string | null;
+  customs_office_code?: string | null;
   currency: string;
   exchange_rate: number;
 }

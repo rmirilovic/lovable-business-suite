@@ -3124,6 +3124,9 @@ export type Database = {
           created_at: string
           created_by: string
           currency: string
+          customs_declaration_date: string | null
+          customs_declaration_number: string | null
+          customs_office_code: string | null
           due_date: string | null
           exchange_rate: number
           goods_receipt_id: string | null
@@ -3163,6 +3166,9 @@ export type Database = {
           created_at?: string
           created_by: string
           currency?: string
+          customs_declaration_date?: string | null
+          customs_declaration_number?: string | null
+          customs_office_code?: string | null
           due_date?: string | null
           exchange_rate?: number
           goods_receipt_id?: string | null
@@ -3202,6 +3208,9 @@ export type Database = {
           created_at?: string
           created_by?: string
           currency?: string
+          customs_declaration_date?: string | null
+          customs_declaration_number?: string | null
+          customs_office_code?: string | null
           due_date?: string | null
           exchange_rate?: number
           goods_receipt_id?: string | null
@@ -8512,9 +8521,12 @@ export type Database = {
           code: string
           company_id: string
           created_at: string
+          customs_office_code: string | null
+          customs_warehouse_code: string | null
           id: string
           inventory_account: string | null
           is_active: boolean
+          is_customs_warehouse: boolean
           name: string
           updated_at: string
           warehouse_type: Database["public"]["Enums"]["warehouse_type"]
@@ -8525,9 +8537,12 @@ export type Database = {
           code: string
           company_id: string
           created_at?: string
+          customs_office_code?: string | null
+          customs_warehouse_code?: string | null
           id?: string
           inventory_account?: string | null
           is_active?: boolean
+          is_customs_warehouse?: boolean
           name: string
           updated_at?: string
           warehouse_type?: Database["public"]["Enums"]["warehouse_type"]
@@ -8538,9 +8553,12 @@ export type Database = {
           code?: string
           company_id?: string
           created_at?: string
+          customs_office_code?: string | null
+          customs_warehouse_code?: string | null
           id?: string
           inventory_account?: string | null
           is_active?: boolean
+          is_customs_warehouse?: boolean
           name?: string
           updated_at?: string
           warehouse_type?: Database["public"]["Enums"]["warehouse_type"]

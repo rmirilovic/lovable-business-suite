@@ -57,6 +57,9 @@ interface WarehouseFormData {
   warehouse_type: "1" | "2" | "6" | "9" | "12";
   accountant: string;
   inventory_account: string;
+  is_customs_warehouse: boolean;
+  customs_office_code: string;
+  customs_warehouse_code: string;
 }
 
 const emptyForm: WarehouseFormData = {
@@ -66,6 +69,9 @@ const emptyForm: WarehouseFormData = {
   warehouse_type: "1",
   accountant: "",
   inventory_account: "",
+  is_customs_warehouse: false,
+  customs_office_code: "",
+  customs_warehouse_code: "",
 };
 
 export default function Magacini() {
@@ -202,6 +208,9 @@ export default function Magacini() {
       accountant: form.accountant.trim() || null,
       inventory_account: form.inventory_account.trim() || null,
       is_active: true,
+      is_customs_warehouse: form.is_customs_warehouse,
+      customs_office_code: form.customs_office_code.trim() || null,
+      customs_warehouse_code: form.customs_warehouse_code.trim() || null,
     };
     await createWarehouse(newWarehouse);
 
@@ -541,6 +550,48 @@ export default function Magacini() {
                 placeholder="npr. 1320"
               />
             </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Carinsko</Label>
+              <div className="col-span-3 flex items-center space-x-2">
+                <Switch
+                  checked={form.is_customs_warehouse}
+                  onCheckedChange={(checked) =>
+                    setForm({ ...form, is_customs_warehouse: checked })
+                  }
+                />
+                <Label className="text-sm">Carinsko skladište</Label>
+              </div>
+            </div>
+
+            {form.is_customs_warehouse && (
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="customs_office_code" className="text-right">
+                    Šifra car. ispostave
+                  </Label>
+                  <Input
+                    id="customs_office_code"
+                    value={form.customs_office_code}
+                    onChange={(e) => setForm({ ...form, customs_office_code: e.target.value })}
+                    className="col-span-3"
+                    placeholder="npr. 12345"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="customs_warehouse_code" className="text-right">
+                    Šifra car. skladišta
+                  </Label>
+                  <Input
+                    id="customs_warehouse_code"
+                    value={form.customs_warehouse_code}
+                    onChange={(e) => setForm({ ...form, customs_warehouse_code: e.target.value })}
+                    className="col-span-3"
+                    placeholder="npr. CS001"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>
