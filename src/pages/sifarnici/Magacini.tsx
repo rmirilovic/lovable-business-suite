@@ -427,6 +427,15 @@ export default function Magacini() {
                     </TableCell>
                     <TableCell className="text-center">
                       <Switch
+                        checked={warehouse.is_customs_warehouse}
+                        onCheckedChange={async (checked) => {
+                          await updateWarehouse({ id: warehouse.id, updates: { is_customs_warehouse: checked } });
+                        }}
+                        disabled={!canEdit}
+                      />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Switch
                         checked={warehouse.is_active}
                         onCheckedChange={async (checked) => {
                           await updateWarehouse({ id: warehouse.id, updates: { is_active: checked } });
