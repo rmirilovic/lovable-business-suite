@@ -330,6 +330,9 @@ export default function Magacini() {
                   <TableHead>
                     <SortableHeader column="inventory_account" label="Konto zaliha" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
+                  <TableHead className="w-[90px] text-center">
+                    <SortableHeader column="is_customs_warehouse" label="Carinsko" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
                   <TableHead className="w-[80px] text-center">
                     <SortableHeader column="is_active" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
                   </TableHead>
