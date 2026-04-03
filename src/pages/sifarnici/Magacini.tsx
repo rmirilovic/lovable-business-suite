@@ -168,6 +168,7 @@ export default function Magacini() {
         case 'warehouse_type': return item.warehouse_type;
         case 'accountant': return item.accountant || '';
         case 'inventory_account': return item.inventory_account || '';
+        case 'is_customs_warehouse': return item.is_customs_warehouse;
         case 'is_active': return item.is_active;
         default: return null;
       }
