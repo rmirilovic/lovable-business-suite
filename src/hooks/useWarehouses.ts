@@ -11,6 +11,9 @@ export interface Warehouse {
   warehouse_type: "1" | "2" | "6" | "9" | "12";
   accountant: string | null;
   inventory_account: string | null;
+  is_customs_warehouse: boolean;
+  customs_office_code: string | null;
+  customs_warehouse_code: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
