@@ -112,6 +112,9 @@ export function GoodsPurchaseInvoiceHeaderDialog({
         note: invoice.note,
         internal_note: invoice.internal_note,
         goods_receipt_id: invoice.goods_receipt_id,
+        customs_declaration_number: (invoice as any).customs_declaration_number || null,
+        customs_declaration_date: (invoice as any).customs_declaration_date || null,
+        customs_office_code: (invoice as any).customs_office_code || null,
         currency: invoice.currency || "RSD",
         exchange_rate: invoice.exchange_rate || 1,
       });
