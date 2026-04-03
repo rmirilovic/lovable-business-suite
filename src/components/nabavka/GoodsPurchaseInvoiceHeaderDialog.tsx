@@ -369,6 +369,49 @@ export function GoodsPurchaseInvoiceHeaderDialog({
             </p>
           </div>
 
+          {/* Carinski podaci - prikazuju se za carinsko skladište */}
+          {(() => {
+            const selectedWh = activeWarehouses.find(w => w.id === formData.warehouse_id);
+            return selectedWh?.is_customs_warehouse ? (
+              <div className="grid grid-cols-3 gap-4 p-3 border rounded-lg">
+                <div className="col-span-3">
+                  <Label className="text-sm font-semibold">Carinski podaci</Label>
+                </div>
+                <div className="space-y-2">
+                  <Label>Broj JCI (deklaracije)</Label>
+                  <Input
+                    value={formData.customs_declaration_number || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, customs_declaration_number: e.target.value || null })
+                    }
+                    placeholder="Broj carinske deklaracije"
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Datum carinjenja</Label>
+                  <LocaleDateInput
+                    value={formData.customs_declaration_date || ""}
+                    onChange={(value) =>
+                      setFormData({ ...formData, customs_declaration_date: value || null })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Šifra car. ispostave</Label>
+                  <Input
+                    value={formData.customs_office_code || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, customs_office_code: e.target.value || null })
+                    }
+                    placeholder="Šifra ispostave"
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+            ) : null;
+          })()}
+
           {/* Snapshot podaci dobavljača */}
           <div className="grid grid-cols-3 gap-4 p-3 bg-muted/50 rounded-lg">
             <div className="space-y-1">
