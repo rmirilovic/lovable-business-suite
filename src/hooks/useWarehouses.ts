@@ -19,7 +19,11 @@ export interface Warehouse {
   updated_at: string;
 }
 
-export type WarehouseInsert = Omit<Warehouse, "id" | "created_at" | "updated_at">;
+export type WarehouseInsert = Omit<Warehouse, "id" | "created_at" | "updated_at"> & {
+  is_customs_warehouse?: boolean;
+  customs_office_code?: string | null;
+  customs_warehouse_code?: string | null;
+};
 export type WarehouseUpdate = Partial<Omit<Warehouse, "id" | "company_id" | "created_at" | "updated_at">>;
 
 export const WAREHOUSE_TYPE_LABELS: Record<string, string> = {
