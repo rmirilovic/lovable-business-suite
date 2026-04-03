@@ -208,6 +208,9 @@ export default function Magacini() {
       accountant: form.accountant.trim() || null,
       inventory_account: form.inventory_account.trim() || null,
       is_active: true,
+      is_customs_warehouse: form.is_customs_warehouse,
+      customs_office_code: form.customs_office_code.trim() || null,
+      customs_warehouse_code: form.customs_warehouse_code.trim() || null,
     };
     await createWarehouse(newWarehouse);
 
