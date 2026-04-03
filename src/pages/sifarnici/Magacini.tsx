@@ -57,6 +57,9 @@ interface WarehouseFormData {
   warehouse_type: "1" | "2" | "6" | "9" | "12";
   accountant: string;
   inventory_account: string;
+  is_customs_warehouse: boolean;
+  customs_office_code: string;
+  customs_warehouse_code: string;
 }
 
 const emptyForm: WarehouseFormData = {
@@ -66,6 +69,9 @@ const emptyForm: WarehouseFormData = {
   warehouse_type: "1",
   accountant: "",
   inventory_account: "",
+  is_customs_warehouse: false,
+  customs_office_code: "",
+  customs_warehouse_code: "",
 };
 
 export default function Magacini() {
