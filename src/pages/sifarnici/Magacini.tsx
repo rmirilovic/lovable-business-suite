@@ -550,6 +550,48 @@ export default function Magacini() {
                 placeholder="npr. 1320"
               />
             </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Carinsko</Label>
+              <div className="col-span-3 flex items-center space-x-2">
+                <Switch
+                  checked={form.is_customs_warehouse}
+                  onCheckedChange={(checked) =>
+                    setForm({ ...form, is_customs_warehouse: checked })
+                  }
+                />
+                <Label className="text-sm">Carinsko skladište</Label>
+              </div>
+            </div>
+
+            {form.is_customs_warehouse && (
+              <>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="customs_office_code" className="text-right">
+                    Šifra car. ispostave
+                  </Label>
+                  <Input
+                    id="customs_office_code"
+                    value={form.customs_office_code}
+                    onChange={(e) => setForm({ ...form, customs_office_code: e.target.value })}
+                    className="col-span-3"
+                    placeholder="npr. 12345"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="customs_warehouse_code" className="text-right">
+                    Šifra car. skladišta
+                  </Label>
+                  <Input
+                    id="customs_warehouse_code"
+                    value={form.customs_warehouse_code}
+                    onChange={(e) => setForm({ ...form, customs_warehouse_code: e.target.value })}
+                    className="col-span-3"
+                    placeholder="npr. CS001"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter>
