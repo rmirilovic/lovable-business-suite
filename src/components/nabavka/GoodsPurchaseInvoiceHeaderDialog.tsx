@@ -77,6 +77,9 @@ export function GoodsPurchaseInvoiceHeaderDialog({
     note: null,
     internal_note: null,
     goods_receipt_id: null,
+    customs_declaration_number: null,
+    customs_declaration_date: null,
+    customs_office_code: null,
     currency: "RSD",
     exchange_rate: 1,
   });
