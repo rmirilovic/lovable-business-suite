@@ -168,6 +168,7 @@ export default function Magacini() {
         case 'warehouse_type': return item.warehouse_type;
         case 'accountant': return item.accountant || '';
         case 'inventory_account': return item.inventory_account || '';
+        case 'is_customs_warehouse': return item.is_customs_warehouse;
         case 'is_active': return item.is_active;
         default: return null;
       }
@@ -330,6 +331,9 @@ export default function Magacini() {
                   <TableHead>
                     <SortableHeader column="inventory_account" label="Konto zaliha" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
+                  <TableHead className="w-[90px] text-center">
+                    <SortableHeader column="is_customs_warehouse" label="Carinsko" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
                   <TableHead className="w-[80px] text-center">
                     <SortableHeader column="is_active" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
                   </TableHead>
@@ -347,12 +351,13 @@ export default function Magacini() {
                     <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : filteredWarehouses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                     {searchTerm || statusFilter !== "active" ? "Nema rezultata pretrage" : "Nema magacina. Kliknite 'Novi magacin' da dodate."}
                   </TableCell>
                 </TableRow>
@@ -417,6 +422,15 @@ export default function Magacini() {
                         displayValue={warehouse.inventory_account || "—"}
                         onSave={async (val) => {
                           await updateWarehouse({ id: warehouse.id, updates: { inventory_account: val || null } });
+                        }}
+                        disabled={!canEdit}
+                      />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Switch
+                        checked={warehouse.is_customs_warehouse}
+                        onCheckedChange={async (checked) => {
+                          await updateWarehouse({ id: warehouse.id, updates: { is_customs_warehouse: checked } });
                         }}
                         disabled={!canEdit}
                       />
