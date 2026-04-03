@@ -356,7 +356,7 @@ export default function Magacini() {
                 ))
               ) : filteredWarehouses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                     {searchTerm || statusFilter !== "active" ? "Nema rezultata pretrage" : "Nema magacina. Kliknite 'Novi magacin' da dodate."}
                   </TableCell>
                 </TableRow>
