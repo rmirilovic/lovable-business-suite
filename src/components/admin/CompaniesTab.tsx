@@ -217,6 +217,7 @@ export function CompaniesTab() {
       logo_url: logoUrl || null,
       logo_text: formData.logo_text || null,
       idle_timeout_hours: formData.idle_timeout_hours ? parseFloat(formData.idle_timeout_hours) : null,
+      max_concurrent_sessions: formData.max_concurrent_sessions ? parseInt(formData.max_concurrent_sessions, 10) : null,
       vat_period_type: formData.vat_period_type || "monthly",
     };
 
