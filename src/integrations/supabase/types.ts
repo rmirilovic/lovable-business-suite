@@ -2114,6 +2114,337 @@ export type Database = {
           },
         ]
       }
+      customs_clearance_costs: {
+        Row: {
+          account_code: string | null
+          amount: number
+          company_id: string
+          created_at: string
+          customs_clearance_id: string
+          description: string
+          distribution_method: string
+          id: string
+          item_order: number
+          partner_id: string | null
+        }
+        Insert: {
+          account_code?: string | null
+          amount?: number
+          company_id: string
+          created_at?: string
+          customs_clearance_id: string
+          description: string
+          distribution_method?: string
+          id?: string
+          item_order?: number
+          partner_id?: string | null
+        }
+        Update: {
+          account_code?: string | null
+          amount?: number
+          company_id?: string
+          created_at?: string
+          customs_clearance_id?: string
+          description?: string
+          distribution_method?: string
+          id?: string
+          item_order?: number
+          partner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customs_clearance_costs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearance_costs_customs_clearance_id_fkey"
+            columns: ["customs_clearance_id"]
+            isOneToOne: false
+            referencedRelation: "customs_clearances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearance_costs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customs_clearance_items: {
+        Row: {
+          allocated_costs: number
+          allocated_customs_duty: number
+          allocated_excise: number
+          article_id: string | null
+          available_quantity: number
+          company_id: string
+          cost_price: number
+          cost_value: number
+          created_at: string
+          customs_base: number
+          customs_clearance_id: string
+          id: string
+          invoice_price: number
+          invoice_price_rsd: number
+          invoice_value_rsd: number
+          item_code: string | null
+          item_name: string
+          item_order: number
+          quantity: number
+          source_item_id: string | null
+          unit: string
+          vat_amount: number
+          vat_base: number
+        }
+        Insert: {
+          allocated_costs?: number
+          allocated_customs_duty?: number
+          allocated_excise?: number
+          article_id?: string | null
+          available_quantity?: number
+          company_id: string
+          cost_price?: number
+          cost_value?: number
+          created_at?: string
+          customs_base?: number
+          customs_clearance_id: string
+          id?: string
+          invoice_price?: number
+          invoice_price_rsd?: number
+          invoice_value_rsd?: number
+          item_code?: string | null
+          item_name: string
+          item_order?: number
+          quantity?: number
+          source_item_id?: string | null
+          unit?: string
+          vat_amount?: number
+          vat_base?: number
+        }
+        Update: {
+          allocated_costs?: number
+          allocated_customs_duty?: number
+          allocated_excise?: number
+          article_id?: string | null
+          available_quantity?: number
+          company_id?: string
+          cost_price?: number
+          cost_value?: number
+          created_at?: string
+          customs_base?: number
+          customs_clearance_id?: string
+          id?: string
+          invoice_price?: number
+          invoice_price_rsd?: number
+          invoice_value_rsd?: number
+          item_code?: string | null
+          item_name?: string
+          item_order?: number
+          quantity?: number
+          source_item_id?: string | null
+          unit?: string
+          vat_amount?: number
+          vat_base?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customs_clearance_items_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearance_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearance_items_customs_clearance_id_fkey"
+            columns: ["customs_clearance_id"]
+            isOneToOne: false
+            referencedRelation: "customs_clearances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customs_clearances: {
+        Row: {
+          additional_costs_total: number
+          business_year_id: string
+          clearance_date: string
+          clearance_number: string
+          company_id: string
+          created_at: string
+          created_by: string
+          currency: string
+          customs_base: number
+          customs_duty_account: string | null
+          customs_duty_amount: number
+          customs_obligation_account: string | null
+          customs_office_code: string | null
+          destination_warehouse_account: string | null
+          destination_warehouse_id: string
+          exchange_rate: number
+          excise_account: string | null
+          excise_amount: number
+          id: string
+          invoice_value_rsd: number
+          jci_date: string | null
+          jci_number: string | null
+          journal_entry_id: string | null
+          note: string | null
+          posted_at: string | null
+          posted_by: string | null
+          source_invoice_id: string
+          source_warehouse_account: string | null
+          source_warehouse_id: string
+          status: string
+          total_cost_value: number
+          transfer_id: string | null
+          updated_at: string
+          vat_account: string | null
+          vat_amount: number
+          vat_base: number
+          vat_rate: number
+        }
+        Insert: {
+          additional_costs_total?: number
+          business_year_id: string
+          clearance_date?: string
+          clearance_number: string
+          company_id: string
+          created_at?: string
+          created_by: string
+          currency?: string
+          customs_base?: number
+          customs_duty_account?: string | null
+          customs_duty_amount?: number
+          customs_obligation_account?: string | null
+          customs_office_code?: string | null
+          destination_warehouse_account?: string | null
+          destination_warehouse_id: string
+          exchange_rate?: number
+          excise_account?: string | null
+          excise_amount?: number
+          id?: string
+          invoice_value_rsd?: number
+          jci_date?: string | null
+          jci_number?: string | null
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          source_invoice_id: string
+          source_warehouse_account?: string | null
+          source_warehouse_id: string
+          status?: string
+          total_cost_value?: number
+          transfer_id?: string | null
+          updated_at?: string
+          vat_account?: string | null
+          vat_amount?: number
+          vat_base?: number
+          vat_rate?: number
+        }
+        Update: {
+          additional_costs_total?: number
+          business_year_id?: string
+          clearance_date?: string
+          clearance_number?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          currency?: string
+          customs_base?: number
+          customs_duty_account?: string | null
+          customs_duty_amount?: number
+          customs_obligation_account?: string | null
+          customs_office_code?: string | null
+          destination_warehouse_account?: string | null
+          destination_warehouse_id?: string
+          exchange_rate?: number
+          excise_account?: string | null
+          excise_amount?: number
+          id?: string
+          invoice_value_rsd?: number
+          jci_date?: string | null
+          jci_number?: string | null
+          journal_entry_id?: string | null
+          note?: string | null
+          posted_at?: string | null
+          posted_by?: string | null
+          source_invoice_id?: string
+          source_warehouse_account?: string | null
+          source_warehouse_id?: string
+          status?: string
+          total_cost_value?: number
+          transfer_id?: string | null
+          updated_at?: string
+          vat_account?: string | null
+          vat_amount?: number
+          vat_base?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customs_clearances_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearances_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearances_destination_warehouse_id_fkey"
+            columns: ["destination_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearances_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearances_source_invoice_id_fkey"
+            columns: ["source_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "goods_purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearances_source_warehouse_id_fkey"
+            columns: ["source_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customs_clearances_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "inter_warehouse_transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_note_items: {
         Row: {
           article_id: string
