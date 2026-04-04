@@ -275,6 +275,7 @@ export function CompaniesTab() {
       logo_url: company.logo_url || "",
       logo_text: company.logo_text || "",
       idle_timeout_hours: company.idle_timeout_hours != null ? String(company.idle_timeout_hours) : "",
+      max_concurrent_sessions: company.max_concurrent_sessions != null ? String(company.max_concurrent_sessions) : "",
       vat_period_type: (company as any).vat_period_type || "monthly",
     });
     setLogoFile(null);
