@@ -34,6 +34,17 @@ const statusVariants: Record<string, "default" | "secondary" | "destructive" | "
   posted: "default",
 };
 
+function getSortValue(item: CustomsClearance, column: string): any {
+  switch (column) {
+    case "clearance_number": return item.clearance_number;
+    case "clearance_date": return item.clearance_date;
+    case "invoice_value_rsd": return item.invoice_value_rsd;
+    case "customs_duty_amount": return item.customs_duty_amount;
+    case "total_cost_value": return item.total_cost_value;
+    default: return (item as any)[column];
+  }
+}
+
 export default function CarinskeObrade() {
   const navigate = useNavigate();
   const { clearances, isLoading, deleteClearance } = useCustomsClearances();
@@ -53,7 +64,8 @@ export default function CarinskeObrade() {
     );
   }, [clearances, searchTerm]);
 
-  const { sortedData, sortColumn, sortDirection, handleSort } = useTableSort(filteredClearances, "clearance_number", "desc");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("clearance_number", "desc");
+  const sortedData = sortItems(filteredClearances, getSortValue);
 
   const handleDelete = async () => {
     if (!clearanceToDelete) return;
@@ -70,7 +82,7 @@ export default function CarinskeObrade() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout title="Carinski obračuni">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Carinski obračuni</h1>
@@ -95,16 +107,16 @@ export default function CarinskeObrade() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead><SortableHeader label="Broj" column="clearance_number" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} /></TableHead>
-                <TableHead><SortableHeader label="Datum" column="clearance_date" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader label="Broj" column="clearance_number" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead><SortableHeader label="Datum" column="clearance_date" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead>Izvorna UFR</TableHead>
                 <TableHead>Dobavljač</TableHead>
                 <TableHead>JCI broj</TableHead>
                 <TableHead>Izvorni mag.</TableHead>
                 <TableHead>Odredišni mag.</TableHead>
-                <TableHead className="text-right"><SortableHeader label="Fakt. vr. (RSD)" column="invoice_value_rsd" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} /></TableHead>
-                <TableHead className="text-right"><SortableHeader label="Carina" column="customs_duty_amount" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} /></TableHead>
-                <TableHead className="text-right"><SortableHeader label="Nabavna vr." column="total_cost_value" currentSort={sortColumn} direction={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="text-right"><SortableHeader label="Fakt. vr. (RSD)" column="invoice_value_rsd" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="text-right"><SortableHeader label="Carina" column="customs_duty_amount" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="text-right"><SortableHeader label="Nabavna vr." column="total_cost_value" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-10"></TableHead>
               </TableRow>
