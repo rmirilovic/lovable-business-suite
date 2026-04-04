@@ -105,6 +105,7 @@ export default function SelectCompany() {
     if (company) {
       setSelectedCompany(company);
       setSelectedYear(null);
+      setSessionError(null);
     }
   };
 

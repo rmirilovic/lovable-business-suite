@@ -348,6 +348,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetchUserCompanies(userId, nextUserRole === "super_admin", roleCompanyIds);
 
       updateInitialLoadDone(true);
+      resumeHeartbeatIfNeeded();
     } finally {
       userDataLoadingRef.current = false;
       setLoading(false);
