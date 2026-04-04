@@ -840,6 +840,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     intentionalSignOutRef.current = true;
     setIntentionalSignOutState(true);
+
+    // Remove active session tracking
+    await removeSession();
+
     clearClientAuthState();
 
     try {
