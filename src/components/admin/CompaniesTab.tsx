@@ -52,8 +52,9 @@ interface Company {
   logo_url: string | null;
   logo_text: string | null;
   is_active: boolean | null;
-  idle_timeout_hours: number | null;
-  vat_period_type: string;
+   idle_timeout_hours: number | null;
+   max_concurrent_sessions: number | null;
+   vat_period_type: string;
 }
 
 interface FormData {
