@@ -390,6 +390,11 @@ const App = () => (
                   <ReceivedCreditNoteEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/nabavka/carinski-obracun" element={
+                <ProtectedRoute>
+                  <CarinskeObrade />
+                </ProtectedRoute>
+              } />
               <Route path="/racunovodstvo/nalozi-placanja" element={
                 <ProtectedRoute>
                   <NaloziZaPlacanja />
