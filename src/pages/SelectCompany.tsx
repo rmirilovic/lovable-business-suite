@@ -34,6 +34,8 @@ export default function SelectCompany() {
   } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [checkingSession, setCheckingSession] = useState(false);
 
   const getRoleLabel = () => {
     if (isSuperAdmin) return "Super Admin";
