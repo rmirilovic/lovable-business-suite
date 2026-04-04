@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { registerSession } from "@/lib/sessionManager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Building2, Calendar, LogOut, Mail, User } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Building2, Calendar, LogOut, Mail, User, ShieldAlert } from "lucide-react";
 
 interface UserProfile {
   first_name: string | null;
