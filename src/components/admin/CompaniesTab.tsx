@@ -83,6 +83,7 @@ interface FormData {
   logo_url: string;
   logo_text: string;
   idle_timeout_hours: string;
+  max_concurrent_sessions: string;
   vat_period_type: string;
 }
 
