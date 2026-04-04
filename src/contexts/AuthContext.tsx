@@ -3,6 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { recordLoginAudit, updateLoginAuditCompany } from "@/lib/loginAuditLogger";
+import { removeSession, resumeHeartbeatIfNeeded } from "@/lib/sessionManager";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
