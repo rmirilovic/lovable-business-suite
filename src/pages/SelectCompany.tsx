@@ -75,9 +75,28 @@ export default function SelectCompany() {
     }
   }, [user]);
 
-  const handleContinue = () => {
-    if (selectedCompany && selectedYear) {
+  const handleContinue = async () => {
+    if (!selectedCompany || !selectedYear) return;
+
+    setSessionError(null);
+    setCheckingSession(true);
+
+    try {
+      const result = await registerSession(selectedCompany.id);
+
+      if (!result.allowed) {
+        setSessionError(
+          `Dostignut je maksimalan broj istovremenih sesija (${result.max}) za firmu "${selectedCompany.name}". Pokušajte ponovo kasnije ili kontaktirajte administratora.`
+        );
+        setCheckingSession(false);
+        return;
+      }
+
       navigate("/");
+    } catch {
+      setSessionError("Greška pri proveri sesije. Pokušajte ponovo.");
+    } finally {
+      setCheckingSession(false);
     }
   };
 
