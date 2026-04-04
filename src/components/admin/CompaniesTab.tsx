@@ -52,8 +52,9 @@ interface Company {
   logo_url: string | null;
   logo_text: string | null;
   is_active: boolean | null;
-  idle_timeout_hours: number | null;
-  vat_period_type: string;
+   idle_timeout_hours: number | null;
+   max_concurrent_sessions: number | null;
+   vat_period_type: string;
 }
 
 interface FormData {
@@ -82,6 +83,7 @@ interface FormData {
   logo_url: string;
   logo_text: string;
   idle_timeout_hours: string;
+  max_concurrent_sessions: string;
   vat_period_type: string;
 }
 
@@ -111,6 +113,7 @@ const emptyFormData: FormData = {
   logo_url: "",
   logo_text: "",
   idle_timeout_hours: "",
+  max_concurrent_sessions: "",
   vat_period_type: "monthly",
 };
 
@@ -214,6 +217,7 @@ export function CompaniesTab() {
       logo_url: logoUrl || null,
       logo_text: formData.logo_text || null,
       idle_timeout_hours: formData.idle_timeout_hours ? parseFloat(formData.idle_timeout_hours) : null,
+      max_concurrent_sessions: formData.max_concurrent_sessions ? parseInt(formData.max_concurrent_sessions, 10) : null,
       vat_period_type: formData.vat_period_type || "monthly",
     };
 
@@ -271,6 +275,7 @@ export function CompaniesTab() {
       logo_url: company.logo_url || "",
       logo_text: company.logo_text || "",
       idle_timeout_hours: company.idle_timeout_hours != null ? String(company.idle_timeout_hours) : "",
+      max_concurrent_sessions: company.max_concurrent_sessions != null ? String(company.max_concurrent_sessions) : "",
       vat_period_type: (company as any).vat_period_type || "monthly",
     });
     setLogoFile(null);
@@ -552,6 +557,22 @@ export function CompaniesTab() {
                     />
                     <p className="text-xs text-muted-foreground">
                       Nakon zadatog broja sati neaktivnosti korisnik će biti upozoren, a zatim automatski odjavljen. Ostavite prazno da biste isključili ovu funkciju.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="max_concurrent_sessions">Maks. broj istovremenih sesija</Label>
+                    <Input
+                      id="max_concurrent_sessions"
+                      type="number"
+                      min="1"
+                      max="999"
+                      step="1"
+                      value={formData.max_concurrent_sessions}
+                      onChange={(e) => updateFormField("max_concurrent_sessions", e.target.value)}
+                      placeholder="Npr. 5 (prazno = neograničeno)"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Maksimalan broj istovremenih aktivnih sesija za ovu firmu. Kada se dostigne limit, novi korisnici neće moći da pristupe dok se neka sesija ne oslobodi. Ostavite prazno za neograničen pristup.
                     </p>
                   </div>
                 </TabsContent>

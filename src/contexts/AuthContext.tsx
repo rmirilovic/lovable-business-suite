@@ -3,6 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { recordLoginAudit, updateLoginAuditCompany } from "@/lib/loginAuditLogger";
+import { removeSession, resumeHeartbeatIfNeeded } from "@/lib/sessionManager";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -347,6 +348,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetchUserCompanies(userId, nextUserRole === "super_admin", roleCompanyIds);
 
       updateInitialLoadDone(true);
+      resumeHeartbeatIfNeeded();
     } finally {
       userDataLoadingRef.current = false;
       setLoading(false);
@@ -839,6 +841,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     intentionalSignOutRef.current = true;
     setIntentionalSignOutState(true);
+
+    // Remove active session tracking
+    await removeSession();
+
     clearClientAuthState();
 
     try {

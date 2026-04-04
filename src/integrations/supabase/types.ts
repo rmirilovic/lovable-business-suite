@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      active_sessions: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          last_heartbeat: string
+          session_token: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          last_heartbeat?: string
+          session_token: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          last_heartbeat?: string
+          session_token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "active_sessions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advance_invoice_items: {
         Row: {
           advance_invoice_id: string
@@ -1461,6 +1496,7 @@ export type Database = {
           is_active: boolean | null
           logo_text: string | null
           logo_url: string | null
+          max_concurrent_sessions: number | null
           mb: string | null
           mesto_prometa: string | null
           municipality: string | null
@@ -1493,6 +1529,7 @@ export type Database = {
           is_active?: boolean | null
           logo_text?: string | null
           logo_url?: string | null
+          max_concurrent_sessions?: number | null
           mb?: string | null
           mesto_prometa?: string | null
           municipality?: string | null
@@ -1525,6 +1562,7 @@ export type Database = {
           is_active?: boolean | null
           logo_text?: string | null
           logo_url?: string | null
+          max_concurrent_sessions?: number | null
           mb?: string | null
           mesto_prometa?: string | null
           municipality?: string | null
@@ -8938,6 +8976,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_session_limit: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: Json
+      }
       cleanup_orphaned_goods_receipts: { Args: never; Returns: number }
       close_reprocessing_work_order: {
         Args: { _order_id: string; _user_id: string }
@@ -9141,6 +9183,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      heartbeat_session: {
+        Args: { _session_token: string }
+        Returns: undefined
+      }
       is_local_admin_for_company: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
@@ -9227,6 +9273,11 @@ export type Database = {
         Args: { _invoice_id: string; _user_id: string }
         Returns: string
       }
+      register_session: {
+        Args: { _company_id: string; _session_token: string }
+        Returns: Json
+      }
+      remove_session: { Args: { _session_token: string }; Returns: undefined }
       reopen_reprocessing_work_order: {
         Args: { _order_id: string; _user_id: string }
         Returns: boolean

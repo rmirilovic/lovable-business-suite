@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { registerSession } from "@/lib/sessionManager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Building2, Calendar, LogOut, Mail, User } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Building2, Calendar, LogOut, Mail, User, ShieldAlert } from "lucide-react";
 
 interface UserProfile {
   first_name: string | null;
@@ -32,6 +34,8 @@ export default function SelectCompany() {
   } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [checkingSession, setCheckingSession] = useState(false);
 
   const getRoleLabel = () => {
     if (isSuperAdmin) return "Super Admin";
@@ -71,9 +75,28 @@ export default function SelectCompany() {
     }
   }, [user]);
 
-  const handleContinue = () => {
-    if (selectedCompany && selectedYear) {
+  const handleContinue = async () => {
+    if (!selectedCompany || !selectedYear) return;
+
+    setSessionError(null);
+    setCheckingSession(true);
+
+    try {
+      const result = await registerSession(selectedCompany.id);
+
+      if (!result.allowed) {
+        setSessionError(
+          `Dostignut je maksimalan broj istovremenih sesija (${result.max}) za firmu "${selectedCompany.name}". Pokušajte ponovo kasnije ili kontaktirajte administratora.`
+        );
+        setCheckingSession(false);
+        return;
+      }
+
       navigate("/");
+    } catch {
+      setSessionError("Greška pri proveri sesije. Pokušajte ponovo.");
+    } finally {
+      setCheckingSession(false);
     }
   };
 
@@ -82,6 +105,7 @@ export default function SelectCompany() {
     if (company) {
       setSelectedCompany(company);
       setSelectedYear(null);
+      setSessionError(null);
     }
   };
 
@@ -233,12 +257,19 @@ export default function SelectCompany() {
                   </Select>
                 </div>
 
+                {sessionError && (
+                  <Alert variant="destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertDescription>{sessionError}</AlertDescription>
+                  </Alert>
+                )}
+
                 <Button 
                   onClick={handleContinue} 
                   className="w-full"
-                  disabled={!selectedCompany || !selectedYear}
+                  disabled={!selectedCompany || !selectedYear || checkingSession}
                 >
-                  Nastavi
+                  {checkingSession ? "Provera sesije..." : "Nastavi"}
                 </Button>
               </>
             )}
