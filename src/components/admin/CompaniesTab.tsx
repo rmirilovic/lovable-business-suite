@@ -113,6 +113,7 @@ const emptyFormData: FormData = {
   logo_url: "",
   logo_text: "",
   idle_timeout_hours: "",
+  max_concurrent_sessions: "",
   vat_period_type: "monthly",
 };
 
