@@ -48,6 +48,7 @@ import UlazneFaktureAvansi from "./pages/nabavka/UlazneFaktureAvansi";
 import AdvancePurchaseInvoiceEdit from "./pages/nabavka/AdvancePurchaseInvoiceEdit";
 import PrimljenaKnjiznaOdobrenja from "./pages/nabavka/PrimljenaKnjiznaOdobrenja";
 import ReceivedCreditNoteEdit from "./pages/nabavka/ReceivedCreditNoteEdit";
+import CarinskeObrade from "./pages/nabavka/CarinskeObrade";
 import NaloziZaPlacanja from "./pages/nabavka/NaloziZaPlacanja";
 import Prijemnice from "./pages/magacin/Prijemnice";
 import GoodsReceiptEdit from "./pages/magacin/GoodsReceiptEdit";
