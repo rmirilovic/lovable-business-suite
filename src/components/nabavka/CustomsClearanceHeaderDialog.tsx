@@ -25,7 +25,7 @@ export function CustomsClearanceHeaderDialog({ open, onOpenChange, onCreated }: 
   const { selectedCompany } = useAuth();
   const { createClearance, isCreating } = useCustomsClearances();
   const { invoices } = useGoodsPurchaseInvoices();
-  const { warehouses } = useWarehouses();
+  const { warehouses } = useWarehouses(selectedCompany?.id);
 
   const [sourceInvoiceId, setSourceInvoiceId] = useState("");
   const [clearanceDate, setClearanceDate] = useState(new Date().toISOString().split("T")[0]);
