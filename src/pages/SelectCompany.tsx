@@ -257,12 +257,19 @@ export default function SelectCompany() {
                   </Select>
                 </div>
 
+                {sessionError && (
+                  <Alert variant="destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertDescription>{sessionError}</AlertDescription>
+                  </Alert>
+                )}
+
                 <Button 
                   onClick={handleContinue} 
                   className="w-full"
-                  disabled={!selectedCompany || !selectedYear}
+                  disabled={!selectedCompany || !selectedYear || checkingSession}
                 >
-                  Nastavi
+                  {checkingSession ? "Provera sesije..." : "Nastavi"}
                 </Button>
               </>
             )}
