@@ -112,3 +112,19 @@ export function resumeHeartbeatIfNeeded() {
     startHeartbeat();
   }
 }
+
+// Clean up session on tab/window close
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", () => {
+    const token = getSessionToken();
+    if (token) {
+      // Use sendBeacon for reliable cleanup on tab close
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/remove_session`;
+      const body = JSON.stringify({ _session_token: token });
+      navigator.sendBeacon(
+        url,
+        new Blob([body], { type: "application/json" })
+      );
+    }
+  });
+}
