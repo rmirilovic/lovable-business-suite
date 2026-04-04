@@ -559,6 +559,22 @@ export function CompaniesTab() {
                       Nakon zadatog broja sati neaktivnosti korisnik će biti upozoren, a zatim automatski odjavljen. Ostavite prazno da biste isključili ovu funkciju.
                     </p>
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="max_concurrent_sessions">Maks. broj istovremenih sesija</Label>
+                    <Input
+                      id="max_concurrent_sessions"
+                      type="number"
+                      min="1"
+                      max="999"
+                      step="1"
+                      value={formData.max_concurrent_sessions}
+                      onChange={(e) => updateFormField("max_concurrent_sessions", e.target.value)}
+                      placeholder="Npr. 5 (prazno = neograničeno)"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Maksimalan broj istovremenih aktivnih sesija za ovu firmu. Kada se dostigne limit, novi korisnici neće moći da pristupe dok se neka sesija ne oslobodi. Ostavite prazno za neograničen pristup.
+                    </p>
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="docs" className="space-y-4 mt-4">
