@@ -345,7 +345,7 @@ export default function CustomsClearanceEdit() {
 
   return (
     <MainLayout title={`Carinski obračun ${clearance.clearance_number}`}>
-      <div className="space-y-6">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6 pb-6">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
