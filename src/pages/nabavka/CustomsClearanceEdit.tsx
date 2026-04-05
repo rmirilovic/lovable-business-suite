@@ -347,15 +347,15 @@ export default function CustomsClearanceEdit() {
     <MainLayout title={`Carinski obračun ${clearance.clearance_number}`}>
       <div className="flex-1 min-h-0 overflow-auto space-y-6 pb-6">
         {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" asChild>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Button variant="ghost" size="icon" asChild className="shrink-0">
               <Link to="/nabavka/carinski-obracun">
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
-            <h1 className="text-2xl font-bold">Carinski obračun {clearance.clearance_number}</h1>
-            <Badge variant={statusVariants[clearance.status] || "secondary"}>
+            <h1 className="text-lg sm:text-2xl font-bold truncate">CO {clearance.clearance_number}</h1>
+            <Badge variant={statusVariants[clearance.status] || "secondary"} className="shrink-0">
               {statusLabels[clearance.status] || clearance.status}
             </Badge>
           </div>
