@@ -508,7 +508,7 @@ export default function CustomsClearanceEdit() {
         {/* Summary */}
         <div className="border rounded-lg p-4 bg-card">
           <h3 className="text-sm font-semibold mb-3">Rekapitulacija</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-8 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-8 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Fakturna vrednost (RSD):</span>
               <span className="font-medium">{formatPrice(totals.invoiceValueRsd)}</span>
@@ -537,7 +537,7 @@ export default function CustomsClearanceEdit() {
               <span className="text-muted-foreground">PDV ({vatRate}%):</span>
               <span className="font-medium">{formatPrice(totals.vatAmount)}</span>
             </div>
-            <div className="flex justify-between col-span-2 md:col-span-1 border-t pt-2 mt-1">
+            <div className="flex justify-between sm:col-span-2 md:col-span-3 border-t pt-2 mt-1">
               <span className="font-semibold">Nabavna vrednost:</span>
               <span className="font-bold text-primary">{formatPrice(totals.totalCostValue)}</span>
             </div>
