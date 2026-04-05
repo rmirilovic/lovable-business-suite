@@ -345,17 +345,17 @@ export default function CustomsClearanceEdit() {
 
   return (
     <MainLayout title={`Carinski obračun ${clearance.clearance_number}`}>
-      <div className="space-y-6">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6 pb-6">
         {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" asChild>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Button variant="ghost" size="icon" asChild className="shrink-0">
               <Link to="/nabavka/carinski-obracun">
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
-            <h1 className="text-2xl font-bold">Carinski obračun {clearance.clearance_number}</h1>
-            <Badge variant={statusVariants[clearance.status] || "secondary"}>
+            <h1 className="text-lg sm:text-2xl font-bold truncate">CO {clearance.clearance_number}</h1>
+            <Badge variant={statusVariants[clearance.status] || "secondary"} className="shrink-0">
               {statusLabels[clearance.status] || clearance.status}
             </Badge>
           </div>
@@ -376,7 +376,7 @@ export default function CustomsClearanceEdit() {
 
         {/* Header info */}
         <div className="border rounded-lg p-4 bg-card">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div>
               <span className="text-muted-foreground">Datum:</span>{" "}
               <span className="font-medium">{formatDate(clearance.clearance_date)}</span>
@@ -415,7 +415,7 @@ export default function CustomsClearanceEdit() {
         {/* Duty, Excise, VAT inputs */}
         <div className="border rounded-lg p-4 bg-card space-y-4">
           <h3 className="text-sm font-semibold">Carinske dažbine i PDV</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Iznos carine (RSD)</Label>
               <LocaleNumberInput
@@ -450,7 +450,7 @@ export default function CustomsClearanceEdit() {
         {/* Account codes */}
         <div className="border rounded-lg p-4 bg-card space-y-4">
           <h3 className="text-sm font-semibold">Konta za knjiženje</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Carina</Label>
               <Input value={customsDutyAccount} onChange={(e) => setCustomsDutyAccount(e.target.value)} disabled={!isEditable} placeholder="npr. 1329" />
@@ -508,7 +508,7 @@ export default function CustomsClearanceEdit() {
         {/* Summary */}
         <div className="border rounded-lg p-4 bg-card">
           <h3 className="text-sm font-semibold mb-3">Rekapitulacija</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-8 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-8 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Fakturna vrednost (RSD):</span>
               <span className="font-medium">{formatPrice(totals.invoiceValueRsd)}</span>
@@ -537,7 +537,7 @@ export default function CustomsClearanceEdit() {
               <span className="text-muted-foreground">PDV ({vatRate}%):</span>
               <span className="font-medium">{formatPrice(totals.vatAmount)}</span>
             </div>
-            <div className="flex justify-between col-span-2 md:col-span-1 border-t pt-2 mt-1">
+            <div className="flex justify-between sm:col-span-2 md:col-span-3 border-t pt-2 mt-1">
               <span className="font-semibold">Nabavna vrednost:</span>
               <span className="font-bold text-primary">{formatPrice(totals.totalCostValue)}</span>
             </div>
