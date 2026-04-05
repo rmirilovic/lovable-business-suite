@@ -396,6 +396,11 @@ const App = () => (
                   <CarinskeObrade />
                 </ProtectedRoute>
               } />
+              <Route path="/nabavka/carinski-obracun/:id" element={
+                <ProtectedRoute>
+                  <CustomsClearanceEdit />
+                </ProtectedRoute>
+              } />
               <Route path="/racunovodstvo/nalozi-placanja" element={
                 <ProtectedRoute>
                   <NaloziZaPlacanja />
