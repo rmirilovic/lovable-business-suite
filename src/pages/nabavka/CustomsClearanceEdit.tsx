@@ -376,7 +376,7 @@ export default function CustomsClearanceEdit() {
 
         {/* Header info */}
         <div className="border rounded-lg p-4 bg-card">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div>
               <span className="text-muted-foreground">Datum:</span>{" "}
               <span className="font-medium">{formatDate(clearance.clearance_date)}</span>
@@ -415,7 +415,7 @@ export default function CustomsClearanceEdit() {
         {/* Duty, Excise, VAT inputs */}
         <div className="border rounded-lg p-4 bg-card space-y-4">
           <h3 className="text-sm font-semibold">Carinske dažbine i PDV</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Iznos carine (RSD)</Label>
               <LocaleNumberInput
@@ -450,7 +450,7 @@ export default function CustomsClearanceEdit() {
         {/* Account codes */}
         <div className="border rounded-lg p-4 bg-card space-y-4">
           <h3 className="text-sm font-semibold">Konta za knjiženje</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Carina</Label>
               <Input value={customsDutyAccount} onChange={(e) => setCustomsDutyAccount(e.target.value)} disabled={!isEditable} placeholder="npr. 1329" />
