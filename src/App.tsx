@@ -49,6 +49,7 @@ import AdvancePurchaseInvoiceEdit from "./pages/nabavka/AdvancePurchaseInvoiceEd
 import PrimljenaKnjiznaOdobrenja from "./pages/nabavka/PrimljenaKnjiznaOdobrenja";
 import ReceivedCreditNoteEdit from "./pages/nabavka/ReceivedCreditNoteEdit";
 import CarinskeObrade from "./pages/nabavka/CarinskeObrade";
+import CustomsClearanceEdit from "./pages/nabavka/CustomsClearanceEdit";
 import NaloziZaPlacanja from "./pages/nabavka/NaloziZaPlacanja";
 import Prijemnice from "./pages/magacin/Prijemnice";
 import GoodsReceiptEdit from "./pages/magacin/GoodsReceiptEdit";
@@ -393,6 +394,11 @@ const App = () => (
               <Route path="/nabavka/carinski-obracun" element={
                 <ProtectedRoute>
                   <CarinskeObrade />
+                </ProtectedRoute>
+              } />
+              <Route path="/nabavka/carinski-obracun/:id" element={
+                <ProtectedRoute>
+                  <CustomsClearanceEdit />
                 </ProtectedRoute>
               } />
               <Route path="/racunovodstvo/nalozi-placanja" element={
