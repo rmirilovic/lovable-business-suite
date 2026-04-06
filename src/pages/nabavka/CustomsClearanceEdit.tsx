@@ -299,6 +299,42 @@ export default function CustomsClearanceEdit() {
     setIsSaving(false);
   };
 
+  // Post clearance
+  const handlePost = async () => {
+    if (!clearance || !id) return;
+    if (recalculatedItems.filter(i => i.quantity > 0).length === 0) {
+      toast.error("Nema stavki za knjiženje");
+      return;
+    }
+    // Save first, then post
+    setIsPosting(true);
+    try {
+      await handleSave();
+      await postClearance(id);
+      toast.success("Carinski obračun proknjižen");
+      await fetchClearance();
+      await loadItemsAndCosts();
+    } catch (e: any) {
+      toast.error(`Greška pri knjiženju: ${e.message}`);
+    }
+    setIsPosting(false);
+  };
+
+  // Unpost clearance
+  const handleUnpost = async () => {
+    if (!clearance || !id) return;
+    setIsPosting(true);
+    try {
+      await unpostClearance(id);
+      toast.success("Knjiženje poništeno");
+      await fetchClearance();
+      await loadItemsAndCosts();
+    } catch (e: any) {
+      toast.error(`Greška pri poništavanju: ${e.message}`);
+    }
+    setIsPosting(false);
+  };
+
   // Update item quantity
   const handleUpdateItemQuantity = (itemId: string, newQty: number) => {
     setItems((prev) =>
@@ -361,17 +397,27 @@ export default function CustomsClearanceEdit() {
               {statusLabels[clearance.status] || clearance.status}
             </Badge>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {isEditable && (
               <>
-                <Button variant="outline" onClick={() => { fetchClearance(); loadItemsAndCosts(); }}>
+                <Button variant="outline" size="sm" onClick={() => { fetchClearance(); loadItemsAndCosts(); }}>
                   <RefreshCw className="h-4 w-4 mr-2" /> Osveži
                 </Button>
-                <Button onClick={handleSave} disabled={isSaving}>
+                <Button size="sm" onClick={handleSave} disabled={isSaving}>
                   {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                   Sačuvaj
                 </Button>
+                <Button size="sm" onClick={handlePost} disabled={isPosting || isSaving} className="bg-green-600 hover:bg-green-700 text-white">
+                  {isPosting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                  Proknjiži
+                </Button>
               </>
+            )}
+            {clearance.status === "posted" && (
+              <Button size="sm" variant="destructive" onClick={handleUnpost} disabled={isPosting}>
+                {isPosting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Undo2 className="h-4 w-4 mr-2" />}
+                Poništi knjiženje
+              </Button>
             )}
           </div>
         </div>
