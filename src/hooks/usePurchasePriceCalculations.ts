@@ -893,16 +893,7 @@ export function useCalculationUfuLinks(calculationId: string | null) {
 
       if (linkError) throw linkError;
 
-      // Get input costs marked as procurement costs
-      const { data: procInputCosts } = await supabase
-        .from("input_costs")
-        .select("id")
-        .eq("company_id", selectedCompany.id)
-        .eq("is_procurement_cost", true as any);
-
-      const procInputCostIds = new Set((procInputCosts || []).map((ic: any) => ic.id));
-
-      // Load UFU items that are procurement costs
+      // Load ALL UFU items (all items represent procurement costs to distribute)
       const { data: ufuItems } = await (supabase as any)
         .from("service_purchase_invoice_items")
         .select(`
@@ -928,9 +919,8 @@ export function useCalculationUfuLinks(calculationId: string | null) {
 
       let nextOrder = (existing?.[0]?.item_order || 0) + 1;
 
-      // Insert each qualifying UFU item as an additional cost
+      // Insert each UFU item as an additional cost
       for (const item of (ufuItems || [])) {
-        if (!item.input_cost || !procInputCostIds.has(item.input_cost.id)) continue;
 
         // If VAT is not deductible, full amount (with VAT) goes to cost; otherwise net amount
         const amount = item.is_vat_deductible ? item.line_subtotal : item.line_total;
