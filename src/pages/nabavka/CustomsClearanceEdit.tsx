@@ -401,14 +401,14 @@ export default function CustomsClearanceEdit() {
                   {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                   Sačuvaj
                 </Button>
-                <Button size="sm" onClick={handlePost} disabled={isPosting || isSaving} className="bg-green-600 hover:bg-green-700 text-white">
+                <Button size="sm" onClick={handlePost} disabled={isPosting || isSaving}>
                   {isPosting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
                   Proknjiži
                 </Button>
               </>
             )}
             {clearance.status === "posted" && (
-              <Button size="sm" variant="destructive" onClick={handleUnpost} disabled={isPosting}>
+              <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={handleUnpost} disabled={isPosting}>
                 {isPosting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Undo2 className="h-4 w-4 mr-2" />}
                 Poništi knjiženje
               </Button>
