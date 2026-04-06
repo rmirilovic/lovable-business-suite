@@ -31,7 +31,7 @@ export function CustomsClearanceItemsEditor({
   const [qtyValues, setQtyValues] = useState<Record<string, string>>({});
 
   const getQtyValue = (item: CustomsClearanceItem) => {
-    return qtyValues[item.id] ?? formatDecimal(item.quantity, 2);
+    return qtyValues[item.id] ?? formatDecimal(item.quantity, item.quantity % 1 === 0 ? 0 : 3);
   };
 
   const handleQtyChange = (itemId: string, value: string) => {
@@ -42,7 +42,7 @@ export function CustomsClearanceItemsEditor({
     const num = parseLocaleNumber(value);
     const clamped = Math.min(Math.max(0, num), item.available_quantity);
     onUpdateQuantity(item.id, clamped);
-    setQtyValues((prev) => ({ ...prev, [item.id]: formatDecimal(clamped, 2) }));
+    setQtyValues((prev) => ({ ...prev, [item.id]: formatDecimal(clamped, clamped % 1 === 0 ? 0 : 3) }));
   };
 
   if (isLoading) {
