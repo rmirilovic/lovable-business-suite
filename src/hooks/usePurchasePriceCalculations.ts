@@ -825,18 +825,30 @@ export function useCalculationUfuLinks(calculationId: string | null) {
 
       const alreadyLinked = new Set((linkedIds || []).map((l: any) => l.service_invoice_id));
 
-      // Fetch all posted UFU for this company
+      // Get input_cost IDs that are procurement costs
+      const { data: procCosts } = await (supabase as any)
+        .from("input_costs")
+        .select("id")
+        .eq("company_id", selectedCompany.id)
+        .eq("is_procurement_cost", true);
+
+      const procCostIds = new Set((procCosts || []).map((c: any) => c.id));
+
+      // Fetch all posted UFU with their items for this company
       const { data, error } = await (supabase as any)
         .from("service_purchase_invoices")
-        .select("id, internal_number, supplier_invoice_number, total_amount, partner:partners(id, code, name)")
+        .select("id, internal_number, supplier_invoice_number, total_amount, partner:partners(id, code, name), items:service_purchase_invoice_items(input_cost_id)")
         .eq("company_id", selectedCompany.id)
         .eq("status", "posted")
         .order("internal_number", { ascending: false });
 
       if (error) throw error;
 
-      // Filter out already linked
-      const available = (data || []).filter((ufu: any) => !alreadyLinked.has(ufu.id));
+      // Filter: not already linked AND has at least one item with procurement cost
+      const available = (data || []).filter((ufu: any) => {
+        if (alreadyLinked.has(ufu.id)) return false;
+        return (ufu.items || []).some((item: any) => item.input_cost_id && procCostIds.has(item.input_cost_id));
+      });
 
       return available as Array<{
         id: string;
@@ -875,14 +887,30 @@ export function useCalculationUfuLinks(calculationId: string | null) {
 
       if (linkError) throw linkError;
 
-      // Load ALL UFU items (all items represent procurement costs to distribute)
+      // Load UFU items with input cost info
       const { data: ufuItems } = await (supabase as any)
         .from("service_purchase_invoice_items")
         .select(`
           *,
-          input_cost:input_costs(id, account_code, name)
+          input_cost:input_costs(id, account_code, name, is_procurement_cost)
         `)
         .eq("service_purchase_invoice_id", serviceInvoiceId);
+
+      // Get procurement cost IDs
+      const { data: procCosts } = await (supabase as any)
+        .from("input_costs")
+        .select("id")
+        .eq("company_id", selectedCompany.id)
+        .eq("is_procurement_cost", true);
+
+      const procCostIds = new Set((procCosts || []).map((c: any) => c.id));
+
+      // Filter to only procurement cost items
+      const procItems = (ufuItems || []).filter((item: any) => item.input_cost_id && procCostIds.has(item.input_cost_id));
+
+      if (procItems.length === 0) {
+        throw new Error("UFU nema stavki sa zavisnim troškovima nabavke");
+      }
 
       // Get UFU partner
       const { data: ufu } = await (supabase as any)
@@ -901,8 +929,8 @@ export function useCalculationUfuLinks(calculationId: string | null) {
 
       let nextOrder = (existing?.[0]?.item_order || 0) + 1;
 
-      // Insert each UFU item as an additional cost
-      for (const item of (ufuItems || [])) {
+      // Insert only procurement cost items
+      for (const item of procItems) {
 
         // If VAT is not deductible, full amount (with VAT) goes to cost; otherwise net amount
         const amount = item.is_vat_deductible ? item.line_subtotal : item.line_total;
