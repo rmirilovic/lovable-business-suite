@@ -212,7 +212,7 @@ export default function CalculationEdit() {
 
   return (
     <MainLayout title={`Kalkulacija ${calculation.calculation_number}`}>
-      <div className="space-y-6">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
