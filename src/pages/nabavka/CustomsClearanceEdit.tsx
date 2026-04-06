@@ -439,7 +439,7 @@ export default function CustomsClearanceEdit() {
             </div>
             <div>
               <span className="text-muted-foreground">Valuta / Kurs:</span>{" "}
-              <span className="font-medium">{clearance.currency} / {formatNumber(clearance.exchange_rate)}</span>
+              <span className="font-medium">{clearance.currency} / {formatNumber(clearance.exchange_rate, { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</span>
             </div>
             <div>
               <span className="text-muted-foreground">JCI broj:</span>{" "}
