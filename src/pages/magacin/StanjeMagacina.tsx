@@ -393,7 +393,7 @@ export default function StanjeMagacina() {
 
       {/* Article Warehouse Card Dialog - always rendered to prevent unmount on tab switch */}
       <ArticleWarehouseCardDialog
-        open={!!selectedArticle && !!warehouseId && !!companyId}
+        open={!!selectedArticle}
         onOpenChange={(open) => { if (!open) setSelectedArticle(null); }}
         companyId={companyId || ""}
         warehouseId={warehouseId}
