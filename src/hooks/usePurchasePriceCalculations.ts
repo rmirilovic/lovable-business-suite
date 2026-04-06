@@ -812,51 +812,33 @@ export function useCalculationUfuLinks(calculationId: string | null) {
     enabled: !!calculationId,
   });
 
-  // Get available UFU documents (posted, not linked, with procurement cost accounts)
+  // Get available UFU documents (posted, not linked to any calculation)
   const availableUfu = useQuery({
     queryKey: ["available-ufu", calculationId, selectedCompany?.id],
     queryFn: async () => {
       if (!selectedCompany?.id) return [];
 
-      // Get input costs marked as procurement costs
-      const { data: inputCosts } = await supabase
-        .from("input_costs")
-        .select("id")
-        .eq("company_id", selectedCompany.id)
-        .eq("is_procurement_cost", true as any);
-
-      const inputCostIds = (inputCosts || []).map((ic: any) => ic.id);
-      if (inputCostIds.length === 0) return [];
-
-      // Find posted UFU that have items with these input costs and are not linked
-      const { data: ufuItems } = await (supabase as any)
-        .from("service_purchase_invoice_items")
-        .select("service_purchase_invoice_id")
-        .in("input_cost_id", inputCostIds);
-
-      const ufuIds = [...new Set((ufuItems || []).map((i: any) => i.service_purchase_invoice_id))];
-      if (ufuIds.length === 0) return [];
-
-      // Filter: posted, not already linked
+      // Get already linked UFU ids
       const { data: linkedIds } = await (supabase as any)
         .from("calculation_ufu_links")
         .select("service_invoice_id");
 
       const alreadyLinked = new Set((linkedIds || []).map((l: any) => l.service_invoice_id));
-      const availableIds = ufuIds.filter((id: string) => !alreadyLinked.has(id));
 
-      if (availableIds.length === 0) return [];
-
+      // Fetch all posted UFU for this company
       const { data, error } = await (supabase as any)
         .from("service_purchase_invoices")
         .select("id, internal_number, supplier_invoice_number, total_amount, partner:partners(id, code, name)")
         .eq("company_id", selectedCompany.id)
         .eq("status", "posted")
-        .in("id", availableIds)
         .order("internal_number", { ascending: false });
 
       if (error) throw error;
-      return data as Array<{
+
+      // Filter out already linked
+      const available = (data || []).filter((ufu: any) => !alreadyLinked.has(ufu.id));
+
+      return available as Array<{
         id: string;
         internal_number: string;
         supplier_invoice_number: string;
