@@ -316,21 +316,19 @@ export default function LagerLista() {
             </Table>
           </TableScrollContainer>
         )}
-        {cardArticle && companyId && warehouseId && (
-          <ArticleWarehouseCardDialog
-            open={!!cardArticle}
-            onOpenChange={(open) => { if (!open) setCardArticle(null); }}
-            companyId={companyId}
-            warehouseId={warehouseId}
-            warehouseName={warehouseName}
-            articleId={cardArticle.article_id}
-            articleCode={cardArticle.article_code}
-            articleName={cardArticle.article_name}
-            unit={cardArticle.unit}
-            dateFrom={dateFrom || undefined}
-            dateTo={dateTo || undefined}
-          />
-        )}
+        <ArticleWarehouseCardDialog
+          open={!!cardArticle}
+          onOpenChange={(open) => { if (!open) setCardArticle(null); }}
+          companyId={companyId || ""}
+          warehouseId={warehouseId || ""}
+          warehouseName={warehouseName}
+          articleId={cardArticle?.article_id || ""}
+          articleCode={cardArticle?.article_code || ""}
+          articleName={cardArticle?.article_name || ""}
+          unit={cardArticle?.unit || ""}
+          dateFrom={dateFrom || undefined}
+          dateTo={dateTo || undefined}
+        />
       </div>
     </MainLayout>
   );
