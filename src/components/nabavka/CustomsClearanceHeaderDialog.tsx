@@ -83,8 +83,6 @@ export function CustomsClearanceHeaderDialog({ open, onOpenChange, onCreated }: 
         excise_account: null,
         vat_account: "2700",
         customs_obligation_account: null,
-        source_warehouse_account: null,
-        destination_warehouse_account: null,
         note: note || null,
       });
       onCreated(result.id);
