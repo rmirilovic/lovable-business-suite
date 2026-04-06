@@ -9542,6 +9542,10 @@ export type Database = {
         Args: { _credit_note_id: string; _user_id: string }
         Returns: boolean
       }
+      post_customs_clearance: {
+        Args: { _clearance_id: string; _user_id: string }
+        Returns: undefined
+      }
       post_delivery_note: {
         Args: { _delivery_note_id: string; _user_id: string }
         Returns: string
@@ -9632,6 +9636,10 @@ export type Database = {
       unpost_credit_note: {
         Args: { _credit_note_id: string }
         Returns: boolean
+      }
+      unpost_customs_clearance: {
+        Args: { _clearance_id: string; _user_id: string }
+        Returns: undefined
       }
       unpost_delivery_note: {
         Args: { _delivery_note_id: string; _user_id: string }
