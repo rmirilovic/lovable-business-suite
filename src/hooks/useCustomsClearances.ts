@@ -32,8 +32,6 @@ export interface CustomsClearance {
   excise_account: string | null;
   vat_account: string | null;
   customs_obligation_account: string | null;
-  source_warehouse_account: string | null;
-  destination_warehouse_account: string | null;
   status: string;
   note: string | null;
   created_by: string;
@@ -109,8 +107,6 @@ export interface CustomsClearanceFormData {
   excise_account: string | null;
   vat_account: string | null;
   customs_obligation_account: string | null;
-  source_warehouse_account: string | null;
-  destination_warehouse_account: string | null;
   note: string | null;
 }
 

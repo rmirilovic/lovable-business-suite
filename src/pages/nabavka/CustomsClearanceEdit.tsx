@@ -68,8 +68,6 @@ export default function CustomsClearanceEdit() {
   const [exciseAccount, setExciseAccount] = useState("");
   const [vatAccount, setVatAccount] = useState("2700");
   const [customsObligationAccount, setCustomsObligationAccount] = useState("");
-  const [sourceWarehouseAccount, setSourceWarehouseAccount] = useState("");
-  const [destinationWarehouseAccount, setDestinationWarehouseAccount] = useState("");
 
   const isEditable = clearance?.status === "draft";
 
@@ -102,8 +100,6 @@ export default function CustomsClearanceEdit() {
     setExciseAccount(data.excise_account || "");
     setVatAccount(data.vat_account || "2700");
     setCustomsObligationAccount(data.customs_obligation_account || "");
-    setSourceWarehouseAccount(data.source_warehouse_account || "");
-    setDestinationWarehouseAccount(data.destination_warehouse_account || "");
     setIsLoading(false);
   }, [id]);
 
@@ -266,8 +262,6 @@ export default function CustomsClearanceEdit() {
         excise_account: exciseAccount || null,
         vat_account: vatAccount || null,
         customs_obligation_account: customsObligationAccount || null,
-        source_warehouse_account: sourceWarehouseAccount || null,
-        destination_warehouse_account: destinationWarehouseAccount || null,
         note: clearance.note,
       });
 
@@ -514,14 +508,6 @@ export default function CustomsClearanceEdit() {
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Obaveza prema carini</Label>
               <Input value={customsObligationAccount} onChange={(e) => setCustomsObligationAccount(e.target.value)} disabled={!isEditable} placeholder="npr. 4390" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Izvorni magacin</Label>
-              <Input value={sourceWarehouseAccount} onChange={(e) => setSourceWarehouseAccount(e.target.value)} disabled={!isEditable} placeholder="npr. 1310" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Odredišni magacin</Label>
-              <Input value={destinationWarehouseAccount} onChange={(e) => setDestinationWarehouseAccount(e.target.value)} disabled={!isEditable} placeholder="npr. 1320" />
             </div>
           </div>
         </div>

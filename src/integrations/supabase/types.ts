@@ -9542,10 +9542,12 @@ export type Database = {
         Args: { _credit_note_id: string; _user_id: string }
         Returns: boolean
       }
-      post_customs_clearance: {
-        Args: { _clearance_id: string; _user_id: string }
-        Returns: undefined
-      }
+      post_customs_clearance:
+        | { Args: { _clearance_id: string }; Returns: Json }
+        | {
+            Args: { _clearance_id: string; _user_id: string }
+            Returns: undefined
+          }
       post_delivery_note: {
         Args: { _delivery_note_id: string; _user_id: string }
         Returns: string
