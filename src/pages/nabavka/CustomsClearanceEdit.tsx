@@ -57,7 +57,7 @@ export default function CustomsClearanceEdit() {
   const [itemsLoading, setItemsLoading] = useState(true);
   const [costsLoading, setCostsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-
+  const [isPosting, setIsPosting] = useState(false);
   // Editable header fields
   const [customsDutyAmount, setCustomsDutyAmount] = useState("0,00");
   const [exciseAmount, setExciseAmount] = useState("0,00");
