@@ -69,11 +69,11 @@ export function CustomsClearanceItemsEditor({
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">#</TableHead>
-              <TableHead className="min-w-[60px]">Šifra</TableHead>
-              <TableHead className="min-w-[150px]">Naziv</TableHead>
+              <TableHead className="min-w-[50px]">Šifra</TableHead>
+              <TableHead className="min-w-[130px]">Naziv</TableHead>
               <TableHead className="w-[50px]">JM</TableHead>
-              <TableHead className="w-[80px] text-right">Raspolož.</TableHead>
-              <TableHead className="w-[90px] text-right">Količina</TableHead>
+              <TableHead className="w-[100px] text-right">Raspolož.</TableHead>
+              <TableHead className="w-[110px] text-right">Količina</TableHead>
               <TableHead className="w-[100px] text-right">Fakt. cena</TableHead>
               <TableHead className="w-[110px] text-right">Fakt. vr. RSD</TableHead>
               <TableHead className="w-[100px] text-right">Zav. troš.</TableHead>
@@ -98,18 +98,18 @@ export function CustomsClearanceItemsEditor({
                   <TableCell>{item.item_code || "-"}</TableCell>
                   <TableCell>{item.item_name}</TableCell>
                   <TableCell>{item.unit}</TableCell>
-                  <TableCell className="text-right text-muted-foreground">{formatNumber(item.available_quantity)}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">{formatNumber(item.available_quantity, { minimumFractionDigits: 0, maximumFractionDigits: 3 })}</TableCell>
                   <TableCell className="text-right">
                     {isEditable ? (
                       <LocaleNumberInput
                         value={getQtyValue(item)}
                         onChange={(v) => handleQtyChange(item.id, v)}
                         onBlur={() => handleQtyBlur(item, getQtyValue(item))}
-                        decimalPlaces={2}
-                        className="w-20 text-right"
+                        decimalPlaces={3}
+                        className="w-24 text-right"
                       />
                     ) : (
-                      formatNumber(item.quantity)
+                      formatNumber(item.quantity, { minimumFractionDigits: 0, maximumFractionDigits: 3 })
                     )}
                   </TableCell>
                   <TableCell className="text-right">{formatPrice(item.invoice_price)}</TableCell>
@@ -132,7 +132,7 @@ export function CustomsClearanceItemsEditor({
             {items.length > 0 && (
               <TableRow className="bg-muted/50 font-medium">
                 <TableCell colSpan={5} className="text-right">Ukupno:</TableCell>
-                <TableCell className="text-right">{formatNumber(items.reduce((s, i) => s + i.quantity, 0))}</TableCell>
+                <TableCell className="text-right">{formatNumber(items.reduce((s, i) => s + i.quantity, 0), { minimumFractionDigits: 0, maximumFractionDigits: 3 })}</TableCell>
                 <TableCell />
                 <TableCell className="text-right">{formatPrice(items.reduce((s, i) => s + i.invoice_value_rsd, 0))}</TableCell>
                 <TableCell className="text-right">{formatPrice(items.reduce((s, i) => s + i.allocated_costs, 0))}</TableCell>
