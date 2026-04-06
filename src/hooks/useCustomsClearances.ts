@@ -346,6 +346,32 @@ export function useCustomsClearances() {
     return map;
   };
 
+  const postClearance = async (id: string) => {
+    if (!user?.id) throw new Error("Korisnik nije prijavljen");
+    const { error } = await (supabase as any).rpc("post_customs_clearance", {
+      _clearance_id: id,
+      _user_id: user.id,
+    });
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ["customs-clearances"] });
+    queryClient.invalidateQueries({ queryKey: ["inter-warehouse-transfers"] });
+    queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+    queryClient.invalidateQueries({ queryKey: ["warehouse-stock"] });
+  };
+
+  const unpostClearance = async (id: string) => {
+    if (!user?.id) throw new Error("Korisnik nije prijavljen");
+    const { error } = await (supabase as any).rpc("unpost_customs_clearance", {
+      _clearance_id: id,
+      _user_id: user.id,
+    });
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ["customs-clearances"] });
+    queryClient.invalidateQueries({ queryKey: ["inter-warehouse-transfers"] });
+    queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+    queryClient.invalidateQueries({ queryKey: ["warehouse-stock"] });
+  };
+
   return {
     clearances: clearancesQuery.data || [],
     isLoading: clearancesQuery.isLoading,
@@ -359,6 +385,8 @@ export function useCustomsClearances() {
     saveCosts,
     fetchSourceInvoiceItems,
     fetchClearedQuantities,
+    postClearance,
+    unpostClearance,
     isCreating: createMutation.isPending,
   };
 }
