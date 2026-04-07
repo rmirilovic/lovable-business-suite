@@ -79,6 +79,8 @@ export function CustomsClearanceHeaderDialog({ open, onOpenChange, onCreated }: 
         customs_duty_amount: 0,
         excise_amount: 0,
         vat_rate: 20,
+        vat_amount_20: 0,
+        vat_amount_10: 0,
         customs_duty_account: null,
         excise_account: null,
         vat_account: "2700",
