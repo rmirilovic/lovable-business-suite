@@ -13,6 +13,7 @@ import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { SearchablePartnerSelect, type Partner } from "@/components/ui/searchable-partner-select";
 import { usePartners } from "@/hooks/usePartners";
+import { useInputCosts } from "@/hooks/useInputCosts";
 
 interface Props {
   costs: CustomsClearanceCost[];
@@ -39,20 +40,32 @@ export function CustomsClearanceCostsEditor({
   onRemove,
 }: Props) {
   const { partners } = usePartners();
-  const [newDescription, setNewDescription] = useState("");
+  const { data: inputCosts = [] } = useInputCosts();
+  const activeInputCosts = inputCosts.filter((ic) => ic.is_active);
+
+  const [selectedInputCostId, setSelectedInputCostId] = useState("");
   const [newAmount, setNewAmount] = useState("0,00");
   const [newMethod, setNewMethod] = useState("by_value");
   const [newPartnerId, setNewPartnerId] = useState("");
   const [newAccountCode, setNewAccountCode] = useState("");
 
+  const handleInputCostChange = (inputCostId: string) => {
+    setSelectedInputCostId(inputCostId);
+    const ic = activeInputCosts.find((c) => c.id === inputCostId);
+    if (ic) {
+      setNewAccountCode(ic.account_code || "");
+    }
+  };
+
   const handleAdd = () => {
     const amount = parseLocaleNumber(newAmount);
-    if (!newDescription.trim() || amount <= 0) return;
+    const ic = activeInputCosts.find((c) => c.id === selectedInputCostId);
+    if (!ic || amount <= 0) return;
 
     onAdd({
       customs_clearance_id: clearanceId,
       company_id: companyId,
-      description: newDescription.trim(),
+      description: `${ic.code} - ${ic.name}`,
       amount,
       distribution_method: newMethod,
       partner_id: newPartnerId || null,
@@ -60,7 +73,7 @@ export function CustomsClearanceCostsEditor({
       item_order: costs.length + 1,
     });
 
-    setNewDescription("");
+    setSelectedInputCostId("");
     setNewAmount("0,00");
     setNewMethod("by_value");
     setNewPartnerId("");
@@ -91,11 +104,18 @@ export function CustomsClearanceCostsEditor({
         <div className="border rounded-md p-3 bg-muted/30 space-y-2">
           <div className="grid grid-cols-12 gap-2 items-end">
             <div className="col-span-3">
-              <Input
-                placeholder="Opis troška"
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-              />
+              <Select value={selectedInputCostId} onValueChange={handleInputCostChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Izaberite ulazni trošak" />
+                </SelectTrigger>
+                <SelectContent position="popper" side="bottom">
+                  {activeInputCosts.map((ic) => (
+                    <SelectItem key={ic.id} value={ic.id}>
+                      {ic.code} - {ic.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="col-span-2">
               <SearchablePartnerSelect
@@ -135,7 +155,7 @@ export function CustomsClearanceCostsEditor({
             <div className="col-span-1">
               <Button
                 onClick={handleAdd}
-                disabled={!newDescription.trim() || parseLocaleNumber(newAmount) <= 0}
+                disabled={!selectedInputCostId || parseLocaleNumber(newAmount) <= 0}
                 className="w-full"
                 size="icon"
               >
