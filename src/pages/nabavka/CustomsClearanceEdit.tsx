@@ -458,7 +458,7 @@ export default function CustomsClearanceEdit() {
         {/* Duty, Excise, VAT inputs */}
         <div className="border rounded-lg p-4 bg-card space-y-4">
           <h3 className="text-sm font-semibold">Carinske dažbine i PDV</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Iznos carine (RSD)</Label>
               <LocaleNumberInput
