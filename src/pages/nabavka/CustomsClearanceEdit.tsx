@@ -551,6 +551,11 @@ export default function CustomsClearanceEdit() {
           </div>
         </div>
       </div>
+
+      <CustomsClearancePostingSchemaDialog
+        open={schemaDialogOpen}
+        onOpenChange={setSchemaDialogOpen}
+      />
     </MainLayout>
   );
 }
