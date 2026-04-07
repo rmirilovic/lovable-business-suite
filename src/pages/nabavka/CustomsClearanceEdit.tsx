@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Pencil, ArrowLeft, RefreshCw, Save, CheckCircle, Undo2 } from "lucide-react";
+import { Loader2, Pencil, ArrowLeft, RefreshCw, Save, CheckCircle, Undo2, BookOpen } from "lucide-react";
 import {
   CustomsClearance,
   CustomsClearanceItem,
@@ -16,12 +16,11 @@ import {
 import { CustomsClearanceItemsEditor } from "@/components/nabavka/CustomsClearanceItemsEditor";
 import { CustomsClearanceCostsEditor } from "@/components/nabavka/CustomsClearanceCostsEditor";
 import { CustomsClearanceHeaderDialog } from "@/components/nabavka/CustomsClearanceHeaderDialog";
+import { CustomsClearancePostingSchemaDialog } from "@/components/nabavka/CustomsClearancePostingSchemaDialog";
 import { formatDate, formatNumber, formatPrice } from "@/lib/formatting";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { SearchableAccountInput } from "@/components/ui/searchable-account-input";
 import { parseLocaleNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
-import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -38,12 +37,6 @@ export default function CustomsClearanceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany } = useAuth();
-  const { data: chartOfAccounts = [] } = useChartOfAccounts();
-
-  const accountsList = useMemo(
-    () => chartOfAccounts.filter((a) => a.is_posting_allowed).map((a) => ({ code: a.code, name: a.name })),
-    [chartOfAccounts]
-  );
 
   const {
     fetchItems,
@@ -66,16 +59,11 @@ export default function CustomsClearanceEdit() {
   const [costsLoading, setCostsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [schemaDialogOpen, setSchemaDialogOpen] = useState(false);
   // Editable header fields
   const [customsDutyAmount, setCustomsDutyAmount] = useState("0,00");
   const [exciseAmount, setExciseAmount] = useState("0,00");
   const [vatRate, setVatRate] = useState("20");
-
-  // Account codes
-  const [customsDutyAccount, setCustomsDutyAccount] = useState("");
-  const [exciseAccount, setExciseAccount] = useState("");
-  const [vatAccount, setVatAccount] = useState("2700");
-  const [customsObligationAccount, setCustomsObligationAccount] = useState("");
 
   const isEditable = clearance?.status === "draft";
 
@@ -104,10 +92,6 @@ export default function CustomsClearanceEdit() {
     setCustomsDutyAmount(formatPrice(data.customs_duty_amount) || "0,00");
     setExciseAmount(formatPrice(data.excise_amount) || "0,00");
     setVatRate(String(data.vat_rate ?? 20));
-    setCustomsDutyAccount(data.customs_duty_account || "");
-    setExciseAccount(data.excise_account || "");
-    setVatAccount(data.vat_account || "2700");
-    setCustomsObligationAccount(data.customs_obligation_account || "");
     setIsLoading(false);
   }, [id]);
 
@@ -266,10 +250,10 @@ export default function CustomsClearanceEdit() {
         customs_duty_amount: parseLocaleNumber(customsDutyAmount),
         excise_amount: parseLocaleNumber(exciseAmount),
         vat_rate: parseFloat(vatRate) || 20,
-        customs_duty_account: customsDutyAccount || null,
-        excise_account: exciseAccount || null,
-        vat_account: vatAccount || null,
-        customs_obligation_account: customsObligationAccount || null,
+        customs_duty_account: clearance.customs_duty_account,
+        excise_account: clearance.excise_account,
+        vat_account: clearance.vat_account,
+        customs_obligation_account: clearance.customs_obligation_account,
         note: clearance.note,
       });
 
@@ -415,6 +399,9 @@ export default function CustomsClearanceEdit() {
                 </Button>
               </>
             )}
+            <Button variant="outline" size="sm" onClick={() => setSchemaDialogOpen(true)}>
+              <BookOpen className="h-4 w-4 mr-2" /> Šema knjiženja
+            </Button>
             {clearance.status === "posted" && (
               <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={handleUnpost} disabled={isPosting}>
                 {isPosting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Undo2 className="h-4 w-4 mr-2" />}
@@ -497,28 +484,6 @@ export default function CustomsClearanceEdit() {
           </div>
         </div>
 
-        {/* Account codes */}
-        <div className="border rounded-lg p-4 bg-card space-y-4">
-          <h3 className="text-sm font-semibold">Konta za knjiženje</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Carina</Label>
-              <SearchableAccountInput value={customsDutyAccount} onChange={setCustomsDutyAccount} accounts={accountsList} disabled={!isEditable} placeholder="npr. 1329" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Obaveze prema carini</Label>
-              <SearchableAccountInput value={customsObligationAccount} onChange={setCustomsObligationAccount} accounts={accountsList} disabled={!isEditable} placeholder="npr. 4390" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Akciza</Label>
-              <SearchableAccountInput value={exciseAccount} onChange={setExciseAccount} accounts={accountsList} disabled={!isEditable} placeholder="npr. 1329" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">PDV</Label>
-              <SearchableAccountInput value={vatAccount} onChange={setVatAccount} accounts={accountsList} disabled={!isEditable} placeholder="npr. 2700" />
-            </div>
-          </div>
-        </div>
 
         <Separator />
 
@@ -586,6 +551,11 @@ export default function CustomsClearanceEdit() {
           </div>
         </div>
       </div>
+
+      <CustomsClearancePostingSchemaDialog
+        open={schemaDialogOpen}
+        onOpenChange={setSchemaDialogOpen}
+      />
     </MainLayout>
   );
 }
