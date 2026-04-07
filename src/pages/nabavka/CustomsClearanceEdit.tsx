@@ -18,8 +18,10 @@ import { CustomsClearanceCostsEditor } from "@/components/nabavka/CustomsClearan
 import { CustomsClearanceHeaderDialog } from "@/components/nabavka/CustomsClearanceHeaderDialog";
 import { formatDate, formatNumber, formatPrice } from "@/lib/formatting";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { SearchableAccountInput } from "@/components/ui/searchable-account-input";
 import { parseLocaleNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
+import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -36,6 +38,12 @@ export default function CustomsClearanceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany } = useAuth();
+  const { data: chartOfAccounts = [] } = useChartOfAccounts();
+
+  const accountsList = useMemo(
+    () => chartOfAccounts.filter((a) => a.is_posting_allowed).map((a) => ({ code: a.code, name: a.name })),
+    [chartOfAccounts]
+  );
 
   const {
     fetchItems,
@@ -492,22 +500,22 @@ export default function CustomsClearanceEdit() {
         {/* Account codes */}
         <div className="border rounded-lg p-4 bg-card space-y-4">
           <h3 className="text-sm font-semibold">Konta za knjiženje</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Carina</Label>
-              <Input value={customsDutyAccount} onChange={(e) => setCustomsDutyAccount(e.target.value)} disabled={!isEditable} placeholder="npr. 1329" />
+              <SearchableAccountInput value={customsDutyAccount} onChange={setCustomsDutyAccount} accounts={accountsList} disabled={!isEditable} placeholder="npr. 1329" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Obaveze prema carini</Label>
+              <SearchableAccountInput value={customsObligationAccount} onChange={setCustomsObligationAccount} accounts={accountsList} disabled={!isEditable} placeholder="npr. 4390" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Akciza</Label>
-              <Input value={exciseAccount} onChange={(e) => setExciseAccount(e.target.value)} disabled={!isEditable} placeholder="npr. 1329" />
+              <SearchableAccountInput value={exciseAccount} onChange={setExciseAccount} accounts={accountsList} disabled={!isEditable} placeholder="npr. 1329" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">PDV</Label>
-              <Input value={vatAccount} onChange={(e) => setVatAccount(e.target.value)} disabled={!isEditable} placeholder="npr. 2700" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Obaveza prema carini</Label>
-              <Input value={customsObligationAccount} onChange={(e) => setCustomsObligationAccount(e.target.value)} disabled={!isEditable} placeholder="npr. 4390" />
+              <SearchableAccountInput value={vatAccount} onChange={setVatAccount} accounts={accountsList} disabled={!isEditable} placeholder="npr. 2700" />
             </div>
           </div>
         </div>
