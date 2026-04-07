@@ -2275,6 +2275,47 @@ export type Database = {
           },
         ]
       }
+      customs_clearance_posting_schema: {
+        Row: {
+          company_id: string
+          created_at: string
+          customs_duty_account: string | null
+          customs_obligation_account: string | null
+          excise_account: string | null
+          id: string
+          updated_at: string
+          vat_account: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          customs_duty_account?: string | null
+          customs_obligation_account?: string | null
+          excise_account?: string | null
+          id?: string
+          updated_at?: string
+          vat_account?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          customs_duty_account?: string | null
+          customs_obligation_account?: string | null
+          excise_account?: string | null
+          id?: string
+          updated_at?: string
+          vat_account?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customs_clearance_posting_schema_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customs_clearances: {
         Row: {
           additional_costs_total: number
