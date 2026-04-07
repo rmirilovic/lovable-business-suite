@@ -1,0 +1,4 @@
+
+ALTER TABLE public.customs_clearances
+  ADD COLUMN vat_amount_20 NUMERIC NOT NULL DEFAULT 0,
+  ADD COLUMN vat_amount_10 NUMERIC NOT NULL DEFAULT 0;

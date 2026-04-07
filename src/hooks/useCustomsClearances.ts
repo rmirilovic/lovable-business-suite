@@ -103,6 +103,8 @@ export interface CustomsClearanceFormData {
   customs_duty_amount: number;
   excise_amount: number;
   vat_rate: number;
+  vat_amount_20: number;
+  vat_amount_10: number;
   customs_duty_account: string | null;
   excise_account: string | null;
   vat_account: string | null;
