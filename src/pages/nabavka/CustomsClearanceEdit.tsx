@@ -63,7 +63,8 @@ export default function CustomsClearanceEdit() {
   // Editable header fields
   const [customsDutyAmount, setCustomsDutyAmount] = useState("0,00");
   const [exciseAmount, setExciseAmount] = useState("0,00");
-  const [vatRate, setVatRate] = useState("20");
+  const [vatAmount20, setVatAmount20] = useState("0,00");
+  const [vatAmount10, setVatAmount10] = useState("0,00");
 
   const isEditable = clearance?.status === "draft";
 
@@ -91,7 +92,8 @@ export default function CustomsClearanceEdit() {
     setClearance(data as CustomsClearance);
     setCustomsDutyAmount(formatPrice(data.customs_duty_amount) || "0,00");
     setExciseAmount(formatPrice(data.excise_amount) || "0,00");
-    setVatRate(String(data.vat_rate ?? 20));
+    setVatAmount20(formatPrice(data.vat_amount_20) || "0,00");
+    setVatAmount10(formatPrice(data.vat_amount_10) || "0,00");
     setIsLoading(false);
   }, [id]);
 
@@ -183,7 +185,9 @@ export default function CustomsClearanceEdit() {
 
     const dutyTotal = parseLocaleNumber(customsDutyAmount);
     const exciseTotal = parseLocaleNumber(exciseAmount);
-    const vat = parseFloat(vatRate) || 0;
+    const vatTotal20 = parseLocaleNumber(vatAmount20);
+    const vatTotal10 = parseLocaleNumber(vatAmount10);
+    const vatTotal = vatTotal20 + vatTotal10;
     const costsTotal = costs.reduce((s, c) => s + c.amount, 0);
 
     // Total invoice value for proportional distribution
@@ -198,7 +202,7 @@ export default function CustomsClearanceEdit() {
 
       const customsBase = item.invoice_value_rsd + allocatedCosts;
       const vatBase = customsBase + allocatedDuty + allocatedExcise;
-      const vatAmount = vatBase * (vat / 100);
+      const vatAmount = vatTotal * ratio;
 
       // Cost price = everything except VAT, per unit
       const costValue = item.invoice_value_rsd + allocatedCosts + allocatedDuty + allocatedExcise;
@@ -216,7 +220,7 @@ export default function CustomsClearanceEdit() {
         cost_value: Math.round(costValue * 100) / 100,
       };
     });
-  }, [items, costs, customsDutyAmount, exciseAmount, vatRate]);
+  }, [items, costs, customsDutyAmount, exciseAmount, vatAmount20, vatAmount10]);
 
   // Totals
   const totals = useMemo(() => {
@@ -249,7 +253,9 @@ export default function CustomsClearanceEdit() {
         currency: clearance.currency,
         customs_duty_amount: parseLocaleNumber(customsDutyAmount),
         excise_amount: parseLocaleNumber(exciseAmount),
-        vat_rate: parseFloat(vatRate) || 20,
+        vat_rate: 0,
+        vat_amount_20: parseLocaleNumber(vatAmount20),
+        vat_amount_10: parseLocaleNumber(vatAmount10),
         customs_duty_account: clearance.customs_duty_account,
         excise_account: clearance.excise_account,
         vat_account: clearance.vat_account,
@@ -472,13 +478,21 @@ export default function CustomsClearanceEdit() {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground">Stopa PDV (%)</Label>
-              <Input
-                type="number"
-                step="1"
-                value={vatRate}
-                onChange={(e) => setVatRate(e.target.value)}
+              <Label className="text-xs text-muted-foreground">PDV - osnovna stopa 20% (RSD)</Label>
+              <LocaleNumberInput
+                value={vatAmount20}
+                onChange={setVatAmount20}
                 disabled={!isEditable}
+                decimalPlaces={2}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">PDV - posebna stopa 10% (RSD)</Label>
+              <LocaleNumberInput
+                value={vatAmount10}
+                onChange={setVatAmount10}
+                disabled={!isEditable}
+                decimalPlaces={2}
               />
             </div>
           </div>
@@ -541,8 +555,12 @@ export default function CustomsClearanceEdit() {
               <span className="font-medium">{formatPrice(totals.vatBase)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">PDV ({vatRate}%):</span>
-              <span className="font-medium">{formatPrice(totals.vatAmount)}</span>
+              <span className="text-muted-foreground">PDV 20%:</span>
+              <span className="font-medium">{formatPrice(parseLocaleNumber(vatAmount20))}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">PDV 10%:</span>
+              <span className="font-medium">{formatPrice(parseLocaleNumber(vatAmount10))}</span>
             </div>
             <div className="flex justify-between sm:col-span-2 md:col-span-3 border-t pt-2 mt-1">
               <span className="font-semibold">Nabavna vrednost:</span>
