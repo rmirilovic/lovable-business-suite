@@ -3990,6 +3990,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          is_import_cost: boolean
           is_procurement_cost: boolean
           is_vat_deductible: boolean
           name: string
@@ -4004,6 +4005,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_import_cost?: boolean
           is_procurement_cost?: boolean
           is_vat_deductible?: boolean
           name: string
@@ -4018,6 +4020,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          is_import_cost?: boolean
           is_procurement_cost?: boolean
           is_vat_deductible?: boolean
           name?: string
