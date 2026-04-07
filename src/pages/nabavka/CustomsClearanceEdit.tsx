@@ -395,6 +395,9 @@ export default function CustomsClearanceEdit() {
                 <Button variant="outline" size="sm" onClick={() => { fetchClearance(); loadItemsAndCosts(); }}>
                   <RefreshCw className="h-4 w-4 mr-2" /> Osveži
                 </Button>
+                <Button variant="outline" size="sm" onClick={() => setSchemaDialogOpen(true)}>
+                  <BookOpen className="h-4 w-4 mr-2" /> Šema knjiženja
+                </Button>
                 <Button size="sm" onClick={handleSave} disabled={isSaving}>
                   {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                   Sačuvaj
@@ -405,9 +408,6 @@ export default function CustomsClearanceEdit() {
                 </Button>
               </>
             )}
-            <Button variant="outline" size="sm" onClick={() => setSchemaDialogOpen(true)}>
-              <BookOpen className="h-4 w-4 mr-2" /> Šema knjiženja
-            </Button>
             {clearance.status === "posted" && (
               <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={handleUnpost} disabled={isPosting}>
                 {isPosting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Undo2 className="h-4 w-4 mr-2" />}
