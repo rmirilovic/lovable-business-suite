@@ -41,7 +41,7 @@ export function CustomsClearanceCostsEditor({
 }: Props) {
   const { partners } = usePartners();
   const { data: inputCosts = [] } = useInputCosts();
-  const activeInputCosts = inputCosts.filter((ic) => ic.is_active);
+  const activeInputCosts = inputCosts.filter((ic) => ic.is_active && (ic.is_procurement_cost || ic.is_import_cost));
 
   const [selectedInputCostId, setSelectedInputCostId] = useState("");
   const [newAmount, setNewAmount] = useState("0,00");
