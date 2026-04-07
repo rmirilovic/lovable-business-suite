@@ -2353,6 +2353,8 @@ export type Database = {
           updated_at: string
           vat_account: string | null
           vat_amount: number
+          vat_amount_10: number
+          vat_amount_20: number
           vat_base: number
           vat_rate: number
         }
@@ -2392,6 +2394,8 @@ export type Database = {
           updated_at?: string
           vat_account?: string | null
           vat_amount?: number
+          vat_amount_10?: number
+          vat_amount_20?: number
           vat_base?: number
           vat_rate?: number
         }
@@ -2431,6 +2435,8 @@ export type Database = {
           updated_at?: string
           vat_account?: string | null
           vat_amount?: number
+          vat_amount_10?: number
+          vat_amount_20?: number
           vat_base?: number
           vat_rate?: number
         }
