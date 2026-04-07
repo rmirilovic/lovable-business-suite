@@ -61,6 +61,7 @@ export default function UlazniTroskovi() {
     is_vat_deductible: true,
     is_active: true,
     is_procurement_cost: false,
+    is_import_cost: false,
     description: "",
   });
 
@@ -113,6 +114,7 @@ export default function UlazniTroskovi() {
         case 'vat_rate': return item.vat_rate;
         case 'is_vat_deductible': return item.is_vat_deductible;
         case 'is_procurement_cost': return item.is_procurement_cost;
+        case 'is_import_cost': return item.is_import_cost;
         case 'is_active': return item.is_active;
         default: return null;
       }
@@ -139,6 +141,7 @@ export default function UlazniTroskovi() {
       is_vat_deductible: true,
       is_active: true,
       is_procurement_cost: false,
+      is_import_cost: false,
       description: "",
     });
     setDialogOpen(true);
@@ -154,6 +157,7 @@ export default function UlazniTroskovi() {
       is_vat_deductible: cost.is_vat_deductible,
       is_active: cost.is_active,
       is_procurement_cost: cost.is_procurement_cost,
+      is_import_cost: cost.is_import_cost,
       description: cost.description || "",
     });
     setDialogOpen(true);
@@ -243,6 +247,9 @@ export default function UlazniTroskovi() {
                     <SortableHeader column="is_procurement_cost" label="ZTN" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
                   </TableHead>
                   <TableHead className="w-20 text-center">
+                    <SortableHeader column="is_import_cost" label="ZTU" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
+                  <TableHead className="w-20 text-center">
                     <SortableHeader column="is_active" label="Aktivan" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
                   </TableHead>
                   <TableHead className="w-24"></TableHead>
@@ -251,13 +258,13 @@ export default function UlazniTroskovi() {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       Učitavanje...
                     </TableCell>
                   </TableRow>
                 ) : filteredCosts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       {search ? "Nema rezultata pretrage" : "Nema definisanih troškova"}
                     </TableCell>
                   </TableRow>
@@ -280,6 +287,9 @@ export default function UlazniTroskovi() {
                       </TableCell>
                       <TableCell className="text-center">
                         {cost.is_procurement_cost ? "✓" : "–"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {cost.is_import_cost ? "✓" : "–"}
                       </TableCell>
                       <TableCell className="text-center">
                         {cost.is_active ? "✓" : "–"}
@@ -397,6 +407,17 @@ export default function UlazniTroskovi() {
                     }
                   />
                   <Label htmlFor="is_procurement_cost">ZTN</Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="is_import_cost"
+                    checked={formData.is_import_cost}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, is_import_cost: !!checked })
+                    }
+                  />
+                  <Label htmlFor="is_import_cost">ZTU</Label>
                 </div>
 
                 <div className="flex items-center gap-2">
