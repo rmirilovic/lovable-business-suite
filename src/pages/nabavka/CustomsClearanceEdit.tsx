@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Pencil, ArrowLeft, RefreshCw, Save, CheckCircle, Undo2 } from "lucide-react";
+import { Loader2, Pencil, ArrowLeft, RefreshCw, Save, CheckCircle, Undo2, BookOpen } from "lucide-react";
 import {
   CustomsClearance,
   CustomsClearanceItem,
@@ -16,12 +16,11 @@ import {
 import { CustomsClearanceItemsEditor } from "@/components/nabavka/CustomsClearanceItemsEditor";
 import { CustomsClearanceCostsEditor } from "@/components/nabavka/CustomsClearanceCostsEditor";
 import { CustomsClearanceHeaderDialog } from "@/components/nabavka/CustomsClearanceHeaderDialog";
+import { CustomsClearancePostingSchemaDialog } from "@/components/nabavka/CustomsClearancePostingSchemaDialog";
 import { formatDate, formatNumber, formatPrice } from "@/lib/formatting";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
-import { SearchableAccountInput } from "@/components/ui/searchable-account-input";
 import { parseLocaleNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
-import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -38,12 +37,6 @@ export default function CustomsClearanceEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { selectedCompany } = useAuth();
-  const { data: chartOfAccounts = [] } = useChartOfAccounts();
-
-  const accountsList = useMemo(
-    () => chartOfAccounts.filter((a) => a.is_posting_allowed).map((a) => ({ code: a.code, name: a.name })),
-    [chartOfAccounts]
-  );
 
   const {
     fetchItems,
@@ -66,16 +59,11 @@ export default function CustomsClearanceEdit() {
   const [costsLoading, setCostsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [schemaDialogOpen, setSchemaDialogOpen] = useState(false);
   // Editable header fields
   const [customsDutyAmount, setCustomsDutyAmount] = useState("0,00");
   const [exciseAmount, setExciseAmount] = useState("0,00");
   const [vatRate, setVatRate] = useState("20");
-
-  // Account codes
-  const [customsDutyAccount, setCustomsDutyAccount] = useState("");
-  const [exciseAccount, setExciseAccount] = useState("");
-  const [vatAccount, setVatAccount] = useState("2700");
-  const [customsObligationAccount, setCustomsObligationAccount] = useState("");
 
   const isEditable = clearance?.status === "draft";
 
