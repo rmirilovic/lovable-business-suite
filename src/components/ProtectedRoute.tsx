@@ -60,7 +60,8 @@ export function ProtectedRoute({
     );
   }
 
-  if (requireCompany && (!selectedCompany || !selectedYear)) {
+  // Don't redirect during transient auth refreshes (loading=true after initial load)
+  if (requireCompany && (!selectedCompany || !selectedYear) && !loading) {
     return <Navigate to="/select-company" replace />;
   }
 
