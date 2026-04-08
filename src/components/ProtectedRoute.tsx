@@ -15,7 +15,9 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, loading, selectedCompany, selectedYear, isSuperAdmin, isLocalAdmin, userRole, localAdminCompanyIds, initialLoadDone } = useAuth();
 
-  if (loading) {
+  // Only show loading screen on initial load; once loaded, keep children
+  // mounted to preserve dialog/form state during transient auth refreshes
+  if (loading && !initialLoadDone) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Učitavanje...</div>
