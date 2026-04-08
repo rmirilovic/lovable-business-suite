@@ -25,8 +25,17 @@ export function ProtectedRoute({
     );
   }
 
-  if (!user) {
+  // After initial load, don't redirect during transient auth refreshes
+  // (e.g. tab visibility change triggering token refresh / brief SIGNED_OUT)
+  if (!user && initialLoadDone && !loading) {
     return <Navigate to="/auth" replace />;
+  }
+  if (!user && !initialLoadDone) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Učitavanje...</div>
+      </div>
+    );
   }
 
   // Wait for full auth bootstrap before checking admin access
@@ -51,7 +60,8 @@ export function ProtectedRoute({
     );
   }
 
-  if (requireCompany && (!selectedCompany || !selectedYear)) {
+  // Don't redirect during transient auth refreshes (loading=true after initial load)
+  if (requireCompany && (!selectedCompany || !selectedYear) && !loading) {
     return <Navigate to="/select-company" replace />;
   }
 
