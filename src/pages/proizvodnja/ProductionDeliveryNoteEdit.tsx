@@ -456,6 +456,15 @@ export default function ProductionDeliveryNoteEdit() {
         articleCode={pdnDialogArticle?.code ?? ""}
         articleName={pdnDialogArticle?.name ?? ""}
       />
+      <BarcodesPrintDialog
+        open={barcodesOpen}
+        onOpenChange={setBarcodesOpen}
+        articles={items.map((item) => ({
+          id: item.id,
+          code: item.article_code,
+          name: item.article_name,
+        }))}
+      />
     </MainLayout>
   );
 }
