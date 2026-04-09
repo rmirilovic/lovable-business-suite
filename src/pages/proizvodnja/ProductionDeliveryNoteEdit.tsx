@@ -459,11 +459,18 @@ export default function ProductionDeliveryNoteEdit() {
       <BarcodesPrintDialog
         open={barcodesOpen}
         onOpenChange={setBarcodesOpen}
-        articles={items.map((item) => ({
-          id: item.id,
-          code: item.article_code,
-          name: item.article_name,
-        }))}
+        articles={(() => {
+          const seen = new Set<string>();
+          return items.filter((item) => {
+            if (seen.has(item.article_code)) return false;
+            seen.add(item.article_code);
+            return true;
+          }).map((item) => ({
+            id: item.id,
+            code: item.article_code,
+            name: item.article_name,
+          }));
+        })()}
       />
     </MainLayout>
   );
