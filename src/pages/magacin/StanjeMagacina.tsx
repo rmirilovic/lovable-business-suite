@@ -257,6 +257,7 @@ export default function StanjeMagacina() {
               autoComplete="off"
             />
           </div>
+          <BarcodeScannerButton onScan={(code) => setSearch(code)} />
 
           {sortedData.length > 0 && (
             <div className="flex items-center gap-1">
