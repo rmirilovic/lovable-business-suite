@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft,
-  RefreshCw, Calculator, ExternalLink, History, MoreHorizontal,
+  RefreshCw, Calculator, ExternalLink, History, MoreHorizontal, Barcode,
 } from "lucide-react";
+import { BarcodesPrintDialog } from "@/components/sifarnici/BarcodesPrintDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   GoodsReceipt, useGoodsReceiptItems, useGoodsReceipts,
@@ -54,6 +55,7 @@ export default function GoodsReceiptEdit() {
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [receiptsDialogArticle, setReceiptsDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [barcodesOpen, setBarcodesOpen] = useState(false);
 
   const { items, isLoading: itemsLoading } = useGoodsReceiptItems(id || null);
   const { updateReceipt, postReceipt, unpostReceipt } = useGoodsReceipts();
@@ -201,6 +203,9 @@ export default function GoodsReceiptEdit() {
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => printGoodsReceipt(receipt, items, selectedCompany)}>
                   <Printer className="h-4 w-4 mr-2" />Štampa
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setBarcodesOpen(true)}>
+                  <Barcode className="h-4 w-4 mr-2" />Barkodovi
                 </Button>
               </>
             )}
@@ -410,6 +415,19 @@ export default function GoodsReceiptEdit() {
         articleId={receiptsDialogArticle?.id ?? null}
         articleCode={receiptsDialogArticle?.code ?? ""}
         articleName={receiptsDialogArticle?.name ?? ""}
+      />
+      <BarcodesPrintDialog
+        open={barcodesOpen}
+        onOpenChange={setBarcodesOpen}
+        articles={(() => {
+          const seen = new Set<string>();
+          return items.filter((item) => {
+            const code = item.item_code || "";
+            if (!code || seen.has(code)) return false;
+            seen.add(code);
+            return true;
+          }).map((item) => ({ id: item.id, code: item.item_code || "", name: item.item_name }));
+        })()}
       />
     </MainLayout>
   );
