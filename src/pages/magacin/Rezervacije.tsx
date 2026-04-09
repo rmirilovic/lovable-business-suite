@@ -299,7 +299,6 @@ export default function Rezervacije() {
               <BarcodeScannerButton onScan={(code) => setSearch(code)} />
             </div>
           </div>
-          </div>
 
           <div className="flex items-center gap-1 ml-auto">
             {sorted.length > 0 && (
