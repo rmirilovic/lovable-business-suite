@@ -11,7 +11,8 @@ import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { ArrowLeft, Lock, Save, Undo2, History, MoreHorizontal, Eye } from "lucide-react";
+import { ArrowLeft, Lock, Save, Undo2, History, MoreHorizontal, Eye, Barcode } from "lucide-react";
+import { BarcodesPrintDialog } from "@/components/sifarnici/BarcodesPrintDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { ArticleReprocessingDeliveryNotesDialog } from "@/components/proizvodnja/ArticleReprocessingDeliveryNotesDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -85,6 +86,7 @@ export default function ReprocessingDeliveryNoteEdit() {
   const [headerForm, setHeaderForm] = useState({ delivery_date: "", warehouse_id: "", work_order_id: "", production_line: 1, shift_manager_1_id: "", shift_manager_2_id: "", shift_manager_3_id: "", note: "", responsible_person: "" });
   const [headerDirty, setHeaderDirty] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [barcodesOpen, setBarcodesOpen] = useState(false);
   const [pdnDialogArticle, setPdnDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
 
   useEffect(() => {
@@ -152,6 +154,7 @@ export default function ReprocessingDeliveryNoteEdit() {
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
+            {items.length > 0 && <Button variant="outline" size="sm" onClick={() => setBarcodesOpen(true)}><Barcode className="w-4 h-4 mr-2" /> Barkodovi</Button>}
             {isDraft && headerDirty && <Button onClick={handleSaveHeader}><Save className="w-4 h-4 mr-2" /> Sačuvaj</Button>}
             {isDraft && <Button onClick={() => { if (confirm("Proknjižiti predajnicu?")) postNote.mutateAsync(note.id); }}><Lock className="w-4 h-4 mr-2" /> Proknjiži</Button>}
             {!isDraft && <Button variant="outline" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => { if (confirm("Poništiti knjiženje?")) unpostNote.mutateAsync(note.id); }}><Undo2 className="w-4 h-4 mr-2" /> Poništi knjiženje</Button>}
@@ -238,6 +241,18 @@ export default function ReprocessingDeliveryNoteEdit() {
         articleId={pdnDialogArticle?.id ?? null}
         articleCode={pdnDialogArticle?.code ?? ""}
         articleName={pdnDialogArticle?.name ?? ""}
+      />
+      <BarcodesPrintDialog
+        open={barcodesOpen}
+        onOpenChange={setBarcodesOpen}
+        articles={(() => {
+          const seen = new Set<string>();
+          return items.filter((item) => {
+            if (seen.has(item.article_code)) return false;
+            seen.add(item.article_code);
+            return true;
+          }).map((item) => ({ id: item.id, code: item.article_code, name: item.article_name }));
+        })()}
       />
     </MainLayout>
   );
