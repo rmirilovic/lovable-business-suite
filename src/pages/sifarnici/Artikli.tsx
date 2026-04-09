@@ -229,6 +229,8 @@ export default function Artikli() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAttributesOpen, setIsAttributesOpen] = useState(false);
+  const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
+  const [selectedArticleIds, setSelectedArticleIds] = useState<Set<string>>(new Set());
   const [historyArticle, setHistoryArticle] = useState<Article | null>(null);
   const [attributesArticle, setAttributesArticle] = useState<Article | null>(null);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
