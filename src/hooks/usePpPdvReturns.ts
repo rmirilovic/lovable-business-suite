@@ -84,9 +84,15 @@ export function usePpPdvReturns() {
       // Fetch full company details for snapshot
       const { data: companyData } = await supabase
         .from("companies")
-        .select("pib, name, municipality_code, activity_code, responsible_person_name, responsible_person_jmbg, email")
+        .select("pib, name, municipality_code, activity_code, responsible_person_name, email")
         .eq("id", companyId)
         .single();
+
+      const { data: secretsData } = await supabase
+        .from("company_secrets")
+        .select("responsible_person_jmbg")
+        .eq("company_id", companyId)
+        .maybeSingle();
 
       const { data, error } = await supabase
         .from("pp_pdv_returns")
@@ -103,7 +109,7 @@ export function usePpPdvReturns() {
           municipality_code: companyData?.municipality_code || null,
           activity_code: companyData?.activity_code || null,
           responsible_person_name: companyData?.responsible_person_name || null,
-          responsible_person_jmbg: companyData?.responsible_person_jmbg || null,
+          responsible_person_jmbg: secretsData?.responsible_person_jmbg || null,
           email: companyData?.email || null,
           created_by: user.id,
         })

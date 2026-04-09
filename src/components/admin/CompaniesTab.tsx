@@ -42,9 +42,6 @@ interface Company {
   email: string | null;
   responsible_person_name: string | null;
   responsible_person_email: string | null;
-  responsible_person_jmbg: string | null;
-  api_token: string | null;
-  api_demo_token: string | null;
   invoice_note_1: string | null;
   invoice_note_2: string | null;
   quote_note_1: string | null;
