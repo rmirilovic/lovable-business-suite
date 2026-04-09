@@ -49,7 +49,7 @@ export default function RobnaKarticaSviMagacini() {
   );
 
   // Compute running balance per warehouse
-  const { rows, warehouseTotals, grandTotals } = useMemo(() => {
+  const { rows, grandTotals } = useMemo(() => {
     if (!movements || movements.length === 0) {
       return { rows: [], warehouseTotals: new Map(), grandTotals: { debit: 0, credit: 0, balanceQty: 0, balanceValue: 0 } };
     }
