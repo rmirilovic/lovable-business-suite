@@ -32,6 +32,7 @@ import { formatDecimal, formatDate } from "@/lib/formatting";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { exportReservationsListToExcel, exportReservationsListToPdf, printReservationsList } from "@/lib/reservationExportUtils";
+import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
 
 const DOC_TYPE_OPTIONS = [
   { value: "delivery_note", label: "Otpremnica" },
@@ -283,16 +284,19 @@ export default function Rezervacije() {
             </Select>
           </div>
 
-          <div className="relative flex-1 min-w-[200px] space-y-1">
+           <div className="relative flex-1 min-w-[200px] space-y-1">
             <Label className="text-xs">Pretraga</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Šifra, naziv, dokument, partner, magacin..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
+            <div className="relative flex gap-2 items-end">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Šifra, naziv, dokument, partner, magacin..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <BarcodeScannerButton onScan={(code) => setSearch(code)} />
             </div>
           </div>
 

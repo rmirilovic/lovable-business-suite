@@ -21,6 +21,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { format } from "date-fns";
 import { exportStockReservationsToExcel, exportStockReservationsToPdf, printStockReservations } from "@/lib/reservationExportUtils";
 import { toast } from "sonner";
+import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
 
 const STORAGE_KEY = "stanje_rezervacije_view_state";
 
@@ -192,11 +193,14 @@ export default function StanjeSaRezervacijama() {
             <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
           </div>
 
-          <div className="relative flex-1 min-w-[200px] space-y-1">
+           <div className="relative flex-1 min-w-[200px] space-y-1">
             <Label className="text-xs">Artikal</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Pretraži po šifri ili nazivu..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+            <div className="relative flex gap-2 items-end">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Pretraži po šifri ili nazivu..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
+              </div>
+              <BarcodeScannerButton onScan={(code) => setSearch(code)} />
             </div>
           </div>
 
