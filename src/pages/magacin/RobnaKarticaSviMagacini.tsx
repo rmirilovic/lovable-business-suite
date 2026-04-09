@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@/components/ui/table";
@@ -26,7 +25,6 @@ export default function RobnaKarticaSviMagacini() {
 
   const [articleId, setArticleId] = useState("");
   const [dateFrom, setDateFrom] = useState(defaultFrom);
-  const [dateTo, setDateTo] = useState(today);
 
   const { articles } = useArticles(companyId);
 
@@ -47,7 +45,7 @@ export default function RobnaKarticaSviMagacini() {
     companyId,
     articleId || undefined,
     dateFrom || undefined,
-    dateTo || undefined
+    today
   );
 
   // Compute running balance per warehouse
@@ -120,10 +118,6 @@ export default function RobnaKarticaSviMagacini() {
           <div className="w-[150px]">
             <Label className="text-xs mb-1 block">Datum od</Label>
             <LocaleDateInput value={dateFrom} onChange={setDateFrom} />
-          </div>
-          <div className="w-[150px]">
-            <Label className="text-xs mb-1 block">Datum do</Label>
-            <LocaleDateInput value={dateTo} onChange={setDateTo} />
           </div>
         </div>
 
