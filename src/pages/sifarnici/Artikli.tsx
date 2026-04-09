@@ -1756,6 +1756,12 @@ export default function Artikli() {
           }}
         />
       )}
+      {/* Barcode Print Dialog */}
+      <BarcodesPrintDialog
+        open={isBarcodeOpen}
+        onOpenChange={setIsBarcodeOpen}
+        articles={articles.filter(a => selectedArticleIds.has(a.id))}
+      />
 
       </div>
     </MainLayout>
