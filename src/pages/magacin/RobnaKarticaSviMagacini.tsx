@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { format } from "date-fns";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,10 +22,11 @@ export default function RobnaKarticaSviMagacini() {
   const companyId = selectedCompany?.id;
 
   const defaultFrom = selectedYear ? `${selectedYear.year}-01-01` : "";
+  const today = format(new Date(), "yyyy-MM-dd");
 
   const [articleId, setArticleId] = useState("");
   const [dateFrom, setDateFrom] = useState(defaultFrom);
-  const [dateTo, setDateTo] = useState("");
+  const [dateTo, setDateTo] = useState(today);
 
   const { articles } = useArticles(companyId);
 
