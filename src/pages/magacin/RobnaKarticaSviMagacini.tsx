@@ -21,6 +21,7 @@ import { toast } from "sonner";
 export default function RobnaKarticaSviMagacini() {
   const { selectedCompany, selectedYear } = useAuth();
   const companyId = selectedCompany?.id;
+  const isMobile = useIsMobile();
 
   const defaultFrom = selectedYear ? `${selectedYear.year}-01-01` : "";
   const today = format(new Date(), "yyyy-MM-dd");
