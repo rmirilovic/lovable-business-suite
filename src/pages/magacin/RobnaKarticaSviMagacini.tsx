@@ -56,7 +56,7 @@ export default function RobnaKarticaSviMagacini() {
 
   // Find article by barcode scan
   const handleBarcodeScan = (code: string) => {
-    const found = articles?.find(a => a.code === code);
+    const found = filteredArticles?.find(a => a.code === code);
     if (found) {
       setArticleId(found.id);
       toast.success(`Artikal pronađen: ${found.name}`);
@@ -65,7 +65,7 @@ export default function RobnaKarticaSviMagacini() {
     }
   };
 
-  const selectedArticle = articles?.find(a => a.id === articleId);
+  const selectedArticle = filteredArticles?.find(a => a.id === articleId);
 
   const { data: movements, isLoading } = useArticleAllWarehousesCard(
     companyId,
