@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
