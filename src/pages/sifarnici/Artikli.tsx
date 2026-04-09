@@ -997,6 +997,16 @@ export default function Artikli() {
               <table className="w-full">
                 <thead>
                   <tr className="erp-table-header">
+                    <th className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 w-10">
+                      <Checkbox
+                        checked={paginatedArticles.length > 0 && paginatedArticles.every(a => selectedArticleIds.has(a.id))}
+                        onCheckedChange={(checked) => {
+                          const next = new Set(selectedArticleIds);
+                          paginatedArticles.forEach(a => checked ? next.add(a.id) : next.delete(a.id));
+                          setSelectedArticleIds(next);
+                        }}
+                      />
+                    </th>
                     <th 
                       className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('code')}
