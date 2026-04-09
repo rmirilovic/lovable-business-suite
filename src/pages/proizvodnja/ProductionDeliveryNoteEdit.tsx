@@ -248,7 +248,6 @@ export default function ProductionDeliveryNoteEdit() {
                 <Barcode className="w-4 h-4 mr-1" /> Barkodovi
               </Button>
             )}
-            </Button>
             {isDraft && headerDirty && (
               <Button size="sm" onClick={handleSaveHeader}>
                 <Save className="w-4 h-4 mr-2" /> Sačuvaj
