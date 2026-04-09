@@ -21,6 +21,7 @@ import {
   History,
   RefreshCw,
   Tags,
+  Barcode,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -77,7 +78,9 @@ import { useClassifications } from "@/hooks/useClassifications";
 import { useArticleAttributeCounts } from "@/hooks/useArticleAttributeCounts";
 import { useArticleAttributes } from "@/hooks/useArticleAttributes";
 import { ArticleAttributesDialog } from "@/components/sifarnici/ArticleAttributesDialog";
+import { BarcodesPrintDialog } from "@/components/sifarnici/BarcodesPrintDialog";
 import { usePermissions } from "@/hooks/usePermissions";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
