@@ -113,6 +113,17 @@ export default function RobnaKarticaSviMagacini() {
                   onValueChange={(id) => setArticleId(id)}
                 />
               </div>
+              {isMobile && articleId && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() => setArticleId("")}
+                  title="Obriši izbor"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
               <BarcodeScannerButton onScan={handleBarcodeScan} />
             </div>
           </div>
