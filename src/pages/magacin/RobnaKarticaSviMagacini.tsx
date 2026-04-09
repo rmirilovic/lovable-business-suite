@@ -5,10 +5,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
-import { Loader2, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
-import { useArticleAllWarehousesCard, type AllWarehousesMovementRow } from "@/hooks/useArticleAllWarehousesCard";
+import { useArticleAllWarehousesCard } from "@/hooks/useArticleAllWarehousesCard";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { formatPrice, formatDecimal, formatDate } from "@/lib/formatting";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
@@ -25,13 +25,11 @@ export default function RobnaKarticaSviMagacini() {
   const [articleId, setArticleId] = useState("");
   const [dateFrom, setDateFrom] = useState(defaultFrom);
   const [dateTo, setDateTo] = useState("");
-  const [barcodeSearch, setBarcodeSearch] = useState("");
 
-  const { data: articles } = useArticles(companyId);
+  const { articles } = useArticles(companyId);
 
   // Find article by barcode scan
   const handleBarcodeScan = (code: string) => {
-    setBarcodeSearch(code);
     const found = articles?.find(a => a.code === code);
     if (found) {
       setArticleId(found.id);
@@ -99,7 +97,7 @@ export default function RobnaKarticaSviMagacini() {
   }, [movements]);
 
   return (
-    <MainLayout>
+    <MainLayout title="R.K. u svim magacinima">
       <div className="flex flex-col gap-4 p-4 md:p-6">
         <h1 className="text-xl font-bold">R.K. u svim magacinima</h1>
 
@@ -109,9 +107,9 @@ export default function RobnaKarticaSviMagacini() {
             <div className="flex gap-2 items-end">
               <div className="flex-1">
                 <SearchableArticleSelect
-                  companyId={companyId || ""}
+                  articles={articles || []}
                   value={articleId}
-                  onChange={setArticleId}
+                  onValueChange={(id) => setArticleId(id)}
                 />
               </div>
               <BarcodeScannerButton onScan={handleBarcodeScan} />
