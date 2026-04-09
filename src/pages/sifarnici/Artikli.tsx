@@ -77,6 +77,7 @@ import { useArticleAttributeCounts } from "@/hooks/useArticleAttributeCounts";
 import { useArticleAttributes } from "@/hooks/useArticleAttributes";
 import { ArticleAttributesDialog } from "@/components/sifarnici/ArticleAttributesDialog";
 import { BarcodesPrintDialog } from "@/components/sifarnici/BarcodesPrintDialog";
+import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -757,6 +758,7 @@ export default function Artikli() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <BarcodeScannerButton onScan={(code) => setSearchTerm(code)} />
               <button 
                 className={`erp-btn-primary gap-2 ${hasActiveFilters ? 'bg-primary text-primary-foreground' : ''}`}
                 onClick={() => setFiltersOpen(!filtersOpen)}
