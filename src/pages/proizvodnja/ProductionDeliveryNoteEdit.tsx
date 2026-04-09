@@ -243,6 +243,12 @@ export default function ProductionDeliveryNoteEdit() {
             <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPdfLoading} title="Štampaj">
               <Printer className="w-4 h-4 mr-1" /> Štampaj
             </Button>
+            {items.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setBarcodesOpen(true)} title="Štampa barkodova">
+                <Barcode className="w-4 h-4 mr-1" /> Barkodovi
+              </Button>
+            )}
+            </Button>
             {isDraft && headerDirty && (
               <Button size="sm" onClick={handleSaveHeader}>
                 <Save className="w-4 h-4 mr-2" /> Sačuvaj
