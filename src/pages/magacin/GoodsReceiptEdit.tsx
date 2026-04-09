@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Loader2, Pencil, BookCheck, FileDown, Printer, Undo2, ArrowLeft,
-  RefreshCw, Calculator, ExternalLink, History, MoreHorizontal,
+  RefreshCw, Calculator, ExternalLink, History, MoreHorizontal, Barcode,
 } from "lucide-react";
+import { BarcodesPrintDialog } from "@/components/sifarnici/BarcodesPrintDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import {
   GoodsReceipt, useGoodsReceiptItems, useGoodsReceipts,
