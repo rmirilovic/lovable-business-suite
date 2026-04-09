@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { exportInventoryListToExcel, exportInventoryListToPdf, printInventoryList } from "@/lib/inventoryListExportUtils";
 import { toast } from "sonner";
 import { ArticleWarehouseCardDialog } from "@/components/magacin/ArticleWarehouseCardDialog";
+import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
 
 type QtyFilter = "__all__" | "positive" | "negative" | "zero" | "nonzero";
 
