@@ -1085,7 +1085,7 @@ export default function Artikli() {
                 <tbody className="divide-y divide-border">
                   {paginatedArticles.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={10} className="p-8 text-center text-muted-foreground">
                         {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
@@ -1096,6 +1096,16 @@ export default function Artikli() {
                         className="hover:bg-table-hover transition-colors animate-fade-in"
                         style={{ animationDelay: `${index * 30}ms` }}
                       >
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedArticleIds.has(article.id)}
+                            onCheckedChange={(checked) => {
+                              const next = new Set(selectedArticleIds);
+                              checked ? next.add(article.id) : next.delete(article.id);
+                              setSelectedArticleIds(next);
+                            }}
+                          />
+                        </td>
                         <td className="p-3">
                           <span className="font-mono text-sm text-primary">
                             {article.code}
