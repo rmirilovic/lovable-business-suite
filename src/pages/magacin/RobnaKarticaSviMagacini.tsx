@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 import { useArticleAllWarehousesCard } from "@/hooks/useArticleAllWarehousesCard";
@@ -14,11 +15,13 @@ import { formatPrice, formatDecimal, formatDate } from "@/lib/formatting";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export default function RobnaKarticaSviMagacini() {
   const { selectedCompany, selectedYear } = useAuth();
   const companyId = selectedCompany?.id;
+  const isMobile = useIsMobile();
 
   const defaultFrom = selectedYear ? `${selectedYear.year}-01-01` : "";
   const today = format(new Date(), "yyyy-MM-dd");
@@ -112,6 +115,17 @@ export default function RobnaKarticaSviMagacini() {
                   onValueChange={(id) => setArticleId(id)}
                 />
               </div>
+              {isMobile && articleId && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() => setArticleId("")}
+                  title="Obriši izbor"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
               <BarcodeScannerButton onScan={handleBarcodeScan} />
             </div>
           </div>
