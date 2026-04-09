@@ -1483,8 +1483,6 @@ export type Database = {
         Row: {
           activity_code: string | null
           address: string | null
-          api_demo_token: string | null
-          api_token: string | null
           city: string | null
           code: string
           created_at: string | null
@@ -1508,7 +1506,6 @@ export type Database = {
           quote_note_1: string | null
           quote_note_2: string | null
           responsible_person_email: string | null
-          responsible_person_jmbg: string | null
           responsible_person_name: string | null
           updated_at: string | null
           vat_period_type: string
@@ -1516,8 +1513,6 @@ export type Database = {
         Insert: {
           activity_code?: string | null
           address?: string | null
-          api_demo_token?: string | null
-          api_token?: string | null
           city?: string | null
           code: string
           created_at?: string | null
@@ -1541,7 +1536,6 @@ export type Database = {
           quote_note_1?: string | null
           quote_note_2?: string | null
           responsible_person_email?: string | null
-          responsible_person_jmbg?: string | null
           responsible_person_name?: string | null
           updated_at?: string | null
           vat_period_type?: string
@@ -1549,8 +1543,6 @@ export type Database = {
         Update: {
           activity_code?: string | null
           address?: string | null
-          api_demo_token?: string | null
-          api_token?: string | null
           city?: string | null
           code?: string
           created_at?: string | null
@@ -1574,12 +1566,49 @@ export type Database = {
           quote_note_1?: string | null
           quote_note_2?: string | null
           responsible_person_email?: string | null
-          responsible_person_jmbg?: string | null
           responsible_person_name?: string | null
           updated_at?: string | null
           vat_period_type?: string
         }
         Relationships: []
+      }
+      company_secrets: {
+        Row: {
+          api_demo_token: string | null
+          api_token: string | null
+          company_id: string
+          created_at: string
+          id: string
+          responsible_person_jmbg: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_demo_token?: string | null
+          api_token?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          responsible_person_jmbg?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_demo_token?: string | null
+          api_token?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          responsible_person_jmbg?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_secrets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       credit_note_items: {
         Row: {
