@@ -260,8 +260,16 @@ export function CompaniesTab() {
     }
   };
 
-  const handleEdit = (company: Company) => {
+  const handleEdit = async (company: Company) => {
     setEditingCompany(company);
+
+    // Load secrets from company_secrets table
+    const { data: secrets } = await supabase
+      .from("company_secrets")
+      .select("api_token, api_demo_token, responsible_person_jmbg")
+      .eq("company_id", company.id)
+      .maybeSingle();
+
     setFormData({
       code: company.code,
       name: company.name,
@@ -278,9 +286,9 @@ export function CompaniesTab() {
       email: company.email || "",
       responsible_person_name: company.responsible_person_name || "",
       responsible_person_email: company.responsible_person_email || "",
-      responsible_person_jmbg: "",
-      api_token: "",
-      api_demo_token: "",
+      responsible_person_jmbg: secrets?.responsible_person_jmbg || "",
+      api_token: secrets?.api_token || "",
+      api_demo_token: secrets?.api_demo_token || "",
       invoice_note_1: company.invoice_note_1 || "",
       invoice_note_2: company.invoice_note_2 || "",
       quote_note_1: company.quote_note_1 || "",
