@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { exportInventoryListToExcel, exportInventoryListToPdf, printInventoryList } from "@/lib/inventoryListExportUtils";
 import { toast } from "sonner";
 import { ArticleWarehouseCardDialog } from "@/components/magacin/ArticleWarehouseCardDialog";
+import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
 
 type QtyFilter = "__all__" | "positive" | "negative" | "zero" | "nonzero";
 
@@ -168,14 +169,17 @@ export default function LagerLista() {
 
           <div className="relative flex-1 min-w-[200px] space-y-1">
             <Label className="text-xs">Artikal</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Pretraži po šifri ili nazivu..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
+            <div className="relative flex gap-2 items-end">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Pretraži po šifri ili nazivu..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <BarcodeScannerButton onScan={(code) => setSearch(code)} />
             </div>
           </div>
         </div>

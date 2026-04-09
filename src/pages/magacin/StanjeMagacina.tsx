@@ -31,6 +31,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { format } from "date-fns";
 import { exportStockToExcel, exportStockToPdf, printStock } from "@/lib/warehouseExportUtils";
 import { toast } from "sonner";
+import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
 
 const STORAGE_KEY = "stanje_magacina_view_state";
 
@@ -257,6 +258,7 @@ export default function StanjeMagacina() {
               autoComplete="off"
             />
           </div>
+          <BarcodeScannerButton onScan={(code) => setSearch(code)} />
 
           {sortedData.length > 0 && (
             <div className="flex items-center gap-1">
