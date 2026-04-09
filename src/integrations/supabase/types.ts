@@ -9446,6 +9446,12 @@ export type Database = {
           unit_price: number
         }[]
       }
+      get_articles_with_movements: {
+        Args: { p_company_id: string; p_date_from?: string }
+        Returns: {
+          article_id: string
+        }[]
+      }
       get_company_users_for_display: {
         Args: { _company_id: string }
         Returns: {
