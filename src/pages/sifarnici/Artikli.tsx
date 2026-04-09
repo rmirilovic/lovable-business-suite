@@ -774,6 +774,20 @@ export default function Artikli() {
               </button>
             </div>
             <div className="flex gap-3">
+              {selectedArticleIds.size > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setIsBarcodeOpen(true)}
+                >
+                  <Barcode className="w-4 h-4" />
+                  <span className="hidden md:inline">Barkod</span>
+                  <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                    {selectedArticleIds.size}
+                  </span>
+                </Button>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button 
