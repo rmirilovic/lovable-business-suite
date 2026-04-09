@@ -42,9 +42,6 @@ interface Company {
   email: string | null;
   responsible_person_name: string | null;
   responsible_person_email: string | null;
-  responsible_person_jmbg: string | null;
-  api_token: string | null;
-  api_demo_token: string | null;
   invoice_note_1: string | null;
   invoice_note_2: string | null;
   quote_note_1: string | null;
@@ -207,9 +204,6 @@ export function CompaniesTab() {
       email: formData.email || null,
       responsible_person_name: formData.responsible_person_name || null,
       responsible_person_email: formData.responsible_person_email || null,
-      responsible_person_jmbg: formData.responsible_person_jmbg || null,
-      api_token: formData.api_token || null,
-      api_demo_token: formData.api_demo_token || null,
       invoice_note_1: formData.invoice_note_1 || null,
       invoice_note_2: formData.invoice_note_2 || null,
       quote_note_1: formData.quote_note_1 || null,
@@ -230,16 +224,35 @@ export function CompaniesTab() {
       if (error) {
         toast.error("Greška pri ažuriranju firme");
       } else {
+        // Save secrets separately
+        const secretsData = {
+          api_token: formData.api_token || null,
+          api_demo_token: formData.api_demo_token || null,
+          responsible_person_jmbg: formData.responsible_person_jmbg || null,
+        };
+        await supabase
+          .from("company_secrets")
+          .upsert({ company_id: editingCompany.id, ...secretsData }, { onConflict: "company_id" });
+
         toast.success("Firma uspešno ažurirana");
         setIsDialogOpen(false);
         fetchCompanies();
       }
     } else {
-      const { error } = await supabase.from("companies").insert(companyData);
+      const { data: inserted, error } = await supabase.from("companies").insert(companyData).select("id").single();
 
       if (error) {
         toast.error("Greška pri kreiranju firme");
       } else {
+        // Save secrets for new company
+        const secretsData = {
+          company_id: inserted.id,
+          api_token: formData.api_token || null,
+          api_demo_token: formData.api_demo_token || null,
+          responsible_person_jmbg: formData.responsible_person_jmbg || null,
+        };
+        await supabase.from("company_secrets").insert(secretsData);
+
         toast.success("Firma uspešno kreirana");
         setIsDialogOpen(false);
         fetchCompanies();
@@ -247,8 +260,16 @@ export function CompaniesTab() {
     }
   };
 
-  const handleEdit = (company: Company) => {
+  const handleEdit = async (company: Company) => {
     setEditingCompany(company);
+
+    // Load secrets from company_secrets table
+    const { data: secrets } = await supabase
+      .from("company_secrets")
+      .select("api_token, api_demo_token, responsible_person_jmbg")
+      .eq("company_id", company.id)
+      .maybeSingle();
+
     setFormData({
       code: company.code,
       name: company.name,
@@ -265,9 +286,9 @@ export function CompaniesTab() {
       email: company.email || "",
       responsible_person_name: company.responsible_person_name || "",
       responsible_person_email: company.responsible_person_email || "",
-      responsible_person_jmbg: company.responsible_person_jmbg || "",
-      api_token: company.api_token || "",
-      api_demo_token: company.api_demo_token || "",
+      responsible_person_jmbg: secrets?.responsible_person_jmbg || "",
+      api_token: secrets?.api_token || "",
+      api_demo_token: secrets?.api_demo_token || "",
       invoice_note_1: company.invoice_note_1 || "",
       invoice_note_2: company.invoice_note_2 || "",
       quote_note_1: company.quote_note_1 || "",
