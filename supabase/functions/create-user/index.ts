@@ -5,16 +5,39 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// In-memory rate limiter: max 10 requests per 15 minutes per IP
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const RATE_LIMIT_MAX = 10;
+
+function checkRateLimit(clientIp: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(clientIp);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(clientIp, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  entry.count++;
+  return entry.count <= RATE_LIMIT_MAX;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkRateLimit(clientIp)) {
+    return new Response(
+      JSON.stringify({ error: "Previše zahteva. Pokušajte ponovo later." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
-    // Create admin client
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: {
         autoRefreshToken: false,
@@ -96,7 +119,6 @@ Deno.serve(async (req) => {
     if (createError) {
       let errorMessage = createError.message;
       
-      // Translate common Supabase Auth errors to Serbian
       if (createError.message.includes("already been registered")) {
         errorMessage = "Korisnik sa ovom email adresom već postoji";
       } else if (createError.message.includes("invalid email")) {
@@ -111,7 +133,7 @@ Deno.serve(async (req) => {
 
     const newUserId = userData.user.id;
 
-    // Assign role - super admins can assign any role, others get 'user' by default
+    // Assign role
     const roleToAssign = (role && role !== "" && isSuperAdmin) ? role : "user";
     const { error: roleError } = await supabaseAdmin
       .from("user_roles")
@@ -123,13 +145,11 @@ Deno.serve(async (req) => {
 
     // Assign companies if provided
     if (companies && companies.length > 0) {
-      // Local admins can only assign to their companies
       let validCompanies = companies;
       if (!isSuperAdmin) {
         validCompanies = companies.filter((c: { company_id: string }) => 
           localAdminCompanyIds.includes(c.company_id)
         );
-        // Local admins cannot set is_local_admin to true
         validCompanies = validCompanies.map((c: { company_id: string; is_local_admin: boolean }) => ({
           ...c,
           is_local_admin: false,
