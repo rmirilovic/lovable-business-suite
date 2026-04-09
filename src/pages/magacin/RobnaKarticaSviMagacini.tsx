@@ -133,7 +133,7 @@ export default function RobnaKarticaSviMagacini() {
             <div className="flex gap-2 items-end">
               <div className="flex-1">
                 <SearchableArticleSelect
-                  articles={articles || []}
+                  articles={filteredArticles || []}
                   value={articleId}
                   onValueChange={(id) => setArticleId(id)}
                 />
