@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Camera, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,12 @@ export function BarcodeScannerButton({ onScan }: BarcodeScannerButtonProps) {
   const [error, setError] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const onScanRef = useRef(onScan);
+
+  // Keep ref in sync without restarting scanner
+  useEffect(() => {
+    onScanRef.current = onScan;
+  }, [onScan]);
 
   useEffect(() => {
     if (!open) return;
@@ -34,7 +40,10 @@ export function BarcodeScannerButton({ onScan }: BarcodeScannerButtonProps) {
           },
           (decodedText) => {
             if (!mounted) return;
-            onScan(decodedText);
+            // Stop scanner first, then notify parent
+            scanner.stop().catch(() => {});
+            scannerRef.current = null;
+            onScanRef.current(decodedText);
             setOpen(false);
           },
           () => {
@@ -63,7 +72,7 @@ export function BarcodeScannerButton({ onScan }: BarcodeScannerButtonProps) {
         scannerRef.current = null;
       }
     };
-  }, [open, onScan]);
+  }, [open]);
 
   // Clean up error on close
   useEffect(() => {
