@@ -17,6 +17,8 @@ import { SearchableArticleSelect } from "@/components/ui/searchable-article-sele
 import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function RobnaKarticaSviMagacini() {
   const { selectedCompany, selectedYear } = useAuth();
@@ -30,6 +32,27 @@ export default function RobnaKarticaSviMagacini() {
   const [dateFrom, setDateFrom] = useState(defaultFrom);
 
   const { articles } = useArticles(companyId);
+
+  // Fetch article IDs that have movements from the selected date
+  const { data: articleIdsWithMovements } = useQuery({
+    queryKey: ["articles-with-movements", companyId, dateFrom],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).rpc("get_articles_with_movements", {
+        p_company_id: companyId!,
+        p_date_from: dateFrom || null,
+      });
+      if (error) throw error;
+      return new Set((data as { article_id: string }[]).map((r) => r.article_id));
+    },
+    enabled: !!companyId,
+  });
+
+  // Filter articles to only those with movements
+  const filteredArticles = useMemo(() => {
+    if (!articles) return [];
+    if (!articleIdsWithMovements) return articles;
+    return articles.filter((a) => articleIdsWithMovements.has(a.id));
+  }, [articles, articleIdsWithMovements]);
 
   // Find article by barcode scan
   const handleBarcodeScan = (code: string) => {
