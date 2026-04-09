@@ -154,6 +154,7 @@ export default function ReprocessingDeliveryNoteEdit() {
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena"><History className="w-4 h-4" /></Button>
+            {items.length > 0 && <Button variant="outline" size="sm" onClick={() => setBarcodesOpen(true)}><Barcode className="w-4 h-4 mr-2" /> Barkodovi</Button>}
             {isDraft && headerDirty && <Button onClick={handleSaveHeader}><Save className="w-4 h-4 mr-2" /> Sačuvaj</Button>}
             {isDraft && <Button onClick={() => { if (confirm("Proknjižiti predajnicu?")) postNote.mutateAsync(note.id); }}><Lock className="w-4 h-4 mr-2" /> Proknjiži</Button>}
             {!isDraft && <Button variant="outline" className="text-destructive border-destructive/50 hover:bg-destructive/10" onClick={() => { if (confirm("Poništiti knjiženje?")) unpostNote.mutateAsync(note.id); }}><Undo2 className="w-4 h-4 mr-2" /> Poništi knjiženje</Button>}
