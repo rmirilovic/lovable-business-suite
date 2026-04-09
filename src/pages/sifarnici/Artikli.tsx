@@ -4,9 +4,7 @@ import {
   Search,
   Plus,
   Filter,
-  Edit2,
   Trash2,
-  Eye,
   Loader2,
   HelpCircle,
   X,
@@ -1093,8 +1091,9 @@ export default function Artikli() {
                     paginatedArticles.map((article, index) => (
                       <tr
                         key={article.id}
-                        className="hover:bg-table-hover transition-colors animate-fade-in"
+                        className="hover:bg-table-hover transition-colors animate-fade-in cursor-pointer"
                         style={{ animationDelay: `${index * 30}ms` }}
+                        onClick={() => canEdit ? handleEdit(article) : handleView(article)}
                       >
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
@@ -1215,13 +1214,6 @@ export default function Artikli() {
                           <div className="flex items-center justify-end">
                             <button
                               className="p-1.5 rounded hover:bg-secondary transition-colors"
-                              onClick={() => handleView(article)}
-                              title="Pregled"
-                            >
-                              <Eye className="w-4 h-4 text-muted-foreground" />
-                            </button>
-                            <button
-                              className="p-1.5 rounded hover:bg-secondary transition-colors"
                               onClick={() => handleHistory(article)}
                               title="Istorija izmena"
                             >
@@ -1258,22 +1250,13 @@ export default function Artikli() {
                               </TooltipContent>
                             </Tooltip>
                             {canEdit && (
-                              <>
-                                <button
-                                  className="p-1.5 rounded hover:bg-secondary transition-colors"
-                                  onClick={() => handleEdit(article)}
-                                  title="Izmeni sve"
-                                >
-                                  <Edit2 className="w-4 h-4 text-muted-foreground" />
-                                </button>
-                                <button
-                                  className="p-1.5 rounded hover:bg-secondary transition-colors"
-                                  onClick={() => handleDeleteClick(article)}
-                                  title="Obriši"
-                                >
-                                  <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-                                </button>
-                              </>
+                              <button
+                                className="p-1.5 rounded hover:bg-secondary transition-colors"
+                                onClick={() => handleDeleteClick(article)}
+                                title="Obriši"
+                              >
+                                <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                              </button>
                             )}
                           </div>
                         </td>
