@@ -13,7 +13,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
-import { ArrowLeft, Lock, Save, Undo2, FileDown, FileSpreadsheet, Printer, History, MoreHorizontal, Eye } from "lucide-react";
+import { ArrowLeft, Lock, Save, Undo2, FileDown, FileSpreadsheet, Printer, History, MoreHorizontal, Eye, Barcode } from "lucide-react";
+import { BarcodesPrintDialog } from "@/components/sifarnici/BarcodesPrintDialog";
 import { DocumentHistoryDialog } from "@/components/shared/DocumentHistoryDialog";
 import { ArticleProductionDeliveryNotesDialog } from "@/components/proizvodnja/ArticleProductionDeliveryNotesDialog";
 import {
@@ -79,6 +80,7 @@ export default function ProductionDeliveryNoteEdit() {
   const [headerDirty, setHeaderDirty] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [pdnDialogArticle, setPdnDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
+  const [barcodesOpen, setBarcodesOpen] = useState(false);
 
   useEffect(() => {
     if (note) {
@@ -241,6 +243,11 @@ export default function ProductionDeliveryNoteEdit() {
             <Button variant="outline" size="sm" onClick={handlePrint} disabled={isPdfLoading} title="Štampaj">
               <Printer className="w-4 h-4 mr-1" /> Štampaj
             </Button>
+            {items.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setBarcodesOpen(true)} title="Štampa barkodova">
+                <Barcode className="w-4 h-4 mr-1" /> Barkodovi
+              </Button>
+            )}
             {isDraft && headerDirty && (
               <Button size="sm" onClick={handleSaveHeader}>
                 <Save className="w-4 h-4 mr-2" /> Sačuvaj
@@ -448,6 +455,22 @@ export default function ProductionDeliveryNoteEdit() {
         articleId={pdnDialogArticle?.id ?? null}
         articleCode={pdnDialogArticle?.code ?? ""}
         articleName={pdnDialogArticle?.name ?? ""}
+      />
+      <BarcodesPrintDialog
+        open={barcodesOpen}
+        onOpenChange={setBarcodesOpen}
+        articles={(() => {
+          const seen = new Set<string>();
+          return items.filter((item) => {
+            if (seen.has(item.article_code)) return false;
+            seen.add(item.article_code);
+            return true;
+          }).map((item) => ({
+            id: item.id,
+            code: item.article_code,
+            name: item.article_name,
+          }));
+        })()}
       />
     </MainLayout>
   );
