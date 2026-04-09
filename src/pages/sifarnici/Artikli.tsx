@@ -1110,7 +1110,7 @@ export default function Artikli() {
                             {article.code}
                           </span>
                         </td>
-                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-3">
                           <InlineEditCell
                             value={article.name}
                             onSave={(val) => handleInlineEdit(article.id, 'name', val)}
@@ -1123,7 +1123,7 @@ export default function Artikli() {
                             onCancel={() => setActiveEditCell(null)}
                           />
                         </td>
-                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-3">
                           <InlineClassificationCell
                             value={article.article_group}
                             classifications={classifications}
@@ -1146,7 +1146,7 @@ export default function Artikli() {
                             className="inline-flex items-center justify-center w-6 h-6 rounded bg-secondary text-secondary-foreground text-xs font-medium"
                           />
                         </td>
-                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-3">
                           <InlineEditCell
                             value={article.unit}
                             onSave={(val) => handleInlineEdit(article.id, 'unit', val)}
@@ -1159,7 +1159,7 @@ export default function Artikli() {
                             onCancel={() => setActiveEditCell(null)}
                           />
                         </td>
-                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-3 text-right">
                           <InlineEditCell
                             value={String(article.purchase_price)}
                             onSave={(val) => handleInlineEdit(article.id, 'purchase_price', val)}
@@ -1175,7 +1175,7 @@ export default function Artikli() {
                             onCancel={() => setActiveEditCell(null)}
                           />
                         </td>
-                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className="p-3 text-right">
                           <InlineEditCell
                             value={String(article.selling_price)}
                             onSave={(val) => handleInlineEdit(article.id, 'selling_price', val)}
