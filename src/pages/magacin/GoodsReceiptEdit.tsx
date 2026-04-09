@@ -55,6 +55,7 @@ export default function GoodsReceiptEdit() {
   const [unpostDialogOpen, setUnpostDialogOpen] = useState(false);
   const [receiptsDialogArticle, setReceiptsDialogArticle] = useState<{ id: string; code: string; name: string } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [barcodesOpen, setBarcodesOpen] = useState(false);
 
   const { items, isLoading: itemsLoading } = useGoodsReceiptItems(id || null);
   const { updateReceipt, postReceipt, unpostReceipt } = useGoodsReceipts();
