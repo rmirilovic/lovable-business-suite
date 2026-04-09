@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
-import JsBarcode from "jsbarcode/bin/JsBarcode";
+import JsBarcode from "jsbarcode";
 
 interface BarcodeArticle {
   id: string;
