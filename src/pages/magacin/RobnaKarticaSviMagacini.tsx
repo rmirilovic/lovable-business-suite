@@ -15,6 +15,7 @@ import { formatPrice, formatDecimal, formatDate } from "@/lib/formatting";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { SearchableArticleSelect } from "@/components/ui/searchable-article-select";
 import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export default function RobnaKarticaSviMagacini() {
