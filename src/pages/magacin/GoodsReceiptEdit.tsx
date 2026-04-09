@@ -204,6 +204,9 @@ export default function GoodsReceiptEdit() {
                 <Button variant="outline" size="sm" onClick={() => printGoodsReceipt(receipt, items, selectedCompany)}>
                   <Printer className="h-4 w-4 mr-2" />Štampa
                 </Button>
+                <Button variant="outline" size="sm" onClick={() => setBarcodesOpen(true)}>
+                  <Barcode className="h-4 w-4 mr-2" />Barkodovi
+                </Button>
               </>
             )}
             {isPosted && receipt.source_invoice_id && (
@@ -412,6 +415,19 @@ export default function GoodsReceiptEdit() {
         articleId={receiptsDialogArticle?.id ?? null}
         articleCode={receiptsDialogArticle?.code ?? ""}
         articleName={receiptsDialogArticle?.name ?? ""}
+      />
+      <BarcodesPrintDialog
+        open={barcodesOpen}
+        onOpenChange={setBarcodesOpen}
+        articles={(() => {
+          const seen = new Set<string>();
+          return items.filter((item) => {
+            const code = item.item_code || "";
+            if (!code || seen.has(code)) return false;
+            seen.add(code);
+            return true;
+          }).map((item) => ({ id: item.id, code: item.item_code || "", name: item.item_name }));
+        })()}
       />
     </MainLayout>
   );
