@@ -112,6 +112,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Stanje sa rezervacijama", href: "/magacin/stanje-rezervacije", moduleCode: "robno.prijemnice" },
       { label: "Rezervacije", href: "/magacin/rezervacije", moduleCode: "robno.prijemnice" },
       { label: "Lager lista", href: "/magacin/lager-lista", moduleCode: "robno.prijemnice" },
+      { label: "R.K. u svim magacinima", href: "/magacin/rk-svi-magacini", moduleCode: "robno.prijemnice" },
       { label: "Promet magacina", href: "/magacin/promet", moduleCode: "robno.prijemnice" },
     ],
   },

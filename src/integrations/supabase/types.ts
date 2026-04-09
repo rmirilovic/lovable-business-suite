@@ -9375,6 +9375,28 @@ export type Database = {
         }
         Returns: string
       }
+      get_article_all_warehouses_card: {
+        Args: {
+          p_article_id: string
+          p_company_id: string
+          p_date_from?: string
+          p_date_to?: string
+        }
+        Returns: {
+          credit_value: number
+          debit_value: number
+          document_number: string
+          document_type: string
+          in_quantity: number
+          movement_date: string
+          out_quantity: number
+          partner_name: string
+          unit_price: number
+          warehouse_code: string
+          warehouse_id: string
+          warehouse_name: string
+        }[]
+      }
       get_article_warehouse_card: {
         Args: {
           p_article_id: string
