@@ -21,6 +21,7 @@ import {
   History,
   RefreshCw,
   Tags,
+  Barcode,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -77,7 +78,9 @@ import { useClassifications } from "@/hooks/useClassifications";
 import { useArticleAttributeCounts } from "@/hooks/useArticleAttributeCounts";
 import { useArticleAttributes } from "@/hooks/useArticleAttributes";
 import { ArticleAttributesDialog } from "@/components/sifarnici/ArticleAttributesDialog";
+import { BarcodesPrintDialog } from "@/components/sifarnici/BarcodesPrintDialog";
 import { usePermissions } from "@/hooks/usePermissions";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type SvkType = '0' | '1' | '2' | '6' | '8' | '9';
 
@@ -226,6 +229,8 @@ export default function Artikli() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAttributesOpen, setIsAttributesOpen] = useState(false);
+  const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
+  const [selectedArticleIds, setSelectedArticleIds] = useState<Set<string>>(new Set());
   const [historyArticle, setHistoryArticle] = useState<Article | null>(null);
   const [attributesArticle, setAttributesArticle] = useState<Article | null>(null);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);
@@ -769,6 +774,20 @@ export default function Artikli() {
               </button>
             </div>
             <div className="flex gap-3">
+              {selectedArticleIds.size > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setIsBarcodeOpen(true)}
+                >
+                  <Barcode className="w-4 h-4" />
+                  <span className="hidden md:inline">Barkod</span>
+                  <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-full">
+                    {selectedArticleIds.size}
+                  </span>
+                </Button>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button 
@@ -978,6 +997,16 @@ export default function Artikli() {
               <table className="w-full">
                 <thead>
                   <tr className="erp-table-header">
+                    <th className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 w-10">
+                      <Checkbox
+                        checked={paginatedArticles.length > 0 && paginatedArticles.every(a => selectedArticleIds.has(a.id))}
+                        onCheckedChange={(checked) => {
+                          const next = new Set(selectedArticleIds);
+                          paginatedArticles.forEach(a => checked ? next.add(a.id) : next.delete(a.id));
+                          setSelectedArticleIds(next);
+                        }}
+                      />
+                    </th>
                     <th 
                       className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 text-left font-medium cursor-pointer hover:bg-muted/50 select-none"
                       onClick={() => handleSort('code')}
@@ -1056,7 +1085,7 @@ export default function Artikli() {
                 <tbody className="divide-y divide-border">
                   {paginatedArticles.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={10} className="p-8 text-center text-muted-foreground">
                         {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
@@ -1067,6 +1096,16 @@ export default function Artikli() {
                         className="hover:bg-table-hover transition-colors animate-fade-in"
                         style={{ animationDelay: `${index * 30}ms` }}
                       >
+                        <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedArticleIds.has(article.id)}
+                            onCheckedChange={(checked) => {
+                              const next = new Set(selectedArticleIds);
+                              checked ? next.add(article.id) : next.delete(article.id);
+                              setSelectedArticleIds(next);
+                            }}
+                          />
+                        </td>
                         <td className="p-3">
                           <span className="font-mono text-sm text-primary">
                             {article.code}
@@ -1717,6 +1756,12 @@ export default function Artikli() {
           }}
         />
       )}
+      {/* Barcode Print Dialog */}
+      <BarcodesPrintDialog
+        open={isBarcodeOpen}
+        onOpenChange={setIsBarcodeOpen}
+        articles={articles.filter(a => selectedArticleIds.has(a.id))}
+      />
 
       </div>
     </MainLayout>
