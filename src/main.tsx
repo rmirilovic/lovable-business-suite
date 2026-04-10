@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import "./index.css";
 
 const PREVIEW_BOOTSTRAP_RELOAD_KEY = "lovable_preview_bootstrap_reload";
+const PREVIEW_BOOTSTRAP_PARAM = "__lovable_preview_bootstrap";
 
 const clearBrowserCaches = async () => {
   try {
@@ -51,6 +52,24 @@ const markPreviewReloadDone = () => {
   }
 };
 
+const clearPreviewBootstrapParam = () => {
+  try {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has(PREVIEW_BOOTSTRAP_PARAM)) return;
+
+    url.searchParams.delete(PREVIEW_BOOTSTRAP_PARAM);
+    window.history.replaceState(window.history.state, "", url.toString());
+  } catch {
+    // Ignore URL cleanup failures
+  }
+};
+
+const buildPreviewReloadUrl = () => {
+  const url = new URL(window.location.href);
+  url.searchParams.set(PREVIEW_BOOTSTRAP_PARAM, Date.now().toString());
+  return url.toString();
+};
+
 // Guard: never register service worker in iframe or Lovable preview
 const isInIframe = (() => {
   try {
@@ -65,18 +84,21 @@ const isLovableHosted =
   hostname === "lovable.app" ||
   hostname.endsWith(".lovable.app") ||
   hostname.includes("lovableproject.com");
+const isLovablePreviewHost =
+  hostname.includes("id-preview--") ||
+  hostname.includes("lovableproject.com");
 
 const bootstrapApp = async () => {
   if (isLovableHosted || isInIframe) {
     // Prevent stale PWA builds from masking fresh routes/menus on Lovable-hosted apps.
-    const [unregisteredCount, clearedCacheCount] = await Promise.all([
+    await Promise.all([
       unregisterServiceWorkers(),
       clearBrowserCaches(),
     ]);
 
-    if (isInIframe && shouldForcePreviewReload() && (unregisteredCount > 0 || clearedCacheCount > 0)) {
+    if ((isInIframe || isLovablePreviewHost) && shouldForcePreviewReload()) {
       markPreviewReloadDone();
-      window.location.reload();
+      window.location.replace(buildPreviewReloadUrl());
       return;
     }
   } else {
@@ -88,6 +110,7 @@ const bootstrapApp = async () => {
     });
   }
 
+  clearPreviewBootstrapParam();
   renderApp();
 };
 
