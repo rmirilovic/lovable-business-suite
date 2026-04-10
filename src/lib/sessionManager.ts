@@ -2,8 +2,11 @@ import { supabase } from "@/integrations/supabase/client";
 
 const SESSION_TOKEN_KEY = "erp.sessionToken";
 const HEARTBEAT_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
+const SESSION_VALIDATION_INTERVAL_MS = 15 * 1000; // 15 seconds
+const SESSION_SYNC_CHANNEL = "erp_session_sync";
 
 let heartbeatInterval: number | null = null;
+let validationInterval: number | null = null;
 
 function getOrCreateSessionToken(): string {
   let token = sessionStorage.getItem(SESSION_TOKEN_KEY);
@@ -16,6 +19,108 @@ function getOrCreateSessionToken(): string {
 
 export function getSessionToken(): string | null {
   return sessionStorage.getItem(SESSION_TOKEN_KEY);
+}
+
+function clearPersistedAuthStorage() {
+  const clearStorage = (storage: Storage | null | undefined) => {
+    if (!storage) return;
+
+    const keysToRemove: string[] = [];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (!key) continue;
+
+      if (key === "supabase.auth.token" || (key.startsWith("sb-") && key.includes("auth-token"))) {
+        keysToRemove.push(key);
+      }
+    }
+
+    keysToRemove.forEach((key) => storage.removeItem(key));
+  };
+
+  try {
+    clearStorage(window.localStorage);
+    clearStorage(window.sessionStorage);
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function broadcastForcedSignOut() {
+  try {
+    const bc = new BroadcastChannel(SESSION_SYNC_CHANNEL);
+    bc.postMessage({ type: "FORCE_SIGN_OUT" });
+    bc.close();
+  } catch {
+    // ignore BroadcastChannel failures
+  }
+
+  try {
+    if (window.opener) {
+      window.opener.postMessage({ type: "FORCE_SIGN_OUT" }, window.location.origin);
+    }
+  } catch {
+    // ignore cross-window messaging failures
+  }
+}
+
+async function handleSessionRevoked() {
+  stopHeartbeat();
+  stopSessionValidation();
+  sessionStorage.removeItem(SESSION_TOKEN_KEY);
+  localStorage.removeItem("selectedCompanyId");
+  localStorage.removeItem("selectedYearId");
+  clearPersistedAuthStorage();
+  broadcastForcedSignOut();
+
+  try {
+    await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    // ignore sign-out failures, local state is already cleared
+  }
+
+  window.location.replace("/auth");
+}
+
+async function validateCurrentSession(): Promise<boolean> {
+  const token = getSessionToken();
+  if (!token) {
+    stopSessionValidation();
+    return true;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("active_sessions")
+      .select("id")
+      .eq("session_token", token)
+      .limit(1);
+
+    if (error) {
+      console.error("Failed to validate session:", error);
+      return true;
+    }
+
+    if (!data || data.length === 0) {
+      await handleSessionRevoked();
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Failed to validate session:", error);
+    return true;
+  }
+}
+
+function handleWindowFocus() {
+  void validateCurrentSession();
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === "visible") {
+    void validateCurrentSession();
+  }
 }
 
 export async function checkSessionLimit(companyId: string): Promise<{
@@ -117,6 +222,7 @@ export async function removeSession(): Promise<void> {
   if (!token) return;
 
   stopHeartbeat();
+  stopSessionValidation();
 
   try {
     await supabase.rpc("remove_session", { _session_token: token });
@@ -132,6 +238,8 @@ function startHeartbeat() {
 
   const token = getSessionToken();
   if (!token) return;
+
+  startSessionValidation();
 
   heartbeatInterval = window.setInterval(async () => {
     const currentToken = getSessionToken();
@@ -153,6 +261,31 @@ function stopHeartbeat() {
     window.clearInterval(heartbeatInterval);
     heartbeatInterval = null;
   }
+
+  stopSessionValidation();
+}
+
+function startSessionValidation() {
+  stopSessionValidation();
+
+  validationInterval = window.setInterval(() => {
+    void validateCurrentSession();
+  }, SESSION_VALIDATION_INTERVAL_MS);
+
+  window.addEventListener("focus", handleWindowFocus);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  void validateCurrentSession();
+}
+
+function stopSessionValidation() {
+  if (validationInterval) {
+    window.clearInterval(validationInterval);
+    validationInterval = null;
+  }
+
+  window.removeEventListener("focus", handleWindowFocus);
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
 }
 
 // Re-start heartbeat if we already have a session token (page reload)
