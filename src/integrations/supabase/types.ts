@@ -16,26 +16,38 @@ export type Database = {
     Tables: {
       active_sessions: {
         Row: {
+          browser: string | null
           company_id: string
           created_at: string
+          device_type: string | null
           id: string
+          ip_address: string | null
           last_heartbeat: string
+          os: string | null
           session_token: string
           user_id: string
         }
         Insert: {
+          browser?: string | null
           company_id: string
           created_at?: string
+          device_type?: string | null
           id?: string
+          ip_address?: string | null
           last_heartbeat?: string
+          os?: string | null
           session_token: string
           user_id: string
         }
         Update: {
+          browser?: string | null
           company_id?: string
           created_at?: string
+          device_type?: string | null
           id?: string
+          ip_address?: string | null
           last_heartbeat?: string
+          os?: string | null
           session_token?: string
           user_id?: string
         }
