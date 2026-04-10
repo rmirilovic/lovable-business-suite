@@ -9729,10 +9729,22 @@ export type Database = {
         Args: { _invoice_id: string; _user_id: string }
         Returns: string
       }
-      register_session: {
-        Args: { _company_id: string; _session_token: string }
-        Returns: Json
-      }
+      register_session:
+        | {
+            Args: { _company_id: string; _session_token: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _browser?: string
+              _company_id: string
+              _device_type?: string
+              _ip_address?: string
+              _os?: string
+              _session_token: string
+            }
+            Returns: Json
+          }
       remove_session: { Args: { _session_token: string }; Returns: undefined }
       reopen_reprocessing_work_order: {
         Args: { _order_id: string; _user_id: string }
