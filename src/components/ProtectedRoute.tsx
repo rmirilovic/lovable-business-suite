@@ -27,10 +27,10 @@ export function ProtectedRoute({
 
   // After initial load, don't redirect during transient auth refreshes
   // (e.g. tab visibility change triggering token refresh / brief SIGNED_OUT)
-  if (!user && initialLoadDone && !loading) {
+  if (!user && !loading) {
     return <Navigate to="/auth" replace />;
   }
-  if (!user && !initialLoadDone) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Učitavanje...</div>
