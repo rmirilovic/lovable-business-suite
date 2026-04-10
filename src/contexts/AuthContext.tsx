@@ -3,7 +3,7 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { recordLoginAudit, updateLoginAuditCompany } from "@/lib/loginAuditLogger";
-import { removeSession, resumeHeartbeatIfNeeded } from "@/lib/sessionManager";
+import { removeSession, registerSession, resumeHeartbeatIfNeeded } from "@/lib/sessionManager";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -349,6 +349,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       updateInitialLoadDone(true);
       resumeHeartbeatIfNeeded();
+
+      // Register session if company is already selected (e.g. new tab with saved selection)
+      const savedCompanyId = localStorage.getItem("selectedCompanyId");
+      if (savedCompanyId) {
+        registerSession(savedCompanyId).catch(() => {
+          // Silent fail - don't block auth flow
+        });
+      }
     } finally {
       userDataLoadingRef.current = false;
       setLoading(false);
