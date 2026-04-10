@@ -26,38 +26,9 @@ export default function AdminPanel() {
     { value: "active-sessions", label: "Sesije", icon: Wifi },
   ];
 
-  const showRefreshCard = isSuperAdmin;
-
   return (
     <MainLayout title="Administracija">
       <div className="flex-1 min-h-0 overflow-auto space-y-6">
-        {showRefreshCard && (
-          <Card>
-            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-lg">Osveži navigaciju</CardTitle>
-                <CardDescription>
-                  Ručno ponovo učitaj auth i dozvole ako sporni meniji ne postanu vidljivi sami.
-                </CardDescription>
-              </div>
-              <Button
-                type="button"
-                onClick={handleRefreshMenus}
-                disabled={isRefreshingMenus}
-                className="sm:self-start"
-              >
-                <RefreshCw className={isRefreshingMenus ? "animate-spin" : ""} />
-                Ponovo učitaj menije
-              </Button>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-sm text-muted-foreground">
-                Ovo ne radi browser refresh, već interno ponovo inicijalizuje korisnički pristup.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="flex flex-wrap h-auto gap-1 w-full">
             {tabs.map((tab) => (
