@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { recordLoginAudit, updateLoginAuditCompany } from "@/lib/loginAuditLogger";
 import {
+  clearSessionRevocationFlag,
   isSessionRevoked,
   removeSession,
   registerSession,
@@ -846,6 +847,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     setIntentionalSignOutState(false);
+    clearSessionRevocationFlag();
     const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
