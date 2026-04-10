@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users, Shield, Calendar, Database, KeyRound, UserCheck, RefreshCw, ClipboardList, Wifi } from "lucide-react";
+import { Building2, Users, Shield, Calendar, Database, KeyRound, UserCheck, ClipboardList, Wifi } from "lucide-react";
 import { CompaniesTab } from "@/components/admin/CompaniesTab";
 import { UsersTab } from "@/components/admin/UsersTab";
 import { AccessTab } from "@/components/admin/AccessTab";
@@ -11,29 +11,9 @@ import { RolesTab } from "@/components/admin/RolesTab";
 import { UserRolesTab } from "@/components/admin/UserRolesTab";
 import { LoginAuditTab } from "@/components/admin/LoginAuditTab";
 import { ActiveSessionsTab } from "@/components/admin/ActiveSessionsTab";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState("companies");
-  const [isRefreshingMenus, setIsRefreshingMenus] = useState(false);
-  const { isSuperAdmin, refreshAuthState } = useAuth();
-
-  const handleRefreshMenus = async () => {
-    try {
-      setIsRefreshingMenus(true);
-      await refreshAuthState();
-      toast.success("Ponovno učitavanje menija je pokrenuto.");
-    } catch (error) {
-      console.error("Menu refresh failed:", error);
-      toast.error("Greška pri ponovnom učitavanju menija.");
-    } finally {
-      setIsRefreshingMenus(false);
-    }
-  };
-
   const tabs = [
     { value: "companies", label: "Firme", icon: Building2 },
     { value: "years", label: "Godine", icon: Calendar },
