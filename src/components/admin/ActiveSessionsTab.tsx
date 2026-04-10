@@ -57,7 +57,7 @@ export function ActiveSessionsTab() {
       ]);
 
       const profileMap = new Map(
-        (profilesRes.data || []).map((p) => [p.id, p.email || p.display_name || p.id])
+        (profilesRes.data || []).map((p) => [p.id, p.email || [p.first_name, p.last_name].filter(Boolean).join(" ") || p.id])
       );
       const companyMap = new Map(
         (companiesRes.data || []).map((c) => [c.id, c.name])
