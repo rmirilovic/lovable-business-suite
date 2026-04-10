@@ -23,6 +23,10 @@ interface ActiveSession {
   session_token: string;
   created_at: string;
   last_heartbeat: string;
+  browser?: string | null;
+  os?: string | null;
+  device_type?: string | null;
+  ip_address?: string | null;
   user_email?: string;
   company_name?: string;
 }
