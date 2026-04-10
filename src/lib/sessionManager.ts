@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 const SESSION_TOKEN_KEY = "erp.sessionToken";
+const SESSION_REVOKED_KEY = "erp.sessionRevoked";
 const HEARTBEAT_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
 const SESSION_VALIDATION_INTERVAL_MS = 15 * 1000; // 15 seconds
 const SESSION_SYNC_CHANNEL = "erp_session_sync";
@@ -21,63 +22,21 @@ export function getSessionToken(): string | null {
   return sessionStorage.getItem(SESSION_TOKEN_KEY);
 }
 
-function clearPersistedAuthStorage() {
-  const clearStorage = (storage: Storage | null | undefined) => {
-    if (!storage) return;
-
-    const keysToRemove: string[] = [];
-    for (let index = 0; index < storage.length; index += 1) {
-      const key = storage.key(index);
-      if (!key) continue;
-
-      if (key === "supabase.auth.token" || (key.startsWith("sb-") && key.includes("auth-token"))) {
-        keysToRemove.push(key);
-      }
-    }
-
-    keysToRemove.forEach((key) => storage.removeItem(key));
-  };
-
-  try {
-    clearStorage(window.localStorage);
-    clearStorage(window.sessionStorage);
-  } catch {
-    // ignore storage failures
-  }
+export function isSessionRevoked(): boolean {
+  return sessionStorage.getItem(SESSION_REVOKED_KEY) === "true";
 }
 
-function broadcastForcedSignOut() {
-  try {
-    const bc = new BroadcastChannel(SESSION_SYNC_CHANNEL);
-    bc.postMessage({ type: "FORCE_SIGN_OUT" });
-    bc.close();
-  } catch {
-    // ignore BroadcastChannel failures
-  }
-
-  try {
-    if (window.opener) {
-      window.opener.postMessage({ type: "FORCE_SIGN_OUT" }, window.location.origin);
-    }
-  } catch {
-    // ignore cross-window messaging failures
-  }
+export function clearSessionRevocationFlag(): void {
+  sessionStorage.removeItem(SESSION_REVOKED_KEY);
 }
 
 async function handleSessionRevoked() {
+  const revokedToken = getSessionToken();
+
   stopHeartbeat();
   stopSessionValidation();
   sessionStorage.removeItem(SESSION_TOKEN_KEY);
-  localStorage.removeItem("selectedCompanyId");
-  localStorage.removeItem("selectedYearId");
-  clearPersistedAuthStorage();
-  broadcastForcedSignOut();
-
-  try {
-    await supabase.auth.signOut({ scope: "local" });
-  } catch {
-    // ignore sign-out failures, local state is already cleared
-  }
+  sessionStorage.setItem(SESSION_REVOKED_KEY, "true");
 
   window.location.replace("/auth");
 }
@@ -190,6 +149,7 @@ export async function registerSession(companyId: string): Promise<{
   current: number;
   max: number | null;
 }> {
+  clearSessionRevocationFlag();
   const token = getOrCreateSessionToken();
   const { browser, os, deviceType } = getDeviceInfo();
   const ipAddress = await getIpAddress();
@@ -221,6 +181,7 @@ export async function removeSession(): Promise<void> {
   const token = getSessionToken();
   if (!token) return;
 
+  clearSessionRevocationFlag();
   stopHeartbeat();
   stopSessionValidation();
 
@@ -290,6 +251,11 @@ function stopSessionValidation() {
 
 // Re-start heartbeat if we already have a session token (page reload)
 export function resumeHeartbeatIfNeeded() {
+  if (isSessionRevoked()) {
+    stopHeartbeat();
+    return;
+  }
+
   const token = getSessionToken();
   if (token) {
     startHeartbeat();
