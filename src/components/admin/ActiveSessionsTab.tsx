@@ -125,6 +125,8 @@ export function ActiveSessionsTab() {
             <TableRow>
               <TableHead>Korisnik</TableHead>
               <TableHead>Firma</TableHead>
+              <TableHead>Browser / Uređaj</TableHead>
+              <TableHead>IP adresa</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Prijava</TableHead>
               <TableHead>Poslednji heartbeat</TableHead>
@@ -134,7 +136,7 @@ export function ActiveSessionsTab() {
           <TableBody>
             {sessions.length === 0 && !loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                   Nema aktivnih sesija.
                 </TableCell>
               </TableRow>
@@ -147,6 +149,13 @@ export function ActiveSessionsTab() {
                       {session.user_email}
                     </TableCell>
                     <TableCell>{session.company_name}</TableCell>
+                    <TableCell className="text-sm">
+                      <div>{session.browser || "—"}</div>
+                      <div className="text-muted-foreground">{[session.os, session.device_type].filter(Boolean).join(" · ") || "—"}</div>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {session.ip_address || "—"}
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={
