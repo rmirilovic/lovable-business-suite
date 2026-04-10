@@ -349,6 +349,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       updateInitialLoadDone(true);
       resumeHeartbeatIfNeeded();
+
+      // Register session if company is already selected (e.g. new tab with saved selection)
+      const savedCompanyId = localStorage.getItem("selectedCompanyId");
+      if (savedCompanyId) {
+        registerSession(savedCompanyId).catch(() => {
+          // Silent fail - don't block auth flow
+        });
+      }
     } finally {
       userDataLoadingRef.current = false;
       setLoading(false);
