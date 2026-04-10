@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const SESSION_TOKEN_KEY = "erp.sessionToken";
 const SESSION_REVOKED_KEY = "erp.sessionRevoked";
+export const SESSION_REVOKED_EVENT = "erp:session-revoked";
 const HEARTBEAT_INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
 const SESSION_VALIDATION_INTERVAL_MS = 15 * 1000; // 15 seconds
 const SESSION_SYNC_CHANNEL = "erp_session_sync";
@@ -31,12 +32,12 @@ export function clearSessionRevocationFlag(): void {
 }
 
 async function handleSessionRevoked() {
-  const revokedToken = getSessionToken();
-
   stopHeartbeat();
   stopSessionValidation();
   sessionStorage.removeItem(SESSION_TOKEN_KEY);
   sessionStorage.setItem(SESSION_REVOKED_KEY, "true");
+
+  window.dispatchEvent(new CustomEvent(SESSION_REVOKED_EVENT));
 
   window.location.replace("/auth");
 }

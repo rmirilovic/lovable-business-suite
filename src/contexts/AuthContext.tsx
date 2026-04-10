@@ -3,7 +3,13 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { recordLoginAudit, updateLoginAuditCompany } from "@/lib/loginAuditLogger";
-import { removeSession, registerSession, resumeHeartbeatIfNeeded } from "@/lib/sessionManager";
+import {
+  isSessionRevoked,
+  removeSession,
+  registerSession,
+  resumeHeartbeatIfNeeded,
+  SESSION_REVOKED_EVENT,
+} from "@/lib/sessionManager";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -380,6 +386,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const origin = window.location.origin;
 
+    const handleLocalSessionRevoked = () => {
+      awaitingHandoff = false;
+      if (handoffTimeout) {
+        window.clearTimeout(handoffTimeout);
+        handoffTimeout = null;
+      }
+
+      intentionalSignOutRef.current = false;
+      clearClientAuthState();
+    };
+
     let bc: BroadcastChannel | null = null;
     try {
       bc = new BroadcastChannel("erp_session_sync");
@@ -484,6 +501,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     window.addEventListener("message", messageHandler);
+    window.addEventListener(SESSION_REVOKED_EVENT, handleLocalSessionRevoked);
 
     const triggerHandoffRescue = (timeSinceMount: number) => {
       console.log("[AuthContext] SIGNED_OUT likely from revoked token - attempting handoff rescue, timeSinceMount:", timeSinceMount);
@@ -509,6 +527,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (!isMounted) return;
+
+      if (isSessionRevoked()) {
+        if (event === "SIGNED_OUT") {
+          clearClientAuthState();
+        }
+        return;
+      }
 
       console.log(
         "[AuthContext] onAuthStateChange:",
@@ -625,6 +650,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       if (!isMounted) return;
 
+      if (isSessionRevoked()) {
+        clearClientAuthState();
+        return;
+      }
+
       console.log("[AuthContext] getSession result:", "user:", !!initialSession?.user, "initialLoadDone:", initialLoadDoneRef.current);
 
       initialSessionChecked = true;
@@ -668,6 +698,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelPendingSignOutCheck();
       if (handoffTimeout) window.clearTimeout(handoffTimeout);
       window.removeEventListener("message", messageHandler);
+      window.removeEventListener(SESSION_REVOKED_EVENT, handleLocalSessionRevoked);
       bc?.close();
       subscription.unsubscribe();
     };
