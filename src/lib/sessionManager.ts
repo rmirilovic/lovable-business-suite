@@ -36,16 +36,66 @@ export async function checkSessionLimit(companyId: string): Promise<{
   return data as { allowed: boolean; current: number; max: number | null };
 }
 
+function getDeviceInfo() {
+  const ua = navigator.userAgent;
+  let browser = "Nepoznat";
+  let os = "Nepoznat";
+  let deviceType = "Desktop";
+
+  if (ua.includes("Edg/")) browser = "Edge";
+  else if (ua.includes("OPR/") || ua.includes("Opera")) browser = "Opera";
+  else if (ua.includes("Chrome/") && !ua.includes("Edg/")) browser = "Chrome";
+  else if (ua.includes("Safari/") && !ua.includes("Chrome")) browser = "Safari";
+  else if (ua.includes("Firefox/")) browser = "Firefox";
+
+  const versionMatch = ua.match(new RegExp(`${browser === "Edge" ? "Edg" : browser === "Opera" ? "OPR" : browser}/([\\d.]+)`));
+  if (versionMatch) browser += ` ${versionMatch[1].split(".")[0]}`;
+
+  if (ua.includes("Windows NT 10")) os = "Windows 10/11";
+  else if (ua.includes("Windows NT")) os = "Windows";
+  else if (ua.includes("Mac OS X")) {
+    const ver = ua.match(/Mac OS X ([\d_]+)/);
+    os = ver ? `macOS ${ver[1].replace(/_/g, ".")}` : "macOS";
+  }
+  else if (ua.includes("Android")) os = "Android";
+  else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+  else if (ua.includes("Linux")) os = "Linux";
+
+  if (ua.includes("Mobi")) deviceType = "Mobilni";
+  else if (ua.includes("Tablet") || ua.includes("iPad")) deviceType = "Tablet";
+
+  return { browser, os, deviceType };
+}
+
+async function getIpAddress(): Promise<string | null> {
+  try {
+    const res = await fetch("https://api.ipify.org?format=json", { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const data = await res.json();
+      return data.ip;
+    }
+  } catch {
+    // Silent fail
+  }
+  return null;
+}
+
 export async function registerSession(companyId: string): Promise<{
   allowed: boolean;
   current: number;
   max: number | null;
 }> {
   const token = getOrCreateSessionToken();
+  const { browser, os, deviceType } = getDeviceInfo();
+  const ipAddress = await getIpAddress();
 
   const { data, error } = await supabase.rpc("register_session", {
     _company_id: companyId,
     _session_token: token,
+    _browser: browser,
+    _os: os,
+    _device_type: deviceType,
+    _ip_address: ipAddress,
   });
 
   if (error) {
