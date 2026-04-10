@@ -666,6 +666,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      if (initialSession?.user) {
+        if (!initialLoadDoneRef.current && !userDataLoadingRef.current) {
+          setLoading(true);
+          void loadUserData(initialSession.user.id);
+        } else {
+          setLoading(false);
+        }
+        return;
+      }
+
       if (!initialSession?.user) {
         awaitingHandoff = true;
         setLoading(true);
@@ -689,9 +699,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
         }, 4000);
       }
-      // Note: loading=false is handled by loadUserData() called from onAuthStateChange
-      // If session exists, INITIAL_SESSION event will trigger loadUserData which sets loading=false
-      // If no session and no handoff, the timeout above sets loading=false
     });
 
     return () => {
