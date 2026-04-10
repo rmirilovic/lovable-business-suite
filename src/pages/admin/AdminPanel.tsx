@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users, Shield, Calendar, Database, KeyRound, UserCheck, RefreshCw, ClipboardList } from "lucide-react";
+import { Building2, Users, Shield, Calendar, Database, KeyRound, UserCheck, RefreshCw, ClipboardList, Wifi } from "lucide-react";
 import { CompaniesTab } from "@/components/admin/CompaniesTab";
 import { UsersTab } from "@/components/admin/UsersTab";
 import { AccessTab } from "@/components/admin/AccessTab";
@@ -10,6 +10,7 @@ import { DataImportTab } from "@/components/admin/DataImportTab";
 import { RolesTab } from "@/components/admin/RolesTab";
 import { UserRolesTab } from "@/components/admin/UserRolesTab";
 import { LoginAuditTab } from "@/components/admin/LoginAuditTab";
+import { ActiveSessionsTab } from "@/components/admin/ActiveSessionsTab";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,6 +43,7 @@ export default function AdminPanel() {
     { value: "user-roles", label: "Dodela uloga", icon: UserCheck },
     { value: "data", label: "Podaci", icon: Database },
     { value: "login-audit", label: "Prijave", icon: ClipboardList },
+    { value: "active-sessions", label: "Sesije", icon: Wifi },
   ];
 
   return (
@@ -112,6 +114,10 @@ export default function AdminPanel() {
 
           <TabsContent value="login-audit" className="mt-6">
             <LoginAuditTab />
+          </TabsContent>
+
+          <TabsContent value="active-sessions" className="mt-6">
+            <ActiveSessionsTab />
           </TabsContent>
         </Tabs>
       </div>
