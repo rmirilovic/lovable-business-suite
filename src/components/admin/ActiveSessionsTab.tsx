@@ -52,7 +52,7 @@ export function ActiveSessionsTab() {
       const companyIds = [...new Set(data.map((s) => s.company_id))];
 
       const [profilesRes, companiesRes] = await Promise.all([
-        supabase.from("profiles").select("id, email, display_name").in("id", userIds),
+        supabase.from("profiles").select("id, email, first_name, last_name").in("id", userIds),
         supabase.from("companies").select("id, name").in("id", companyIds),
       ]);
 
