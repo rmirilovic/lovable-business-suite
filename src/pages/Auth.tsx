@@ -361,18 +361,6 @@ export default function Auth() {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Prijava..." : "Prijavite se"}
                   </Button>
-                  <div className="text-center">
-                    <button
-                      type="button"
-                      className="text-sm text-primary hover:underline"
-                      onClick={() => {
-                        setShowForgotPassword(true);
-                        setErrors({});
-                      }}
-                    >
-                      Zaboravili ste lozinku?
-                    </button>
-                  </div>
                 </form>
               </TabsContent>
 
