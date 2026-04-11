@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt, Factory, UserCheck } from "lucide-react";
+import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt, Factory, UserCheck, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -22,6 +22,7 @@ import { InputCostsExportDialog } from "@/components/sifarnici/InputCostsExportD
 import { NormImportDialog } from "@/components/proizvodnja/NormImportDialog";
 import { PaymentCodesImportDialog } from "@/components/racunovodstvo/PaymentCodesImportDialog";
 import { EmployeeImportDialog } from "@/components/zarade/EmployeeImportDialog";
+import { VariantImportDialog } from "@/components/sifarnici/VariantImportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 
@@ -62,6 +63,9 @@ export function DataImportTab() {
   
   // Dialog states for employees
   const [employeeImportOpen, setEmployeeImportOpen] = useState(false);
+  
+  // Dialog states for variants
+  const [variantImportOpen, setVariantImportOpen] = useState(false);
   
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
@@ -188,7 +192,35 @@ export function DataImportTab() {
 
       <Separator />
 
-      {/* Organizational Units Section */}
+      {/* Article Variants Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Ruler className="w-5 h-5" />
+            Varijante artikala
+          </CardTitle>
+          <CardDescription>
+            Uvoz šifarnika varijanti artikala (dužine šipki i sl.)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setVariantImportOpen(true)}
+            >
+              <Upload className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Varijante artikala</div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -528,6 +560,11 @@ export function DataImportTab() {
       <EmployeeImportDialog 
         open={employeeImportOpen} 
         onOpenChange={setEmployeeImportOpen} 
+      />
+      {/* Variant Dialogs */}
+      <VariantImportDialog
+        open={variantImportOpen}
+        onOpenChange={setVariantImportOpen}
       />
     </div>
   );
