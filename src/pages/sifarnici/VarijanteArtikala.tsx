@@ -116,7 +116,7 @@ export default function VarijanteArtikala() {
 
   return (
     <MainLayout title="Varijante artikala">
-      <div className="flex flex-col flex-1 min-h-0 space-y-6 animate-fade-in">
+      <div className="flex flex-col flex-1 min-h-0 overflow-auto space-y-6 animate-fade-in p-4 sm:p-6">
         <div className="sticky top-0 z-10 bg-background pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-border/50">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
             <div>
