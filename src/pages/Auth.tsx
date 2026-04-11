@@ -248,7 +248,7 @@ export default function Auth() {
             <CardDescription className="text-center">
               {showForgotPassword 
                 ? "Unesite email adresu za resetovanje lozinke" 
-                : "Prijavite se ili kreirajte novi nalog"}
+                : "Prijavite se u sistem"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -314,13 +314,6 @@ export default function Auth() {
                 )}
               </div>
             ) : (
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Prijava</TabsTrigger>
-                <TabsTrigger value="register">Registracija</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="login">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
@@ -362,80 +355,6 @@ export default function Auth() {
                     {isLoading ? "Prijava..." : "Prijavite se"}
                   </Button>
                 </form>
-              </TabsContent>
-
-              <TabsContent value="register">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">Ime</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="firstName"
-                          type="text"
-                          placeholder="Ime"
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          className="pl-10"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Prezime</Label>
-                      <Input
-                        id="lastName"
-                        type="text"
-                        placeholder="Prezime"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="register-email"
-                        type="email"
-                        placeholder="vas@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="text-sm text-destructive">{errors.email}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">Lozinka</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="register-password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-destructive">{errors.password}</p>
-                    )}
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Registracija..." : "Registrujte se"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
             )}
           </CardContent>
         </Card>
