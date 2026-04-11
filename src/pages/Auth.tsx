@@ -143,32 +143,6 @@ export default function Auth() {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    
-    setIsLoading(true);
-    const { error } = await signUp(email, password, firstName, lastName);
-    setIsLoading(false);
-
-    if (error) {
-      let message = "Greška prilikom registracije";
-      if (error.message.includes("User already registered")) {
-        message = "Korisnik sa ovom email adresom već postoji";
-      }
-      toast({
-        title: "Greška",
-        description: message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Uspešno",
-        description: "Registracija je uspešna. Možete se prijaviti.",
-      });
-    }
-  };
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
