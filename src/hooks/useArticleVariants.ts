@@ -8,6 +8,7 @@ export interface ArticleVariant {
   code: string;
   length_value: number;
   description: string;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

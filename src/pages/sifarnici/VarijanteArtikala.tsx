@@ -23,14 +23,17 @@ import { useArticleVariants, ArticleVariant } from "@/hooks/useArticleVariants";
 import { usePermissions } from "@/hooks/usePermissions";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface VariantForm {
   code: string;
   length_value: string;
   description: string;
+  is_active: boolean;
 }
 
-const emptyForm: VariantForm = { code: "", length_value: "0", description: "" };
+const emptyForm: VariantForm = { code: "", length_value: "0", description: "", is_active: true };
 
 export default function VarijanteArtikala() {
   const { selectedCompany } = useAuth();
@@ -78,7 +81,7 @@ export default function VarijanteArtikala() {
 
   const handleEdit = (v: ArticleVariant) => {
     setEditingVariant(v);
-    setFormData({ code: v.code, length_value: formatDecimal(v.length_value, 1), description: v.description });
+    setFormData({ code: v.code, length_value: formatDecimal(v.length_value, 1), description: v.description, is_active: v.is_active });
     setIsFormOpen(true);
   };
 
@@ -91,9 +94,9 @@ export default function VarijanteArtikala() {
     try {
       const lengthVal = parseLocaleNumber(formData.length_value);
       if (editingVariant) {
-        await updateVariant.mutateAsync({ id: editingVariant.id, code: formData.code.trim(), length_value: lengthVal, description: formData.description.trim() });
+        await updateVariant.mutateAsync({ id: editingVariant.id, code: formData.code.trim(), length_value: lengthVal, description: formData.description.trim(), is_active: formData.is_active });
       } else {
-        await createVariant.mutateAsync({ code: formData.code.trim(), length_value: lengthVal, description: formData.description.trim() });
+        await createVariant.mutateAsync({ code: formData.code.trim(), length_value: lengthVal, description: formData.description.trim(), is_active: formData.is_active });
       }
       setIsFormOpen(false);
     } catch { /* handled in hook */ } finally {
@@ -155,6 +158,7 @@ export default function VarijanteArtikala() {
                     <TableHead className="w-32"><SortableHeader column="code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                     <TableHead className="w-32 text-right"><SortableHeader column="length_value" label="Dužina" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                     <TableHead><SortableHeader column="description" label="Opis" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                    <TableHead className="w-24 text-center"><SortableHeader column="is_active" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                     {canEdit && <TableHead className="w-32 text-right">Akcije</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -164,6 +168,9 @@ export default function VarijanteArtikala() {
                       <TableCell className="font-medium">{v.code}</TableCell>
                       <TableCell className="text-right">{formatDecimal(v.length_value, 1)}</TableCell>
                       <TableCell>{v.description}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant={v.is_active ? "default" : "secondary"}>{v.is_active ? "Aktivna" : "Neaktivna"}</Badge>
+                      </TableCell>
                       {canEdit && (
                         <TableCell className="text-right">
                           <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleEdit(v); }}><Edit2 className="w-4 h-4" /></Button>
@@ -196,6 +203,10 @@ export default function VarijanteArtikala() {
               <div className="space-y-2">
                 <Label>Opis *</Label>
                 <Input value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="npr. šipka 6 m" autoComplete="off" />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="is_active" checked={formData.is_active} onCheckedChange={(checked) => setFormData({ ...formData, is_active: !!checked })} />
+                <Label htmlFor="is_active">Aktivna</Label>
               </div>
             </div>
             <DialogFooter>
