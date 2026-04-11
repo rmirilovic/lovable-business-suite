@@ -248,14 +248,33 @@ export default function PovezivanjeSaVarijantama() {
           </div>
         </div>
 
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative max-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Pretraži sve..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
           <Input
-            placeholder="Pretraži po šifri ili nazivu..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="pl-9"
+            placeholder="Filter šifra artikla..."
+            value={articleCodeFilter}
+            onChange={e => setArticleCodeFilter(e.target.value)}
+            className="max-w-[180px]"
           />
+          <Input
+            placeholder="Filter šifra varijante..."
+            value={variantCodeFilter}
+            onChange={e => setVariantCodeFilter(e.target.value)}
+            className="max-w-[180px]"
+          />
+          {(searchTerm || articleCodeFilter || variantCodeFilter) && (
+            <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(""); setArticleCodeFilter(""); setVariantCodeFilter(""); }}>
+              Poništi filtere
+            </Button>
+          )}
         </div>
 
         <TableScrollContainer>
