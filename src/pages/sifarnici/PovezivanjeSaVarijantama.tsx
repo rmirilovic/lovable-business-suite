@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
@@ -29,8 +30,6 @@ interface AssignmentRow {
   id: string;
   article_id: string;
   variant_id: string;
-  company_id: string;
-  created_at: string;
   article_code: string;
   article_name: string;
   variant_code: string;
@@ -92,8 +91,6 @@ export default function PovezivanjeSaVarijantama() {
         id: a.id,
         article_id: a.article_id,
         variant_id: a.variant_id,
-        company_id: a.company_id,
-        created_at: a.created_at,
         article_code: art?.code ?? "?",
         article_name: art?.name ?? "?",
         variant_code: v?.code ?? "?",
@@ -112,11 +109,28 @@ export default function PovezivanjeSaVarijantama() {
   const [selectedVariantIds, setSelectedVariantIds] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
 
-  // Variants already assigned to the selected article
   const alreadyAssignedVariantIds = useMemo(() => {
     if (!selectedArticleId) return new Set<string>();
     return new Set(rawAssignments.filter((a: any) => a.article_id === selectedArticleId).map((a: any) => a.variant_id));
   }, [selectedArticleId, rawAssignments]);
+
+  const filtered = useMemo(() => {
+    if (!searchTerm.trim()) return assignments;
+    const lower = searchTerm.toLowerCase();
+    return assignments.filter(
+      a =>
+        a.article_code.toLowerCase().includes(lower) ||
+        a.article_name.toLowerCase().includes(lower) ||
+        a.variant_code.toLowerCase().includes(lower) ||
+        a.variant_description.toLowerCase().includes(lower)
+    );
+  }, [assignments, searchTerm]);
+
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
+
+  const sortedData = useMemo(() => {
+    return sortItems(filtered, (item, col) => (item as any)[col]);
+  }, [filtered, sortItems]);
 
   const filteredArticles = useMemo(() => {
     if (!articleSearch.trim()) return articles;
@@ -137,6 +151,13 @@ export default function PovezivanjeSaVarijantama() {
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
+  };
+
+  const resetAddDialog = () => {
+    setSelectedArticleId("");
+    setArticleSearch("");
+    setVariantSearch("");
+    setSelectedVariantIds(new Set());
   };
 
   const handleAdd = async () => {
@@ -163,13 +184,6 @@ export default function PovezivanjeSaVarijantama() {
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const resetAddDialog = () => {
-    setSelectedArticleId("");
-    setArticleSearch("");
-    setVariantSearch("");
-    setSelectedVariantIds(new Set());
   };
 
   const handleDelete = async () => {
@@ -280,15 +294,15 @@ export default function PovezivanjeSaVarijantama() {
         </div>
       </div>
 
-      {/* Add dialog */}
+      {/* Add dialog - select article then pick multiple variants */}
       <Dialog open={isAddOpen} onOpenChange={v => { if (!v) { setIsAddOpen(false); resetAddDialog(); } }}>
         <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Nova veza artikal - varijante</DialogTitle>
-            <DialogDescription>Izaberite artikal, zatim označite varijante koje želite da povežete.</DialogDescription>
+            <DialogDescription>Izaberite artikal, zatim označite varijante za povezivanje.</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+          <div className="space-y-4 flex-1 overflow-hidden flex flex-col min-h-0">
             <div className="space-y-2">
               <Label>Artikal *</Label>
               <Input
@@ -314,14 +328,14 @@ export default function PovezivanjeSaVarijantama() {
             </div>
 
             {selectedArticleId && (
-              <div className="space-y-2 flex-1 overflow-hidden flex flex-col">
+              <div className="space-y-2 flex-1 overflow-hidden flex flex-col min-h-0">
                 <Label>Varijante ({selectedVariantIds.size} izabrano)</Label>
                 <Input
                   placeholder="Pretraži varijante po šifri ili opisu..."
                   value={variantSearch}
                   onChange={e => setVariantSearch(e.target.value)}
                 />
-                <div className="border rounded-md flex-1 overflow-y-auto min-h-0 max-h-48">
+                <div className="border rounded-md flex-1 overflow-y-auto min-h-0 max-h-52">
                   {filteredVariants.map(v => {
                     const alreadyLinked = alreadyAssignedVariantIds.has(v.id);
                     const checked = selectedVariantIds.has(v.id);
@@ -338,8 +352,8 @@ export default function PovezivanjeSaVarijantama() {
                       >
                         <Checkbox checked={checked || alreadyLinked} disabled={alreadyLinked} className="pointer-events-none" />
                         <span className="font-mono text-muted-foreground">{v.code}</span>
-                        <span>{v.description}</span>
-                        {alreadyLinked && <span className="ml-auto text-xs text-muted-foreground">već povezano</span>}
+                        <span className="truncate">{v.description}</span>
+                        {alreadyLinked && <span className="ml-auto text-xs text-muted-foreground shrink-0">već povezano</span>}
                       </button>
                     );
                   })}
