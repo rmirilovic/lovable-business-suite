@@ -192,7 +192,35 @@ export function DataImportTab() {
 
       <Separator />
 
-      {/* Organizational Units Section */}
+      {/* Article Variants Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Ruler className="w-5 h-5" />
+            Varijante artikala
+          </CardTitle>
+          <CardDescription>
+            Uvoz šifarnika varijanti artikala (dužine šipki i sl.)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setVariantImportOpen(true)}
+            >
+              <Upload className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz iz Excel-a</div>
+                <div className="text-xs text-muted-foreground">Varijante artikala</div>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
