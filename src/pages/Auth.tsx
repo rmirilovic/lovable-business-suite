@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { PREVIEW_RECOVERY_SHORTCUT_LABEL, shouldShowPreviewRecoveryHint } from "@/lib/previewRecovery";
 import { Building2, Lock, Mail, ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
@@ -62,7 +61,6 @@ export default function Auth() {
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const showPreviewRecoveryHint = shouldShowPreviewRecoveryHint();
 
   useEffect(() => {
     // If the user opened an email recovery link but landed on /auth (common when redirect URLs
@@ -224,13 +222,6 @@ export default function Auth() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {showPreviewRecoveryHint && (
-              <div className="mb-4 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                Ako u preview-u nestanu meniji ili kontrole posle restarta, pritisnite{" "}
-                <span className="font-semibold text-foreground">{PREVIEW_RECOVERY_SHORTCUT_LABEL}</span>.
-              </div>
-            )}
-
             {showForgotPassword ? (
               <div className="space-y-4">
                 {resetEmailSent ? (
