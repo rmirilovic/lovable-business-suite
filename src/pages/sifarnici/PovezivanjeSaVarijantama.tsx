@@ -237,13 +237,20 @@ export default function PovezivanjeSaVarijantama() {
         </div>
 
         <TableScrollContainer>
-          <Table>
+          <Table className="table-fixed">
+            <colgroup>
+              <col style={{ width: "150px" }} />
+              <col style={{ width: "auto" }} />
+              <col style={{ width: "150px" }} />
+              <col style={{ width: "auto" }} />
+              {canEdit && <col style={{ width: "60px" }} />}
+            </colgroup>
             <TableHeader>
               <TableRow>
-                <SortableHeader label="Šifra artikla" column="article_code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader label="Naziv artikla" column="article_name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader label="Šifra varijante" column="variant_code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                <SortableHeader label="Opis varijante" column="variant_description" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                <TableHead className="whitespace-nowrap"><SortableHeader label="Šifra artikla" column="article_code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="whitespace-nowrap"><SortableHeader label="Naziv artikla" column="article_name" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="whitespace-nowrap"><SortableHeader label="Šifra varijante" column="variant_code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                <TableHead className="whitespace-nowrap"><SortableHeader label="Opis varijante" column="variant_description" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
                 {canEdit && <TableHead className="w-[60px]" />}
               </TableRow>
             </TableHeader>
