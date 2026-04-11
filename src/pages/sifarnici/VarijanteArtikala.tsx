@@ -68,6 +68,7 @@ export default function VarijanteArtikala() {
         case "code": return item.code;
         case "length_value": return item.length_value;
         case "description": return item.description;
+        case "is_active": return item.is_active ? 1 : 0;
         default: return null;
       }
     });
