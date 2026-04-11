@@ -586,6 +586,3 @@ export function DataImportTab() {
     </div>
   );
 }
-    </div>
-  );
-}
