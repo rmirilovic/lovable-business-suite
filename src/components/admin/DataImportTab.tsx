@@ -561,6 +561,11 @@ export function DataImportTab() {
         open={employeeImportOpen} 
         onOpenChange={setEmployeeImportOpen} 
       />
+      {/* Variant Dialogs */}
+      <VariantImportDialog
+        open={variantImportOpen}
+        onOpenChange={setVariantImportOpen}
+      />
     </div>
   );
 }
