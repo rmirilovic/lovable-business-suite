@@ -285,7 +285,7 @@ export default function PovezivanjeSaVarijantama() {
         </div>
 
         <TableScrollContainer>
-          <Table className="table-fixed">
+          <Table className="table-fixed" style={{ minWidth: "800px" }}>
             <colgroup>
               <col style={{ width: "150px" }} />
               <col style={{ width: "auto" }} />
