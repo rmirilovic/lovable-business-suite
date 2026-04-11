@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,11 +29,54 @@ interface UsePermissionsReturn {
   refetch: () => Promise<void>;
 }
 
+interface PermissionsCache {
+  userRoles: UserRole[];
+  moduleAccess: ModuleAccess[];
+}
+
 const ACCESS_LEVEL_ORDER: Record<AccessLevel, number> = {
   none: 0,
   read: 1,
   write: 2,
   admin: 3,
+};
+
+const buildPermissionsCacheKey = (userId: string, companyId: string) =>
+  `erp.permissions:${userId}:${companyId}`;
+
+const toAccessMap = (items: ModuleAccess[]) =>
+  new Map(items.map((item) => [item.moduleCode, item]));
+
+const readPermissionsCache = (cacheKey: string): PermissionsCache | null => {
+  try {
+    const raw = localStorage.getItem(cacheKey);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as PermissionsCache;
+    if (!Array.isArray(parsed.userRoles) || !Array.isArray(parsed.moduleAccess)) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const writePermissionsCache = (cacheKey: string, cache: PermissionsCache) => {
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify(cache));
+  } catch {
+    // ignore storage failures
+  }
+};
+
+const clearPermissionsCache = (cacheKey: string) => {
+  try {
+    localStorage.removeItem(cacheKey);
+  } catch {
+    // ignore storage failures
+  }
 };
 
 const getModuleHierarchy = (moduleCode: string) => {
@@ -49,6 +92,24 @@ export function usePermissions(): UsePermissionsReturn {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [moduleAccess, setModuleAccess] = useState<Map<string, ModuleAccess>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
+  const retryTimeoutRef = useRef<number | null>(null);
+  const retryScopeRef = useRef<string | null>(null);
+  const fetchUserRolesRef = useRef<() => Promise<void>>(async () => {});
+
+  const clearRetry = useCallback(() => {
+    if (retryTimeoutRef.current !== null) {
+      window.clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleRetry = useCallback(() => {
+    clearRetry();
+    retryTimeoutRef.current = window.setTimeout(() => {
+      retryTimeoutRef.current = null;
+      void fetchUserRolesRef.current();
+    }, 1200);
+  }, [clearRetry]);
 
   const resolveModuleAccess = useCallback(
     (moduleCode: string): ModuleAccess | undefined => {
@@ -63,7 +124,10 @@ export function usePermissions(): UsePermissionsReturn {
   );
 
   const fetchUserRoles = useCallback(async () => {
+    clearRetry();
+
     if (!user) {
+      retryScopeRef.current = null;
       setUserRoles([]);
       setModuleAccess(new Map());
       setIsLoading(false);
@@ -78,13 +142,32 @@ export function usePermissions(): UsePermissionsReturn {
     setIsLoading(true);
 
     if (isSuperAdmin || isLocalAdmin) {
+      retryScopeRef.current = null;
       setUserRoles([]);
       setModuleAccess(new Map());
       setIsLoading(false);
       return;
     }
 
+    const scopeKey = `${user.id}:${selectedCompany.id}`;
+    const cacheKey = buildPermissionsCacheKey(user.id, selectedCompany.id);
+    const cachedPermissions = readPermissionsCache(cacheKey);
+
+    if (cachedPermissions) {
+      setUserRoles(cachedPermissions.userRoles);
+      setModuleAccess(toAccessMap(cachedPermissions.moduleAccess));
+      setIsLoading(false);
+    }
+
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.user || session.user.id !== user.id) {
+        setIsLoading(true);
+        scheduleRetry();
+        return;
+      }
+
       const { data: roleAssignments, error: rolesError } = await supabase
         .from("user_role_assignments")
         .select(`
@@ -114,6 +197,19 @@ export function usePermissions(): UsePermissionsReturn {
       setUserRoles(roles);
 
       if (roles.length === 0) {
+        if (retryScopeRef.current !== scopeKey) {
+          retryScopeRef.current = scopeKey;
+          scheduleRetry();
+
+          if (!cachedPermissions) {
+            setIsLoading(true);
+          }
+
+          return;
+        }
+
+        retryScopeRef.current = null;
+        clearPermissionsCache(cacheKey);
         setModuleAccess(new Map());
         setIsLoading(false);
         return;
@@ -146,17 +242,32 @@ export function usePermissions(): UsePermissionsReturn {
         }
       }
 
+      retryScopeRef.current = null;
       setModuleAccess(accessMap);
+      writePermissionsCache(cacheKey, {
+        userRoles: roles,
+        moduleAccess: Array.from(accessMap.values()),
+      });
     } catch (error) {
       console.error("Error fetching permissions:", error);
+
+      if (!cachedPermissions) {
+        setModuleAccess(new Map());
+      }
     } finally {
       setIsLoading(false);
     }
-  }, [user, selectedCompany, isSuperAdmin, isLocalAdmin, initialLoadDone]);
+  }, [user, selectedCompany, isSuperAdmin, isLocalAdmin, initialLoadDone, clearRetry, scheduleRetry]);
+
+  useEffect(() => {
+    fetchUserRolesRef.current = fetchUserRoles;
+  }, [fetchUserRoles]);
 
   useEffect(() => {
     void fetchUserRoles();
   }, [fetchUserRoles]);
+
+  useEffect(() => () => clearRetry(), [clearRetry]);
 
   const hasAccess = useCallback(
     (moduleCode: string, requiredLevel: AccessLevel = "read"): boolean => {

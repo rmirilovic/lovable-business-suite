@@ -1,4 +1,4 @@
-import { Bell, Search, Settings, LogOut, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Bell, Search, Settings, LogOut, Menu, PanelLeftClose, PanelLeftOpen, RefreshCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,8 +24,9 @@ interface HeaderProps {
 
 export function Header({ title, userName, onMobileMenuToggle, onSidebarToggle, sidebarCollapsed }: HeaderProps) {
   const navigate = useNavigate();
-  const { signOut, user, isSuperAdmin, isLocalAdmin } = useAuth();
+  const { signOut, refreshAuthState, user, isSuperAdmin, isLocalAdmin } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isRefreshingAccess, setIsRefreshingAccess] = useState(false);
 
   useEffect(() => {
     const fetchAvatar = async () => {
@@ -45,6 +46,17 @@ export function Header({ title, userName, onMobileMenuToggle, onSidebarToggle, s
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
+  };
+
+  const handleRefreshAccess = async () => {
+    if (isRefreshingAccess) return;
+
+    try {
+      setIsRefreshingAccess(true);
+      await refreshAuthState();
+    } finally {
+      setIsRefreshingAccess(false);
+    }
   };
 
   const getUserInitials = () => {
@@ -112,6 +124,22 @@ export function Header({ title, userName, onMobileMenuToggle, onSidebarToggle, s
 
         {/* Theme Toggle */}
         <ThemeToggle />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleRefreshAccess}
+              className="p-2 rounded-md hover:bg-secondary transition-colors"
+              aria-label="Osveži menije i prava"
+              title="Osveži menije i prava"
+            >
+              <RefreshCcw className={`w-5 h-5 text-muted-foreground ${isRefreshingAccess ? "animate-spin" : ""}`} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            Osveži menije i prava
+          </TooltipContent>
+        </Tooltip>
 
         {/* Notifications */}
         <button className="relative p-2 rounded-md hover:bg-secondary transition-colors">
