@@ -80,6 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const localAdminCompanyIdsRef = useRef<string[]>(localAdminCompanyIds);
   const accessibleCompanyIdsRef = useRef<string[]>(accessibleCompanyIds);
   const pendingSignOutCheckRef = useRef<number | null>(null);
+  const bootstrapRepairTimeoutRef = useRef<number | null>(null);
+  const bootstrapRepairUserIdRef = useRef<string | null>(null);
   const signedOutPermanentlyRef = useRef(
     (() => {
       try {
@@ -112,6 +114,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (pendingSignOutCheckRef.current) {
       window.clearTimeout(pendingSignOutCheckRef.current);
       pendingSignOutCheckRef.current = null;
+    }
+  };
+
+  const clearBootstrapRepair = () => {
+    if (bootstrapRepairTimeoutRef.current !== null) {
+      window.clearTimeout(bootstrapRepairTimeoutRef.current);
+      bootstrapRepairTimeoutRef.current = null;
     }
   };
 
@@ -164,6 +173,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearClientAuthState = () => {
     cancelPendingSignOutCheck();
+    clearBootstrapRepair();
+    bootstrapRepairUserIdRef.current = null;
     applySessionState(null);
     resetAuthState();
     localStorage.removeItem("selectedCompanyId");
@@ -327,6 +338,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetAuthState = () => {
     cancelPendingSignOutCheck();
+    clearBootstrapRepair();
+    bootstrapRepairUserIdRef.current = null;
     userDataLoadingRef.current = false;
     setCompanies([]);
     setBusinessYears([]);
@@ -340,8 +353,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("cachedLocalAdminCompanyIds");
   };
 
-  const loadUserData = async (userId: string) => {
-    if (initialLoadDoneRef.current || userDataLoadingRef.current) return;
+  const scheduleBootstrapRepair = (userId: string) => {
+    if (bootstrapRepairUserIdRef.current === userId) return;
+
+    clearBootstrapRepair();
+    bootstrapRepairUserIdRef.current = userId;
+
+    bootstrapRepairTimeoutRef.current = window.setTimeout(() => {
+      bootstrapRepairTimeoutRef.current = null;
+
+      void (async () => {
+        if (
+          signedOutPermanentlyRef.current ||
+          sessionRef.current?.user?.id !== userId ||
+          userDataLoadingRef.current
+        ) {
+          return;
+        }
+
+        const { data: { session: restoredSession } } = await supabase.auth.getSession();
+
+        if (restoredSession?.user?.id !== userId) {
+          return;
+        }
+
+        console.log("[AuthContext] Running post-restore auth resync");
+        setLoading(true);
+        await bootstrapUserData(userId, { force: true });
+      })();
+    }, 1800);
+  };
+
+  const bootstrapUserData = async (userId: string, options: { force?: boolean } = {}) => {
+    const { force = false } = options;
+
+    if ((!force && initialLoadDoneRef.current) || userDataLoadingRef.current) return;
 
     userDataLoadingRef.current = true;
 
@@ -357,6 +403,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateInitialLoadDone(true);
       resumeHeartbeatIfNeeded();
 
+      if (!force) {
+        scheduleBootstrapRepair(userId);
+      }
+
       // Register session if company is already selected (e.g. new tab with saved selection)
       const savedCompanyId = localStorage.getItem("selectedCompanyId");
       if (savedCompanyId) {
@@ -370,13 +420,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loadUserData = async (userId: string) => {
+    await bootstrapUserData(userId);
+  };
+
   const refreshAuthState = async () => {
     const currentUserId = sessionRef.current?.user?.id ?? user?.id;
     if (!currentUserId || userDataLoadingRef.current) return;
 
-    updateInitialLoadDone(false);
     setLoading(true);
-    await loadUserData(currentUserId);
+    await bootstrapUserData(currentUserId, { force: true });
   };
 
   useEffect(() => {
@@ -715,6 +768,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
       cancelPendingSignOutCheck();
+      clearBootstrapRepair();
       if (handoffTimeout) window.clearTimeout(handoffTimeout);
       window.removeEventListener("message", messageHandler);
       window.removeEventListener(SESSION_REVOKED_EVENT, handleLocalSessionRevoked);
