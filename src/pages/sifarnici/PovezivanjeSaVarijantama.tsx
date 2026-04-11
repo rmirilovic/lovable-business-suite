@@ -100,6 +100,8 @@ export default function PovezivanjeSaVarijantama() {
   }, [rawAssignments, articleMap, variantMap]);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [articleCodeFilter, setArticleCodeFilter] = useState("");
+  const [variantCodeFilter, setVariantCodeFilter] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -115,16 +117,27 @@ export default function PovezivanjeSaVarijantama() {
   }, [selectedArticleId, rawAssignments]);
 
   const filtered = useMemo(() => {
-    if (!searchTerm.trim()) return assignments;
-    const lower = searchTerm.toLowerCase();
-    return assignments.filter(
-      a =>
-        a.article_code.toLowerCase().includes(lower) ||
-        a.article_name.toLowerCase().includes(lower) ||
-        a.variant_code.toLowerCase().includes(lower) ||
-        a.variant_description.toLowerCase().includes(lower)
-    );
-  }, [assignments, searchTerm]);
+    let result = assignments;
+    if (articleCodeFilter.trim()) {
+      const l = articleCodeFilter.toLowerCase();
+      result = result.filter(a => a.article_code.toLowerCase().includes(l));
+    }
+    if (variantCodeFilter.trim()) {
+      const l = variantCodeFilter.toLowerCase();
+      result = result.filter(a => a.variant_code.toLowerCase().includes(l));
+    }
+    if (searchTerm.trim()) {
+      const lower = searchTerm.toLowerCase();
+      result = result.filter(
+        a =>
+          a.article_code.toLowerCase().includes(lower) ||
+          a.article_name.toLowerCase().includes(lower) ||
+          a.variant_code.toLowerCase().includes(lower) ||
+          a.variant_description.toLowerCase().includes(lower)
+      );
+    }
+    return result;
+  }, [assignments, searchTerm, articleCodeFilter, variantCodeFilter]);
 
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
 
@@ -235,14 +248,33 @@ export default function PovezivanjeSaVarijantama() {
           </div>
         </div>
 
-        <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative max-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Pretraži sve..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
           <Input
-            placeholder="Pretraži po šifri ili nazivu..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="pl-9"
+            placeholder="Filter šifra artikla..."
+            value={articleCodeFilter}
+            onChange={e => setArticleCodeFilter(e.target.value)}
+            className="max-w-[180px]"
           />
+          <Input
+            placeholder="Filter šifra varijante..."
+            value={variantCodeFilter}
+            onChange={e => setVariantCodeFilter(e.target.value)}
+            className="max-w-[180px]"
+          />
+          {(searchTerm || articleCodeFilter || variantCodeFilter) && (
+            <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(""); setArticleCodeFilter(""); setVariantCodeFilter(""); }}>
+              Poništi filtere
+            </Button>
+          )}
         </div>
 
         <TableScrollContainer>
