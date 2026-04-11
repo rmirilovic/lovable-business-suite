@@ -181,6 +181,11 @@ const App = () => (
                   <AtributiArtikala />
                 </ProtectedRoute>
               } />
+              <Route path="/sifarnici/varijante" element={
+                <ProtectedRoute>
+                  <VarijanteArtikala />
+                </ProtectedRoute>
+              } />
               <Route path="/sifarnici/magacini" element={
                 <ProtectedRoute>
                   <Magacini />
