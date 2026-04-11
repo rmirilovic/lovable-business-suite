@@ -328,9 +328,9 @@ export function VariantImportDialog({ open, onOpenChange }: VariantImportDialogP
             <div className="py-8 space-y-4">
               <div className="flex items-center justify-center gap-2 text-lg font-medium">
                 {result.failed === 0 ? (
-                  <><CheckCircle2 className="w-6 h-6 text-green-500" /> Uvoz završen</>
+                  <><CheckCircle2 className="w-6 h-6 text-primary" /> Uvoz završen</>
                 ) : (
-                  <><AlertCircle className="w-6 h-6 text-yellow-500" /> Uvoz završen sa greškama</>
+                  <><AlertCircle className="w-6 h-6 text-destructive" /> Uvoz završen sa greškama</>
                 )}
               </div>
               <div className="flex justify-center gap-4">
