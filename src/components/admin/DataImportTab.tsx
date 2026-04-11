@@ -22,6 +22,7 @@ import { InputCostsExportDialog } from "@/components/sifarnici/InputCostsExportD
 import { NormImportDialog } from "@/components/proizvodnja/NormImportDialog";
 import { PaymentCodesImportDialog } from "@/components/racunovodstvo/PaymentCodesImportDialog";
 import { EmployeeImportDialog } from "@/components/zarade/EmployeeImportDialog";
+import { VariantImportDialog } from "@/components/sifarnici/VariantImportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 
