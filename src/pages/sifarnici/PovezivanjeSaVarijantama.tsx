@@ -232,7 +232,7 @@ export default function PovezivanjeSaVarijantama() {
 
   return (
     <MainLayout title="Povezivanje artikala sa varijantama">
-      <div className="flex flex-col gap-4 p-4 md:p-6">
+      <div className="flex flex-col gap-4 p-4 md:p-6 flex-1 min-h-0 overflow-auto">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <Link2 className="h-6 w-6 text-primary" />
@@ -285,7 +285,7 @@ export default function PovezivanjeSaVarijantama() {
         </div>
 
         <TableScrollContainer>
-          <Table className="table-fixed">
+          <Table className="table-fixed" style={{ minWidth: "800px" }}>
             <colgroup>
               <col style={{ width: "150px" }} />
               <col style={{ width: "auto" }} />
