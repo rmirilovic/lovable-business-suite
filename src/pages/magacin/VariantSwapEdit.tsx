@@ -204,7 +204,7 @@ export default function VariantSwapEdit() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg bg-card">
           <div className="space-y-2">
             <Label>Datum</Label>
-            <LocaleDateInput value={swapDate} onChange={setSwapDate} disabled={isDisabled} min={minDate} max={maxDate} />
+            <LocaleDateInput value={swapDate} onChange={setSwapDate} disabled={isDisabled} minDate={minDate} maxDate={maxDate} />
           </div>
           <div className="space-y-2">
             <Label>Magacin *</Label>
@@ -220,7 +220,7 @@ export default function VariantSwapEdit() {
             <SearchableArticleSelect
               articles={articles.filter((a) => a.is_active)}
               value={articleId}
-              onChange={(v) => handleArticleSelect(v)}
+              onValueChange={(v) => handleArticleSelect(v)}
               disabled={isDisabled}
               placeholder="Izaberite artikal..."
             />
@@ -252,7 +252,7 @@ export default function VariantSwapEdit() {
           </div>
           <div className="space-y-2">
             <Label>Količina *</Label>
-            <LocaleNumberInput value={quantityStr} onChange={setQuantityStr} decimals={3} disabled={isDisabled} />
+            <LocaleNumberInput value={quantityStr} onChange={setQuantityStr} decimalPlaces={3} disabled={isDisabled} />
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Napomena</Label>

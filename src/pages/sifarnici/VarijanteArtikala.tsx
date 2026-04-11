@@ -191,7 +191,7 @@ export default function VarijanteArtikala() {
               </div>
               <div className="space-y-2">
                 <Label>Dužina (m)</Label>
-                <LocaleNumberInput value={formData.length_value} onChange={(v) => setFormData({ ...formData, length_value: v })} decimals={1} className="w-full" />
+                <LocaleNumberInput value={formData.length_value} onChange={(v) => setFormData({ ...formData, length_value: v })} decimalPlaces={1} className="w-full" />
               </div>
               <div className="space-y-2">
                 <Label>Opis *</Label>
