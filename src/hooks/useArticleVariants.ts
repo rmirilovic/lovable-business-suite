@@ -41,7 +41,7 @@ export function useArticleVariants(companyId: string | undefined) {
   });
 
   const createVariant = useMutation({
-    mutationFn: async (form: { code: string; length_value: number; description: string }) => {
+    mutationFn: async (form: { code: string; length_value: number; description: string; is_active?: boolean }) => {
       const { data, error } = await supabase
         .from("article_variants")
         .insert({ ...form, company_id: companyId! })
@@ -61,7 +61,7 @@ export function useArticleVariants(companyId: string | undefined) {
   });
 
   const updateVariant = useMutation({
-    mutationFn: async ({ id, ...form }: { id: string; code: string; length_value: number; description: string }) => {
+    mutationFn: async ({ id, ...form }: { id: string; code: string; length_value: number; description: string; is_active?: boolean }) => {
       const { error } = await supabase.from("article_variants").update(form).eq("id", id);
       if (error) throw error;
     },
