@@ -168,7 +168,7 @@ export const triggerPreviewRecoveryReload = async () => {
 
 const isPreviewRecoveryShortcut = (event: KeyboardEvent) => {
   const isPrimaryModifierPressed = event.ctrlKey || event.metaKey;
-  const key = event.key.toLowerCase();
+  const key = (event.key ?? "").toLowerCase();
 
   return (
     (isPrimaryModifierPressed &&
