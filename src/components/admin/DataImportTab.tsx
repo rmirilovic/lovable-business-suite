@@ -64,6 +64,9 @@ export function DataImportTab() {
   // Dialog states for employees
   const [employeeImportOpen, setEmployeeImportOpen] = useState(false);
   
+  // Dialog states for variants
+  const [variantImportOpen, setVariantImportOpen] = useState(false);
+  
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
 
