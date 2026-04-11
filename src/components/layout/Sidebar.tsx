@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, Building2, Calendar, LogOut, RefreshCcw, X } from "lucide-react";
+import { ChevronDown, Building2, Calendar, LogOut, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -24,9 +24,8 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedCompany, selectedYear, signOut, refreshAuthState, isSuperAdmin, isLocalAdmin, loading: authLoading, initialLoadDone } = useAuth();
+  const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin, loading: authLoading, initialLoadDone } = useAuth();
   const { hasAccess, isLoading: permissionsLoading } = usePermissions();
-  const [isRefreshingAccess, setIsRefreshingAccess] = useState(false);
 
   // Treat as full access while any part of the auth/permissions pipeline is still settling
   const stillLoading = authLoading || !initialLoadDone || permissionsLoading;
@@ -126,17 +125,6 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
 
   const handleChangeCompany = () => {
     navigate("/select-company");
-  };
-
-  const handleRefreshAccess = async () => {
-    if (isRefreshingAccess) return;
-
-    try {
-      setIsRefreshingAccess(true);
-      await refreshAuthState();
-    } finally {
-      setIsRefreshingAccess(false);
-    }
   };
 
   const sidebarContent = (
@@ -326,13 +314,6 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
         {collapsed ? (
           <div className="space-y-2">
             <button
-              onClick={handleRefreshAccess}
-              className="w-full flex items-center justify-center p-2 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-              title="Osveži menije i prava pristupa"
-            >
-              <RefreshCcw className={cn("w-5 h-5", isRefreshingAccess && "animate-spin")} />
-            </button>
-            <button
               onClick={handleSignOut}
               className="w-full flex items-center justify-center p-2 rounded-md text-sidebar-foreground/70 hover:text-destructive transition-colors"
               title="Odjavi se"
@@ -342,13 +323,6 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
           </div>
         ) : (
           <div className="space-y-1">
-            <button
-              onClick={handleRefreshAccess}
-              className="erp-sidebar-link w-full"
-            >
-              <RefreshCcw className={cn("w-5 h-5", isRefreshingAccess && "animate-spin")} />
-              <span>Osveži menije i prava</span>
-            </button>
             <button 
               onClick={handleSignOut}
               className="erp-sidebar-link w-full text-sidebar-foreground/70 hover:text-destructive"
