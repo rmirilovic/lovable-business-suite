@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
@@ -108,13 +108,15 @@ export default function PovezivanjeSaVarijantama() {
   const [selectedArticleId, setSelectedArticleId] = useState("");
   const [articleSearch, setArticleSearch] = useState("");
   const [variantSearch, setVariantSearch] = useState("");
-  const [selectedVariantIds, setSelectedVariantIds] = useState<Set<string>>(new Set());
+  const [addedVariantIds, setAddedVariantIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const alreadyAssignedVariantIds = useMemo(() => {
     if (!selectedArticleId) return new Set<string>();
     return new Set(rawAssignments.filter((a: any) => a.article_id === selectedArticleId).map((a: any) => a.variant_id));
   }, [selectedArticleId, rawAssignments]);
+
+  // ... keep existing code (filtered, sortedData, filteredArticles, filteredVariants)
 
   const filtered = useMemo(() => {
     let result = assignments;
@@ -143,7 +145,6 @@ export default function PovezivanjeSaVarijantama() {
 
   const sortedData = useMemo(() => {
     const sorted = sortItems(filtered, (item, col) => (item as any)[col]);
-    // Secondary sort: within same article_code, always sort by variant_code asc
     if (sortColumn === "article_code" || !sortColumn) {
       return [...sorted].sort((a, b) => {
         const artCmp = a.article_code.localeCompare(b.article_code, "sr");
@@ -160,33 +161,39 @@ export default function PovezivanjeSaVarijantama() {
     return articles.filter(a => a.code.toLowerCase().includes(l) || a.name.toLowerCase().includes(l));
   }, [articles, articleSearch]);
 
-  const filteredVariants = useMemo(() => {
+  const filteredVariantsForSearch = useMemo(() => {
     const active = variants.filter(v => v.is_active);
-    if (!variantSearch.trim()) return active;
+    if (!variantSearch.trim()) return [];
     const l = variantSearch.toLowerCase();
-    return active.filter(v => v.code.toLowerCase().includes(l) || v.description.toLowerCase().includes(l));
-  }, [variants, variantSearch]);
+    const alreadyAdded = new Set(addedVariantIds);
+    return active.filter(v =>
+      !alreadyAssignedVariantIds.has(v.id) &&
+      !alreadyAdded.has(v.id) &&
+      (v.code.toLowerCase().includes(l) || v.description.toLowerCase().includes(l))
+    );
+  }, [variants, variantSearch, addedVariantIds, alreadyAssignedVariantIds]);
 
-  const toggleVariant = (id: string) => {
-    setSelectedVariantIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+  const addVariantToList = (variantId: string) => {
+    setAddedVariantIds(prev => [...prev, variantId]);
+    setVariantSearch("");
+  };
+
+  const removeVariantFromList = (variantId: string) => {
+    setAddedVariantIds(prev => prev.filter(id => id !== variantId));
   };
 
   const resetAddDialog = () => {
     setSelectedArticleId("");
     setArticleSearch("");
     setVariantSearch("");
-    setSelectedVariantIds(new Set());
+    setAddedVariantIds([]);
   };
 
   const handleAdd = async () => {
-    if (!selectedArticleId || selectedVariantIds.size === 0 || !selectedCompany?.id) return;
+    if (!selectedArticleId || addedVariantIds.length === 0 || !selectedCompany?.id) return;
     setIsSaving(true);
     try {
-      const rows = Array.from(selectedVariantIds).map(vid => ({
+      const rows = addedVariantIds.map(vid => ({
         article_id: selectedArticleId,
         variant_id: vid,
         company_id: selectedCompany.id,
@@ -347,7 +354,7 @@ export default function PovezivanjeSaVarijantama() {
         <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Nova veza artikal - varijante</DialogTitle>
-            <DialogDescription>Izaberite artikal, zatim označite varijante za povezivanje.</DialogDescription>
+            <DialogDescription>Izaberite artikal, zatim dodajte varijante po šifri.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 flex-1 overflow-hidden flex flex-col min-h-0">
@@ -356,7 +363,7 @@ export default function PovezivanjeSaVarijantama() {
               <Input
                 placeholder="Pretraži artikle po šifri ili nazivu..."
                 value={articleSearch}
-                onChange={e => { setArticleSearch(e.target.value); setSelectedArticleId(""); setSelectedVariantIds(new Set()); }}
+                onChange={e => { setArticleSearch(e.target.value); setSelectedArticleId(""); setAddedVariantIds([]); }}
               />
               {articleSearch && !selectedArticleId && (
                 <div className="border rounded-md max-h-40 overflow-y-auto">
@@ -364,7 +371,7 @@ export default function PovezivanjeSaVarijantama() {
                     <button
                       key={a.id}
                       className="w-full text-left px-3 py-1.5 hover:bg-accent text-sm flex gap-2"
-                      onClick={() => { setSelectedArticleId(a.id); setArticleSearch(`${a.code} - ${a.name}`); setSelectedVariantIds(new Set()); }}
+                      onClick={() => { setSelectedArticleId(a.id); setArticleSearch(`${a.code} - ${a.name}`); setAddedVariantIds([]); }}
                     >
                       <span className="font-mono text-muted-foreground">{a.code}</span>
                       <span>{a.name}</span>
@@ -376,46 +383,63 @@ export default function PovezivanjeSaVarijantama() {
             </div>
 
             {selectedArticleId && (
-              <div className="space-y-2 flex-1 overflow-hidden flex flex-col min-h-0">
-                <Label>Varijante ({selectedVariantIds.size} izabrano)</Label>
-                <Input
-                  placeholder="Pretraži varijante po šifri ili opisu..."
-                  value={variantSearch}
-                  onChange={e => setVariantSearch(e.target.value)}
-                />
-                <div className="border rounded-md flex-1 overflow-y-auto min-h-0 max-h-52">
-                  {filteredVariants.map(v => {
-                    const alreadyLinked = alreadyAssignedVariantIds.has(v.id);
-                    const checked = selectedVariantIds.has(v.id);
-                    return (
-                      <button
-                        key={v.id}
-                        className={cn(
-                          "w-full text-left px-3 py-1.5 text-sm flex items-center gap-2",
-                          alreadyLinked ? "opacity-50 cursor-not-allowed" : "hover:bg-accent cursor-pointer",
-                          checked && !alreadyLinked && "bg-accent"
-                        )}
-                        disabled={alreadyLinked}
-                        onClick={() => !alreadyLinked && toggleVariant(v.id)}
-                      >
-                        <Checkbox checked={checked || alreadyLinked} disabled={alreadyLinked} className="pointer-events-none" />
-                        <span className="font-mono text-muted-foreground">{v.code}</span>
-                        <span className="truncate">{v.description}</span>
-                        {alreadyLinked && <span className="ml-auto text-xs text-muted-foreground shrink-0">već povezano</span>}
-                      </button>
-                    );
-                  })}
-                  {filteredVariants.length === 0 && <div className="px-3 py-2 text-sm text-muted-foreground">Nema rezultata</div>}
+              <div className="space-y-3 flex-1 overflow-hidden flex flex-col min-h-0">
+                <div className="space-y-2">
+                  <Label>Dodaj varijantu</Label>
+                  <Input
+                    placeholder="Unesite šifru ili opis varijante..."
+                    value={variantSearch}
+                    onChange={e => setVariantSearch(e.target.value)}
+                  />
+                  {variantSearch && filteredVariantsForSearch.length > 0 && (
+                    <div className="border rounded-md max-h-40 overflow-y-auto">
+                      {filteredVariantsForSearch.slice(0, 30).map(v => (
+                        <button
+                          key={v.id}
+                          className="w-full text-left px-3 py-1.5 hover:bg-accent text-sm flex gap-2"
+                          onClick={() => addVariantToList(v.id)}
+                        >
+                          <span className="font-mono text-muted-foreground">{v.code}</span>
+                          <span>{v.description}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {variantSearch && filteredVariantsForSearch.length === 0 && (
+                    <div className="text-sm text-muted-foreground px-1">Nema rezultata</div>
+                  )}
                 </div>
+
+                {addedVariantIds.length > 0 && (
+                  <div className="space-y-1 flex-1 overflow-y-auto min-h-0">
+                    <Label>Dodate varijante ({addedVariantIds.length})</Label>
+                    <div className="border rounded-md divide-y">
+                      {addedVariantIds.map(vid => {
+                        const v = variantMap.get(vid);
+                        return (
+                          <div key={vid} className="flex items-center justify-between px-3 py-1.5 text-sm">
+                            <div className="flex gap-2">
+                              <span className="font-mono text-muted-foreground">{v?.code ?? "?"}</span>
+                              <span>{v?.description ?? "?"}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeVariantFromList(vid)}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => { setIsAddOpen(false); resetAddDialog(); }}>Otkaži</Button>
-            <Button onClick={handleAdd} disabled={!selectedArticleId || selectedVariantIds.size === 0 || isSaving}>
+            <Button onClick={handleAdd} disabled={!selectedArticleId || addedVariantIds.length === 0 || isSaving}>
               {isSaving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-              Poveži ({selectedVariantIds.size})
+              Poveži ({addedVariantIds.length})
             </Button>
           </DialogFooter>
         </DialogContent>
