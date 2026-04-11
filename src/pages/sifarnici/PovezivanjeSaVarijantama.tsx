@@ -108,13 +108,15 @@ export default function PovezivanjeSaVarijantama() {
   const [selectedArticleId, setSelectedArticleId] = useState("");
   const [articleSearch, setArticleSearch] = useState("");
   const [variantSearch, setVariantSearch] = useState("");
-  const [selectedVariantIds, setSelectedVariantIds] = useState<Set<string>>(new Set());
+  const [addedVariantIds, setAddedVariantIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const alreadyAssignedVariantIds = useMemo(() => {
     if (!selectedArticleId) return new Set<string>();
     return new Set(rawAssignments.filter((a: any) => a.article_id === selectedArticleId).map((a: any) => a.variant_id));
   }, [selectedArticleId, rawAssignments]);
+
+  // ... keep existing code (filtered, sortedData, filteredArticles, filteredVariants)
 
   const filtered = useMemo(() => {
     let result = assignments;
@@ -143,7 +145,6 @@ export default function PovezivanjeSaVarijantama() {
 
   const sortedData = useMemo(() => {
     const sorted = sortItems(filtered, (item, col) => (item as any)[col]);
-    // Secondary sort: within same article_code, always sort by variant_code asc
     if (sortColumn === "article_code" || !sortColumn) {
       return [...sorted].sort((a, b) => {
         const artCmp = a.article_code.localeCompare(b.article_code, "sr");
@@ -160,33 +161,39 @@ export default function PovezivanjeSaVarijantama() {
     return articles.filter(a => a.code.toLowerCase().includes(l) || a.name.toLowerCase().includes(l));
   }, [articles, articleSearch]);
 
-  const filteredVariants = useMemo(() => {
+  const filteredVariantsForSearch = useMemo(() => {
     const active = variants.filter(v => v.is_active);
-    if (!variantSearch.trim()) return active;
+    if (!variantSearch.trim()) return [];
     const l = variantSearch.toLowerCase();
-    return active.filter(v => v.code.toLowerCase().includes(l) || v.description.toLowerCase().includes(l));
-  }, [variants, variantSearch]);
+    const alreadyAdded = new Set(addedVariantIds);
+    return active.filter(v =>
+      !alreadyAssignedVariantIds.has(v.id) &&
+      !alreadyAdded.has(v.id) &&
+      (v.code.toLowerCase().includes(l) || v.description.toLowerCase().includes(l))
+    );
+  }, [variants, variantSearch, addedVariantIds, alreadyAssignedVariantIds]);
 
-  const toggleVariant = (id: string) => {
-    setSelectedVariantIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
+  const addVariantToList = (variantId: string) => {
+    setAddedVariantIds(prev => [...prev, variantId]);
+    setVariantSearch("");
+  };
+
+  const removeVariantFromList = (variantId: string) => {
+    setAddedVariantIds(prev => prev.filter(id => id !== variantId));
   };
 
   const resetAddDialog = () => {
     setSelectedArticleId("");
     setArticleSearch("");
     setVariantSearch("");
-    setSelectedVariantIds(new Set());
+    setAddedVariantIds([]);
   };
 
   const handleAdd = async () => {
-    if (!selectedArticleId || selectedVariantIds.size === 0 || !selectedCompany?.id) return;
+    if (!selectedArticleId || addedVariantIds.length === 0 || !selectedCompany?.id) return;
     setIsSaving(true);
     try {
-      const rows = Array.from(selectedVariantIds).map(vid => ({
+      const rows = addedVariantIds.map(vid => ({
         article_id: selectedArticleId,
         variant_id: vid,
         company_id: selectedCompany.id,
