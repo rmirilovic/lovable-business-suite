@@ -628,6 +628,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         if (nextSession?.user) {
+          if (!initialSessionChecked) {
+            console.log("[AuthContext] Deferring user data bootstrap until getSession confirms restored session");
+            setLoading(true);
+            return;
+          }
+
           if (!initialLoadDoneRef.current && !userDataLoadingRef.current) {
             setLoading(true);
             void loadUserData(nextSession.user.id);
@@ -635,6 +641,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (initialSessionChecked) {
           setLoading(false);
         }
+        return;
+      }
+
+      if (nextSession?.user && !initialSessionChecked) {
+        setLoading(true);
         return;
       }
 
