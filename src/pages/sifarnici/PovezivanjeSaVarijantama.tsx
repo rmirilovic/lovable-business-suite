@@ -124,7 +124,11 @@ export default function PovezivanjeSaVarijantama() {
     );
   }, [assignments, searchTerm]);
 
-  const { sortedData, sortColumn, sortDirection, handleSort } = useTableSort<AssignmentRow>(filtered, "article_code", "asc");
+  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
+
+  const sortedData = useMemo(() => {
+    return sortItems(filtered, (item, col) => (item as any)[col]);
+  }, [filtered, sortItems]);
 
   const filteredArticles = useMemo(() => {
     if (!articleSearch.trim()) return articles;
@@ -182,7 +186,7 @@ export default function PovezivanjeSaVarijantama() {
   };
 
   return (
-    <MainLayout>
+    <MainLayout title="Povezivanje artikala sa varijantama">
       <div className="flex flex-col gap-4 p-4 md:p-6">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
