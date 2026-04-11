@@ -17,6 +17,7 @@ import Partneri from "./pages/sifarnici/Partneri";
 import KlasifikacijaArtikala from "./pages/sifarnici/KlasifikacijaArtikala";
 import AtributiArtikala from "./pages/sifarnici/AtributiArtikala";
 import VarijanteArtikala from "./pages/sifarnici/VarijanteArtikala";
+import PovezivanjeSaVarijantama from "./pages/sifarnici/PovezivanjeSaVarijantama";
 import Magacini from "./pages/sifarnici/Magacini";
 import OrganizacioneJedinice from "./pages/sifarnici/OrganizacioneJedinice";
 import UlazniTroskovi from "./pages/sifarnici/UlazniTroskovi";
@@ -184,6 +185,11 @@ const App = () => (
               <Route path="/sifarnici/varijante" element={
                 <ProtectedRoute>
                   <VarijanteArtikala />
+                </ProtectedRoute>
+              } />
+              <Route path="/sifarnici/povezivanje-varijanti" element={
+                <ProtectedRoute>
+                  <PovezivanjeSaVarijantama />
                 </ProtectedRoute>
               } />
               <Route path="/sifarnici/magacini" element={
