@@ -107,28 +107,16 @@ export default function PovezivanjeSaVarijantama() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedArticleId, setSelectedArticleId] = useState("");
-  const [selectedVariantId, setSelectedVariantId] = useState("");
   const [articleSearch, setArticleSearch] = useState("");
   const [variantSearch, setVariantSearch] = useState("");
+  const [selectedVariantIds, setSelectedVariantIds] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
 
-  const filtered = useMemo(() => {
-    if (!searchTerm.trim()) return assignments;
-    const lower = searchTerm.toLowerCase();
-    return assignments.filter(
-      a =>
-        a.article_code.toLowerCase().includes(lower) ||
-        a.article_name.toLowerCase().includes(lower) ||
-        a.variant_code.toLowerCase().includes(lower) ||
-        a.variant_description.toLowerCase().includes(lower)
-    );
-  }, [assignments, searchTerm]);
-
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
-
-  const sortedData = useMemo(() => {
-    return sortItems(filtered, (item, col) => (item as any)[col]);
-  }, [filtered, sortItems]);
+  // Variants already assigned to the selected article
+  const alreadyAssignedVariantIds = useMemo(() => {
+    if (!selectedArticleId) return new Set<string>();
+    return new Set(rawAssignments.filter((a: any) => a.article_id === selectedArticleId).map((a: any) => a.variant_id));
+  }, [selectedArticleId, rawAssignments]);
 
   const filteredArticles = useMemo(() => {
     if (!articleSearch.trim()) return articles;
@@ -137,37 +125,51 @@ export default function PovezivanjeSaVarijantama() {
   }, [articles, articleSearch]);
 
   const filteredVariants = useMemo(() => {
-    if (!variantSearch.trim()) return variants.filter(v => v.is_active);
+    const active = variants.filter(v => v.is_active);
+    if (!variantSearch.trim()) return active;
     const l = variantSearch.toLowerCase();
-    return variants.filter(v => v.is_active && (v.code.toLowerCase().includes(l) || v.description.toLowerCase().includes(l)));
+    return active.filter(v => v.code.toLowerCase().includes(l) || v.description.toLowerCase().includes(l));
   }, [variants, variantSearch]);
 
+  const toggleVariant = (id: string) => {
+    setSelectedVariantIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   const handleAdd = async () => {
-    if (!selectedArticleId || !selectedVariantId || !selectedCompany?.id) return;
+    if (!selectedArticleId || selectedVariantIds.size === 0 || !selectedCompany?.id) return;
     setIsSaving(true);
     try {
-      const { error } = await supabase.from("article_variant_assignments").insert({
+      const rows = Array.from(selectedVariantIds).map(vid => ({
         article_id: selectedArticleId,
-        variant_id: selectedVariantId,
+        variant_id: vid,
         company_id: selectedCompany.id,
-      });
+      }));
+      const { error } = await supabase.from("article_variant_assignments").insert(rows);
       if (error) {
-        if (error.code === "23505") toast.error("Ova veza već postoji");
+        if (error.code === "23505") toast.error("Neke veze već postoje");
         else throw error;
       } else {
-        toast.success("Veza uspešno kreirana");
+        toast.success(`Uspešno dodato ${rows.length} veza`);
         queryClient.invalidateQueries({ queryKey: ["all-variant-assignments", selectedCompany.id] });
         setIsAddOpen(false);
-        setSelectedArticleId("");
-        setSelectedVariantId("");
-        setArticleSearch("");
-        setVariantSearch("");
+        resetAddDialog();
       }
     } catch (e: any) {
       toast.error("Greška: " + e.message);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const resetAddDialog = () => {
+    setSelectedArticleId("");
+    setArticleSearch("");
+    setVariantSearch("");
+    setSelectedVariantIds(new Set());
   };
 
   const handleDelete = async () => {
