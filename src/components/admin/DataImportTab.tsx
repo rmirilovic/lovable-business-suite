@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt, Factory, UserCheck, Ruler } from "lucide-react";
+import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt, Factory, UserCheck, Ruler, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +23,7 @@ import { NormImportDialog } from "@/components/proizvodnja/NormImportDialog";
 import { PaymentCodesImportDialog } from "@/components/racunovodstvo/PaymentCodesImportDialog";
 import { EmployeeImportDialog } from "@/components/zarade/EmployeeImportDialog";
 import { VariantImportDialog } from "@/components/sifarnici/VariantImportDialog";
+import { VariantAssignmentImportDialog } from "@/components/sifarnici/VariantAssignmentImportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useArticles } from "@/hooks/useArticles";
 
@@ -66,6 +67,7 @@ export function DataImportTab() {
   
   // Dialog states for variants
   const [variantImportOpen, setVariantImportOpen] = useState(false);
+  const [variantAssignImportOpen, setVariantAssignImportOpen] = useState(false);
   
   // Article data for export
   const { articles } = useArticles(selectedCompany?.id);
@@ -214,6 +216,17 @@ export function DataImportTab() {
               <div className="text-center">
                 <div className="font-medium">Uvoz iz Excel-a</div>
                 <div className="text-xs text-muted-foreground">Varijante artikala</div>
+              </div>
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-auto py-4 flex flex-col items-center gap-2"
+              onClick={() => setVariantAssignImportOpen(true)}
+            >
+              <Link2 className="w-6 h-6" />
+              <div className="text-center">
+                <div className="font-medium">Uvoz povezivanja</div>
+                <div className="text-xs text-muted-foreground">Artikal ↔ Varijanta</div>
               </div>
             </Button>
           </div>
@@ -565,6 +578,10 @@ export function DataImportTab() {
       <VariantImportDialog
         open={variantImportOpen}
         onOpenChange={setVariantImportOpen}
+      />
+      <VariantAssignmentImportDialog
+        open={variantAssignImportOpen}
+        onOpenChange={setVariantAssignImportOpen}
       />
     </div>
   );
