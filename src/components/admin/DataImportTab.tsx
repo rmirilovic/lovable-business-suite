@@ -579,6 +579,13 @@ export function DataImportTab() {
         open={variantImportOpen}
         onOpenChange={setVariantImportOpen}
       />
+      <VariantAssignmentImportDialog
+        open={variantAssignImportOpen}
+        onOpenChange={setVariantAssignImportOpen}
+      />
+    </div>
+  );
+}
     </div>
   );
 }
