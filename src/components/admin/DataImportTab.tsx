@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt, Factory, UserCheck } from "lucide-react";
+import { FileJson, Upload, Package, Users, Download, Building, BookOpen, Receipt, Factory, UserCheck, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
