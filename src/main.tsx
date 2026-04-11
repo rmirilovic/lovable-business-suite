@@ -2,82 +2,20 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
-
-const PREVIEW_BOOTSTRAP_PARAM = "__lovable_preview_bootstrap";
-
-const clearBrowserCaches = async () => {
-  try {
-    const cacheKeys = await window.caches?.keys?.();
-    if (!cacheKeys?.length) return 0;
-
-    await Promise.all(cacheKeys.map((key) => window.caches.delete(key)));
-    return cacheKeys.length;
-  } catch {
-    // Ignore cache cleanup failures
-    return 0;
-  }
-};
-
-const unregisterServiceWorkers = async () => {
-  try {
-    const registrations = await navigator.serviceWorker?.getRegistrations?.();
-    if (!registrations?.length) return 0;
-
-    await Promise.all(registrations.map((registration) => registration.unregister()));
-    return registrations.length;
-  } catch {
-    // Ignore unregister failures
-    return 0;
-  }
-};
+import {
+  buildPreviewReloadUrl,
+  clearBrowserCaches,
+  clearPreviewBootstrapParam,
+  getPreviewEnvironment,
+  hasPreviewBootstrapParam,
+  installPreviewRecoveryHotkey,
+  unregisterServiceWorkers,
+} from "@/lib/previewRecovery";
 
 const renderApp = () => {
   createRoot(document.getElementById("root")!).render(<App />);
 };
-
-const hasPreviewBootstrapParam = () => {
-  try {
-    return new URL(window.location.href).searchParams.has(PREVIEW_BOOTSTRAP_PARAM);
-  } catch {
-    return false;
-  }
-};
-
-const clearPreviewBootstrapParam = () => {
-  try {
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has(PREVIEW_BOOTSTRAP_PARAM)) return;
-
-    url.searchParams.delete(PREVIEW_BOOTSTRAP_PARAM);
-    window.history.replaceState(window.history.state, "", url.toString());
-  } catch {
-    // Ignore URL cleanup failures
-  }
-};
-
-const buildPreviewReloadUrl = () => {
-  const url = new URL(window.location.href);
-  url.searchParams.set(PREVIEW_BOOTSTRAP_PARAM, Date.now().toString());
-  return url.toString();
-};
-
-// Guard: never register service worker in iframe or Lovable preview
-const isInIframe = (() => {
-  try {
-    return window.self !== window.top;
-  } catch {
-    return true;
-  }
-})();
-
-const hostname = window.location.hostname;
-const isLovableHosted =
-  hostname === "lovable.app" ||
-  hostname.endsWith(".lovable.app") ||
-  hostname.includes("lovableproject.com");
-const isLovablePreviewHost =
-  hostname.includes("id-preview--") ||
-  hostname.includes("lovableproject.com");
+const { isInIframe, isLovableHosted, isLovablePreviewHost } = getPreviewEnvironment();
 
 const bootstrapApp = async () => {
   if (isLovableHosted || isInIframe) {
@@ -104,4 +42,5 @@ const bootstrapApp = async () => {
   renderApp();
 };
 
+installPreviewRecoveryHotkey();
 void bootstrapApp();
