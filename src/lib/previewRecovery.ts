@@ -1,5 +1,10 @@
 const PREVIEW_BOOTSTRAP_PARAM = "__lovable_preview_bootstrap";
 const PREVIEW_RECOVERY_SHORTCUT_KEY = "r";
+const PREVIEW_RECOVERY_FALLBACK_SHORTCUT_KEY = "m";
+const PREVIEW_RECOVERY_ATTEMPT_KEY = "erp.previewRecoveryAttempted";
+const PREVIEW_RECOVERY_WATCHDOG_DELAY_MS = 2200;
+const PREVIEW_RECOVERY_WATCHDOG_RECHECK_MS = 900;
+const PREVIEW_SHELL_SELECTOR = '[data-erp-shell="ready"]';
 
 declare global {
   interface Window {
@@ -7,7 +12,7 @@ declare global {
   }
 }
 
-export const PREVIEW_RECOVERY_SHORTCUT_LABEL = "Ctrl/⌘ + Alt + Shift + R";
+export const PREVIEW_RECOVERY_SHORTCUT_LABEL = "Ctrl/⌘ + Alt + M";
 
 export const getPreviewEnvironment = () => {
   const isInIframe = (() => {
@@ -83,6 +88,72 @@ export const clearPreviewBootstrapParam = () => {
   }
 };
 
+const readRecoveryAttemptFlag = () => {
+  try {
+    return window.sessionStorage.getItem(PREVIEW_RECOVERY_ATTEMPT_KEY) === "true";
+  } catch {
+    return false;
+  }
+};
+
+const writeRecoveryAttemptFlag = (value: boolean) => {
+  try {
+    if (value) {
+      window.sessionStorage.setItem(PREVIEW_RECOVERY_ATTEMPT_KEY, "true");
+      return;
+    }
+
+    window.sessionStorage.removeItem(PREVIEW_RECOVERY_ATTEMPT_KEY);
+  } catch {
+    // ignore storage failures
+  }
+};
+
+const hasPersistedAuthState = () => {
+  const storages = [window.localStorage, window.sessionStorage];
+
+  try {
+    return storages.some((storage) => {
+      for (let index = 0; index < storage.length; index += 1) {
+        const key = storage.key(index);
+        if (!key) continue;
+
+        if (
+          key === "selectedCompanyId" ||
+          key === "cachedUserRole" ||
+          key === "cachedLocalAdminCompanyIds" ||
+          key === "supabase.auth.token" ||
+          (key.startsWith("sb-") && key.includes("auth-token"))
+        ) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+  } catch {
+    return false;
+  }
+};
+
+const isNonShellRoute = () => {
+  const pathname = window.location.pathname;
+  return (
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/select-company")
+  );
+};
+
+export const hasPreviewShellMounted = () => {
+  if (typeof document === "undefined") return false;
+  return document.querySelector(PREVIEW_SHELL_SELECTOR) !== null;
+};
+
+export const notifyPreviewShellReady = () => {
+  writeRecoveryAttemptFlag(false);
+};
+
 export const buildPreviewReloadUrl = () => {
   const url = new URL(window.location.href);
   url.searchParams.set(PREVIEW_BOOTSTRAP_PARAM, Date.now().toString());
@@ -90,16 +161,21 @@ export const buildPreviewReloadUrl = () => {
 };
 
 export const triggerPreviewRecoveryReload = async () => {
+  writeRecoveryAttemptFlag(true);
   await Promise.all([unregisterServiceWorkers(), clearBrowserCaches()]);
   window.location.replace(buildPreviewReloadUrl());
 };
 
 const isPreviewRecoveryShortcut = (event: KeyboardEvent) => {
+  const isPrimaryModifierPressed = event.ctrlKey || event.metaKey;
+  const key = event.key.toLowerCase();
+
   return (
-    (event.ctrlKey || event.metaKey) &&
-    event.altKey &&
-    event.shiftKey &&
-    event.key.toLowerCase() === PREVIEW_RECOVERY_SHORTCUT_KEY
+    (isPrimaryModifierPressed &&
+      event.altKey &&
+      event.shiftKey &&
+      key === PREVIEW_RECOVERY_SHORTCUT_KEY) ||
+    (isPrimaryModifierPressed && event.altKey && key === PREVIEW_RECOVERY_FALLBACK_SHORTCUT_KEY)
   );
 };
 
@@ -117,13 +193,16 @@ export const installPreviewRecoveryHotkey = () => {
     if (!isPreviewRecoveryShortcut(event)) return;
 
     event.preventDefault();
+    event.stopPropagation();
     void triggerPreviewRecoveryReload();
   };
 
-  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keydown", handleKeyDown, true);
+  document.addEventListener("keydown", handleKeyDown, true);
 
   const cleanup = () => {
-    window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("keydown", handleKeyDown, true);
+    document.removeEventListener("keydown", handleKeyDown, true);
     if (window.__erpPreviewRecoveryCleanup === cleanup) {
       delete window.__erpPreviewRecoveryCleanup;
     }
@@ -131,4 +210,66 @@ export const installPreviewRecoveryHotkey = () => {
 
   window.__erpPreviewRecoveryCleanup = cleanup;
   return cleanup;
+};
+
+export const installPreviewRecoveryWatchdog = () => {
+  if (typeof window === "undefined") return () => {};
+
+  const { isInIframe, isLovableHosted, isLovablePreviewHost } = getPreviewEnvironment();
+  if (!isInIframe && !isLovableHosted && !isLovablePreviewHost) {
+    return () => {};
+  }
+
+  let timeoutId: number | null = null;
+
+  const clearScheduledCheck = () => {
+    if (timeoutId !== null) {
+      window.clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  };
+
+  const ensureShellAvailability = async () => {
+    if (isNonShellRoute()) return;
+    if (hasPreviewShellMounted()) return;
+    if (readRecoveryAttemptFlag()) return;
+    if (!hasPersistedAuthState()) return;
+
+    await triggerPreviewRecoveryReload();
+  };
+
+  const scheduleCheck = (delay = PREVIEW_RECOVERY_WATCHDOG_DELAY_MS) => {
+    clearScheduledCheck();
+    timeoutId = window.setTimeout(() => {
+      timeoutId = null;
+      void ensureShellAvailability();
+    }, delay);
+  };
+
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      scheduleCheck(PREVIEW_RECOVERY_WATCHDOG_RECHECK_MS);
+    }
+  };
+
+  const handleFocus = () => {
+    scheduleCheck(PREVIEW_RECOVERY_WATCHDOG_RECHECK_MS);
+  };
+
+  const handlePageShow = () => {
+    scheduleCheck(PREVIEW_RECOVERY_WATCHDOG_RECHECK_MS);
+  };
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  window.addEventListener("focus", handleFocus);
+  window.addEventListener("pageshow", handlePageShow);
+
+  scheduleCheck();
+
+  return () => {
+    clearScheduledCheck();
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+    window.removeEventListener("focus", handleFocus);
+    window.removeEventListener("pageshow", handlePageShow);
+  };
 };

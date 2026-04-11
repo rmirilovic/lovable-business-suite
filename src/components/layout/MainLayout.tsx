@@ -2,6 +2,7 @@ import { ReactNode, useState, useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useAuth } from "@/contexts/AuthContext";
+import { notifyPreviewShellReady } from "@/lib/previewRecovery";
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar_collapsed";
 
@@ -17,6 +18,10 @@ export function MainLayout({ children, title }: MainLayoutProps) {
     document.title = title ? `${title} | ERP Mirilo` : "ERP Mirilo";
     return () => { document.title = "ERP Mirilo"; };
   }, [title]);
+
+  useEffect(() => {
+    notifyPreviewShellReady();
+  }, []);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
@@ -35,7 +40,7 @@ export function MainLayout({ children, title }: MainLayoutProps) {
     : user?.email || "Korisnik";
 
   return (
-    <div className="h-dvh bg-background flex overflow-hidden">
+    <div className="h-dvh bg-background flex overflow-hidden" data-erp-shell="ready">
       <Sidebar
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}

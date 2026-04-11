@@ -9,6 +9,7 @@ import {
   getPreviewEnvironment,
   hasPreviewBootstrapParam,
   installPreviewRecoveryHotkey,
+  installPreviewRecoveryWatchdog,
   unregisterServiceWorkers,
 } from "@/lib/previewRecovery";
 
@@ -43,4 +44,5 @@ const bootstrapApp = async () => {
 };
 
 installPreviewRecoveryHotkey();
+installPreviewRecoveryWatchdog();
 void bootstrapApp();
