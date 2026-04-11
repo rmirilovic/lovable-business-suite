@@ -129,8 +129,17 @@ export default function PovezivanjeSaVarijantama() {
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
 
   const sortedData = useMemo(() => {
-    return sortItems(filtered, (item, col) => (item as any)[col]);
-  }, [filtered, sortItems]);
+    const sorted = sortItems(filtered, (item, col) => (item as any)[col]);
+    // Secondary sort: within same article_code, always sort by variant_code asc
+    if (sortColumn === "article_code" || !sortColumn) {
+      return [...sorted].sort((a, b) => {
+        const artCmp = a.article_code.localeCompare(b.article_code, "sr");
+        if (artCmp !== 0) return sortDirection === "desc" ? -artCmp : artCmp;
+        return a.variant_code.localeCompare(b.variant_code, "sr");
+      });
+    }
+    return sorted;
+  }, [filtered, sortItems, sortColumn, sortDirection]);
 
   const filteredArticles = useMemo(() => {
     if (!articleSearch.trim()) return articles;
