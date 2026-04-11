@@ -3,7 +3,6 @@ import { registerSW } from "virtual:pwa-register";
 import App from "./App.tsx";
 import "./index.css";
 
-const PREVIEW_BOOTSTRAP_RELOAD_KEY = "lovable_preview_bootstrap_reload";
 const PREVIEW_BOOTSTRAP_PARAM = "__lovable_preview_bootstrap";
 
 const clearBrowserCaches = async () => {
@@ -36,19 +35,11 @@ const renderApp = () => {
   createRoot(document.getElementById("root")!).render(<App />);
 };
 
-const shouldForcePreviewReload = () => {
+const hasPreviewBootstrapParam = () => {
   try {
-    return sessionStorage.getItem(PREVIEW_BOOTSTRAP_RELOAD_KEY) !== "done";
+    return new URL(window.location.href).searchParams.has(PREVIEW_BOOTSTRAP_PARAM);
   } catch {
     return false;
-  }
-};
-
-const markPreviewReloadDone = () => {
-  try {
-    sessionStorage.setItem(PREVIEW_BOOTSTRAP_RELOAD_KEY, "done");
-  } catch {
-    // Ignore storage failures
   }
 };
 
@@ -96,8 +87,7 @@ const bootstrapApp = async () => {
       clearBrowserCaches(),
     ]);
 
-    if ((isInIframe || isLovablePreviewHost) && shouldForcePreviewReload()) {
-      markPreviewReloadDone();
+    if ((isInIframe || isLovablePreviewHost) && !hasPreviewBootstrapParam()) {
       window.location.replace(buildPreviewReloadUrl());
       return;
     }
