@@ -39,6 +39,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Klasifikacija artikala", href: "/sifarnici/grupe", moduleCode: "sifarnici.klasifikacije" },
       { label: "Atributi artikala", href: "/sifarnici/atributi", moduleCode: "sifarnici.atributi" },
       { label: "Varijante artikala", href: "/sifarnici/varijante", moduleCode: "sifarnici.atributi" },
+      { label: "Povezivanje sa varijantama", href: "/sifarnici/povezivanje-varijanti", moduleCode: "sifarnici.atributi" },
       { label: "Magacini", href: "/sifarnici/magacini", moduleCode: "sifarnici.magacini" },
       { label: "Organizacione jedinice", href: "/sifarnici/org-jedinice", moduleCode: "sifarnici.org_jedinice" },
       { label: "Kontni plan", href: "/sifarnici/kontni-plan", moduleCode: "racunovodstvo.kontni_plan" },
