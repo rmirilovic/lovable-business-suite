@@ -591,6 +591,7 @@ export function CompaniesTab() {
                       value={formData.max_concurrent_sessions}
                       onChange={(e) => updateFormField("max_concurrent_sessions", e.target.value)}
                       placeholder="Npr. 5 (prazno = neograničeno)"
+                      disabled={!isSuperAdmin}
                     />
                     <p className="text-xs text-muted-foreground">
                       Maksimalan broj istovremenih aktivnih sesija za ovu firmu. Kada se dostigne limit, novi korisnici neće moći da pristupe dok se neka sesija ne oslobodi. Ostavite prazno za neograničen pristup.
