@@ -100,6 +100,8 @@ export default function PovezivanjeSaVarijantama() {
   }, [rawAssignments, articleMap, variantMap]);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [articleCodeFilter, setArticleCodeFilter] = useState("");
+  const [variantCodeFilter, setVariantCodeFilter] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -115,16 +117,27 @@ export default function PovezivanjeSaVarijantama() {
   }, [selectedArticleId, rawAssignments]);
 
   const filtered = useMemo(() => {
-    if (!searchTerm.trim()) return assignments;
-    const lower = searchTerm.toLowerCase();
-    return assignments.filter(
-      a =>
-        a.article_code.toLowerCase().includes(lower) ||
-        a.article_name.toLowerCase().includes(lower) ||
-        a.variant_code.toLowerCase().includes(lower) ||
-        a.variant_description.toLowerCase().includes(lower)
-    );
-  }, [assignments, searchTerm]);
+    let result = assignments;
+    if (articleCodeFilter.trim()) {
+      const l = articleCodeFilter.toLowerCase();
+      result = result.filter(a => a.article_code.toLowerCase().includes(l));
+    }
+    if (variantCodeFilter.trim()) {
+      const l = variantCodeFilter.toLowerCase();
+      result = result.filter(a => a.variant_code.toLowerCase().includes(l));
+    }
+    if (searchTerm.trim()) {
+      const lower = searchTerm.toLowerCase();
+      result = result.filter(
+        a =>
+          a.article_code.toLowerCase().includes(lower) ||
+          a.article_name.toLowerCase().includes(lower) ||
+          a.variant_code.toLowerCase().includes(lower) ||
+          a.variant_description.toLowerCase().includes(lower)
+      );
+    }
+    return result;
+  }, [assignments, searchTerm, articleCodeFilter, variantCodeFilter]);
 
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort("article_code", "asc");
 
