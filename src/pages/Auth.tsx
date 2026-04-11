@@ -6,10 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Building2, Lock, Mail, User, ArrowLeft } from "lucide-react";
+import { Building2, Lock, Mail, ArrowLeft } from "lucide-react";
 import { z } from "zod";
 
 const GoogleIcon = () => (
@@ -55,14 +53,12 @@ function getPreferredPublicAppUrl() {
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -147,32 +143,6 @@ export default function Auth() {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    
-    setIsLoading(true);
-    const { error } = await signUp(email, password, firstName, lastName);
-    setIsLoading(false);
-
-    if (error) {
-      let message = "Greška prilikom registracije";
-      if (error.message.includes("User already registered")) {
-        message = "Korisnik sa ovom email adresom već postoji";
-      }
-      toast({
-        title: "Greška",
-        description: message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Uspešno",
-        description: "Registracija je uspešna. Možete se prijaviti.",
-      });
-    }
-  };
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -248,7 +218,7 @@ export default function Auth() {
             <CardDescription className="text-center">
               {showForgotPassword 
                 ? "Unesite email adresu za resetovanje lozinke" 
-                : "Prijavite se ili kreirajte novi nalog"}
+                : "Prijavite se u sistem"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -314,13 +284,6 @@ export default function Auth() {
                 )}
               </div>
             ) : (
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Prijava</TabsTrigger>
-                <TabsTrigger value="register">Registracija</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="login">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="login-email">Email</Label>
@@ -362,80 +325,6 @@ export default function Auth() {
                     {isLoading ? "Prijava..." : "Prijavite se"}
                   </Button>
                 </form>
-              </TabsContent>
-
-              <TabsContent value="register">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">Ime</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="firstName"
-                          type="text"
-                          placeholder="Ime"
-                          value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
-                          className="pl-10"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Prezime</Label>
-                      <Input
-                        id="lastName"
-                        type="text"
-                        placeholder="Prezime"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="register-email"
-                        type="email"
-                        placeholder="vas@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="text-sm text-destructive">{errors.email}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">Lozinka</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="register-password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                    {errors.password && (
-                      <p className="text-sm text-destructive">{errors.password}</p>
-                    )}
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Registracija..." : "Registrujte se"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
             )}
           </CardContent>
         </Card>
