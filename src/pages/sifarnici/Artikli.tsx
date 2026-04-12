@@ -519,6 +519,34 @@ export default function Artikli() {
   const clearFilters = () => {
     setFilters(emptyFilters);
   };
+  const toggleArticleExpand = async (articleId: string) => {
+    setExpandedArticles(prev => {
+      const next = new Set(prev);
+      if (next.has(articleId)) {
+        next.delete(articleId);
+      } else {
+        next.add(articleId);
+        // Fetch variants if not already loaded
+        if (!variantsByArticle[articleId]) {
+          supabase
+            .from("article_variant_assignments")
+            .select("variant_id, article_variants!inner(code, description)")
+            .eq("article_id", articleId)
+            .eq("company_id", selectedCompany!.id)
+            .then(({ data }) => {
+              const variants = (data || [])
+                .map((d: any) => ({
+                  code: d.article_variants?.code || "",
+                  description: d.article_variants?.description || "",
+                }))
+                .sort((a, b) => a.code.localeCompare(b.code, "sr"));
+              setVariantsByArticle(prev => ({ ...prev, [articleId]: variants }));
+            });
+        }
+      }
+      return next;
+    });
+  };
 
 
   const handleAdd = () => {
