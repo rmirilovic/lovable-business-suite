@@ -238,6 +238,10 @@ export default function Artikli() {
   const [formData, setFormData] = useState<ArticleForm>(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  // Expandable variant rows
+  const [expandedArticles, setExpandedArticles] = useState<Set<string>>(new Set());
+  const [variantsByArticle, setVariantsByArticle] = useState<Record<string, { code: string; description: string }[]>>({});
+
   // Inline editing navigation state
   const [activeEditCell, setActiveEditCell] = useState<{ articleId: string; field: string } | null>(null);
 
