@@ -160,14 +160,30 @@ export function VariantAssignmentImportDialog({ open, onOpenChange }: Props) {
     setImporting(true); setStep("importing"); setProgress(0);
     const res: ImportResult = { success: 0, failed: 0, skipped: 0, errors: [] };
 
-    // Pre-fetch articles and variants maps
-    const { data: articles } = await supabase
-      .from("articles").select("id, code").eq("company_id", selectedCompany.id);
-    const { data: variants } = await supabase
-      .from("article_variants").select("id, code").eq("company_id", selectedCompany.id);
+    // Pre-fetch all articles and variants (paginated to handle >1000 rows)
+    const fetchAll = async (table: string, fields: string) => {
+      const all: any[] = [];
+      const pageSize = 1000;
+      let from = 0;
+      while (true) {
+        const { data } = await supabase
+          .from(table).select(fields).eq("company_id", selectedCompany.id)
+          .range(from, from + pageSize - 1);
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+      return all;
+    };
 
-    const articleByCode = new Map((articles || []).map(a => [a.code, a.id]));
-    const variantByCode = new Map((variants || []).map(v => [v.code, v.id]));
+    const [articles, variants] = await Promise.all([
+      fetchAll("articles", "id, code"),
+      fetchAll("article_variants", "id, code"),
+    ]);
+
+    const articleByCode = new Map(articles.map(a => [a.code, a.id]));
+    const variantByCode = new Map(variants.map(v => [v.code, v.id]));
 
     const total = parsedData.length;
     const batchSize = 50;
