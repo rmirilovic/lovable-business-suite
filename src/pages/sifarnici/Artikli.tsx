@@ -241,6 +241,29 @@ export default function Artikli() {
   // Expandable variant rows
   const [expandedArticles, setExpandedArticles] = useState<Set<string>>(new Set());
   const [variantsByArticle, setVariantsByArticle] = useState<Record<string, { code: string; description: string }[]>>({});
+  const [articlesWithVariants, setArticlesWithVariants] = useState<Set<string>>(new Set());
+
+  // Fetch which articles have variant assignments
+  useEffect(() => {
+    if (!selectedCompany?.id) return;
+    const fetchArticleIdsWithVariants = async () => {
+      const ids = new Set<string>();
+      let from = 0;
+      while (true) {
+        const { data } = await supabase
+          .from("article_variant_assignments")
+          .select("article_id")
+          .eq("company_id", selectedCompany.id)
+          .range(from, from + 999);
+        if (!data || data.length === 0) break;
+        data.forEach(d => ids.add(d.article_id));
+        if (data.length < 1000) break;
+        from += 1000;
+      }
+      setArticlesWithVariants(ids);
+    };
+    fetchArticleIdsWithVariants();
+  }, [selectedCompany?.id]);
 
   // Inline editing navigation state
   const [activeEditCell, setActiveEditCell] = useState<{ articleId: string; field: string } | null>(null);
