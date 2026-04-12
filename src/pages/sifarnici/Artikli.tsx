@@ -1118,7 +1118,7 @@ export default function Artikli() {
                 <tbody className="divide-y divide-border">
                   {paginatedArticles.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={11} className="p-8 text-center text-muted-foreground">
                         {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
