@@ -161,26 +161,36 @@ export function VariantAssignmentImportDialog({ open, onOpenChange }: Props) {
     const res: ImportResult = { success: 0, failed: 0, skipped: 0, errors: [] };
 
     // Pre-fetch all articles and variants (paginated to handle >1000 rows)
-    const fetchAll = async (table: string, fields: string) => {
-      const all: any[] = [];
-      const pageSize = 1000;
+    const fetchAllArticles = async () => {
+      const all: { id: string; code: string }[] = [];
       let from = 0;
       while (true) {
         const { data } = await supabase
-          .from(table).select(fields).eq("company_id", selectedCompany.id)
-          .range(from, from + pageSize - 1);
+          .from("articles").select("id, code").eq("company_id", selectedCompany.id)
+          .range(from, from + 999);
         if (!data || data.length === 0) break;
         all.push(...data);
-        if (data.length < pageSize) break;
-        from += pageSize;
+        if (data.length < 1000) break;
+        from += 1000;
+      }
+      return all;
+    };
+    const fetchAllVariants = async () => {
+      const all: { id: string; code: string }[] = [];
+      let from = 0;
+      while (true) {
+        const { data } = await supabase
+          .from("article_variants").select("id, code").eq("company_id", selectedCompany.id)
+          .range(from, from + 999);
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < 1000) break;
+        from += 1000;
       }
       return all;
     };
 
-    const [articles, variants] = await Promise.all([
-      fetchAll("articles", "id, code"),
-      fetchAll("article_variants", "id, code"),
-    ]);
+    const [articles, variants] = await Promise.all([fetchAllArticles(), fetchAllVariants()]);
 
     const articleByCode = new Map(articles.map(a => [a.code, a.id]));
     const variantByCode = new Map(variants.map(v => [v.code, v.id]));
