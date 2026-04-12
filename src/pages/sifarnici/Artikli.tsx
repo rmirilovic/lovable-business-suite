@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Search,
