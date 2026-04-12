@@ -1308,7 +1308,31 @@ export default function Artikli() {
                           </div>
                         </td>
                       </tr>
-                    ))
+                      {isExpanded && (
+                        !articleVariants ? (
+                          <tr className="bg-muted/20">
+                            <td colSpan={11} className="py-2 text-center text-xs text-muted-foreground">
+                              <Loader2 className="w-4 h-4 animate-spin inline mr-1" />Učitavanje varijanti...
+                            </td>
+                          </tr>
+                        ) : articleVariants.length === 0 ? (
+                          <tr className="bg-muted/20">
+                            <td colSpan={11} className="py-2 pl-12 text-xs text-muted-foreground">
+                              Nema povezanih varijanti
+                            </td>
+                          </tr>
+                        ) : articleVariants.map((v, vi) => (
+                          <tr key={vi} className="bg-muted/20 border-t border-border/50">
+                            <td />
+                            <td />
+                            <td className="p-2 pl-6 font-mono text-xs text-muted-foreground">{v.code}</td>
+                            <td colSpan={8} className="p-2 text-xs text-muted-foreground">{v.description}</td>
+                          </tr>
+                        ))
+                      )}
+                        </React.Fragment>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
