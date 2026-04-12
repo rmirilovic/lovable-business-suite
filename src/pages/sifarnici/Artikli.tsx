@@ -1133,6 +1133,15 @@ export default function Artikli() {
                         style={{ animationDelay: `${index * 30}ms` }}
                         onClick={() => canEdit ? handleEdit(article) : handleView(article)}
                       >
+                        <td className="p-1 pl-2" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            className="p-1 rounded hover:bg-secondary transition-colors"
+                            onClick={() => toggleArticleExpand(article.id)}
+                            title="Prikaži varijante"
+                          >
+                            {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                          </button>
+                        </td>
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={selectedArticleIds.has(article.id)}
