@@ -247,23 +247,31 @@ export default function Artikli() {
   useEffect(() => {
     if (!selectedCompany?.id) return;
     const fetchArticleIdsWithVariants = async () => {
-      const ids = new Set<string>();
-      let from = 0;
-      while (true) {
-        const { data } = await supabase
-          .from("article_variant_assignments")
-          .select("article_id")
-          .eq("company_id", selectedCompany.id)
-          .range(from, from + 999);
-        if (!data || data.length === 0) break;
-        data.forEach(d => ids.add(d.article_id));
-        if (data.length < 1000) break;
-        from += 1000;
+      try {
+        const ids = new Set<string>();
+        let from = 0;
+        while (true) {
+          const { data, error } = await supabase
+            .from("article_variant_assignments")
+            .select("article_id")
+            .eq("company_id", selectedCompany.id)
+            .range(from, from + 999);
+          if (error) {
+            console.error("Error fetching variant assignments:", error);
+            break;
+          }
+          if (!data || data.length === 0) break;
+          data.forEach((d: any) => ids.add(d.article_id));
+          if (data.length < 1000) break;
+          from += 1000;
+        }
+        setArticlesWithVariants(ids);
+      } catch (err) {
+        console.error("Error fetching variant assignments:", err);
       }
-      setArticlesWithVariants(ids);
     };
     fetchArticleIdsWithVariants();
-  }, [selectedCompany?.id]);
+  }, [selectedCompany?.id, articles]);
 
   // Inline editing navigation state
   const [activeEditCell, setActiveEditCell] = useState<{ articleId: string; field: string } | null>(null);
