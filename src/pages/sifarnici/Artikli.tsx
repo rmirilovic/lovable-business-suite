@@ -1123,9 +1123,12 @@ export default function Artikli() {
                       </td>
                     </tr>
                   ) : (
-                    paginatedArticles.map((article, index) => (
+                    paginatedArticles.map((article, index) => {
+                      const isExpanded = expandedArticles.has(article.id);
+                      const articleVariants = variantsByArticle[article.id];
+                      return (
+                        <React.Fragment key={article.id}>
                       <tr
-                        key={article.id}
                         className="hover:bg-table-hover transition-colors animate-fade-in cursor-pointer"
                         style={{ animationDelay: `${index * 30}ms` }}
                         onClick={() => canEdit ? handleEdit(article) : handleView(article)}
