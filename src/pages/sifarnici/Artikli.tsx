@@ -1029,6 +1029,7 @@ export default function Artikli() {
               <table className="w-full">
                 <thead>
                   <tr className="erp-table-header">
+                    <th className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 w-8"></th>
                     <th className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 w-10">
                       <Checkbox
                         checked={paginatedArticles.length > 0 && paginatedArticles.every(a => selectedArticleIds.has(a.id))}
