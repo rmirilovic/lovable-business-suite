@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Search,
@@ -237,6 +237,10 @@ export default function Artikli() {
   const [deletingArticle, setDeletingArticle] = useState<Article | null>(null);
   const [formData, setFormData] = useState<ArticleForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+
+  // Expandable variant rows
+  const [expandedArticles, setExpandedArticles] = useState<Set<string>>(new Set());
+  const [variantsByArticle, setVariantsByArticle] = useState<Record<string, { code: string; description: string }[]>>({});
 
   // Inline editing navigation state
   const [activeEditCell, setActiveEditCell] = useState<{ articleId: string; field: string } | null>(null);
@@ -514,6 +518,34 @@ export default function Artikli() {
 
   const clearFilters = () => {
     setFilters(emptyFilters);
+  };
+  const toggleArticleExpand = async (articleId: string) => {
+    setExpandedArticles(prev => {
+      const next = new Set(prev);
+      if (next.has(articleId)) {
+        next.delete(articleId);
+      } else {
+        next.add(articleId);
+        // Fetch variants if not already loaded
+        if (!variantsByArticle[articleId]) {
+          supabase
+            .from("article_variant_assignments")
+            .select("variant_id, article_variants!inner(code, description)")
+            .eq("article_id", articleId)
+            .eq("company_id", selectedCompany!.id)
+            .then(({ data }) => {
+              const variants = (data || [])
+                .map((d: any) => ({
+                  code: d.article_variants?.code || "",
+                  description: d.article_variants?.description || "",
+                }))
+                .sort((a, b) => a.code.localeCompare(b.code, "sr"));
+              setVariantsByArticle(prev => ({ ...prev, [articleId]: variants }));
+            });
+        }
+      }
+      return next;
+    });
   };
 
 
@@ -997,6 +1029,7 @@ export default function Artikli() {
               <table className="w-full">
                 <thead>
                   <tr className="erp-table-header">
+                    <th className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 w-8"></th>
                     <th className="sticky top-0 z-20 bg-table-header shadow-[0_1px_0_0_hsl(var(--border))] p-3 w-10">
                       <Checkbox
                         checked={paginatedArticles.length > 0 && paginatedArticles.every(a => selectedArticleIds.has(a.id))}
@@ -1085,18 +1118,30 @@ export default function Artikli() {
                 <tbody className="divide-y divide-border">
                   {paginatedArticles.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center text-muted-foreground">
+                      <td colSpan={11} className="p-8 text-center text-muted-foreground">
                         {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
                   ) : (
-                    paginatedArticles.map((article, index) => (
+                    paginatedArticles.map((article, index) => {
+                      const isExpanded = expandedArticles.has(article.id);
+                      const articleVariants = variantsByArticle[article.id];
+                      return (
+                        <React.Fragment key={article.id}>
                       <tr
-                        key={article.id}
                         className="hover:bg-table-hover transition-colors animate-fade-in cursor-pointer"
                         style={{ animationDelay: `${index * 30}ms` }}
                         onClick={() => canEdit ? handleEdit(article) : handleView(article)}
                       >
+                        <td className="p-1 pl-2" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            className="p-1 rounded hover:bg-secondary transition-colors"
+                            onClick={() => toggleArticleExpand(article.id)}
+                            title="Prikaži varijante"
+                          >
+                            {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                          </button>
+                        </td>
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
                           <Checkbox
                             checked={selectedArticleIds.has(article.id)}
@@ -1263,7 +1308,31 @@ export default function Artikli() {
                           </div>
                         </td>
                       </tr>
-                    ))
+                      {isExpanded && (
+                        !articleVariants ? (
+                          <tr className="bg-muted/20">
+                            <td colSpan={11} className="py-2 text-center text-xs text-muted-foreground">
+                              <Loader2 className="w-4 h-4 animate-spin inline mr-1" />Učitavanje varijanti...
+                            </td>
+                          </tr>
+                        ) : articleVariants.length === 0 ? (
+                          <tr className="bg-muted/20">
+                            <td colSpan={11} className="py-2 pl-12 text-xs text-muted-foreground">
+                              Nema povezanih varijanti
+                            </td>
+                          </tr>
+                        ) : articleVariants.map((v, vi) => (
+                          <tr key={vi} className="bg-muted/20 border-t border-border/50">
+                            <td />
+                            <td />
+                            <td className="p-2 pl-6 font-mono text-xs text-muted-foreground">{v.code}</td>
+                            <td colSpan={8} className="p-2 text-xs text-muted-foreground">{v.description}</td>
+                          </tr>
+                        ))
+                      )}
+                        </React.Fragment>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
