@@ -377,8 +377,9 @@ export function InventoryCountImportDialog({ open, onOpenChange, countId, compan
             deficit_qty: deficitQty,
             price: itemPrice,
             surplus_value: surplusValue,
-            deficit_value: deficitValue,
-          });
+             deficit_value: deficitValue,
+             variant_id: null,
+           });
           existingByArticleId.set(article.id, { id: "__pending__", article_id: article.id } as any);
         }
       }

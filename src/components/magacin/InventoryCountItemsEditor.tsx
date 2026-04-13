@@ -69,22 +69,23 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
           ? Math.round((row.balance_value / row.balance_qty) * 100) / 100
           : 0;
 
-        newItems.push({
-          inventory_count_id: countId,
-          company_id: selectedCompany.id,
-          article_id: row.article_id,
-          item_order: order++,
-          item_code: row.article_code,
-          item_name: row.article_name,
-          unit: row.unit,
-          book_quantity: row.balance_qty,
-          counted_quantity: row.balance_qty,
-          surplus_qty: 0,
-          deficit_qty: 0,
-          price,
-          surplus_value: 0,
-          deficit_value: 0,
-        });
+         newItems.push({
+           inventory_count_id: countId,
+           company_id: selectedCompany.id,
+           article_id: row.article_id,
+           variant_id: null,
+           item_order: order++,
+           item_code: row.article_code,
+           item_name: row.article_name,
+           unit: row.unit,
+           book_quantity: row.balance_qty,
+           counted_quantity: row.balance_qty,
+           surplus_qty: 0,
+           deficit_qty: 0,
+           price,
+           surplus_value: 0,
+           deficit_value: 0,
+         });
       }
 
       if (newItems.length === 0) {
@@ -119,22 +120,23 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
 
     const nextOrder = items.length > 0 ? Math.max(...items.map((i) => i.item_order)) + 1 : 1;
 
-    await addItem.mutateAsync({
-      inventory_count_id: countId,
-      company_id: selectedCompany.id,
-      article_id: articleId,
-      item_order: nextOrder,
-      item_code: article.code,
-      item_name: article.name,
-      unit: article.unit,
-      book_quantity: 0,
-      counted_quantity: 0,
-      surplus_qty: 0,
-      deficit_qty: 0,
-      price: article.selling_price || article.purchase_price || 0,
-      surplus_value: 0,
-      deficit_value: 0,
-    });
+     await addItem.mutateAsync({
+       inventory_count_id: countId,
+       company_id: selectedCompany.id,
+       article_id: articleId,
+       variant_id: null,
+       item_order: nextOrder,
+       item_code: article.code,
+       item_name: article.name,
+       unit: article.unit,
+       book_quantity: 0,
+       counted_quantity: 0,
+       surplus_qty: 0,
+       deficit_qty: 0,
+       price: article.selling_price || article.purchase_price || 0,
+       surplus_value: 0,
+       deficit_value: 0,
+     });
   };
 
   const recalcItem = (item: InventoryCountItem, field: string, value: number) => {
