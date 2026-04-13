@@ -446,8 +446,13 @@ const App = () => (
                 <ProtectedRoute>
                   <StanjeMagacina />
                 </ProtectedRoute>
-              } />
-              <Route path="/magacin/popisi" element={
+               } />
+               <Route path="/magacin/stanje-varijante" element={
+                 <ProtectedRoute>
+                   <StanjePoVarijantama />
+                 </ProtectedRoute>
+               } />
+               <Route path="/magacin/popisi" element={
                 <ProtectedRoute>
                   <Popisi />
                 </ProtectedRoute>
