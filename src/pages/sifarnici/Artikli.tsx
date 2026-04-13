@@ -245,7 +245,7 @@ export default function Artikli() {
   const [variantsByArticle, setVariantsByArticle] = useState<Record<string, { code: string; description: string }[]>>({});
   const [articlesWithVariants, setArticlesWithVariants] = useState<Set<string>>(new Set());
 
-  // Fetch which articles have variant assignments
+  // Fetch which articles have variant assignments (only depends on company, not articles)
   useEffect(() => {
     if (!selectedCompany?.id) return;
     const fetchArticleIdsWithVariants = async () => {
