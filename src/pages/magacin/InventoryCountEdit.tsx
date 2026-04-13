@@ -156,6 +156,7 @@ export default function InventoryCountEdit() {
     switch (column) {
       case "item_code": return item.item_code || "";
       case "item_name": return item.item_name;
+      case "variant": return item.variant?.code || "";
       case "unit": return item.unit;
       case "book_quantity": return item.book_quantity;
       case "counted_quantity": return item.counted_quantity;
