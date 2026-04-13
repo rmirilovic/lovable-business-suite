@@ -1,9 +1,10 @@
 import { useState, useMemo, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Loader2, Warehouse } from "lucide-react";
+import { Search, Loader2, Warehouse, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWarehouseStockByVariant, type WarehouseStockByVariantRow } from "@/hooks/useWarehouseStockByVariant";
@@ -15,6 +16,8 @@ import { formatPrice, formatDecimal } from "@/lib/formatting";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { exportVariantStockToExcel, exportVariantStockToPdf, printVariantStock } from "@/lib/warehouseExportUtils";
+import { toast } from "sonner";
 
 export default function StanjePoVarijantama() {
   const { selectedCompany, selectedYear } = useAuth();
@@ -32,6 +35,7 @@ export default function StanjePoVarijantama() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [selectedRow, setSelectedRow] = useState<WarehouseStockByVariantRow | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const { data: stockData, isLoading: stockLoading } = useWarehouseStockByVariant(
     companyId, warehouseId || undefined, undefined, dateTo || undefined
@@ -79,6 +83,35 @@ export default function StanjePoVarijantama() {
       { inValue: 0, outValue: 0, balanceValue: 0 }
     );
   }, [sorted]);
+
+  const exportMeta = { warehouseName, dateTo: dateTo || undefined };
+
+  const handleExcelExport = () => {
+    if (sorted.length === 0) return;
+    exportVariantStockToExcel(sorted, exportMeta);
+    toast.success("Excel fajl je kreiran.");
+  };
+
+  const handlePdfExport = async () => {
+    if (sorted.length === 0) return;
+    setExporting(true);
+    try {
+      await exportVariantStockToPdf(sorted, exportMeta, totals);
+      toast.success("PDF fajl je kreiran.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (sorted.length === 0) return;
+    setExporting(true);
+    try {
+      await printVariantStock(sorted, exportMeta, totals);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <MainLayout title="Stanje po varijantama">
