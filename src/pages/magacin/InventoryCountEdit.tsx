@@ -176,7 +176,8 @@ export default function InventoryCountEdit() {
       result = result.filter(
         (i) =>
           (i.item_code || "").toLowerCase().includes(q) ||
-          i.item_name.toLowerCase().includes(q)
+          i.item_name.toLowerCase().includes(q) ||
+          (i.variant?.code || "").toLowerCase().includes(q)
       );
     }
     return sortItems(result, getItemValue);
