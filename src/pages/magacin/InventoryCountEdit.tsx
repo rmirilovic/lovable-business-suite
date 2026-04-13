@@ -77,7 +77,7 @@ export default function InventoryCountEdit() {
   const { items, isLoading: itemsLoading } = useInventoryCountItems(id || null);
   const { updateCount, postCount, unpostCount } = useInventoryCounts();
 
-  const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
+  const { sortColumn, sortDirection, handleSort, sortItems, setSort } = useTableSort(
     saved?.sortColumn || null,
     (saved?.sortDirection as "asc" | "desc") || "asc"
   );
