@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
@@ -7,6 +7,7 @@ import { Search, Loader2, Warehouse } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWarehouseStockByVariant, type WarehouseStockByVariantRow } from "@/hooks/useWarehouseStockByVariant";
+import { ArticleWarehouseCardDialog } from "@/components/magacin/ArticleWarehouseCardDialog";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { useTableSort } from "@/hooks/useTableSort";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
@@ -30,9 +31,14 @@ export default function StanjePoVarijantama() {
   const [search, setSearch] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const [selectedRow, setSelectedRow] = useState<WarehouseStockByVariantRow | null>(null);
+
   const { data: stockData, isLoading: stockLoading } = useWarehouseStockByVariant(
     companyId, warehouseId || undefined, undefined, dateTo || undefined
   );
+
+  const selectedWarehouse = warehouses.find((w) => w.id === warehouseId);
+  const warehouseName = selectedWarehouse ? `${selectedWarehouse.code} — ${selectedWarehouse.name}` : "";
 
   const filtered = useMemo(() => {
     if (!stockData) return [];
@@ -140,7 +146,11 @@ export default function StanjePoVarijantama() {
                   <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">{search ? "Nema rezultata." : "Nema promena."}</TableCell></TableRow>
                 ) : (
                   sorted.map((row, i) => (
-                    <TableRow key={`${row.article_id}-${row.variant_id || "none"}-${i}`} className="hover:bg-muted/50">
+                    <TableRow
+                      key={`${row.article_id}-${row.variant_id || "none"}-${i}`}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => setSelectedRow(row)}
+                    >
                       <TableCell className="font-medium truncate">{row.article_code}</TableCell>
                       <TableCell className="truncate">{row.article_name}</TableCell>
                       <TableCell>
@@ -178,6 +188,22 @@ export default function StanjePoVarijantama() {
           </TableScrollContainer>
         )}
       </div>
+
+      <ArticleWarehouseCardDialog
+        open={!!selectedRow}
+        onOpenChange={(open) => { if (!open) setSelectedRow(null); }}
+        companyId={companyId || ""}
+        warehouseId={warehouseId}
+        warehouseName={warehouseName}
+        articleId={selectedRow?.article_id || ""}
+        articleCode={selectedRow?.article_code || ""}
+        articleName={selectedRow?.article_name || ""}
+        unit={selectedRow?.unit || ""}
+        dateTo={dateTo || undefined}
+        variantId={selectedRow?.variant_id || undefined}
+        variantCode={selectedRow?.variant_code || undefined}
+        variantDescription={selectedRow?.variant_description || undefined}
+      />
     </MainLayout>
   );
 }
