@@ -266,6 +266,7 @@ export function useInventoryCountItems(countId: string | null) {
   return {
     items: itemsQuery.data || [],
     isLoading: itemsQuery.isLoading,
+    refetchItems: itemsQuery.refetch,
     upsertItems,
     updateItem,
     addItem,

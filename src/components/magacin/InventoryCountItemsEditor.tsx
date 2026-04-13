@@ -28,6 +28,7 @@ interface Props {
   sortColumn: string | null;
   sortDirection: SortDirection;
   onSort: (column: string) => void;
+  onSave?: () => void;
 }
 
 interface ArticleVariantOption {
