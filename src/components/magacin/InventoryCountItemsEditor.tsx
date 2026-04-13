@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Loader2, Upload, FileSpreadsheet } from "lucide-react";
+import { Plus, Trash2, Loader2, Upload, FileSpreadsheet, Save } from "lucide-react";
 import { useInventoryCountItems, InventoryCountItem } from "@/hooks/useInventoryCounts";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,7 @@ interface Props {
   sortColumn: string | null;
   sortDirection: SortDirection;
   onSort: (column: string) => void;
+  onSave?: () => void;
 }
 
 interface ArticleVariantOption {
@@ -47,9 +48,9 @@ function getAllowedSvkForWarehouseType(warehouseType: string): string[] {
   }
 }
 
-export function InventoryCountItemsEditor({ countId, warehouseId, countDate, warehouseType, search, sortColumn, sortDirection, onSort }: Props) {
+export function InventoryCountItemsEditor({ countId, warehouseId, countDate, warehouseType, search, sortColumn, sortDirection, onSort, onSave }: Props) {
   const { selectedCompany, selectedYear } = useAuth();
-  const { items, isLoading, addItem, updateItem, deleteItem } = useInventoryCountItems(countId);
+  const { items, isLoading, refetchItems, addItem, updateItem, deleteItem } = useInventoryCountItems(countId);
   const { articles } = useArticles(selectedCompany?.id);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -261,14 +262,17 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
       if (aVal == null && bVal == null) return 0;
       if (aVal == null) return sortDirection === "asc" ? -1 : 1;
       if (bVal == null) return sortDirection === "asc" ? 1 : -1;
+      let cmp = 0;
       if (typeof aVal === "string" && typeof bVal === "string") {
-        const cmp = aVal.localeCompare(bVal, "sr");
-        return sortDirection === "asc" ? cmp : -cmp;
+        cmp = aVal.localeCompare(bVal, "sr");
+      } else if (typeof aVal === "number" && typeof bVal === "number") {
+        cmp = aVal - bVal;
       }
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
-      }
-      return 0;
+      if (cmp !== 0) return sortDirection === "asc" ? cmp : -cmp;
+      // Secondary sort by variant code when primary values are equal
+      const aVar = a.variant?.code || "";
+      const bVar = b.variant?.code || "";
+      return aVar.localeCompare(bVar, "sr");
     });
   }, [items, search, sortColumn, sortDirection, getItemValue]);
 
@@ -288,6 +292,12 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
     );
   }
 
+  const handleSave = async () => {
+    await refetchItems();
+    onSave?.();
+    toast.success("Lista osvežena i sortirana");
+  };
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Actions */}
@@ -299,6 +309,10 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
         <Button variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
           <FileSpreadsheet className="h-4 w-4 mr-2" />
           Uvezi iz Excela
+        </Button>
+        <Button variant="default" size="sm" onClick={handleSave}>
+          <Save className="h-4 w-4 mr-2" />
+          Sačuvaj
         </Button>
         <div className="flex-1" />
         <div className="flex items-center gap-4 text-sm">

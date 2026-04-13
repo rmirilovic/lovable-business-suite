@@ -70,10 +70,16 @@ export function useTableSort(
     });
   }, [sortColumn, sortDirection]);
 
+  const setSort = useCallback((column: string | null, direction: SortDirection = 'asc') => {
+    setSortColumn(column);
+    setSortDirection(direction);
+  }, []);
+
   return {
     sortColumn,
     sortDirection,
     handleSort,
     sortItems,
+    setSort,
   };
 }
