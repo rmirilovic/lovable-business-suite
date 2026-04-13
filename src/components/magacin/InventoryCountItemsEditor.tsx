@@ -215,6 +215,11 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
   };
 
   const handleVariantChange = async (item: InventoryCountItem, variantId: string | null) => {
+    // Prevent duplicate article+variant combo
+    if (variantId && items.some((i) => i.id !== item.id && i.article_id === item.article_id && i.variant_id === variantId)) {
+      toast.error("Ova varijanta je već dodata za ovaj artikal");
+      return;
+    }
     await updateItem.mutateAsync({
       id: item.id,
       variant_id: variantId,
