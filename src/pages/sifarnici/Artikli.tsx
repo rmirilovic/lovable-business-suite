@@ -114,6 +114,7 @@ interface ArticleFilters {
   articleGroup: string;
   unit: string;
   status: string;
+  hasVariants: string;
   kgPoJmMin: string;
   kgPoJmMax: string;
   sellingPriceMin: string;
@@ -127,6 +128,7 @@ const emptyFilters: ArticleFilters = {
   articleGroup: "",
   unit: "",
   status: "",
+  hasVariants: "",
   kgPoJmMin: "",
   kgPoJmMax: "",
   sellingPriceMin: "",
@@ -401,6 +403,13 @@ export default function Artikli() {
         if (article.is_active !== isActive) return false;
       }
 
+      // Has variants filter
+      if (filters.hasVariants) {
+        const hasVar = articlesWithVariants.has(article.id);
+        if (filters.hasVariants === 'yes' && !hasVar) return false;
+        if (filters.hasVariants === 'no' && hasVar) return false;
+      }
+
       // Selling price filters
       if (filters.sellingPriceMin) {
         const min = parseLocaleNumber(filters.sellingPriceMin);
@@ -435,7 +444,7 @@ export default function Artikli() {
 
       return true;
     });
-  }, [articles, searchTerm, filters, getAttributes, availableAttributes]);
+  }, [articles, searchTerm, filters, getAttributes, availableAttributes, articlesWithVariants]);
 
   // Sorted articles
   const sortedArticles = useMemo(() => {
@@ -988,6 +997,24 @@ export default function Artikli() {
                         <SelectItem value="all">Svi</SelectItem>
                         <SelectItem value="active">Aktivan</SelectItem>
                         <SelectItem value="inactive">Neaktivan</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Has Variants Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Varijante</Label>
+                    <Select
+                      value={filters.hasVariants}
+                      onValueChange={(value) => setFilters({ ...filters, hasVariants: value === "all" ? "" : value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Svi" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Svi</SelectItem>
+                        <SelectItem value="yes">Sa varijantama</SelectItem>
+                        <SelectItem value="no">Bez varijanti</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
