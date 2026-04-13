@@ -188,7 +188,7 @@ export function useInventoryCountItems(countId: string | null) {
       if (!countId) return [];
       const { data, error } = await supabase
         .from("inventory_count_items")
-        .select("*")
+        .select("*, variant:article_variants(id, code, description)")
         .eq("inventory_count_id", countId)
         .order("item_order");
       if (error) throw error;
