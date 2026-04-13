@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Plus, Edit2, Trash2, RefreshCw, Search, Loader2, Ruler } from "lucide-react";
+import { Plus, Edit2, Trash2, RefreshCw, Search, Loader2, Ruler, FileSpreadsheet, FileDown, Printer } from "lucide-react";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +25,7 @@ import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { formatDecimal, parseLocaleNumber } from "@/lib/formatting";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { exportVariantsToExcel, exportVariantsToPdf, printVariants } from "@/lib/variantListExportUtils";
 
 interface VariantForm {
   code: string;
@@ -126,7 +127,7 @@ export default function VarijanteArtikala() {
               </h1>
               <p className="text-muted-foreground mt-1">Šifarnik varijanti (dužina šipki)</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input placeholder="Pretraži..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 w-full sm:w-64" autoComplete="off" />
@@ -139,6 +140,15 @@ export default function VarijanteArtikala() {
                 </TooltipTrigger>
                 <TooltipContent><p>Osveži</p></TooltipContent>
               </Tooltip>
+              <Button variant="outline" size="sm" onClick={() => exportVariantsToExcel(sorted, { companyName: selectedCompany?.name ?? "" })}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportVariantsToPdf(sorted, { companyName: selectedCompany?.name ?? "" })}>
+                <FileDown className="w-4 h-4 mr-2" /> PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => printVariants(sorted, { companyName: selectedCompany?.name ?? "" })}>
+                <Printer className="w-4 h-4 mr-2" /> Štampa
+              </Button>
               {canEdit && (
                 <Button onClick={handleAdd} className="gap-2"><Plus className="w-4 h-4" />Nova varijanta</Button>
               )}
