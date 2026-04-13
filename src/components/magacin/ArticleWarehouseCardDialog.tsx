@@ -34,6 +34,9 @@ interface ArticleWarehouseCardDialogProps {
   unit: string;
   dateFrom?: string;
   dateTo?: string;
+  variantId?: string;
+  variantCode?: string;
+  variantDescription?: string;
 }
 
 export function ArticleWarehouseCardDialog({
@@ -48,13 +51,17 @@ export function ArticleWarehouseCardDialog({
   unit,
   dateFrom,
   dateTo,
+  variantId,
+  variantCode,
+  variantDescription,
 }: ArticleWarehouseCardDialogProps) {
   const { data: movements, isLoading } = useArticleWarehouseCard(
     companyId,
     warehouseId,
     open ? articleId : undefined,
     dateFrom,
-    dateTo
+    dateTo,
+    variantId
   );
 
   const [exporting, setExporting] = useState(false);
