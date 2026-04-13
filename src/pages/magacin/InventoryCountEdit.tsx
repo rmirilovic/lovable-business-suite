@@ -78,7 +78,7 @@ export default function InventoryCountEdit() {
   const { updateCount, postCount, unpostCount } = useInventoryCounts();
 
   const { sortColumn, sortDirection, handleSort, sortItems, setSort } = useTableSort(
-    saved?.sortColumn || "item_code",
+    saved?.sortColumn ?? "item_code",
     (saved?.sortDirection as "asc" | "desc") || "asc"
   );
 
@@ -180,8 +180,22 @@ export default function InventoryCountEdit() {
           (i.variant?.code || "").toLowerCase().includes(q)
       );
     }
-    return sortItems(result, getItemValue);
-  }, [items, search, sortItems, getItemValue]);
+    const sorted = sortItems(result, getItemValue);
+    // Secondary sort by variant code when primary values are equal
+    if (sortColumn) {
+      sorted.sort((a, b) => {
+        const aVal = getItemValue(a, sortColumn);
+        const bVal = getItemValue(b, sortColumn);
+        const aStr = String(aVal ?? "");
+        const bStr = String(bVal ?? "");
+        if (aStr !== bStr) return 0; // preserve primary sort order
+        const aVar = a.variant?.code || "";
+        const bVar = b.variant?.code || "";
+        return aVar.localeCompare(bVar, "sr");
+      });
+    }
+    return sorted;
+  }, [items, search, sortItems, getItemValue, sortColumn]);
 
   const filteredTotals = useMemo(() =>
     filteredSortedItems.reduce(
