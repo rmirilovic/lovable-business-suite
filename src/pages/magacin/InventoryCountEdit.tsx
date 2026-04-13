@@ -366,19 +366,20 @@ export default function InventoryCountEdit() {
           <TableScrollContainer>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead><SortableHeader column="item_code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                  <TableHead><SortableHeader column="item_name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                  <TableHead><SortableHeader column="unit" label="JM" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
-                  <TableHead className="text-right"><SortableHeader column="book_quantity" label="Knjižna kol." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
-                  <TableHead className="text-right"><SortableHeader column="counted_quantity" label="Popisana kol." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
-                  <TableHead className="text-right"><SortableHeader column="surplus_qty" label="Višak" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
-                  <TableHead className="text-right"><SortableHeader column="deficit_qty" label="Manjak" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
-                  <TableHead className="text-right"><SortableHeader column="price" label="Cena" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
-                  <TableHead className="text-right"><SortableHeader column="surplus_value" label="Vr. viška" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
-                  <TableHead className="text-right"><SortableHeader column="deficit_value" label="Vr. manjka" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
-                </TableRow>
+                 <TableRow>
+                   <TableHead className="w-12">#</TableHead>
+                   <TableHead><SortableHeader column="item_code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                   <TableHead><SortableHeader column="item_name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                   <TableHead className="w-[130px]"><SortableHeader column="variant" label="Varijanta" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                   <TableHead><SortableHeader column="unit" label="JM" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} /></TableHead>
+                   <TableHead className="text-right"><SortableHeader column="book_quantity" label="Knjižna kol." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                   <TableHead className="text-right"><SortableHeader column="counted_quantity" label="Popisana kol." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                   <TableHead className="text-right"><SortableHeader column="surplus_qty" label="Višak" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                   <TableHead className="text-right"><SortableHeader column="deficit_qty" label="Manjak" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                   <TableHead className="text-right"><SortableHeader column="price" label="Cena" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                   <TableHead className="text-right"><SortableHeader column="surplus_value" label="Vr. viška" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                   <TableHead className="text-right"><SortableHeader column="deficit_value" label="Vr. manjka" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-end" /></TableHead>
+                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredSortedItems.length === 0 ? (
