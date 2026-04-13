@@ -298,3 +298,152 @@ export async function printCard(
   const doc = await buildCardPdf(rows, meta, totals);
   printPdfBlob(doc.output("blob"));
 }
+
+// ── Stanje po varijantama ─ types ───────────────────────────────────────────
+
+export interface VariantStockExportRow {
+  article_code: string;
+  article_name: string;
+  unit: string;
+  variant_code: string;
+  variant_description: string;
+  total_in_qty: number;
+  total_in_value: number;
+  total_out_qty: number;
+  total_out_value: number;
+  balance_qty: number;
+  balance_value: number;
+}
+
+interface VariantStockExportMeta {
+  warehouseName: string;
+  dateTo?: string;
+}
+
+// ── Stanje po varijantama ─ Excel ───────────────────────────────────────────
+
+export function exportVariantStockToExcel(
+  rows: VariantStockExportRow[],
+  meta: VariantStockExportMeta
+) {
+  const data = rows.map((r) => ({
+    "Šifra": r.article_code,
+    "Naziv artikla": r.article_name,
+    "Varijanta": r.variant_code,
+    "Opis varijante": r.variant_description,
+    "JM": r.unit,
+    "Ulaz kol.": r.total_in_qty,
+    "Duguje": r.total_in_value,
+    "Izlaz kol.": r.total_out_qty,
+    "Potražuje": r.total_out_value,
+    "Stanje kol.": r.balance_qty,
+    "Saldo": r.balance_value,
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws["!cols"] = [
+    { wch: 12 }, { wch: 35 }, { wch: 12 }, { wch: 20 }, { wch: 6 },
+    { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 14 },
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Stanje po varijantama");
+
+  const safeName = meta.warehouseName.replace(/[^a-zA-Z0-9а-яА-ЯёЁa-žA-Ž\s_-]/g, "").trim();
+  XLSX.writeFile(wb, `Stanje_varijante_${safeName}.xlsx`);
+}
+
+// ── Stanje po varijantama ─ PDF ─────────────────────────────────────────────
+
+async function buildVariantStockPdf(
+  rows: VariantStockExportRow[],
+  meta: VariantStockExportMeta,
+  totals: { inValue: number; outValue: number; balanceValue: number }
+): Promise<jsPDF> {
+  await initializePdfFonts();
+  const doc = new jsPDF({ orientation: "landscape" });
+  configurePdfFonts(doc);
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 15;
+
+  doc.setFontSize(14);
+  doc.setFont("Roboto", "bold");
+  doc.text("Stanje po varijantama", pageWidth / 2, y, { align: "center" });
+  y += 7;
+
+  doc.setFontSize(9);
+  doc.setFont("Roboto", "normal");
+  doc.text(`Magacin: ${meta.warehouseName}`, 14, y);
+  if (meta.dateTo) {
+    y += 5;
+    doc.text(`Datum do: ${formatDate(meta.dateTo)}`, 14, y);
+  }
+  y += 7;
+
+  const head = [["Šifra", "Naziv artikla", "Varijanta", "Opis var.", "JM", "Ulaz kol.", "Duguje", "Izlaz kol.", "Potražuje", "Stanje kol.", "Saldo"]];
+  const body = rows.map((r) => [
+    r.article_code,
+    r.article_name,
+    r.variant_code,
+    r.variant_description,
+    r.unit,
+    formatDecimal(r.total_in_qty),
+    formatPrice(r.total_in_value),
+    formatDecimal(r.total_out_qty),
+    formatPrice(r.total_out_value),
+    formatDecimal(r.balance_qty),
+    formatPrice(r.balance_value),
+  ]);
+
+  const foot = [["", "", "", "", "", "", formatPrice(totals.inValue), "", formatPrice(totals.outValue), "", formatPrice(totals.balanceValue)]];
+
+  autoTable(doc, {
+    startY: y,
+    head,
+    body,
+    foot,
+    styles: { font: "Roboto", fontSize: 7, cellPadding: 2 },
+    headStyles: { fillColor: [60, 60, 60], fontStyle: "bold", halign: "center" },
+    footStyles: { fillColor: [240, 240, 240], fontStyle: "bold" },
+    columnStyles: {
+      0: { halign: "left" },
+      1: { halign: "left" },
+      2: { halign: "left" },
+      3: { halign: "left" },
+      4: { halign: "center" },
+      5: { halign: "right" },
+      6: { halign: "right" },
+      7: { halign: "right" },
+      8: { halign: "right" },
+      9: { halign: "right" },
+      10: { halign: "right" },
+    },
+    didParseCell(data) {
+      if (data.section === "foot") {
+        data.cell.styles.halign = "right";
+      }
+    },
+  });
+
+  return doc;
+}
+
+export async function exportVariantStockToPdf(
+  rows: VariantStockExportRow[],
+  meta: VariantStockExportMeta,
+  totals: { inValue: number; outValue: number; balanceValue: number }
+) {
+  const doc = await buildVariantStockPdf(rows, meta, totals);
+  const safeName = meta.warehouseName.replace(/[^a-zA-Z0-9а-яА-ЯёЁa-žA-Ž\s_-]/g, "").trim();
+  doc.save(`Stanje_varijante_${safeName}.pdf`);
+}
+
+export async function printVariantStock(
+  rows: VariantStockExportRow[],
+  meta: VariantStockExportMeta,
+  totals: { inValue: number; outValue: number; balanceValue: number }
+) {
+  const doc = await buildVariantStockPdf(rows, meta, totals);
+  printPdfBlob(doc.output("blob"));
+}
