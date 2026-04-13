@@ -134,6 +134,23 @@ export default function StanjePoVarijantama() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Pretraži po šifri, nazivu ili varijanti..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" autoComplete="off" />
           </div>
+
+          {sorted.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" onClick={handleExcelExport} disabled={exporting}>
+                <FileSpreadsheet className="h-4 w-4 mr-1" />
+                Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePdfExport} disabled={exporting}>
+                <FileText className="h-4 w-4 mr-1" />
+                PDF
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePrint} disabled={exporting}>
+                <Printer className="h-4 w-4 mr-1" />
+                Stampaj
+              </Button>
+            </div>
+          )}
         </div>
 
         {!warehouseId ? (
