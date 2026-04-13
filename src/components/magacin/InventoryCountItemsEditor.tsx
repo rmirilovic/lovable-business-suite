@@ -146,9 +146,24 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
     const article = articles.find((a) => a.id === articleId);
     if (!article) return;
 
-    if (items.some((i) => i.article_id === articleId && !i.variant_id)) {
+    const variants = articleVariantsMap.get(articleId) || [];
+    const existingVariantIds = items
+      .filter((i) => i.article_id === articleId)
+      .map((i) => i.variant_id);
+
+    // If article has no variants, only allow one row
+    if (variants.length === 0 && existingVariantIds.length > 0) {
       toast.error("Artikal je već u popisnoj listi");
       return;
+    }
+
+    // If article has variants and all are already added, show error
+    if (variants.length > 0) {
+      const unusedVariants = variants.filter((v) => !existingVariantIds.includes(v.id));
+      if (unusedVariants.length === 0) {
+        toast.error("Sve varijante ovog artikla su već u popisnoj listi");
+        return;
+      }
     }
 
     const nextOrder = items.length > 0 ? Math.max(...items.map((i) => i.item_order)) + 1 : 1;
