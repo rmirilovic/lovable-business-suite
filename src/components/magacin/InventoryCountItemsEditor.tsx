@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -16,6 +16,8 @@ import { InventoryCountImportDialog } from "./InventoryCountImportDialog";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { SortDirection } from "@/hooks/useTableSort";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   countId: string;
@@ -26,6 +28,12 @@ interface Props {
   sortColumn: string | null;
   sortDirection: SortDirection;
   onSort: (column: string) => void;
+}
+
+interface ArticleVariantOption {
+  id: string;
+  code: string;
+  description: string;
 }
 
 function getAllowedSvkForWarehouseType(warehouseType: string): string[] {
@@ -45,6 +53,31 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
   const { articles } = useArticles(selectedCompany?.id);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [articleVariantsMap, setArticleVariantsMap] = useState<Map<string, ArticleVariantOption[]>>(new Map());
+
+  // Fetch variant assignments for articles that have them
+  useEffect(() => {
+    if (!selectedCompany?.id) return;
+    const fetchVariants = async () => {
+      const { data, error } = await supabase
+        .from("article_variant_assignments")
+        .select("article_id, variant:article_variants(id, code, description)")
+        .eq("company_id", selectedCompany.id);
+      if (error) return;
+      const map = new Map<string, ArticleVariantOption[]>();
+      for (const row of (data || [])) {
+        const v = row.variant as any;
+        if (!v) continue;
+        const list = map.get(row.article_id) || [];
+        if (!list.some(x => x.id === v.id)) {
+          list.push({ id: v.id, code: v.code, description: v.description });
+        }
+        map.set(row.article_id, list);
+      }
+      setArticleVariantsMap(map);
+    };
+    fetchVariants();
+  }, [selectedCompany?.id]);
 
   const handleLoadFromWarehouse = async () => {
     if (!selectedCompany?.id || !selectedYear?.id) return;
@@ -73,6 +106,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
           inventory_count_id: countId,
           company_id: selectedCompany.id,
           article_id: row.article_id,
+          variant_id: null,
           item_order: order++,
           item_code: row.article_code,
           item_name: row.article_name,
@@ -112,7 +146,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
     const article = articles.find((a) => a.id === articleId);
     if (!article) return;
 
-    if (items.some((i) => i.article_id === articleId)) {
+    if (items.some((i) => i.article_id === articleId && !i.variant_id)) {
       toast.error("Artikal je već u popisnoj listi");
       return;
     }
@@ -123,6 +157,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
       inventory_count_id: countId,
       company_id: selectedCompany.id,
       article_id: articleId,
+      variant_id: null,
       item_order: nextOrder,
       item_code: article.code,
       item_name: article.name,
@@ -164,10 +199,18 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
     });
   };
 
+  const handleVariantChange = async (item: InventoryCountItem, variantId: string | null) => {
+    await updateItem.mutateAsync({
+      id: item.id,
+      variant_id: variantId,
+    });
+  };
+
   const getItemValue = useCallback((item: InventoryCountItem, column: string) => {
     switch (column) {
       case "item_code": return item.item_code || "";
       case "item_name": return item.item_name;
+      case "variant": return item.variant?.code || "";
       case "unit": return item.unit;
       case "book_quantity": return item.book_quantity;
       case "counted_quantity": return item.counted_quantity;
@@ -187,7 +230,8 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
       result = result.filter(
         (i) =>
           (i.item_code || "").toLowerCase().includes(q) ||
-          i.item_name.toLowerCase().includes(q)
+          i.item_name.toLowerCase().includes(q) ||
+          (i.variant?.code || "").toLowerCase().includes(q)
       );
     }
     if (!sortColumn) return result;
@@ -255,6 +299,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
               <TableHead className="w-12">#</TableHead>
               <TableHead className="w-[80px]"><SortableHeader column="item_code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} /></TableHead>
               <TableHead className="min-w-[200px]"><SortableHeader column="item_name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} /></TableHead>
+              <TableHead className="w-[130px]"><SortableHeader column="variant" label="Varijanta" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} /></TableHead>
               <TableHead className="w-[60px]"><SortableHeader column="unit" label="JM" sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} /></TableHead>
               <TableHead className="w-[140px] text-right"><SortableHeader column="book_quantity" label="Knjižna kol." sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="justify-end" /></TableHead>
               <TableHead className="w-[160px] text-right"><SortableHeader column="counted_quantity" label="Popisana kol." sortColumn={sortColumn} sortDirection={sortDirection} onSort={onSort} className="justify-end" /></TableHead>
@@ -269,7 +314,7 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
           <TableBody>
             {filteredSortedItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={13} className="text-center py-8 text-muted-foreground">
                   {search ? "Nema rezultata pretrage" : "Nema stavki. Učitajte artikle iz magacina ili dodajte ručno."}
                 </TableCell>
               </TableRow>
@@ -281,12 +326,14 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
                   index={index}
                   onFieldCommit={handleFieldCommit}
                   onDelete={() => deleteItem.mutateAsync(item.id)}
+                  onVariantChange={handleVariantChange}
+                  availableVariants={articleVariantsMap.get(item.article_id) || []}
                 />
               ))
             )}
             {filteredSortedItems.length > 0 && (
               <TableRow className="bg-muted/50 font-medium">
-                <TableCell colSpan={9} className="text-right">Ukupno:</TableCell>
+                <TableCell colSpan={10} className="text-right">Ukupno:</TableCell>
                 <TableCell className="text-right text-green-600">
                   {formatDecimal(totals.surplusValue, 2)}
                 </TableCell>
@@ -324,9 +371,11 @@ interface RowProps {
   index: number;
   onFieldCommit: (item: InventoryCountItem, field: string, rawValue: string) => Promise<void>;
   onDelete: () => void;
+  onVariantChange: (item: InventoryCountItem, variantId: string | null) => Promise<void>;
+  availableVariants: ArticleVariantOption[];
 }
 
-function InventoryCountRow({ item, index, onFieldCommit, onDelete }: RowProps) {
+function InventoryCountRow({ item, index, onFieldCommit, onDelete, onVariantChange, availableVariants }: RowProps) {
   const [countedQty, setCountedQty] = useState(formatDecimal(item.counted_quantity, 3));
   const [price, setPrice] = useState(formatDecimal(item.price, 2));
 
@@ -343,6 +392,30 @@ function InventoryCountRow({ item, index, onFieldCommit, onDelete }: RowProps) {
       <TableCell className="text-muted-foreground">{index + 1}</TableCell>
       <TableCell>{item.item_code || "-"}</TableCell>
       <TableCell>{item.item_name}</TableCell>
+      <TableCell>
+        {availableVariants.length > 0 ? (
+          <Select
+            value={item.variant_id || "__none__"}
+            onValueChange={(val) => onVariantChange(item, val === "__none__" ? null : val)}
+          >
+            <SelectTrigger className="h-8 text-xs w-[120px]">
+              <SelectValue placeholder="—" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">—</SelectItem>
+              {availableVariants.map((v) => (
+                <SelectItem key={v.id} value={v.id}>{v.code}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          item.variant ? (
+            <Badge variant="outline" className="text-xs">{item.variant.code}</Badge>
+          ) : (
+            <span className="text-muted-foreground text-xs">—</span>
+          )
+        )}
+      </TableCell>
       <TableCell>{item.unit}</TableCell>
       <TableCell className="text-right text-muted-foreground">
         {formatDecimal(item.book_quantity, 3)}
