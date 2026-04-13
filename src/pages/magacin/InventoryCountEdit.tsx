@@ -251,7 +251,7 @@ export default function InventoryCountEdit() {
             <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)} title="Istorija izmena">
               <History className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={fetchCount} title="Osveži">
+            <Button variant="ghost" size="sm" onClick={() => { fetchCount(); setSort("item_code", "asc"); }} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
             {items.length > 0 && (
