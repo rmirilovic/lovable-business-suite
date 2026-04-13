@@ -48,9 +48,9 @@ function getAllowedSvkForWarehouseType(warehouseType: string): string[] {
   }
 }
 
-export function InventoryCountItemsEditor({ countId, warehouseId, countDate, warehouseType, search, sortColumn, sortDirection, onSort }: Props) {
+export function InventoryCountItemsEditor({ countId, warehouseId, countDate, warehouseType, search, sortColumn, sortDirection, onSort, onSave }: Props) {
   const { selectedCompany, selectedYear } = useAuth();
-  const { items, isLoading, addItem, updateItem, deleteItem } = useInventoryCountItems(countId);
+  const { items, isLoading, refetchItems, addItem, updateItem, deleteItem } = useInventoryCountItems(countId);
   const { articles } = useArticles(selectedCompany?.id);
   const [isLoadingStock, setIsLoadingStock] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
