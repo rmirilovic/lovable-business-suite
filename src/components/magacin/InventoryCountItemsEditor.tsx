@@ -289,9 +289,13 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
     );
   }
 
+  const handleSave = async () => {
+    await refetchItems();
+    onSave?.();
+    toast.success("Lista osvežena i sortirana");
+  };
+
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      {/* Actions */}
       <div className="flex flex-wrap gap-2 mb-2">
         <Button variant="outline" size="sm" onClick={handleLoadFromWarehouse} disabled={isLoadingStock}>
           {isLoadingStock ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
