@@ -382,36 +382,43 @@ export default function InventoryCountEdit() {
                  </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredSortedItems.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
-                      {search ? "Nema rezultata pretrage" : "Nema stavki"}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredSortedItems.map((item, i) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="text-muted-foreground">{i + 1}</TableCell>
-                      <TableCell>{item.item_code || "-"}</TableCell>
-                      <TableCell>{item.item_name}</TableCell>
-                      <TableCell>{item.unit}</TableCell>
-                      <TableCell className="text-right">{formatDecimal(item.book_quantity, 2)}</TableCell>
-                      <TableCell className="text-right">{formatDecimal(item.counted_quantity, 2)}</TableCell>
-                      <TableCell className="text-right">{item.surplus_qty > 0 ? <span className="text-green-600">{formatDecimal(item.surplus_qty, 2)}</span> : ""}</TableCell>
-                      <TableCell className="text-right">{item.deficit_qty > 0 ? <span className="text-destructive">{formatDecimal(item.deficit_qty, 2)}</span> : ""}</TableCell>
-                      <TableCell className="text-right">{formatDecimal(item.price, 2)}</TableCell>
-                      <TableCell className="text-right">{item.surplus_value > 0 ? <span className="text-green-600">{formatDecimal(item.surplus_value, 2)}</span> : ""}</TableCell>
-                      <TableCell className="text-right">{item.deficit_value > 0 ? <span className="text-destructive">{formatDecimal(item.deficit_value, 2)}</span> : ""}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-                {filteredSortedItems.length > 0 && (
-                  <TableRow className="bg-muted/50 font-medium">
-                    <TableCell colSpan={9} className="text-right">Ukupno:</TableCell>
-                    <TableCell className="text-right text-green-600">{formatDecimal(filteredTotals.surplusValue, 2)}</TableCell>
-                    <TableCell className="text-right text-destructive">{formatDecimal(filteredTotals.deficitValue, 2)}</TableCell>
-                  </TableRow>
-                )}
+                 {filteredSortedItems.length === 0 ? (
+                   <TableRow>
+                     <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                       {search ? "Nema rezultata pretrage" : "Nema stavki"}
+                     </TableCell>
+                   </TableRow>
+                 ) : (
+                   filteredSortedItems.map((item, i) => (
+                     <TableRow key={item.id}>
+                       <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                       <TableCell>{item.item_code || "-"}</TableCell>
+                       <TableCell>{item.item_name}</TableCell>
+                       <TableCell>
+                         {item.variant ? (
+                           <Badge variant="outline" className="text-xs">{item.variant.code}</Badge>
+                         ) : (
+                           <span className="text-muted-foreground text-xs">—</span>
+                         )}
+                       </TableCell>
+                       <TableCell>{item.unit}</TableCell>
+                       <TableCell className="text-right">{formatDecimal(item.book_quantity, 2)}</TableCell>
+                       <TableCell className="text-right">{formatDecimal(item.counted_quantity, 2)}</TableCell>
+                       <TableCell className="text-right">{item.surplus_qty > 0 ? <span className="text-green-600">{formatDecimal(item.surplus_qty, 2)}</span> : ""}</TableCell>
+                       <TableCell className="text-right">{item.deficit_qty > 0 ? <span className="text-destructive">{formatDecimal(item.deficit_qty, 2)}</span> : ""}</TableCell>
+                       <TableCell className="text-right">{formatDecimal(item.price, 2)}</TableCell>
+                       <TableCell className="text-right">{item.surplus_value > 0 ? <span className="text-green-600">{formatDecimal(item.surplus_value, 2)}</span> : ""}</TableCell>
+                       <TableCell className="text-right">{item.deficit_value > 0 ? <span className="text-destructive">{formatDecimal(item.deficit_value, 2)}</span> : ""}</TableCell>
+                     </TableRow>
+                   ))
+                 )}
+                 {filteredSortedItems.length > 0 && (
+                   <TableRow className="bg-muted/50 font-medium">
+                     <TableCell colSpan={10} className="text-right">Ukupno:</TableCell>
+                     <TableCell className="text-right text-green-600">{formatDecimal(filteredTotals.surplusValue, 2)}</TableCell>
+                     <TableCell className="text-right text-destructive">{formatDecimal(filteredTotals.deficitValue, 2)}</TableCell>
+                   </TableRow>
+                 )}
               </TableBody>
             </Table>
           </TableScrollContainer>
