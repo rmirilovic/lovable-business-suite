@@ -9758,6 +9758,27 @@ export type Database = {
           unit_price: number
         }[]
       }
+      get_article_warehouse_card_by_variant: {
+        Args: {
+          p_article_id: string
+          p_company_id: string
+          p_date_from?: string
+          p_date_to?: string
+          p_variant_id?: string
+          p_warehouse_id: string
+        }
+        Returns: {
+          credit_value: number
+          debit_value: number
+          document_number: string
+          document_type: string
+          in_quantity: number
+          movement_date: string
+          out_quantity: number
+          partner_name: string
+          unit_price: number
+        }[]
+      }
       get_articles_with_movements: {
         Args: { p_company_id: string; p_date_from?: string }
         Returns: {
