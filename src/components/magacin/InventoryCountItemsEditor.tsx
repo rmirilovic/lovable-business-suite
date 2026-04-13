@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Loader2, Upload, FileSpreadsheet } from "lucide-react";
+import { Plus, Trash2, Loader2, Upload, FileSpreadsheet, Save } from "lucide-react";
 import { useInventoryCountItems, InventoryCountItem } from "@/hooks/useInventoryCounts";
 import { useArticles, Article } from "@/hooks/useArticles";
 import { useAuth } from "@/contexts/AuthContext";
@@ -300,6 +300,10 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
         <Button variant="outline" size="sm" onClick={() => setImportDialogOpen(true)}>
           <FileSpreadsheet className="h-4 w-4 mr-2" />
           Uvezi iz Excela
+        </Button>
+        <Button variant="default" size="sm" onClick={handleSave}>
+          <Save className="h-4 w-4 mr-2" />
+          Sačuvaj
         </Button>
         <div className="flex-1" />
         <div className="flex items-center gap-4 text-sm">
