@@ -26,6 +26,7 @@ export interface InventoryCountItem {
   inventory_count_id: string;
   company_id: string;
   article_id: string;
+  variant_id: string | null;
   item_order: number;
   item_code: string | null;
   item_name: string;
@@ -38,6 +39,7 @@ export interface InventoryCountItem {
   surplus_value: number;
   deficit_value: number;
   created_at: string;
+  variant?: { id: string; code: string; description: string } | null;
 }
 
 export interface InventoryCountFormData {
