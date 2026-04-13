@@ -273,7 +273,7 @@ export default function Artikli() {
       }
     };
     fetchArticleIdsWithVariants();
-  }, [selectedCompany?.id, articles]);
+  }, [selectedCompany?.id]);
 
   // Inline editing navigation state
   const [activeEditCell, setActiveEditCell] = useState<{ articleId: string; field: string } | null>(null);
