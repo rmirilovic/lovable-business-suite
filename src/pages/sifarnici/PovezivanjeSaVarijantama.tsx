@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Plus, Trash2, RefreshCw, Search, Loader2, Link2 } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Search, Loader2, Link2, FileSpreadsheet, FileDown, Printer } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { cn } from "@/lib/utils";
+import { exportAssignmentsToExcel, exportAssignmentsToPdf, printAssignments } from "@/lib/variantAssignmentListExportUtils";
 
 interface AssignmentRow {
   id: string;
@@ -238,7 +239,7 @@ export default function PovezivanjeSaVarijantama() {
             <Link2 className="h-6 w-6 text-primary" />
             <h1 className="text-xl md:text-2xl font-bold text-foreground">Povezivanje artikala sa varijantama</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching}>
@@ -247,6 +248,15 @@ export default function PovezivanjeSaVarijantama() {
               </TooltipTrigger>
               <TooltipContent>Osveži</TooltipContent>
             </Tooltip>
+            <Button variant="outline" size="sm" onClick={() => exportAssignmentsToExcel(sortedData, { companyName: selectedCompany?.name ?? "" })}>
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportAssignmentsToPdf(sortedData, { companyName: selectedCompany?.name ?? "" })}>
+              <FileDown className="w-4 h-4 mr-2" /> PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printAssignments(sortedData, { companyName: selectedCompany?.name ?? "" })}>
+              <Printer className="w-4 h-4 mr-2" /> Štampa
+            </Button>
             {canEdit && (
               <Button onClick={() => setIsAddOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Nova veza
