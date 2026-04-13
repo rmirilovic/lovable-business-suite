@@ -152,10 +152,16 @@ export function ArticleWarehouseCardDialog({
             )}
           </div>
           <div className="text-sm text-muted-foreground space-y-1">
-            <div>
+           <div>
               <span className="font-medium text-foreground">Artikal:</span>{" "}
               {articleCode} — {articleName} ({unit})
             </div>
+            {variantCode && (
+              <div>
+                <span className="font-medium text-foreground">Varijanta:</span>{" "}
+                {variantCode}{variantDescription ? ` — ${variantDescription}` : ""}
+              </div>
+            )}
             <div>
               <span className="font-medium text-foreground">Magacin:</span>{" "}
               {warehouseName}
