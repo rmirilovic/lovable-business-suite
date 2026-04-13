@@ -362,6 +362,7 @@ export default function InventoryCountEdit() {
             sortColumn={sortColumn}
             sortDirection={sortDirection}
             onSort={handleSort}
+            onSave={() => setSort("item_code", "asc")}
           />
         ) : (
           <TableScrollContainer>
