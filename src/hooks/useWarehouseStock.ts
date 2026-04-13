@@ -47,8 +47,22 @@ async function fetchArticleWarehouseCard(
   warehouseId: string,
   articleId: string,
   dateFrom?: string,
-  dateTo?: string
+  dateTo?: string,
+  variantId?: string
 ): Promise<ArticleMovementRow[]> {
+  // Use variant-aware RPC if variantId is provided
+  if (variantId) {
+    const { data, error } = await supabase.rpc("get_article_warehouse_card_by_variant", {
+      p_company_id: companyId,
+      p_warehouse_id: warehouseId,
+      p_article_id: articleId,
+      p_variant_id: variantId,
+      p_date_from: dateFrom || null,
+      p_date_to: dateTo || null,
+    });
+    if (error) throw error;
+    return (data as unknown as ArticleMovementRow[]) ?? [];
+  }
   const { data, error } = await supabase.rpc("get_article_warehouse_card", {
     p_company_id: companyId,
     p_warehouse_id: warehouseId,
@@ -78,11 +92,12 @@ export function useArticleWarehouseCard(
   warehouseId: string | undefined,
   articleId: string | undefined,
   dateFrom?: string,
-  dateTo?: string
+  dateTo?: string,
+  variantId?: string
 ) {
   return useQuery({
-    queryKey: ["article-warehouse-card", companyId, warehouseId, articleId, dateFrom, dateTo],
-    queryFn: () => fetchArticleWarehouseCard(companyId!, warehouseId!, articleId!, dateFrom, dateTo),
+    queryKey: ["article-warehouse-card", companyId, warehouseId, articleId, dateFrom, dateTo, variantId],
+    queryFn: () => fetchArticleWarehouseCard(companyId!, warehouseId!, articleId!, dateFrom, dateTo, variantId),
     enabled: !!companyId && !!warehouseId && !!articleId,
   });
 }

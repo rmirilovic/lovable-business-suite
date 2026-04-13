@@ -34,6 +34,9 @@ interface ArticleWarehouseCardDialogProps {
   unit: string;
   dateFrom?: string;
   dateTo?: string;
+  variantId?: string;
+  variantCode?: string;
+  variantDescription?: string;
 }
 
 export function ArticleWarehouseCardDialog({
@@ -48,13 +51,17 @@ export function ArticleWarehouseCardDialog({
   unit,
   dateFrom,
   dateTo,
+  variantId,
+  variantCode,
+  variantDescription,
 }: ArticleWarehouseCardDialogProps) {
   const { data: movements, isLoading } = useArticleWarehouseCard(
     companyId,
     warehouseId,
     open ? articleId : undefined,
     dateFrom,
-    dateTo
+    dateTo,
+    variantId
   );
 
   const [exporting, setExporting] = useState(false);
@@ -145,10 +152,16 @@ export function ArticleWarehouseCardDialog({
             )}
           </div>
           <div className="text-sm text-muted-foreground space-y-1">
-            <div>
+           <div>
               <span className="font-medium text-foreground">Artikal:</span>{" "}
               {articleCode} — {articleName} ({unit})
             </div>
+            {variantCode && (
+              <div>
+                <span className="font-medium text-foreground">Varijanta:</span>{" "}
+                {variantCode}{variantDescription ? ` — ${variantDescription}` : ""}
+              </div>
+            )}
             <div>
               <span className="font-medium text-foreground">Magacin:</span>{" "}
               {warehouseName}
