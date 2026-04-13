@@ -262,14 +262,17 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
       if (aVal == null && bVal == null) return 0;
       if (aVal == null) return sortDirection === "asc" ? -1 : 1;
       if (bVal == null) return sortDirection === "asc" ? 1 : -1;
+      let cmp = 0;
       if (typeof aVal === "string" && typeof bVal === "string") {
-        const cmp = aVal.localeCompare(bVal, "sr");
-        return sortDirection === "asc" ? cmp : -cmp;
+        cmp = aVal.localeCompare(bVal, "sr");
+      } else if (typeof aVal === "number" && typeof bVal === "number") {
+        cmp = aVal - bVal;
       }
-      if (typeof aVal === "number" && typeof bVal === "number") {
-        return sortDirection === "asc" ? aVal - bVal : bVal - aVal;
-      }
-      return 0;
+      if (cmp !== 0) return sortDirection === "asc" ? cmp : -cmp;
+      // Secondary sort by variant code when primary values are equal
+      const aVar = a.variant?.code || "";
+      const bVar = b.variant?.code || "";
+      return aVar.localeCompare(bVar, "sr");
     });
   }, [items, search, sortColumn, sortDirection, getItemValue]);
 
