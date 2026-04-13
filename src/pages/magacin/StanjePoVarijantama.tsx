@@ -108,7 +108,7 @@ export default function StanjePoVarijantama() {
           <TableScrollContainer ref={scrollRef} className="flex-1">
             <Table className="table-fixed min-w-[1300px]">
               <colgroup>
-                <col className="w-[120px]" />
+                <col className="w-[140px]" />
                 <col />
                 <col className="w-[100px]" />
                 <col className="w-[160px]" />
