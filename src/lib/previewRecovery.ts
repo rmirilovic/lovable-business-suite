@@ -1,3 +1,5 @@
+import { hasPreviewFingerprintMismatch } from "@/lib/previewFreshness";
+
 const PREVIEW_BOOTSTRAP_PARAM = "__lovable_preview_bootstrap";
 const PREVIEW_RECOVERY_SHORTCUT_KEY = "r";
 const PREVIEW_RECOVERY_FALLBACK_SHORTCUT_KEY = "m";
@@ -169,14 +171,20 @@ export const triggerPreviewRecoveryReload = async () => {
 const isPreviewRecoveryShortcut = (event: KeyboardEvent) => {
   const isPrimaryModifierPressed = event.ctrlKey || event.metaKey;
   const key = (event.key ?? "").toLowerCase();
+  const code = (event.code ?? "").toLowerCase();
 
-  return (
-    (isPrimaryModifierPressed &&
-      event.altKey &&
-      event.shiftKey &&
-      key === PREVIEW_RECOVERY_SHORTCUT_KEY) ||
-    (isPrimaryModifierPressed && event.altKey && key === PREVIEW_RECOVERY_FALLBACK_SHORTCUT_KEY)
-  );
+  const matchesPrimaryShortcut =
+    isPrimaryModifierPressed &&
+    event.altKey &&
+    event.shiftKey &&
+    (key === PREVIEW_RECOVERY_SHORTCUT_KEY || code === "keyr");
+
+  const matchesFallbackShortcut =
+    isPrimaryModifierPressed &&
+    event.altKey &&
+    (key === PREVIEW_RECOVERY_FALLBACK_SHORTCUT_KEY || code === "keym");
+
+  return matchesPrimaryShortcut || matchesFallbackShortcut;
 };
 
 export const installPreviewRecoveryHotkey = () => {
@@ -221,6 +229,7 @@ export const installPreviewRecoveryWatchdog = () => {
   }
 
   let timeoutId: number | null = null;
+  const shouldCheckPreviewFreshness = isInIframe || isLovablePreviewHost;
 
   const clearScheduledCheck = () => {
     if (timeoutId !== null) {
@@ -230,9 +239,18 @@ export const installPreviewRecoveryWatchdog = () => {
   };
 
   const ensureShellAvailability = async () => {
+    if (readRecoveryAttemptFlag()) return;
+
+    if (shouldCheckPreviewFreshness) {
+      const hasFreshnessMismatch = await hasPreviewFingerprintMismatch();
+      if (hasFreshnessMismatch) {
+        await triggerPreviewRecoveryReload();
+        return;
+      }
+    }
+
     if (isNonShellRoute()) return;
     if (hasPreviewShellMounted()) return;
-    if (readRecoveryAttemptFlag()) return;
     if (!hasPersistedAuthState()) return;
 
     await triggerPreviewRecoveryReload();
