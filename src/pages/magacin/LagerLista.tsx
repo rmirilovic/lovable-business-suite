@@ -1,15 +1,16 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import React from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Search, Loader2, Warehouse, FileSpreadsheet, FileText, Printer } from "lucide-react";
+import { Search, Loader2, Warehouse, FileSpreadsheet, FileText, Printer, ChevronRight, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWarehouseInventoryList, type InventoryListRow } from "@/hooks/useWarehouseInventoryList";
@@ -23,6 +24,7 @@ import { exportInventoryListToExcel, exportInventoryListToPdf, printInventoryLis
 import { toast } from "sonner";
 import { ArticleWarehouseCardDialog } from "@/components/magacin/ArticleWarehouseCardDialog";
 import { BarcodeScannerButton } from "@/components/sifarnici/BarcodeScannerButton";
+import { supabase } from "@/integrations/supabase/client";
 
 type QtyFilter = "__all__" | "positive" | "negative" | "zero" | "nonzero";
 
@@ -44,6 +46,15 @@ function matchesQtyFilter(value: number, filter: QtyFilter): boolean {
   }
 }
 
+interface VariantStockRow {
+  variant_id: string | null;
+  variant_code: string;
+  variant_description: string;
+  total_in_qty: number;
+  total_out_qty: number;
+  balance_qty: number;
+}
+
 export default function LagerLista() {
   const { selectedCompany, selectedYear } = useAuth();
   const companyId = selectedCompany?.id;
@@ -63,6 +74,11 @@ export default function LagerLista() {
   const [exporting, setExporting] = useState(false);
   const [cardArticle, setCardArticle] = useState<InventoryListRow | null>(null);
 
+  // Expandable variant rows
+  const [expandedArticles, setExpandedArticles] = useState<Set<string>>(new Set());
+  const [variantStockByArticle, setVariantStockByArticle] = useState<Record<string, VariantStockRow[]>>({});
+  const [articlesWithVariants, setArticlesWithVariants] = useState<Set<string>>(new Set());
+
   const { warehouses, isLoading: whLoading } = useWarehouses(companyId);
   const { data: inventoryData, isLoading } = useWarehouseInventoryList(
     companyId, warehouseId || undefined, dateFrom || undefined, dateTo || undefined
@@ -70,6 +86,76 @@ export default function LagerLista() {
 
   const selectedWarehouse = warehouses.find((w) => w.id === warehouseId);
   const warehouseName = selectedWarehouse ? `${selectedWarehouse.code} — ${selectedWarehouse.name}` : "";
+
+  // Fetch which articles have variant assignments
+  useEffect(() => {
+    if (!companyId) return;
+    const fetchArticleIdsWithVariants = async () => {
+      try {
+        const ids = new Set<string>();
+        let from = 0;
+        while (true) {
+          const { data, error } = await supabase
+            .from("article_variant_assignments")
+            .select("article_id")
+            .eq("company_id", companyId)
+            .range(from, from + 999);
+          if (error) break;
+          if (!data || data.length === 0) break;
+          data.forEach((d: any) => ids.add(d.article_id));
+          if (data.length < 1000) break;
+          from += 1000;
+        }
+        setArticlesWithVariants(ids);
+      } catch (err) {
+        console.error("Error fetching variant assignments:", err);
+      }
+    };
+    fetchArticleIdsWithVariants();
+  }, [companyId]);
+
+  const toggleArticleExpand = async (articleId: string) => {
+    setExpandedArticles(prev => {
+      const next = new Set(prev);
+      if (next.has(articleId)) {
+        next.delete(articleId);
+      } else {
+        next.add(articleId);
+        if (!variantStockByArticle[articleId] && companyId && warehouseId) {
+          supabase.rpc("get_warehouse_stock_by_variant", {
+            p_company_id: companyId,
+            p_warehouse_id: warehouseId,
+            p_date_from: dateFrom || null,
+            p_date_to: dateTo || null,
+          }).then(({ data, error }) => {
+            if (error) {
+              console.error("Error fetching variant stock:", error);
+              return;
+            }
+            const rows = ((data as any[]) || [])
+              .filter((r: any) => r.article_id === articleId)
+              .map((r: any) => ({
+                variant_id: r.variant_id,
+                variant_code: r.variant_code || "",
+                variant_description: r.variant_description || "",
+                total_in_qty: r.total_in_qty,
+                total_out_qty: r.total_out_qty,
+                balance_qty: r.balance_qty,
+              }))
+              .sort((a, b) => a.variant_code.localeCompare(b.variant_code, "sr"));
+            setVariantStockByArticle(prev => ({ ...prev, [articleId]: rows }));
+          });
+        }
+      }
+      return next;
+    });
+  };
+
+  // Clear cached variant stock when filters change
+  useEffect(() => {
+    setExpandedArticles(new Set());
+    setVariantStockByArticle({});
+  }, [warehouseId, dateFrom, dateTo]);
 
   // Filter
   const filtered = useMemo(() => {
@@ -106,7 +192,6 @@ export default function LagerLista() {
       }
     });
   }, [filtered, sortItems]);
-
 
   const exportMeta = { warehouseName, dateFrom: dateFrom || undefined, dateTo: dateTo || undefined };
 
@@ -256,9 +341,10 @@ export default function LagerLista() {
           </div>
         ) : (
           <TableScrollContainer className="flex-1">
-            <Table className="min-w-[1000px] table-fixed">
+            <Table className="min-w-[1050px] table-fixed">
               <colgroup>
-                <col className="w-[150px]" />
+                <col className="w-[32px]" />
+                <col className="w-[140px]" />
                 <col />
                 <col className="w-[60px]" />
                 <col className="w-[100px]" />
@@ -269,6 +355,7 @@ export default function LagerLista() {
               </colgroup>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[32px]"></TableHead>
                   <TableHead>
                     <SortableHeader label="Šifra" column="article_code" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
@@ -298,23 +385,72 @@ export default function LagerLista() {
               <TableBody>
                 {sorted.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       {search ? "Nema rezultata za zadati filter." : "Nema podataka za izabrani period."}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  sorted.map((row) => (
-                    <TableRow key={row.article_id} className="cursor-pointer hover:bg-muted/50" onClick={() => setCardArticle(row)}>
-                      <TableCell className="font-medium">{row.article_code}</TableCell>
-                      <TableCell>{row.article_name}</TableCell>
-                      <TableCell>{row.unit}</TableCell>
-                      <TableCell className="text-right">{formatDecimal(Number(row.opening_qty))}</TableCell>
-                      <TableCell className="text-right">{formatDecimal(Number(row.in_qty))}</TableCell>
-                      <TableCell className="text-right">{formatDecimal(Number(row.out_qty))}</TableCell>
-                      <TableCell className="text-right font-medium">{formatDecimal(Number(row.turnover_qty))}</TableCell>
-                      <TableCell className="text-right font-medium">{formatDecimal(Number(row.closing_qty))}</TableCell>
-                    </TableRow>
-                  ))
+                  sorted.map((row) => {
+                    const hasVariants = articlesWithVariants.has(row.article_id);
+                    const isExpanded = expandedArticles.has(row.article_id);
+                    const variantRows = variantStockByArticle[row.article_id];
+
+                    return (
+                      <React.Fragment key={row.article_id}>
+                        <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => setCardArticle(row)}>
+                          <TableCell className="px-1" onClick={(e) => e.stopPropagation()}>
+                            {hasVariants && (
+                              <button
+                                className="p-1 rounded hover:bg-secondary transition-colors"
+                                onClick={() => toggleArticleExpand(row.article_id)}
+                                title="Prikaži varijante"
+                              >
+                                {isExpanded
+                                  ? <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                  : <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                                }
+                              </button>
+                            )}
+                          </TableCell>
+                          <TableCell className="font-medium">{row.article_code}</TableCell>
+                          <TableCell>{row.article_name}</TableCell>
+                          <TableCell>{row.unit}</TableCell>
+                          <TableCell className="text-right">{formatDecimal(Number(row.opening_qty))}</TableCell>
+                          <TableCell className="text-right">{formatDecimal(Number(row.in_qty))}</TableCell>
+                          <TableCell className="text-right">{formatDecimal(Number(row.out_qty))}</TableCell>
+                          <TableCell className="text-right font-medium">{formatDecimal(Number(row.turnover_qty))}</TableCell>
+                          <TableCell className="text-right font-medium">{formatDecimal(Number(row.closing_qty))}</TableCell>
+                        </TableRow>
+                        {isExpanded && (
+                          !variantRows ? (
+                            <TableRow className="bg-muted/20">
+                              <TableCell colSpan={9} className="py-2 text-center text-xs text-muted-foreground">
+                                <Loader2 className="w-4 h-4 animate-spin inline mr-1" />Učitavanje varijanti...
+                              </TableCell>
+                            </TableRow>
+                          ) : variantRows.length === 0 ? (
+                            <TableRow className="bg-muted/20">
+                              <TableCell colSpan={9} className="py-2 pl-12 text-xs text-muted-foreground">
+                                Nema stanja po varijantama
+                              </TableCell>
+                            </TableRow>
+                          ) : variantRows.map((v, vi) => (
+                            <TableRow key={v.variant_id || vi} className="bg-muted/20 border-t border-border/50">
+                              <TableCell />
+                              <TableCell className="pl-6 font-mono text-xs text-muted-foreground">{v.variant_code}</TableCell>
+                              <TableCell className="text-xs text-muted-foreground">{v.variant_description}</TableCell>
+                              <TableCell />
+                              <TableCell />
+                              <TableCell className="text-right text-xs text-muted-foreground">{formatDecimal(v.total_in_qty)}</TableCell>
+                              <TableCell className="text-right text-xs text-muted-foreground">{formatDecimal(v.total_out_qty)}</TableCell>
+                              <TableCell className="text-right text-xs font-medium text-muted-foreground">{formatDecimal(v.total_in_qty - v.total_out_qty)}</TableCell>
+                              <TableCell className="text-right text-xs font-medium text-muted-foreground">{formatDecimal(v.balance_qty)}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </React.Fragment>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
