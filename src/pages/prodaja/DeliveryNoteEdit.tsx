@@ -252,15 +252,15 @@ export default function DeliveryNoteEdit() {
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={async () => {
-              const { data: items } = await supabase.from("delivery_note_items").select("*, variant:article_variants(code)").eq("delivery_note_id", deliveryNote.id).order("item_order");
-              const mapped = (items || []).map((it: any) => ({ ...it, variant_code: it.variant?.code || "" }));
+              const { data: items } = await supabase.from("delivery_note_items").select("*, variant:article_variants(code, description)").eq("delivery_note_id", deliveryNote.id).order("item_order");
+              const mapped = (items || []).map((it: any) => ({ ...it, variant_code: it.variant?.code || "", variant_description: it.variant?.description || "" }));
               generateDeliveryNotePdf(deliveryNote, mapped, selectedCompany as any);
             }} title="PDF">
               <FileDown className="h-4 w-4 mr-2" />PDF
             </Button>
             <Button variant="outline" size="sm" onClick={async () => {
-              const { data: items } = await supabase.from("delivery_note_items").select("*, variant:article_variants(code)").eq("delivery_note_id", deliveryNote.id).order("item_order");
-              const mapped = (items || []).map((it: any) => ({ ...it, variant_code: it.variant?.code || "" }));
+              const { data: items } = await supabase.from("delivery_note_items").select("*, variant:article_variants(code, description)").eq("delivery_note_id", deliveryNote.id).order("item_order");
+              const mapped = (items || []).map((it: any) => ({ ...it, variant_code: it.variant?.code || "", variant_description: it.variant?.description || "" }));
               printDeliveryNotePdf(deliveryNote, mapped, selectedCompany as any);
             }} title="Štampa">
               <Printer className="h-4 w-4 mr-2" />Štampa
