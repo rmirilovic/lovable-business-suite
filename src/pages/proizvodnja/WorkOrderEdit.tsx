@@ -471,7 +471,7 @@ export default function WorkOrderEdit() {
                   <TableHead className="w-[80px]">Šifra</TableHead>
                   <TableHead>Naziv GP</TableHead>
                   <TableHead className="w-[50px]">JM</TableHead>
-                  <TableHead>Varijanta</TableHead>
+                  <TableHead>Var. norm.</TableHead>
                   <TableHead className="w-[100px] text-right">Lans. kol.</TableHead>
                   <TableHead className="w-[80px] text-right">kg/JM</TableHead>
                   <TableHead className="w-[100px] text-right">Lans. kg</TableHead>
