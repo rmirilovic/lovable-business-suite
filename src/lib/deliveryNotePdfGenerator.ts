@@ -107,10 +107,10 @@ async function buildNotePdf(note: NoteData, items: NoteItem[], company: CompanyD
     didParseCell: (data: any) => {
       if (data.section === "body" && data.column.index === 1) {
         const item = items[data.row.index];
-        if (item && (item as any).variant_code) {
+        if (item && (item as any).variant_description) {
           data.cell.text = [
             item.item_code || "-",
-            `var: ${(item as any).variant_code}`,
+            (item as any).variant_description,
           ];
         }
       }
@@ -118,7 +118,7 @@ async function buildNotePdf(note: NoteData, items: NoteItem[], company: CompanyD
     didDrawCell: (data: any) => {
       if (data.section === "body" && data.column.index === 1) {
         const item = items[data.row.index];
-        if (item && (item as any).variant_code) {
+        if (item && (item as any).variant_description) {
           const lines: string[] = data.cell.text;
           if (lines.length > 1) {
             // Redraw second line in smaller font
