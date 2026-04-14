@@ -254,8 +254,8 @@ export function DeliveryNoteItemsEditorPage({
             <TableRow>
               <TableHead className="w-[100px]">Šifra</TableHead>
               <TableHead>Naziv</TableHead>
-              <TableHead className="w-[80px]">JM</TableHead>
               <TableHead className="w-[150px]">Varijanta</TableHead>
+              <TableHead className="w-[80px]">JM</TableHead>
               {stockVisible && <TableHead className="w-[100px] text-right">Zaliha</TableHead>}
               <TableHead className="w-[120px] text-right">Količina</TableHead>
               {!isReadOnly && <TableHead className="w-[50px]"></TableHead>}
@@ -274,9 +274,8 @@ export function DeliveryNoteItemsEditorPage({
                 const hasVariants = variants.length > 0;
                 return (
                   <TableRow key={index}>
-                    <TableCell className="font-medium">{item.item_code}</TableCell>
+                  <TableCell className="font-medium">{item.item_code}</TableCell>
                     <TableCell>{item.item_name}</TableCell>
-                    <TableCell>{item.unit}</TableCell>
                     <TableCell>
                       {!isReadOnly && hasVariants ? (
                         <Select
@@ -303,6 +302,7 @@ export function DeliveryNoteItemsEditorPage({
                         })()
                       )}
                     </TableCell>
+                    <TableCell>{item.unit}</TableCell>
                     {stockVisible && <TableCell className="text-right">{formatDecimal(item.available_stock)}</TableCell>}
                     <TableCell className="text-right">
                       {isReadOnly ? (
