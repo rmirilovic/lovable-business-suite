@@ -12,6 +12,7 @@ export interface DeliveryNoteItem {
   unit: string;
   quantity: number;
   item_order: number;
+  variant_id: string | null;
 }
 
 export interface DeliveryNoteItemData {
@@ -22,6 +23,7 @@ export interface DeliveryNoteItemData {
   unit: string;
   quantity: number;
   available_stock: number;
+  variant_id?: string | null;
 }
 
 export interface DeliveryNote {

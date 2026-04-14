@@ -138,6 +138,38 @@ export default function DeliveryNoteEdit() {
     }
   };
 
+  const [stockWarnings, setStockWarnings] = useState<string[]>([]);
+  const [isValidating, setIsValidating] = useState(false);
+
+  const handlePostClick = async () => {
+    if (!deliveryNote) return;
+    setIsValidating(true);
+    setStockWarnings([]);
+    try {
+      const { data, error } = await supabase.rpc("validate_delivery_note_stock", {
+        _delivery_note_id: deliveryNote.id,
+      });
+      if (error) {
+        toast.error(`Greška pri validaciji: ${error.message}`);
+        return;
+      }
+      if (data && (data as any[]).length > 0) {
+        const warnings = (data as any[]).map((row: any) => {
+          const variantInfo = row.variant_code ? ` (varijanta: ${row.variant_code})` : "";
+          const minBal = parseFloat(row.min_balance_qty).toFixed(2);
+          const dateStr = row.min_balance_date ? new Date(row.min_balance_date).toLocaleDateString("sr-Latn-RS") : "";
+          return `${row.item_code} - ${row.item_name}${variantInfo}: stanje bi bilo ${minBal} dana ${dateStr}`;
+        });
+        setStockWarnings(warnings);
+        toast.error("Knjiženje nije moguće - nedovoljne zalihe");
+        return;
+      }
+      setPostDialogOpen(true);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
   const handlePostConfirm = async () => {
     if (!deliveryNote || !user) return;
     await postMutation.mutateAsync({
@@ -232,8 +264,9 @@ export default function DeliveryNoteEdit() {
               <Printer className="h-4 w-4 mr-2" />Štampa
             </Button>
             {isDraft && (
-              <Button size="sm" onClick={() => setPostDialogOpen(true)}>
-                <Send className="h-4 w-4 mr-2" />Proknjiži
+              <Button size="sm" onClick={handlePostClick} disabled={isValidating}>
+                {isValidating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                Proknjiži
               </Button>
             )}
             {isPosted && !deliveryNote.invoice_id && (
@@ -294,6 +327,16 @@ export default function DeliveryNoteEdit() {
           <div className="text-sm">
             <div className="text-muted-foreground mb-1">Napomena</div>
             <div className="bg-muted p-2 rounded-md whitespace-pre-wrap">{deliveryNote.note}</div>
+          </div>
+        )}
+
+        {/* Stock warnings */}
+        {stockWarnings.length > 0 && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 space-y-1">
+            <div className="font-semibold text-destructive text-sm">⚠ Knjiženje nije moguće - nedovoljne zalihe:</div>
+            {stockWarnings.map((w, i) => (
+              <div key={i} className="text-sm text-destructive">{w}</div>
+            ))}
           </div>
         )}
 
