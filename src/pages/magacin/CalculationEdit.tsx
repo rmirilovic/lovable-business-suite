@@ -45,7 +45,7 @@ export default function CalculationEdit() {
 
   const { calculation, isLoading: calcLoading } = useCalculationDetail(id);
   const { costs, isLoading: costsLoading, addCost, updateCost, deleteCost } = useCalculationCosts(id ?? null);
-  const { items, isLoading: itemsLoading, updateItem, batchUpdateItems, updateCalculationTotals } = useCalculationItems(id ?? null);
+  const { items, isLoading: itemsLoading, updateItem, batchUpdateItems, updateCalculationTotals, updateCalculationDate } = useCalculationItems(id ?? null);
   const { postCalculation, unpostCalculation, deleteCalculation } = usePurchasePriceCalculations();
   const { partners } = usePartners();
   const { linkedUfu, availableUfu, linkUfu, unlinkUfu } = useCalculationUfuLinks(id ?? null);
@@ -228,16 +228,31 @@ export default function CalculationEdit() {
                   <Badge variant="outline">Nacrt</Badge>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Prijemnica: {(calculation.goods_receipt as any)?.receipt_number || "—"} | 
-                Datum: {format(new Date(calculation.calculation_date), "dd.MM.yyyy", { locale: sr })}
+              <div className="text-sm text-muted-foreground mt-1 flex items-center gap-1 flex-wrap">
+                <span>Prijemnica: {(calculation.goods_receipt as any)?.receipt_number || "—"} |</span>
+                <span className="inline-flex items-center gap-1">
+                  Datum:
+                  {isEditable ? (
+                    <LocaleDateInput
+                      value={calculation.calculation_date}
+                      onChange={(val) => {
+                        if (val && val !== calculation.calculation_date) {
+                          updateCalculationDate.mutate(val);
+                        }
+                      }}
+                      className="w-[120px] h-7 text-sm"
+                    />
+                  ) : (
+                    format(new Date(calculation.calculation_date), "dd.MM.yyyy", { locale: sr })
+                  )}
+                </span>
                 {(calculation.goods_receipt as any)?.partner && (
                   <> | Dobavljač: {(calculation.goods_receipt as any).partner.name}</>
                 )}
                 {(calculation.goods_receipt as any)?.warehouse && (
                   <> | Magacin: {(calculation.goods_receipt as any).warehouse.code} - {(calculation.goods_receipt as any).warehouse.name}</>
                 )}
-              </p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
