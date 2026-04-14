@@ -138,6 +138,38 @@ export default function DeliveryNoteEdit() {
     }
   };
 
+  const [stockWarnings, setStockWarnings] = useState<string[]>([]);
+  const [isValidating, setIsValidating] = useState(false);
+
+  const handlePostClick = async () => {
+    if (!deliveryNote) return;
+    setIsValidating(true);
+    setStockWarnings([]);
+    try {
+      const { data, error } = await supabase.rpc("validate_delivery_note_stock", {
+        _delivery_note_id: deliveryNote.id,
+      });
+      if (error) {
+        toast.error(`Greška pri validaciji: ${error.message}`);
+        return;
+      }
+      if (data && (data as any[]).length > 0) {
+        const warnings = (data as any[]).map((row: any) => {
+          const variantInfo = row.variant_code ? ` (varijanta: ${row.variant_code})` : "";
+          const minBal = parseFloat(row.min_balance_qty).toFixed(2);
+          const dateStr = row.min_balance_date ? new Date(row.min_balance_date).toLocaleDateString("sr-Latn-RS") : "";
+          return `${row.item_code} - ${row.item_name}${variantInfo}: stanje bi bilo ${minBal} dana ${dateStr}`;
+        });
+        setStockWarnings(warnings);
+        toast.error("Knjiženje nije moguće - nedovoljne zalihe");
+        return;
+      }
+      setPostDialogOpen(true);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
   const handlePostConfirm = async () => {
     if (!deliveryNote || !user) return;
     await postMutation.mutateAsync({
