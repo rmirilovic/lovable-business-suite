@@ -232,6 +232,7 @@ export default function TransferEdit() {
                   <TableHead className="w-12">#</TableHead>
                   <TableHead>Šifra</TableHead>
                   <TableHead>Naziv</TableHead>
+                  <TableHead className="w-[180px]">Varijanta</TableHead>
                   <TableHead className="text-right">Količina</TableHead>
                   <TableHead>JM</TableHead>
                   <TableHead className="text-right">Cena</TableHead>
@@ -242,7 +243,7 @@ export default function TransferEdit() {
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                       Nema stavki
                     </TableCell>
                   </TableRow>
@@ -252,6 +253,11 @@ export default function TransferEdit() {
                       <TableCell className="text-muted-foreground">{index + 1}</TableCell>
                       <TableCell>{item.item_code || item.article?.code || "-"}</TableCell>
                       <TableCell>{item.item_name}</TableCell>
+                      <TableCell>
+                        {item.variant
+                          ? `${item.variant.code} - ${item.variant.description}`
+                          : "-"}
+                      </TableCell>
                       <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
                       <TableCell>{item.unit}</TableCell>
                       <TableCell className="text-right">{formatDecimal(item.unit_price, 2)}</TableCell>

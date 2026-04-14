@@ -34,8 +34,10 @@ export interface InterWarehouseTransferItem {
   quantity: number;
   unit_price: number;
   item_order: number;
+  variant_id: string | null;
   created_at: string;
   article?: { id: string; code: string; name: string; unit: string };
+  variant?: { id: string; code: string; description: string } | null;
 }
 
 export interface TransferFormData {
@@ -52,6 +54,7 @@ export interface TransferItemFormData {
   unit: string;
   quantity: number;
   unit_price: number;
+  variant_id: string | null;
 }
 
 export function useInterWarehouseTransfers() {
@@ -211,11 +214,11 @@ export function useInterWarehouseTransferItems(transferId: string | null) {
       if (!transferId) return [];
       const { data, error } = await supabase
         .from("inter_warehouse_transfer_items")
-        .select(`*, article:articles(id, code, name, unit)`)
+        .select(`*, article:articles(id, code, name, unit), variant:article_variants(id, code, description)`)
         .eq("transfer_id", transferId)
         .order("item_order");
       if (error) throw error;
-      return data as InterWarehouseTransferItem[];
+      return data as unknown as InterWarehouseTransferItem[];
     },
     enabled: !!transferId,
   });
@@ -243,11 +246,12 @@ export function useInterWarehouseTransferItems(transferId: string | null) {
           unit: item.unit,
           quantity: item.quantity,
           unit_price: item.unit_price,
+          variant_id: item.variant_id || null,
         })
-        .select(`*, article:articles(id, code, name, unit)`)
+        .select(`*, article:articles(id, code, name, unit), variant:article_variants(id, code, description)`)
         .single();
       if (error) throw error;
-      return data as InterWarehouseTransferItem;
+      return data as unknown as InterWarehouseTransferItem;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inter-warehouse-transfer-items", transferId] });
@@ -266,12 +270,13 @@ export function useInterWarehouseTransferItems(transferId: string | null) {
           unit: item.unit,
           quantity: item.quantity,
           unit_price: item.unit_price,
+          variant_id: item.variant_id || null,
         })
         .eq("id", id)
-        .select(`*, article:articles(id, code, name, unit)`)
+        .select(`*, article:articles(id, code, name, unit), variant:article_variants(id, code, description)`)
         .single();
       if (error) throw error;
-      return data as InterWarehouseTransferItem;
+      return data as unknown as InterWarehouseTransferItem;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inter-warehouse-transfer-items", transferId] });
