@@ -10173,6 +10173,19 @@ export type Database = {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
       }
+      validate_delivery_note_stock: {
+        Args: { _delivery_note_id: string }
+        Returns: {
+          article_id: string
+          item_code: string
+          item_name: string
+          min_balance_date: string
+          min_balance_qty: number
+          requested_qty: number
+          variant_code: string
+          variant_id: string
+        }[]
+      }
     }
     Enums: {
       absence_type:
