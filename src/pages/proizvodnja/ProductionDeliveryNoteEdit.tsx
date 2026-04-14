@@ -444,6 +444,7 @@ export default function ProductionDeliveryNoteEdit() {
                   <TableHead className="w-[40px]">R.br.</TableHead>
                   <TableHead className="w-[70px]">Šifra</TableHead>
                   <TableHead className="min-w-[120px]">Naziv</TableHead>
+                  <TableHead className="w-[120px]">Varijanta</TableHead>
                   <TableHead className="w-[40px]">JM</TableHead>
                   <TableHead className="w-[85px] text-right">kg/JM</TableHead>
                   <TableHead className="w-[95px] text-right">Lans. kol.</TableHead>
