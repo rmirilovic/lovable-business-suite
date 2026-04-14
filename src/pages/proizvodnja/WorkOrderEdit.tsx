@@ -33,6 +33,7 @@ import {
   useMaterialNorms, useMaterialNormVariants, useMaterialNormItems,
 } from "@/hooks/useMaterialNorms";
 import { supabase } from "@/integrations/supabase/client";
+import { useWarehouseStock } from "@/hooks/useWarehouseStock";
 import { toast } from "sonner";
 import { formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
@@ -90,6 +91,14 @@ export default function WorkOrderEdit() {
 
   // Material warehouse
   const [materialWarehouseId, setMaterialWarehouseId] = useState("");
+
+  // Warehouse stock for material warehouse
+  const { data: materialStockData } = useWarehouseStock(companyId, materialWarehouseId || undefined);
+  const materialStockMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    if (materialStockData) materialStockData.forEach((s) => { m[s.article_id] = s.balance_qty; });
+    return m;
+  }, [materialStockData]);
 
   // Item being added
   const [newArticleId, setNewArticleId] = useState("");
@@ -638,7 +647,11 @@ export default function WorkOrderEdit() {
                             formatNumber(mat.approved_qty, { minimumFractionDigits: 3 })
                           )}
                         </TableCell>
-                        <TableCell className="text-right font-mono">-</TableCell>
+                        <TableCell className="text-right font-mono">
+                          {materialWarehouseId
+                            ? formatNumber(materialStockMap[mat.article_id] ?? 0, { minimumFractionDigits: 3 })
+                            : "-"}
+                        </TableCell>
                         <TableCell className="text-right">
                           {isDraft ? (
                             <Input
