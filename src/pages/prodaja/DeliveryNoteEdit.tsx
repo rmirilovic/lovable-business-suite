@@ -264,8 +264,9 @@ export default function DeliveryNoteEdit() {
               <Printer className="h-4 w-4 mr-2" />Štampa
             </Button>
             {isDraft && (
-              <Button size="sm" onClick={() => setPostDialogOpen(true)}>
-                <Send className="h-4 w-4 mr-2" />Proknjiži
+              <Button size="sm" onClick={handlePostClick} disabled={isValidating}>
+                {isValidating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                Proknjiži
               </Button>
             )}
             {isPosted && !deliveryNote.invoice_id && (
@@ -326,6 +327,16 @@ export default function DeliveryNoteEdit() {
           <div className="text-sm">
             <div className="text-muted-foreground mb-1">Napomena</div>
             <div className="bg-muted p-2 rounded-md whitespace-pre-wrap">{deliveryNote.note}</div>
+          </div>
+        )}
+
+        {/* Stock warnings */}
+        {stockWarnings.length > 0 && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 space-y-1">
+            <div className="font-semibold text-destructive text-sm">⚠ Knjiženje nije moguće - nedovoljne zalihe:</div>
+            {stockWarnings.map((w, i) => (
+              <div key={i} className="text-sm text-destructive">{w}</div>
+            ))}
           </div>
         )}
 
