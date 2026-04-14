@@ -9764,7 +9764,7 @@ export type Database = {
           p_company_id: string
           p_date_from?: string
           p_date_to?: string
-          p_variant_id?: string
+          p_variant_id: string
           p_warehouse_id: string
         }
         Returns: {
