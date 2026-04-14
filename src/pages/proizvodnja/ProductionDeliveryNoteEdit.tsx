@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,6 +31,7 @@ import {
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWorkOrders } from "@/hooks/useWorkOrders";
 import { useShiftManagers } from "@/hooks/useShiftManagers";
+import { useArticleVariants } from "@/hooks/useArticleVariants";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber, formatPrice, parseLocaleNumber } from "@/lib/formatting";
@@ -57,8 +58,33 @@ export default function ProductionDeliveryNoteEdit() {
   const { warehouses } = useWarehouses(companyId);
   const { orders } = useWorkOrders();
   const { managers } = useShiftManagers();
+  const { variants } = useArticleVariants(companyId);
 
+  // Fetch variant assignments for articles in items
+  const [variantAssignments, setVariantAssignments] = useState<Record<string, { id: string; code: string; description: string }[]>>({});
   
+  useEffect(() => {
+    if (!companyId || items.length === 0) return;
+    const articleIds = [...new Set(items.map(i => i.article_id))];
+    (async () => {
+      const { data } = await supabase
+        .from("article_variant_assignments")
+        .select("article_id, variant:article_variants(id, code, description)")
+        .eq("company_id", companyId)
+        .in("article_id", articleIds);
+      if (data) {
+        const map: Record<string, { id: string; code: string; description: string }[]> = {};
+        (data as any[]).forEach((row) => {
+          if (!map[row.article_id]) map[row.article_id] = [];
+          if (row.variant) map[row.article_id].push(row.variant);
+        });
+        // Sort variants by code
+        Object.values(map).forEach(arr => arr.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true })));
+        setVariantAssignments(map);
+      }
+    })();
+  }, [companyId, items.length]);
+
   const gpWarehouses = useMemo(() => warehouses.filter((w) => w.warehouse_type === "9" && w.is_active), [warehouses]);
   const activeOrders = useMemo(
     () => orders.filter((o) => o.status === "launched" || o.status === "closed"),
@@ -128,6 +154,16 @@ export default function ProductionDeliveryNoteEdit() {
   const updateHeaderField = (field: string, value: any) => {
     setHeaderForm((prev) => ({ ...prev, [field]: value }));
     setHeaderDirty(true);
+  };
+
+  // Update item variant
+  const handleUpdateVariant = async (itemId: string, variantId: string | null) => {
+    const { error } = await (supabase as any)
+      .from("production_delivery_note_items")
+      .update({ variant_id: variantId })
+      .eq("id", itemId);
+    if (error) toast.error("Greška pri ažuriranju varijante");
+    invalidateItems();
   };
 
   // Update item
@@ -408,6 +444,7 @@ export default function ProductionDeliveryNoteEdit() {
                   <TableHead className="w-[40px]">R.br.</TableHead>
                   <TableHead className="w-[70px]">Šifra</TableHead>
                   <TableHead className="min-w-[120px]">Naziv</TableHead>
+                  <TableHead className="w-[120px]">Varijanta</TableHead>
                   <TableHead className="w-[40px]">JM</TableHead>
                   <TableHead className="w-[85px] text-right">kg/JM</TableHead>
                   <TableHead className="w-[95px] text-right">Lans. kol.</TableHead>
@@ -427,7 +464,7 @@ export default function ProductionDeliveryNoteEdit() {
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={17} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={18} className="text-center py-6 text-muted-foreground">
                       Nema stavki.
                     </TableCell>
                   </TableRow>
@@ -439,7 +476,9 @@ export default function ProductionDeliveryNoteEdit() {
                        idx={idx}
                        isDraft={isDraft}
                        onUpdate={handleUpdateItem}
+                       onUpdateVariant={handleUpdateVariant}
                        onShowPdnHistory={(a) => setPdnDialogArticle(a)}
+                       availableVariants={variantAssignments[item.article_id] || []}
                      />
                    ))
                 )}
@@ -482,13 +521,17 @@ function ItemRow({
   idx,
   isDraft,
   onUpdate,
+  onUpdateVariant,
   onShowPdnHistory,
+  availableVariants,
 }: {
   item: ProductionDeliveryNoteItem;
   idx: number;
   isDraft: boolean;
   onUpdate: (item: ProductionDeliveryNoteItem, field: string, value: number) => Promise<void>;
+  onUpdateVariant: (itemId: string, variantId: string | null) => Promise<void>;
   onShowPdnHistory: (article: { id: string; code: string; name: string }) => void;
+  availableVariants: { id: string; code: string; description: string }[];
 }) {
   const handleNumberBlur = (field: string, rawValue: string) => {
     const num = parseLocaleNumber(rawValue);
@@ -511,11 +554,32 @@ function ItemRow({
     );
   };
 
+  const variantDisplay = () => {
+    if (availableVariants.length === 0) return <span className="text-xs text-muted-foreground">—</span>;
+    if (!isDraft) {
+      const v = availableVariants.find(av => av.id === item.variant_id);
+      return <span className="text-xs">{v ? v.code : "—"}</span>;
+    }
+    return (
+      <select
+        className="flex h-7 w-full rounded-md border border-input bg-background px-2 py-1 text-xs disabled:opacity-50"
+        value={item.variant_id || ""}
+        onChange={(e) => onUpdateVariant(item.id, e.target.value || null)}
+      >
+        <option value="">—</option>
+        {availableVariants.map((v) => (
+          <option key={v.id} value={v.id}>{v.code}{v.description ? ` - ${v.description}` : ""}</option>
+        ))}
+      </select>
+    );
+  };
+
   return (
     <TableRow>
       <TableCell className="text-xs">{idx + 1}</TableCell>
       <TableCell className="font-mono text-[11px]">{item.article_code}</TableCell>
       <TableCell className="text-xs truncate max-w-[120px]" title={item.article_name}>{item.article_name}</TableCell>
+      <TableCell>{variantDisplay()}</TableCell>
       <TableCell className="text-xs">{item.unit}</TableCell>
       <TableCell className="text-right">{numCell("kg_per_unit", item.kg_per_unit, 3, 0)}</TableCell>
       <TableCell className="text-right">
