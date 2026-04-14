@@ -564,12 +564,32 @@ export function useCalculationItems(calculationId: string | null) {
     },
   });
 
+  const updateCalculationDate = useMutation({
+    mutationFn: async (newDate: string) => {
+      if (!calculationId) return;
+      const { error } = await (supabase as any)
+        .from("purchase_price_calculations")
+        .update({ calculation_date: newDate })
+        .eq("id", calculationId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculation", calculationId] });
+      queryClient.invalidateQueries({ queryKey: ["purchase-price-calculations"] });
+      toast.success("Datum kalkulacije ažuriran");
+    },
+    onError: (error: any) => {
+      toast.error(`Greška: ${error.message}`);
+    },
+  });
+
   return {
     items: itemsQuery.data || [],
     isLoading: itemsQuery.isLoading,
     updateItem,
     batchUpdateItems,
     updateCalculationTotals,
+    updateCalculationDate,
   };
 }
 
