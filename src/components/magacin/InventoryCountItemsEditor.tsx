@@ -60,20 +60,27 @@ export function InventoryCountItemsEditor({ countId, warehouseId, countDate, war
   useEffect(() => {
     if (!selectedCompany?.id) return;
     const fetchVariants = async () => {
-      const { data, error } = await supabase
-        .from("article_variant_assignments")
-        .select("article_id, variant:article_variants(id, code, description)")
-        .eq("company_id", selectedCompany.id);
-      if (error) return;
       const map = new Map<string, ArticleVariantOption[]>();
-      for (const row of (data || [])) {
-        const v = row.variant as any;
-        if (!v) continue;
-        const list = map.get(row.article_id) || [];
-        if (!list.some(x => x.id === v.id)) {
-          list.push({ id: v.id, code: v.code, description: v.description });
+      let from = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data, error } = await supabase
+          .from("article_variant_assignments")
+          .select("article_id, variant:article_variants(id, code, description)")
+          .eq("company_id", selectedCompany.id)
+          .range(from, from + pageSize - 1);
+        if (error) return;
+        for (const row of (data || [])) {
+          const v = row.variant as any;
+          if (!v) continue;
+          const list = map.get(row.article_id) || [];
+          if (!list.some(x => x.id === v.id)) {
+            list.push({ id: v.id, code: v.code, description: v.description });
+          }
+          map.set(row.article_id, list);
         }
-        map.set(row.article_id, list);
+        if (!data || data.length < pageSize) break;
+        from += pageSize;
       }
       setArticleVariantsMap(map);
     };
