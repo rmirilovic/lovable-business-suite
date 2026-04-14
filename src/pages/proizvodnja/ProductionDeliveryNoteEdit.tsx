@@ -58,8 +58,33 @@ export default function ProductionDeliveryNoteEdit() {
   const { warehouses } = useWarehouses(companyId);
   const { orders } = useWorkOrders();
   const { managers } = useShiftManagers();
+  const { variants } = useArticleVariants(companyId);
 
+  // Fetch variant assignments for articles in items
+  const [variantAssignments, setVariantAssignments] = useState<Record<string, { id: string; code: string; description: string }[]>>({});
   
+  useEffect(() => {
+    if (!companyId || items.length === 0) return;
+    const articleIds = [...new Set(items.map(i => i.article_id))];
+    (async () => {
+      const { data } = await supabase
+        .from("article_variant_assignments")
+        .select("article_id, variant:article_variants(id, code, description)")
+        .eq("company_id", companyId)
+        .in("article_id", articleIds);
+      if (data) {
+        const map: Record<string, { id: string; code: string; description: string }[]> = {};
+        (data as any[]).forEach((row) => {
+          if (!map[row.article_id]) map[row.article_id] = [];
+          if (row.variant) map[row.article_id].push(row.variant);
+        });
+        // Sort variants by code
+        Object.values(map).forEach(arr => arr.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true })));
+        setVariantAssignments(map);
+      }
+    })();
+  }, [companyId, items.length]);
+
   const gpWarehouses = useMemo(() => warehouses.filter((w) => w.warehouse_type === "9" && w.is_active), [warehouses]);
   const activeOrders = useMemo(
     () => orders.filter((o) => o.status === "launched" || o.status === "closed"),
