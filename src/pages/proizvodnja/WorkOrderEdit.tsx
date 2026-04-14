@@ -33,6 +33,7 @@ import {
   useMaterialNorms, useMaterialNormVariants, useMaterialNormItems,
 } from "@/hooks/useMaterialNorms";
 import { supabase } from "@/integrations/supabase/client";
+import { useWarehouseStock } from "@/hooks/useWarehouseStock";
 import { toast } from "sonner";
 import { formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
