@@ -44,6 +44,7 @@ export function DeliveryNoteItemsEditor({ items, onChange, disabled }: DeliveryN
           unit: article.unit,
           quantity: 1,
           available_stock: article.stock,
+          variant_id: null,
         },
       ]);
     }
