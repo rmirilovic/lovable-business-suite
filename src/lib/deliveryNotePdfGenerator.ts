@@ -24,6 +24,7 @@ interface NoteItem {
   item_name: string;
   unit: string;
   quantity: number;
+  variant_id?: string | null;
 }
 
 interface CompanyData {
@@ -103,6 +104,37 @@ async function buildNotePdf(note: NoteData, items: NoteItem[], company: CompanyD
       4: { halign: "right" },
     },
     margin: { left: 14, right: 14 },
+    didParseCell: (data: any) => {
+      if (data.section === "body" && data.column.index === 1) {
+        const item = items[data.row.index];
+        if (item && (item as any).variant_code) {
+          data.cell.text = [
+            item.item_code || "-",
+            `var: ${(item as any).variant_code}`,
+          ];
+        }
+      }
+    },
+    didDrawCell: (data: any) => {
+      if (data.section === "body" && data.column.index === 1) {
+        const item = items[data.row.index];
+        if (item && (item as any).variant_code) {
+          const lines: string[] = data.cell.text;
+          if (lines.length > 1) {
+            // Redraw second line in smaller font
+            const x = data.cell.x + data.cell.padding("left");
+            const lineHeight = data.cell.styles.fontSize * 1.15;
+            const yBase = data.cell.y + data.cell.padding("top") + lineHeight;
+            doc.setFontSize(6.5);
+            doc.setFont("Roboto", "normal");
+            doc.setTextColor(120, 120, 120);
+            doc.text(lines[1], x, yBase + 1);
+            doc.setFontSize(8);
+            doc.setTextColor(0, 0, 0);
+          }
+        }
+      }
+    },
   });
 
   let finalY = (doc as any).lastAutoTable.finalY + 10;
