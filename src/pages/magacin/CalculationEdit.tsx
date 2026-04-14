@@ -241,7 +241,7 @@ export default function CalculationEdit() {
                           updateCalculationDate.mutate(val);
                         }
                       }}
-                      className="w-[120px] h-7 text-sm"
+                      className="w-[140px] h-7 text-sm"
                     />
                   ) : (
                     format(new Date(calculation.calculation_date), "dd.MM.yyyy", { locale: sr })
