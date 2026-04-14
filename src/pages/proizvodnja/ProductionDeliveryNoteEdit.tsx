@@ -109,7 +109,7 @@ export default function ProductionDeliveryNoteEdit() {
   const [barcodesOpen, setBarcodesOpen] = useState(false);
 
   useEffect(() => {
-    if (note) {
+    if (note && !headerDirty) {
       setHeaderForm({
         delivery_date: note.delivery_date,
         warehouse_id: note.warehouse_id,
