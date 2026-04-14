@@ -156,6 +156,16 @@ export default function ProductionDeliveryNoteEdit() {
     setHeaderDirty(true);
   };
 
+  // Update item variant
+  const handleUpdateVariant = async (itemId: string, variantId: string | null) => {
+    const { error } = await (supabase as any)
+      .from("production_delivery_note_items")
+      .update({ variant_id: variantId })
+      .eq("id", itemId);
+    if (error) toast.error("Greška pri ažuriranju varijante");
+    invalidateItems();
+  };
+
   // Update item
   const handleUpdateItem = async (
     item: ProductionDeliveryNoteItem,
