@@ -464,7 +464,7 @@ export default function ProductionDeliveryNoteEdit() {
               <TableBody>
                 {items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={17} className="text-center py-6 text-muted-foreground">
+                    <TableCell colSpan={18} className="text-center py-6 text-muted-foreground">
                       Nema stavki.
                     </TableCell>
                   </TableRow>
@@ -476,7 +476,9 @@ export default function ProductionDeliveryNoteEdit() {
                        idx={idx}
                        isDraft={isDraft}
                        onUpdate={handleUpdateItem}
+                       onUpdateVariant={handleUpdateVariant}
                        onShowPdnHistory={(a) => setPdnDialogArticle(a)}
+                       availableVariants={variantAssignments[item.article_id] || []}
                      />
                    ))
                 )}
