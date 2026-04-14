@@ -647,7 +647,11 @@ export default function WorkOrderEdit() {
                             formatNumber(mat.approved_qty, { minimumFractionDigits: 3 })
                           )}
                         </TableCell>
-                        <TableCell className="text-right font-mono">-</TableCell>
+                        <TableCell className="text-right font-mono">
+                          {materialWarehouseId
+                            ? formatNumber(materialStockMap[mat.article_id] ?? 0, { minimumFractionDigits: 3 })
+                            : "-"}
+                        </TableCell>
                         <TableCell className="text-right">
                           {isDraft ? (
                             <Input
