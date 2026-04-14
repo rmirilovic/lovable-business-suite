@@ -15,6 +15,7 @@ interface DeliveryNoteItemsEditorPageProps {
   deliveryNoteId: string;
   companyId: string;
   warehouseId: string | null;
+  deliveryDate: string;
   isReadOnly: boolean;
   hideStock?: boolean;
   onItemsChanged?: () => void;
@@ -44,6 +45,7 @@ export function DeliveryNoteItemsEditorPage({
   deliveryNoteId,
   companyId,
   warehouseId,
+  deliveryDate,
   isReadOnly,
   hideStock,
   onItemsChanged,
@@ -54,11 +56,21 @@ export function DeliveryNoteItemsEditorPage({
   const [addingArticleId, setAddingArticleId] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
   const [stockMap, setStockMap] = useState<Record<string, number>>({});
+  const [variantStockMap, setVariantStockMap] = useState<Record<string, number>>({});
   const [articleVariantsMap, setArticleVariantsMap] = useState<Record<string, VariantInfo[]>>({});
 
   const materialArticles = articles.filter((a) => a.is_active && a.svk && SVK_MATERIAL_GOODS.includes(a.svk));
 
-  // Load variant assignments for the company
+  const getAvailableStock = useCallback(
+    (articleId: string, variantId: string | null) => {
+      if (variantId) {
+        return variantStockMap[`${articleId}:${variantId}`] ?? 0;
+      }
+      return stockMap[articleId] ?? 0;
+    },
+    [stockMap, variantStockMap]
+  );
+
   useEffect(() => {
     if (!companyId) return;
     const fetchVariants = async () => {
@@ -66,25 +78,27 @@ export function DeliveryNoteItemsEditorPage({
         .from("article_variant_assignments")
         .select("article_id, variant:article_variants(id, code, description)")
         .eq("company_id", companyId);
+
       if (data) {
         const map: Record<string, VariantInfo[]> = {};
         for (const row of data) {
-          const v = row.variant as any;
-          if (!v) continue;
+          const variant = row.variant as VariantInfo | null;
+          if (!variant) continue;
           if (!map[row.article_id]) map[row.article_id] = [];
-          map[row.article_id].push({ id: v.id, code: v.code, description: v.description });
+          map[row.article_id].push(variant);
         }
-        // Sort variants by code
+
         for (const key of Object.keys(map)) {
-          map[key].sort((a, b) => a.code.localeCompare(b.code, 'sr'));
+          map[key].sort((a, b) => a.code.localeCompare(b.code, "sr"));
         }
+
         setArticleVariantsMap(map);
       }
     };
+
     fetchVariants();
   }, [companyId]);
 
-  // Load items from DB
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
@@ -92,6 +106,7 @@ export function DeliveryNoteItemsEditorPage({
         .select("*")
         .eq("delivery_note_id", deliveryNoteId)
         .order("item_order");
+
       if (data) {
         setItems(
           data.map((d) => ({
@@ -107,21 +122,24 @@ export function DeliveryNoteItemsEditorPage({
           }))
         );
       }
+
       setIsLoaded(true);
     };
+
     load();
   }, [deliveryNoteId]);
 
-  // Fetch warehouse-specific stock
   useEffect(() => {
-    if (!companyId || !warehouseId) return;
+    if (!companyId || !warehouseId || !deliveryDate) return;
+
     const fetchStock = async () => {
       const { data } = await supabase.rpc("get_warehouse_stock", {
         p_company_id: companyId,
         p_warehouse_id: warehouseId,
         p_date_from: null,
-        p_date_to: new Date().toISOString().split("T")[0],
+        p_date_to: deliveryDate,
       });
+
       if (data) {
         const map: Record<string, number> = {};
         (data as any[]).forEach((row) => {
@@ -130,23 +148,50 @@ export function DeliveryNoteItemsEditorPage({
         setStockMap(map);
       }
     };
-    fetchStock();
-  }, [companyId, warehouseId]);
 
-  // Enrich stock info
+    fetchStock();
+  }, [companyId, warehouseId, deliveryDate]);
+
   useEffect(() => {
-    if (!isLoaded || items.length === 0) return;
+    if (!companyId || !warehouseId || !deliveryDate) return;
+
+    const fetchVariantStock = async () => {
+      const { data } = await supabase.rpc("get_warehouse_stock_by_variant", {
+        p_company_id: companyId,
+        p_warehouse_id: warehouseId,
+        p_date_from: null,
+        p_date_to: deliveryDate,
+      });
+
+      if (data) {
+        const map: Record<string, number> = {};
+        (data as any[]).forEach((row) => {
+          if (row.variant_id) {
+            map[`${row.article_id}:${row.variant_id}`] = row.balance_qty;
+          }
+        });
+        setVariantStockMap(map);
+      }
+    };
+
+    fetchVariantStock();
+  }, [companyId, warehouseId, deliveryDate]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
     setItems((prev) =>
       prev.map((item) => ({
         ...item,
-        available_stock: stockMap[item.article_id] ?? 0,
+        available_stock: getAvailableStock(item.article_id, item.variant_id),
       }))
     );
-  }, [isLoaded, stockMap]);
+  }, [isLoaded, getAvailableStock]);
 
   const saveItems = useCallback(
     async (newItems: ItemRow[]) => {
       await supabase.from("delivery_note_items").delete().eq("delivery_note_id", deliveryNoteId);
+
       if (newItems.length > 0) {
         const toInsert = newItems.map((item, i) => ({
           delivery_note_id: deliveryNoteId,
@@ -160,12 +205,14 @@ export function DeliveryNoteItemsEditorPage({
           variant_id: item.variant_id || null,
           item_order: i + 1,
         }));
+
         const { error } = await supabase.from("delivery_note_items").insert(toInsert);
         if (error) {
           toast.error(`Greška: ${error.message}`);
           return;
         }
       }
+
       onItemsChanged?.();
     },
     [deliveryNoteId, companyId, onItemsChanged]
@@ -174,6 +221,7 @@ export function DeliveryNoteItemsEditorPage({
   const addItem = (article: Article) => {
     const existing = items.findIndex((i) => i.article_id === article.id && !i.variant_id);
     let newItems: ItemRow[];
+
     if (existing >= 0) {
       newItems = [...items];
       newItems[existing].quantity += 1;
@@ -187,11 +235,12 @@ export function DeliveryNoteItemsEditorPage({
           description: "",
           unit: article.unit,
           quantity: 1,
-          available_stock: stockMap[article.id] ?? article.stock ?? 0,
+          available_stock: getAvailableStock(article.id, null),
           variant_id: null,
         },
       ];
     }
+
     setItems(newItems);
     saveItems(newItems);
     setAddingArticleId("");
@@ -210,7 +259,12 @@ export function DeliveryNoteItemsEditorPage({
 
   const updateVariant = (index: number, variantId: string | null) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], variant_id: variantId };
+    const currentItem = newItems[index];
+    newItems[index] = {
+      ...currentItem,
+      variant_id: variantId,
+      available_stock: getAvailableStock(currentItem.article_id, variantId),
+    };
     setItems(newItems);
     saveItems(newItems);
   };
@@ -231,6 +285,7 @@ export function DeliveryNoteItemsEditorPage({
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Stavke otpremnice</h3>
+
       {!isReadOnly && (
         <div className="flex items-end gap-2">
           <div className="w-[400px]">
@@ -248,6 +303,7 @@ export function DeliveryNoteItemsEditorPage({
           </Button>
         </div>
       )}
+
       <div className="border rounded-md">
         <Table>
           <TableHeader>
@@ -272,9 +328,10 @@ export function DeliveryNoteItemsEditorPage({
               items.map((item, index) => {
                 const variants = articleVariantsMap[item.article_id] || [];
                 const hasVariants = variants.length > 0;
+
                 return (
                   <TableRow key={index}>
-                  <TableCell className="font-medium">{item.item_code}</TableCell>
+                    <TableCell className="font-medium">{item.item_code}</TableCell>
                     <TableCell>{item.item_name}</TableCell>
                     <TableCell>
                       {!isReadOnly && hasVariants ? (
@@ -294,13 +351,11 @@ export function DeliveryNoteItemsEditorPage({
                             ))}
                           </SelectContent>
                         </Select>
-                      ) : (
-                        (() => {
-                          if (!item.variant_id) return "-";
-                          const v = variants.find((vr) => vr.id === item.variant_id);
-                          return v ? `${v.code} - ${v.description}` : "-";
-                        })()
-                      )}
+                      ) : (() => {
+                        if (!item.variant_id) return "-";
+                        const variant = variants.find((v) => v.id === item.variant_id);
+                        return variant ? `${variant.code} - ${variant.description}` : "-";
+                      })()}
                     </TableCell>
                     <TableCell>{item.unit}</TableCell>
                     {stockVisible && <TableCell className="text-right">{formatDecimal(item.available_stock)}</TableCell>}
@@ -310,9 +365,7 @@ export function DeliveryNoteItemsEditorPage({
                       ) : (
                         <LocaleNumberInput
                           value={String(item.quantity)}
-                          onChange={(val) =>
-                            updateQuantity(index, parseLocaleNumber(val))
-                          }
+                          onChange={(val) => updateQuantity(index, parseLocaleNumber(val))}
                           onBlur={commitChange}
                           className="w-full text-right"
                         />
