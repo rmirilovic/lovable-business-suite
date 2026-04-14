@@ -92,6 +92,14 @@ export default function WorkOrderEdit() {
   // Material warehouse
   const [materialWarehouseId, setMaterialWarehouseId] = useState("");
 
+  // Warehouse stock for material warehouse
+  const { data: materialStockData } = useWarehouseStock(companyId, materialWarehouseId || undefined);
+  const materialStockMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    if (materialStockData) materialStockData.forEach((s) => { m[s.article_id] = s.balance_qty; });
+    return m;
+  }, [materialStockData]);
+
   // Item being added
   const [newArticleId, setNewArticleId] = useState("");
 
