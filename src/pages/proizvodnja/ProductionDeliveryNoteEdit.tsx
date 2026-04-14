@@ -521,13 +521,17 @@ function ItemRow({
   idx,
   isDraft,
   onUpdate,
+  onUpdateVariant,
   onShowPdnHistory,
+  availableVariants,
 }: {
   item: ProductionDeliveryNoteItem;
   idx: number;
   isDraft: boolean;
   onUpdate: (item: ProductionDeliveryNoteItem, field: string, value: number) => Promise<void>;
+  onUpdateVariant: (itemId: string, variantId: string | null) => Promise<void>;
   onShowPdnHistory: (article: { id: string; code: string; name: string }) => void;
+  availableVariants: { id: string; code: string; description: string }[];
 }) {
   const handleNumberBlur = (field: string, rawValue: string) => {
     const num = parseLocaleNumber(rawValue);
@@ -550,11 +554,32 @@ function ItemRow({
     );
   };
 
+  const variantDisplay = () => {
+    if (availableVariants.length === 0) return <span className="text-xs text-muted-foreground">—</span>;
+    if (!isDraft) {
+      const v = availableVariants.find(av => av.id === item.variant_id);
+      return <span className="text-xs">{v ? v.code : "—"}</span>;
+    }
+    return (
+      <select
+        className="flex h-7 w-full rounded-md border border-input bg-background px-2 py-1 text-xs disabled:opacity-50"
+        value={item.variant_id || ""}
+        onChange={(e) => onUpdateVariant(item.id, e.target.value || null)}
+      >
+        <option value="">—</option>
+        {availableVariants.map((v) => (
+          <option key={v.id} value={v.id}>{v.code}{v.description ? ` - ${v.description}` : ""}</option>
+        ))}
+      </select>
+    );
+  };
+
   return (
     <TableRow>
       <TableCell className="text-xs">{idx + 1}</TableCell>
       <TableCell className="font-mono text-[11px]">{item.article_code}</TableCell>
       <TableCell className="text-xs truncate max-w-[120px]" title={item.article_name}>{item.article_name}</TableCell>
+      <TableCell>{variantDisplay()}</TableCell>
       <TableCell className="text-xs">{item.unit}</TableCell>
       <TableCell className="text-right">{numCell("kg_per_unit", item.kg_per_unit, 3, 0)}</TableCell>
       <TableCell className="text-right">
