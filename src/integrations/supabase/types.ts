@@ -9886,7 +9886,7 @@ export type Database = {
           in_qty: number
           opening_qty: number
           out_qty: number
-          turnover_qty: number
+          turnover: number
           unit: string
         }[]
       }
