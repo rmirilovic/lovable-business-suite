@@ -24,8 +24,7 @@ export interface ComputedRow {
   aop: number;
   label: string;
   currentYear: number;
-  prevYearOpening: number | null;
-  prevYearClosing: number | null;
+  prevYear: number | null;
   bold?: boolean;
   indent?: number;
   separator?: boolean;
@@ -168,20 +167,9 @@ export default function BilansUspeha() {
     enabled: !!selectedCompany?.id && !!selectedYear?.id,
   });
 
-  // Fetch previous year opening (01.01) items
-  const { data: prevYearOpeningItems = [] } = useQuery({
-    queryKey: ["bilans-uspeha-prev-opening", selectedCompany?.id, prevYear?.id],
-    queryFn: async () => {
-      if (!selectedCompany?.id || !prevYear?.id) return [];
-      // Opening balance = items up to Jan 1 of previous year (opening entries only)
-      return fetchClassItems(selectedCompany.id, prevYear.id, `${prevYear.year}-01-01`);
-    },
-    enabled: !!selectedCompany?.id && !!prevYear?.id,
-  });
-
-  // Fetch previous year closing (31.12) items
-  const { data: prevYearClosingItems = [] } = useQuery({
-    queryKey: ["bilans-uspeha-prev-closing", selectedCompany?.id, prevYear?.id],
+  // Fetch previous year items (full year)
+  const { data: prevYearItems = [] } = useQuery({
+    queryKey: ["bilans-uspeha-prev", selectedCompany?.id, prevYear?.id],
     queryFn: async () => {
       if (!selectedCompany?.id || !prevYear?.id) return [];
       return fetchClassItems(selectedCompany.id, prevYear.id, `${prevYear.year}-12-31`);
@@ -190,28 +178,25 @@ export default function BilansUspeha() {
   });
 
   const accountTotals = useMemo(() => buildAccountTotals(rawItems), [rawItems]);
-  const prevOpeningTotals = useMemo(() => buildAccountTotals(prevYearOpeningItems), [prevYearOpeningItems]);
-  const prevClosingTotals = useMemo(() => buildAccountTotals(prevYearClosingItems), [prevYearClosingItems]);
+  const prevYearTotals = useMemo(() => buildAccountTotals(prevYearItems), [prevYearItems]);
 
   const hasPrevYear = !!prevYear;
 
   const rows = useMemo(() => {
     const currentValues = computeAopValues(accountTotals);
-    const prevOpeningValues = hasPrevYear ? computeAopValues(prevOpeningTotals) : null;
-    const prevClosingValues = hasPrevYear ? computeAopValues(prevClosingTotals) : null;
+    const prevValues = hasPrevYear ? computeAopValues(prevYearTotals) : null;
 
     return bilansUspehaPositions.map((pos): ComputedRow => ({
       aop: pos.aop,
       label: pos.label,
       currentYear: currentValues.get(pos.aop) || 0,
-      prevYearOpening: prevOpeningValues ? (prevOpeningValues.get(pos.aop) || 0) : null,
-      prevYearClosing: prevClosingValues ? (prevClosingValues.get(pos.aop) || 0) : null,
+      prevYear: prevValues ? (prevValues.get(pos.aop) || 0) : null,
       bold: pos.bold,
       indent: pos.indent,
       separator: pos.separator,
       sectionHeader: pos.sectionHeader,
     }));
-  }, [accountTotals, prevOpeningTotals, prevClosingTotals, hasPrevYear]);
+  }, [accountTotals, prevYearTotals, hasPrevYear]);
 
   const exportMeta = {
     companyName: companyDetails?.name ?? selectedCompany?.name ?? "",
@@ -280,8 +265,7 @@ export default function BilansUspeha() {
                   <TableHead className="w-20">AOP</TableHead>
                   <TableHead>Pozicija</TableHead>
                   <TableHead className="text-right w-36">Tekuća godina</TableHead>
-                  <TableHead className="text-right w-36">Preth. god. - poč. stanje</TableHead>
-                  <TableHead className="text-right w-36">Preth. god. - kr. stanje</TableHead>
+                  <TableHead className="text-right w-36">Prethodna godina</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -304,10 +288,7 @@ export default function BilansUspeha() {
                       {formatPrice(row.currentYear)}
                     </TableCell>
                     <TableCell className={`text-right ${row.bold ? "font-bold" : ""}`}>
-                      {row.prevYearOpening !== null ? formatPrice(row.prevYearOpening) : ""}
-                    </TableCell>
-                    <TableCell className={`text-right ${row.bold ? "font-bold" : ""}`}>
-                      {row.prevYearClosing !== null ? formatPrice(row.prevYearClosing) : ""}
+                      {row.prevYear !== null ? formatPrice(row.prevYear) : ""}
                     </TableCell>
                   </TableRow>
                 ))}
