@@ -1,0 +1,133 @@
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import { initializePdfFonts, configurePdfFonts } from "@/lib/pdfFonts";
+import { printPdfBlob } from "@/lib/printPdf";
+import { formatNumber } from "@/lib/formatting";
+
+interface ComputedRow {
+  aop: number;
+  label: string;
+  currentYear: number;
+  prevYear: number | null;
+  bold?: boolean;
+  indent?: number;
+  separator?: boolean;
+  sectionHeader?: boolean;
+}
+
+interface ExportMeta {
+  companyName: string;
+  companyAddress: string;
+  companyCity: string;
+  companyPib: string;
+  companyMb: string;
+  yearLabel: string;
+  prevYearLabel: string;
+  reportDate: string;
+}
+
+function fmt(v: number | null) {
+  if (v === null) return "";
+  return formatNumber(v, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+export function exportStatIzvestajToExcel(rows: ComputedRow[], meta: ExportMeta) {
+  const prevLabel = meta.prevYearLabel || "Prethodna godina";
+  const ws = XLSX.utils.aoa_to_sheet([
+    [meta.companyName],
+    [`Adresa: ${meta.companyAddress}, ${meta.companyCity}`],
+    [`PIB: ${meta.companyPib}    MB: ${meta.companyMb}`],
+    [],
+    ["STATISTIČKI IZVEŠTAJ"],
+    [`Na dan ${meta.reportDate}`],
+    [],
+    ["AOP", "Pozicija", "Tekuća godina", `Prethodna godina (${prevLabel})`],
+    ...rows.map((r) => [
+      r.aop,
+      r.label,
+      r.currentYear,
+      r.prevYear ?? "",
+    ]),
+  ]);
+
+  ws["!cols"] = [{ wch: 8 }, { wch: 60 }, { wch: 20 }, { wch: 20 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Statistički izveštaj");
+  XLSX.writeFile(wb, `statisticki_izvestaj_${meta.yearLabel}.xlsx`);
+}
+
+async function buildPdf(rows: ComputedRow[], meta: ExportMeta): Promise<jsPDF> {
+  await initializePdfFonts();
+  const doc = new jsPDF({ orientation: "landscape" });
+  configurePdfFonts(doc);
+
+  const pw = doc.internal.pageSize.getWidth();
+  let y = 15;
+
+  doc.setFontSize(11);
+  doc.text(meta.companyName, pw / 2, y, { align: "center" });
+  y += 5;
+  doc.setFontSize(8);
+  doc.text(`${meta.companyAddress}, ${meta.companyCity}`, pw / 2, y, { align: "center" });
+  y += 4;
+  doc.text(`PIB: ${meta.companyPib}    MB: ${meta.companyMb}`, pw / 2, y, { align: "center" });
+  y += 8;
+
+  doc.setFontSize(14);
+  doc.text("STATISTIČKI IZVEŠTAJ", pw / 2, y, { align: "center" });
+  y += 6;
+  doc.setFontSize(9);
+  doc.text(`Na dan ${meta.reportDate}`, pw / 2, y, { align: "center" });
+  y += 8;
+
+  const prevLabel = meta.prevYearLabel || "Prethodna";
+
+  const body = rows.map((r) => {
+    const indent = "  ".repeat(r.indent || 0);
+    return [
+      String(r.aop),
+      `${indent}${r.label}`,
+      fmt(r.currentYear),
+      fmt(r.prevYear),
+    ];
+  });
+
+  autoTable(doc, {
+    startY: y,
+    head: [["AOP", "Pozicija", "Tekuća godina", `Prethodna godina (${prevLabel})`]],
+    body,
+    styles: { font: "DejaVuSans", fontSize: 7, cellPadding: 1.5 },
+    headStyles: { fillColor: [66, 66, 66], fontSize: 8 },
+    columnStyles: {
+      0: { cellWidth: 14, halign: "center" },
+      1: { cellWidth: "auto" },
+      2: { cellWidth: 32, halign: "right" },
+      3: { cellWidth: 32, halign: "right" },
+    },
+    didParseCell: (data: any) => {
+      if (data.section === "body") {
+        const row = rows[data.row.index];
+        if (row?.bold) {
+          data.cell.styles.fontStyle = "bold";
+        }
+        if (row?.sectionHeader) {
+          data.cell.styles.fillColor = [240, 240, 240];
+        }
+      }
+    },
+  });
+
+  return doc;
+}
+
+export async function exportStatIzvestajToPdf(rows: ComputedRow[], meta: ExportMeta) {
+  const doc = await buildPdf(rows, meta);
+  doc.save(`statisticki_izvestaj_${meta.yearLabel}.pdf`);
+}
+
+export async function printStatIzvestaj(rows: ComputedRow[], meta: ExportMeta) {
+  const doc = await buildPdf(rows, meta);
+  const blob = doc.output("blob");
+  printPdfBlob(blob);
+}
