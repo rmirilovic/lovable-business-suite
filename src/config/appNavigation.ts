@@ -149,6 +149,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Stanje po TR", href: "/racunovodstvo/stanje-po-tr", moduleCode: "racunovodstvo.glavna_knjiga" },
       { label: "Bilans uspeha", href: "/racunovodstvo/bilans-uspeha", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "Bilans stanja", href: "/racunovodstvo/bilans-stanja", moduleCode: "racunovodstvo.bruto_bilans" },
+      { label: "Statistički izveštaj", href: "/racunovodstvo/statisticki-izvestaj", moduleCode: "racunovodstvo.bruto_bilans" },
     ],
   },
   {
