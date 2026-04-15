@@ -34,6 +34,20 @@ export default function BilansUspeha() {
   const { selectedCompany, selectedYear } = useAuth();
   const { minDate, maxDate } = useBusinessYearDateLimits();
 
+  // Fetch full company details
+  const { data: companyDetails } = useQuery({
+    queryKey: ["company-details", selectedCompany?.id],
+    queryFn: async () => {
+      if (!selectedCompany?.id) return null;
+      const { data } = await supabase
+        .from("companies")
+        .select("name, address, city, pib, mb, activity_code")
+        .eq("id", selectedCompany.id)
+        .single();
+      return data;
+    },
+    enabled: !!selectedCompany?.id,
+  });
   const defaultDate = maxDate || new Date().toISOString().slice(0, 10);
   const [reportDate, setReportDate] = useState(defaultDate);
 
