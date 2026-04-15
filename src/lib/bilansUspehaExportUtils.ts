@@ -9,8 +9,7 @@ interface ComputedRow {
   aop: number;
   label: string;
   currentYear: number;
-  prevYearOpening: number | null;
-  prevYearClosing: number | null;
+  prevYear: number | null;
   bold?: boolean;
   indent?: number;
   separator?: boolean;
@@ -34,7 +33,7 @@ function fmt(v: number | null) {
 }
 
 export function exportBilansUspehaToExcel(rows: ComputedRow[], meta: ExportMeta) {
-  const prevLabel = meta.prevYearLabel || "Preth.";
+  const prevLabel = meta.prevYearLabel || "Prethodna godina";
   const ws = XLSX.utils.aoa_to_sheet([
     [meta.companyName],
     [`Adresa: ${meta.companyAddress}, ${meta.companyCity}`],
@@ -43,17 +42,16 @@ export function exportBilansUspehaToExcel(rows: ComputedRow[], meta: ExportMeta)
     ["BILANS USPEHA"],
     [`Za period od 01.01.${meta.yearLabel} do ${meta.reportDate}`],
     [],
-    ["AOP", "Pozicija", "Tekuća godina", `${prevLabel} - poč. stanje`, `${prevLabel} - kr. stanje`],
+    ["AOP", "Pozicija", "Tekuća godina", `Prethodna godina (${prevLabel})`],
     ...rows.map((r) => [
       r.aop,
       r.label,
       r.currentYear,
-      r.prevYearOpening ?? "",
-      r.prevYearClosing ?? "",
+      r.prevYear ?? "",
     ]),
   ]);
 
-  ws["!cols"] = [{ wch: 8 }, { wch: 60 }, { wch: 20 }, { wch: 20 }, { wch: 20 }];
+  ws["!cols"] = [{ wch: 8 }, { wch: 60 }, { wch: 20 }, { wch: 20 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Bilans uspeha");
   XLSX.writeFile(wb, `bilans_uspeha_${meta.yearLabel}.xlsx`);
@@ -83,7 +81,7 @@ async function buildPdf(rows: ComputedRow[], meta: ExportMeta): Promise<jsPDF> {
   doc.text(`Za period od 01.01.${meta.yearLabel} do ${meta.reportDate}`, pw / 2, y, { align: "center" });
   y += 8;
 
-  const prevLabel = meta.prevYearLabel || "Preth.";
+  const prevLabel = meta.prevYearLabel || "Prethodna";
 
   const body = rows.map((r) => {
     const indent = "  ".repeat(r.indent || 0);
@@ -91,14 +89,13 @@ async function buildPdf(rows: ComputedRow[], meta: ExportMeta): Promise<jsPDF> {
       String(r.aop),
       `${indent}${r.label}`,
       fmt(r.currentYear),
-      fmt(r.prevYearOpening),
-      fmt(r.prevYearClosing),
+      fmt(r.prevYear),
     ];
   });
 
   autoTable(doc, {
     startY: y,
-    head: [["AOP", "Pozicija", "Tekuća godina", `${prevLabel} - poč. stanje`, `${prevLabel} - kr. stanje`]],
+    head: [["AOP", "Pozicija", "Tekuća godina", `Prethodna godina (${prevLabel})`]],
     body,
     styles: { font: "DejaVuSans", fontSize: 7, cellPadding: 1.5 },
     headStyles: { fillColor: [66, 66, 66], fontSize: 8 },
@@ -107,7 +104,6 @@ async function buildPdf(rows: ComputedRow[], meta: ExportMeta): Promise<jsPDF> {
       1: { cellWidth: "auto" },
       2: { cellWidth: 32, halign: "right" },
       3: { cellWidth: 32, halign: "right" },
-      4: { cellWidth: 32, halign: "right" },
     },
     didParseCell: (data: any) => {
       if (data.section === "body") {
