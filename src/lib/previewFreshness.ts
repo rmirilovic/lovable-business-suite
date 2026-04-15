@@ -13,7 +13,7 @@ const getEmbeddedPreviewFingerprint = () => {
     .querySelector<HTMLMetaElement>(PREVIEW_FINGERPRINT_META_SELECTOR)
     ?.content?.trim();
 
-  return normalizedFingerprint.length > 0 ? normalizedFingerprint : null;
+  return normalizedFingerprint && normalizedFingerprint.length > 0 ? normalizedFingerprint : null;
 };
 
 export const hasPreviewFingerprintMismatch = async () => {

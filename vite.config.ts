@@ -53,7 +53,7 @@ const buildPreviewFingerprint = () => {
   return latestModifiedAt > 0 ? String(Math.round(latestModifiedAt)) : String(Date.now());
 };
 
-const previewFingerprintPlugin = () => ({
+const previewFingerprintPlugin = (): import("vite").Plugin => ({
   name: "preview-fingerprint",
   configureServer(server: import("vite").ViteDevServer) {
     server.middlewares.use((req, res, next) => {
@@ -76,7 +76,7 @@ const previewFingerprintPlugin = () => ({
           name: "lovable-preview-fingerprint",
           content: buildPreviewFingerprint(),
         },
-        injectTo: "head",
+        injectTo: "head" as const,
       },
     ];
   },
