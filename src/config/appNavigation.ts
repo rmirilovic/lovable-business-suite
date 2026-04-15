@@ -147,6 +147,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "POPDV", href: "/racunovodstvo/popdv", moduleCode: "racunovodstvo.nalozi" },
       { label: "PP-PDV Prijava", href: "/racunovodstvo/pp-pdv", moduleCode: "racunovodstvo.nalozi" },
       { label: "Stanje po TR", href: "/racunovodstvo/stanje-po-tr", moduleCode: "racunovodstvo.glavna_knjiga" },
+      { label: "Bilans uspeha", href: "/racunovodstvo/bilans-uspeha", moduleCode: "racunovodstvo.bruto_bilans" },
     ],
   },
   {
