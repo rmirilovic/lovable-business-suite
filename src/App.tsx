@@ -28,6 +28,7 @@ import KontniPlan from "./pages/racunovodstvo/KontniPlan";
 import NaloziZaKnjizenje from "./pages/racunovodstvo/NaloziZaKnjizenje";
 import JournalEntryEdit from "./pages/racunovodstvo/JournalEntryEdit";
 import GlavnaKnjiga from "./pages/racunovodstvo/GlavnaKnjiga";
+import StanjePoTR from "./pages/racunovodstvo/StanjePoTR";
 import BrutoBilans from "./pages/racunovodstvo/BrutoBilans";
 import KarticaKonta from "./pages/racunovodstvo/KarticaKonta";
 import KarticePartnera from "./pages/racunovodstvo/KarticePartnera";
@@ -250,6 +251,11 @@ const App = () => (
               <Route path="/racunovodstvo/bruto-bilans" element={
                 <ProtectedRoute>
                   <BrutoBilans />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/stanje-po-tr" element={
+                <ProtectedRoute>
+                  <StanjePoTR />
                 </ProtectedRoute>
               } />
               <Route path="/racunovodstvo/kartica-konta/:code" element={
