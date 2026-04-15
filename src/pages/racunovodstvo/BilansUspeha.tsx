@@ -166,11 +166,11 @@ export default function BilansUspeha() {
   }, [accountTotals]);
 
   const exportMeta = {
-    companyName: selectedCompany?.name ?? "",
-    companyAddress: selectedCompany?.address ?? "",
-    companyCity: selectedCompany?.city ?? "",
-    companyPib: selectedCompany?.pib ?? "",
-    companyMb: selectedCompany?.mb ?? "",
+    companyName: companyDetails?.name ?? selectedCompany?.name ?? "",
+    companyAddress: companyDetails?.address ?? "",
+    companyCity: companyDetails?.city ?? "",
+    companyPib: companyDetails?.pib ?? "",
+    companyMb: companyDetails?.mb ?? "",
     yearLabel: selectedYear?.year?.toString() ?? "",
     reportDate,
   };
@@ -200,11 +200,11 @@ export default function BilansUspeha() {
 
         {/* Header info */}
         <div className="border rounded-lg p-4 bg-muted/30 text-sm grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div><span className="font-medium">Firma:</span> {selectedCompany?.name}</div>
-          <div><span className="font-medium">PIB:</span> {selectedCompany?.pib ?? "-"}</div>
-          <div><span className="font-medium">MB:</span> {selectedCompany?.mb ?? "-"}</div>
-          <div><span className="font-medium">Adresa:</span> {selectedCompany?.address ?? "-"}, {selectedCompany?.city ?? ""}</div>
-          <div><span className="font-medium">Šifra delatnosti:</span> {selectedCompany?.activity_code ?? "-"}</div>
+          <div><span className="font-medium">Firma:</span> {companyDetails?.name ?? selectedCompany?.name}</div>
+          <div><span className="font-medium">PIB:</span> {companyDetails?.pib ?? "-"}</div>
+          <div><span className="font-medium">MB:</span> {companyDetails?.mb ?? "-"}</div>
+          <div><span className="font-medium">Adresa:</span> {companyDetails?.address ?? "-"}, {companyDetails?.city ?? ""}</div>
+          <div><span className="font-medium">Šifra delatnosti:</span> {companyDetails?.activity_code ?? "-"}</div>
           <div><span className="font-medium">Poslovna godina:</span> {selectedYear?.year}</div>
         </div>
 
