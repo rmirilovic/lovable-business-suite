@@ -1,16 +1,18 @@
-declare const __APP_PREVIEW_FINGERPRINT__: string | undefined;
-
 const PREVIEW_FINGERPRINT_ENDPOINT = "/__lovable_dev_fingerprint";
 const PREVIEW_FINGERPRINT_REQUEST_TIMEOUT_MS = 1500;
+const PREVIEW_FINGERPRINT_META_SELECTOR = 'meta[name="lovable-preview-fingerprint"]';
 
 interface PreviewFingerprintResponse {
   fingerprint?: string;
 }
 
 const getEmbeddedPreviewFingerprint = () => {
-  if (typeof __APP_PREVIEW_FINGERPRINT__ !== "string") return null;
+  if (typeof document === "undefined") return null;
 
-  const normalizedFingerprint = __APP_PREVIEW_FINGERPRINT__.trim();
+  const normalizedFingerprint = document
+    .querySelector<HTMLMetaElement>(PREVIEW_FINGERPRINT_META_SELECTOR)
+    ?.content?.trim();
+
   return normalizedFingerprint.length > 0 ? normalizedFingerprint : null;
 };
 

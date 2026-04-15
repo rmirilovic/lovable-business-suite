@@ -53,7 +53,7 @@ const buildPreviewFingerprint = () => {
   return latestModifiedAt > 0 ? String(Math.round(latestModifiedAt)) : String(Date.now());
 };
 
-const previewFingerprintPlugin = (fingerprint: string) => ({
+const previewFingerprintPlugin = () => ({
   name: "preview-fingerprint",
   configureServer(server: import("vite").ViteDevServer) {
     server.middlewares.use((req, res, next) => {
@@ -65,19 +65,26 @@ const previewFingerprintPlugin = (fingerprint: string) => ({
 
       res.setHeader("Content-Type", "application/json");
       res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-      res.end(JSON.stringify({ fingerprint }));
+      res.end(JSON.stringify({ fingerprint: buildPreviewFingerprint() }));
     });
+  },
+  transformIndexHtml() {
+    return [
+      {
+        tag: "meta",
+        attrs: {
+          name: "lovable-preview-fingerprint",
+          content: buildPreviewFingerprint(),
+        },
+        injectTo: "head",
+      },
+    ];
   },
 });
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const previewFingerprint = buildPreviewFingerprint();
-
   return {
-    define: {
-      __APP_PREVIEW_FINGERPRINT__: JSON.stringify(previewFingerprint),
-    },
     server: {
       host: "::",
       port: 8080,
@@ -85,7 +92,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       mode === "development" && componentTagger(),
-      previewFingerprintPlugin(previewFingerprint),
+      previewFingerprintPlugin(),
       VitePWA({
         registerType: "autoUpdate",
         devOptions: {
