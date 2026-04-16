@@ -203,7 +203,7 @@ export default function TroskoviPoMT() {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <TableScrollContainer className="max-h-[calc(100vh-220px)]">
+          <TableScrollContainer className="max-h-[calc(100vh-300px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -218,14 +218,14 @@ export default function TroskoviPoMT() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.length === 0 ? (
+                {filteredRows.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={17} className="text-center text-muted-foreground py-8">
                       Nema podataka o troškovima po mestima troškova
                     </TableCell>
                   </TableRow>
                 ) : (
-                  rows.map((row, idx) => (
+                  filteredRows.map((row, idx) => (
                     <TableRow key={idx}>
                       <TableCell className="font-mono">{row.orgUnitCode}</TableCell>
                       <TableCell>{row.orgUnitName}</TableCell>
