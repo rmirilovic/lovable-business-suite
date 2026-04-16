@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@/components/ui/table";
@@ -41,6 +43,9 @@ export default function TroskoviPoMT() {
   const { selectedCompany, selectedYear } = useAuth();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
   const { data: accounts = [] } = useChartOfAccounts();
+  const [filterMTCode, setFilterMTCode] = useState("");
+  const [filterMTName, setFilterMTName] = useState("");
+  const [filterAccount, setFilterAccount] = useState("");
 
   const { data: rawData = [], isLoading } = useQuery({
     queryKey: ["troskovi-po-mt", selectedCompany?.id, selectedYear?.id],
@@ -123,13 +128,30 @@ export default function TroskoviPoMT() {
     return result;
   }, [rawData, units, accounts]);
 
+  const filteredRows = useMemo(() => {
+    let filtered = rows;
+    if (filterMTCode) {
+      const f = filterMTCode.toLowerCase();
+      filtered = filtered.filter((r) => r.orgUnitCode.toLowerCase().includes(f));
+    }
+    if (filterMTName) {
+      const f = filterMTName.toLowerCase();
+      filtered = filtered.filter((r) => r.orgUnitName.toLowerCase().includes(f));
+    }
+    if (filterAccount) {
+      const f = filterAccount.toLowerCase();
+      filtered = filtered.filter((r) => r.accountCode.toLowerCase().startsWith(f));
+    }
+    return filtered;
+  }, [rows, filterMTCode, filterMTName, filterAccount]);
+
   const monthTotals = useMemo(() => {
     const totals = new Array(12).fill(0);
-    for (const r of rows) {
+    for (const r of filteredRows) {
       for (let i = 0; i < 12; i++) totals[i] += r.months[i];
     }
     return totals;
-  }, [rows]);
+  }, [filteredRows]);
 
   const grandTotal = monthTotals.reduce((s, v) => s + v, 0);
 
@@ -149,15 +171,30 @@ export default function TroskoviPoMT() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportTroskoviPoMTToExcel(rows, exportMeta)}>
+            <Button variant="outline" size="sm" onClick={() => exportTroskoviPoMTToExcel(filteredRows, exportMeta)}>
               <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
             </Button>
-            <Button variant="outline" size="sm" onClick={() => exportTroskoviPoMTPdf(rows, exportMeta)}>
+            <Button variant="outline" size="sm" onClick={() => exportTroskoviPoMTPdf(filteredRows, exportMeta)}>
               <FileText className="w-4 h-4 mr-2" /> PDF
             </Button>
-            <Button variant="outline" size="sm" onClick={() => printTroskoviPoMT(rows, exportMeta)}>
+            <Button variant="outline" size="sm" onClick={() => printTroskoviPoMT(filteredRows, exportMeta)}>
               <Printer className="w-4 h-4 mr-2" /> Štampa
             </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4 items-end">
+          <div className="w-32">
+            <Label>Šifra MT</Label>
+            <Input value={filterMTCode} onChange={(e) => setFilterMTCode(e.target.value)} placeholder="Šifra..." />
+          </div>
+          <div className="w-48">
+            <Label>Naziv MT</Label>
+            <Input value={filterMTName} onChange={(e) => setFilterMTName(e.target.value)} placeholder="Naziv..." />
+          </div>
+          <div className="w-32">
+            <Label>Konto</Label>
+            <Input value={filterAccount} onChange={(e) => setFilterAccount(e.target.value)} placeholder="5..." />
           </div>
         </div>
 
@@ -166,7 +203,7 @@ export default function TroskoviPoMT() {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <TableScrollContainer className="max-h-[calc(100vh-220px)]">
+          <TableScrollContainer className="max-h-[calc(100vh-300px)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -181,14 +218,14 @@ export default function TroskoviPoMT() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.length === 0 ? (
+                {filteredRows.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={17} className="text-center text-muted-foreground py-8">
                       Nema podataka o troškovima po mestima troškova
                     </TableCell>
                   </TableRow>
                 ) : (
-                  rows.map((row, idx) => (
+                  filteredRows.map((row, idx) => (
                     <TableRow key={idx}>
                       <TableCell className="font-mono">{row.orgUnitCode}</TableCell>
                       <TableCell>{row.orgUnitName}</TableCell>
@@ -204,10 +241,10 @@ export default function TroskoviPoMT() {
                   ))
                 )}
               </TableBody>
-              {rows.length > 0 && (
+              {filteredRows.length > 0 && (
                 <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={4} className="font-bold">Ukupno ({rows.length})</TableCell>
+                    <TableCell colSpan={4} className="font-bold">Ukupno ({filteredRows.length})</TableCell>
                     {monthTotals.map((v, i) => (
                       <TableCell key={i} className="text-right font-bold">
                         {v !== 0 ? formatPrice(v) : "-"}
