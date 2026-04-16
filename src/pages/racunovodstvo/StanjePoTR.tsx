@@ -36,6 +36,20 @@ export default function StanjePoTR() {
   const [accountFrom, setAccountFrom] = useState("241");
   const [accountTo, setAccountTo] = useState("2419");
 
+  const { data: bankAccounts = [] } = useQuery({
+    queryKey: ["bank-accounts-lookup", selectedCompany?.id],
+    queryFn: async () => {
+      if (!selectedCompany?.id) return [];
+      const { data, error } = await supabase
+        .from("bank_accounts")
+        .select("code, bank_name")
+        .eq("company_id", selectedCompany.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!selectedCompany?.id,
+  });
+
   const { data: rawData = [], isLoading } = useQuery({
     queryKey: ["stanje-po-tr", selectedCompany?.id, selectedYear?.id, accountFrom, accountTo],
     queryFn: async () => {
