@@ -106,15 +106,18 @@ export default function StanjePoTR() {
     }
 
     const accountMap = new Map(accounts.map((a) => [a.code, a.name]));
+    const bankMap = new Map(bankAccounts.map((b) => [b.code, b.bank_name]));
 
     const result: StanjePoTRRow[] = [];
     for (const [key, val] of map) {
       const [accountCode] = key.split("|");
+      // Use bank name from bank_accounts if available, otherwise partner name
+      const analyticsDesc = bankMap.get(val.analytics) || val.partnerName;
       result.push({
         account_code: accountCode,
         account_name: accountMap.get(accountCode) || "",
         analytics: val.analytics,
-        analytics_description: val.partnerName,
+        analytics_description: analyticsDesc,
         debit: val.debit,
         credit: val.credit,
         balance: val.debit - val.credit,
@@ -128,7 +131,7 @@ export default function StanjePoTR() {
     });
 
     return result;
-  }, [rawData, accounts]);
+  }, [rawData, accounts, bankAccounts]);
 
   const totalDebit = rows.reduce((s, r) => s + r.debit, 0);
   const totalCredit = rows.reduce((s, r) => s + r.credit, 0);
