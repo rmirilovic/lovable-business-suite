@@ -128,13 +128,30 @@ export default function TroskoviPoMT() {
     return result;
   }, [rawData, units, accounts]);
 
+  const filteredRows = useMemo(() => {
+    let filtered = rows;
+    if (filterMTCode) {
+      const f = filterMTCode.toLowerCase();
+      filtered = filtered.filter((r) => r.orgUnitCode.toLowerCase().includes(f));
+    }
+    if (filterMTName) {
+      const f = filterMTName.toLowerCase();
+      filtered = filtered.filter((r) => r.orgUnitName.toLowerCase().includes(f));
+    }
+    if (filterAccount) {
+      const f = filterAccount.toLowerCase();
+      filtered = filtered.filter((r) => r.accountCode.toLowerCase().startsWith(f));
+    }
+    return filtered;
+  }, [rows, filterMTCode, filterMTName, filterAccount]);
+
   const monthTotals = useMemo(() => {
     const totals = new Array(12).fill(0);
-    for (const r of rows) {
+    for (const r of filteredRows) {
       for (let i = 0; i < 12; i++) totals[i] += r.months[i];
     }
     return totals;
-  }, [rows]);
+  }, [filteredRows]);
 
   const grandTotal = monthTotals.reduce((s, v) => s + v, 0);
 
