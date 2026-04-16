@@ -150,6 +150,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Bilans uspeha", href: "/racunovodstvo/bilans-uspeha", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "Bilans stanja", href: "/racunovodstvo/bilans-stanja", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "Statistički izveštaj", href: "/racunovodstvo/statisticki-izvestaj", moduleCode: "racunovodstvo.bruto_bilans" },
+      { label: "Troškovi po MT", href: "/racunovodstvo/troskovi-po-mt", moduleCode: "racunovodstvo.bruto_bilans" },
     ],
   },
   {
