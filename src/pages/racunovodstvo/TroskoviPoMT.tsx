@@ -43,6 +43,9 @@ export default function TroskoviPoMT() {
   const { selectedCompany, selectedYear } = useAuth();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
   const { data: accounts = [] } = useChartOfAccounts();
+  const [filterMTCode, setFilterMTCode] = useState("");
+  const [filterMTName, setFilterMTName] = useState("");
+  const [filterAccount, setFilterAccount] = useState("");
 
   const { data: rawData = [], isLoading } = useQuery({
     queryKey: ["troskovi-po-mt", selectedCompany?.id, selectedYear?.id],
