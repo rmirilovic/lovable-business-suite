@@ -171,15 +171,30 @@ export default function TroskoviPoMT() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportTroskoviPoMTToExcel(rows, exportMeta)}>
+            <Button variant="outline" size="sm" onClick={() => exportTroskoviPoMTToExcel(filteredRows, exportMeta)}>
               <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
             </Button>
-            <Button variant="outline" size="sm" onClick={() => exportTroskoviPoMTPdf(rows, exportMeta)}>
+            <Button variant="outline" size="sm" onClick={() => exportTroskoviPoMTPdf(filteredRows, exportMeta)}>
               <FileText className="w-4 h-4 mr-2" /> PDF
             </Button>
-            <Button variant="outline" size="sm" onClick={() => printTroskoviPoMT(rows, exportMeta)}>
+            <Button variant="outline" size="sm" onClick={() => printTroskoviPoMT(filteredRows, exportMeta)}>
               <Printer className="w-4 h-4 mr-2" /> Štampa
             </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4 items-end">
+          <div className="w-32">
+            <Label>Šifra MT</Label>
+            <Input value={filterMTCode} onChange={(e) => setFilterMTCode(e.target.value)} placeholder="Šifra..." />
+          </div>
+          <div className="w-48">
+            <Label>Naziv MT</Label>
+            <Input value={filterMTName} onChange={(e) => setFilterMTName(e.target.value)} placeholder="Naziv..." />
+          </div>
+          <div className="w-32">
+            <Label>Konto</Label>
+            <Input value={filterAccount} onChange={(e) => setFilterAccount(e.target.value)} placeholder="5..." />
           </div>
         </div>
 
