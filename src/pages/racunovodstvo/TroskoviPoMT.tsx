@@ -241,10 +241,10 @@ export default function TroskoviPoMT() {
                   ))
                 )}
               </TableBody>
-              {rows.length > 0 && (
+              {filteredRows.length > 0 && (
                 <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={4} className="font-bold">Ukupno ({rows.length})</TableCell>
+                    <TableCell colSpan={4} className="font-bold">Ukupno ({filteredRows.length})</TableCell>
                     {monthTotals.map((v, i) => (
                       <TableCell key={i} className="text-right font-bold">
                         {v !== 0 ? formatPrice(v) : "-"}
