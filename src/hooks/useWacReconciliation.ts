@@ -76,31 +76,6 @@ export function useWacReconciliationRuns() {
   });
 }
 
-/**
- * Vraća broj otvorenih nacrta usklađivanja PNC za badge u sidebar-u.
- * Osvežava se na svakih 60s ili pri fokusiranju prozora.
- */
-export function useWacReconciliationPendingCount() {
-  const { selectedCompany } = useAuth();
-
-  return useQuery({
-    queryKey: ["wac-recon-pending-count", selectedCompany?.id],
-    queryFn: async () => {
-      if (!selectedCompany?.id) return 0;
-      const { count, error } = await supabase
-        .from("wac_reconciliation_runs")
-        .select("id", { count: "exact", head: true })
-        .eq("company_id", selectedCompany.id)
-        .in("status", ["draft", "previewed"]);
-      if (error) throw error;
-      return count ?? 0;
-    },
-    enabled: !!selectedCompany?.id,
-    refetchInterval: 60_000,
-    refetchOnWindowFocus: true,
-  });
-}
-
 export function useWacReconciliationChanges(runId: string | null) {
   return useQuery({
     queryKey: ["wac-recon-changes", runId],

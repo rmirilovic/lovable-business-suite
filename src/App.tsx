@@ -289,12 +289,6 @@ const App = () => (
                   <ZatvaranjeGodine />
                 </ProtectedRoute>
               } />
-              <Route path="/racunovodstvo/uskladjivanje-pnc" element={
-                <ProtectedRoute>
-                  <WacRekonsilijacija />
-                </ProtectedRoute>
-              } />
-              {/* Stara ruta — redirekt zbog kompatibilnosti starih bookmarkova */}
               <Route path="/racunovodstvo/wac-rekonsilijacija" element={
                 <ProtectedRoute>
                   <WacRekonsilijacija />
