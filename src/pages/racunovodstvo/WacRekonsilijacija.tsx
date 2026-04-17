@@ -19,8 +19,11 @@ import {
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
+  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   AlertTriangle, Calculator, CheckCircle2, FileText, Loader2,
-  PlayCircle, RotateCcw, Search, ExternalLink,
+  PlayCircle, RotateCcw, Search, ExternalLink, HelpCircle, Info,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +57,17 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   inventory_count: "Popis",
   article_swap: "Zamena artikla",
   customs_clearance: "Carinski obračun",
+};
+
+const TRIGGER_SOURCE_LABELS: Record<string, string> = {
+  goods_receipt: "Prijemnica",
+  calculation: "Kalkulacija",
+  price_adjustment: "Nivelacija",
+  customs_clearance: "Carinski obračun",
+  inventory_count: "Popis",
+  inter_warehouse_transfer_in: "MMP - ulaz",
+  production_delivery_note: "Predajnica GP",
+  reprocessing_delivery_note: "Predajnica RPR",
 };
 
 export default function WacRekonsilijacija() {
@@ -139,7 +153,7 @@ export default function WacRekonsilijacija() {
 
   const handleRevert = async () => {
     if (!selectedRunId) return;
-    if (!confirm("Da li ste sigurni da želite da poništite ovu rekonsilijaciju? Cene će biti vraćene na prethodne vrednosti, a nalog ispravke u GK će biti storniran.")) return;
+    if (!confirm("Da li ste sigurni da želite da poništite ovo usklađivanje PNC? Cene će biti vraćene na prethodne vrednosti, a nalog ispravke u GK će biti storniran.")) return;
     await revert.mutateAsync({ runId: selectedRunId, reason: "Ručni revert iz UI" });
   };
 
@@ -149,27 +163,118 @@ export default function WacRekonsilijacija() {
   );
 
   return (
-    <MainLayout title="WAC rekonsilijacija">
+    <MainLayout title="Usklađivanje PNC (Prosečna Nabavna Cena)">
       <div className="flex flex-col gap-4 h-full min-h-0 overflow-auto">
         {!canManage && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Pristup ograničen</AlertTitle>
             <AlertDescription>
-              Samo administratori mogu pokretati i primeniti WAC rekonsilijaciju. Možete pregledati postojeće zapise.
+              Samo administratori mogu pokretati i primeniti usklađivanje PNC. Možete pregledati postojeće zapise.
             </AlertDescription>
           </Alert>
         )}
 
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Šta radi WAC rekonsilijacija?</AlertTitle>
-          <AlertDescription>
-            Servis preračunava srednje nabavne cene (WAC) magacina od izabranog datuma i ažurira sve naknadne izlazne dokumente
-            (otpremnice, trebovanja, MMP, predajnice, popisi, zamene). Nastale razlike se knjiže kao <strong>jedan zbirni nalog ispravke</strong>{" "}
-            u Glavnoj knjizi. Ne menja se PDV obračun.
-          </AlertDescription>
-        </Alert>
+        {/* In-app dokumentacija */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <HelpCircle className="w-4 h-4 text-primary" />
+              Pomoć: Šta je usklađivanje PNC i kada se koristi?
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="what">
+                <AccordionTrigger className="text-sm">
+                  <span className="flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Šta radi ovaj servis?
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm space-y-2 text-muted-foreground">
+                  <p>
+                    Servis preračunava <strong>prosečne nabavne cene (PNC)</strong> magacina
+                    od izabranog datuma i ažurira sve naknadne izlazne dokumente
+                    (otpremnice, trebovanja, MMP, predajnice, popisi, zamene).
+                  </p>
+                  <p>
+                    Sve nastale razlike se knjiže kao <strong>jedan zbirni nalog ispravke</strong> u
+                    Glavnoj knjizi (klase 13xx i 50xx). PDV obračun se <strong>ne menja</strong>.
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="when-auto">
+                <AccordionTrigger className="text-sm">
+                  <span className="flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Kada sistem automatski kreira nacrt?
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm space-y-2 text-muted-foreground">
+                  <p>Nacrt se kreira automatski kada se proknjiži <strong>retroaktivni</strong> dokument koji menja stanje magacina:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Prijemnica, Kalkulacija ili Nivelacija sa ranijim datumom</li>
+                    <li>Carinski obračun (uvoz)</li>
+                    <li>Popis koji koriguje stanje</li>
+                    <li>MMP – ulaz na destinacijski magacin</li>
+                    <li>Predajnica GP ili Predajnica iz prerade</li>
+                  </ul>
+                  <p>
+                    Pored toga, svake noći u <strong>02:30h</strong> radi integritetni check
+                    i flaguje neslaganja koja sistem nije sam uhvatio.
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="workflow">
+                <AccordionTrigger className="text-sm">
+                  <span className="flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    Kako da koristim stranicu (3 koraka)?
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm space-y-2 text-muted-foreground">
+                  <ol className="list-decimal pl-5 space-y-1">
+                    <li>
+                      <strong>Inicijalizuj</strong> — izaberi magacin (i opciono artikal/datum) ili klikni na postojeći
+                      <Badge variant="outline" className="mx-1">Nacrt</Badge> u tabeli ispod.
+                    </li>
+                    <li>
+                      <strong>Generiši pregled</strong> — sistem računa stare i nove cene po dokumentu i prikazuje razlike.
+                      Ovaj korak <em>ne menja</em> podatke u bazi.
+                    </li>
+                    <li>
+                      <strong>Primeni</strong> — kada potvrdiš da su brojke ispravne, klikni "Primeni i proknjiži ispravku".
+                      Tek tada se ažuriraju cene na dokumentima i kreira jedinstveni nalog ispravke u GK.
+                    </li>
+                  </ol>
+                  <p className="pt-2">
+                    Ako napraviš grešku, koristi <strong>"Poništi usklađivanje"</strong> — sistem će vratiti cene i
+                    stornirati nalog ispravke.
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="pdv">
+                <AccordionTrigger className="text-sm">
+                  <span className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-warning" />
+                    Šta sa zaključenim PDV periodom?
+                  </span>
+                </AccordionTrigger>
+                <AccordionContent className="text-sm space-y-2 text-muted-foreground">
+                  <p>
+                    Ako rekonsilijacija dotiče period za koji je PDV već prijavljen, sistem blokira primenu.
+                    Lokalni admin može markirati polje <strong>"Lokalni admin override"</strong> i upisati razlog —
+                    izmena će biti zabeležena u audit logu.
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+        </Card>
 
         {/* Wizard */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -177,7 +282,7 @@ export default function WacRekonsilijacija() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Search className="w-4 h-4" />
-                1. Pokreni novu rekonsilijaciju
+                1. Pokreni novo usklađivanje
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -249,7 +354,7 @@ export default function WacRekonsilijacija() {
                 ) : (
                   <Search className="w-4 h-4" />
                 )}
-                Inicijalizuj rekonsilijaciju
+                Inicijalizuj usklađivanje
               </Button>
             </CardContent>
           </Card>
@@ -265,7 +370,7 @@ export default function WacRekonsilijacija() {
             <CardContent className="space-y-3">
               {!selectedRun ? (
                 <p className="text-sm text-muted-foreground">
-                  Izaberite zapis iz tabele ili pokrenite novu rekonsilijaciju.
+                  Izaberite zapis iz tabele ili pokrenite novo usklađivanje PNC.
                 </p>
               ) : (
                 <>
@@ -364,7 +469,7 @@ export default function WacRekonsilijacija() {
                           disabled={!canManage || revert.isPending}
                         >
                           {revert.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-                          Poništi rekonsilijaciju
+                          Poništi usklađivanje
                         </Button>
                       </>
                     )}
@@ -388,7 +493,7 @@ export default function WacRekonsilijacija() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Istorija rekonsilijacija
+              Istorija usklađivanja PNC
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -418,7 +523,7 @@ export default function WacRekonsilijacija() {
                   ) : runs.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={10} className="text-center py-6 text-muted-foreground">
-                        Nema zapisa rekonsilijacije.
+                        Nema zapisa usklađivanja.
                       </TableCell>
                     </TableRow>
                   ) : (
