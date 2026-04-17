@@ -12,8 +12,11 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { appNavigation, type NavigationChild, type NavigationItem } from "@/config/appNavigation";
+import { useWacReconciliationPendingCount } from "@/hooks/useWacReconciliation";
 
 const navigation: NavigationItem[] = appNavigation;
+
+const PNC_HREF = "/racunovodstvo/uskladjivanje-pnc";
 
 interface SidebarProps {
   mobileOpen?: boolean;
@@ -26,6 +29,9 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
   const navigate = useNavigate();
   const { selectedCompany, selectedYear, signOut, isSuperAdmin, isLocalAdmin, loading: authLoading, initialLoadDone } = useAuth();
   const { hasAccess, isLoading: permissionsLoading } = usePermissions();
+  const canSeePncBadge = isSuperAdmin || isLocalAdmin;
+  const { data: pncPendingCount = 0 } = useWacReconciliationPendingCount();
+  const showPncBadge = canSeePncBadge && pncPendingCount > 0;
 
   // Treat as full access while any part of the auth/permissions pipeline is still settling
   const stillLoading = authLoading || !initialLoadDone || permissionsLoading;
