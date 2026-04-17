@@ -212,7 +212,8 @@ export default function ZatvaranjeGodine() {
     );
   }
 
-  if (selectedYear.is_closed) {
+  const currentYearMeta = years.find((y) => y.id === selectedYear.id);
+  if (currentYearMeta?.is_closed) {
     return (
       <div className="p-6 max-w-2xl mx-auto">
         <Alert>
