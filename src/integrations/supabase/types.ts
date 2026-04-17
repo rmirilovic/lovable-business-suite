@@ -1267,6 +1267,8 @@ export type Database = {
       }
       business_years: {
         Row: {
+          closed_at: string | null
+          closed_by: string | null
           company_id: string
           created_at: string | null
           id: string
@@ -1275,6 +1277,8 @@ export type Database = {
           year: number
         }
         Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
           company_id: string
           created_at?: string | null
           id?: string
@@ -1283,6 +1287,8 @@ export type Database = {
           year: number
         }
         Update: {
+          closed_at?: string | null
+          closed_by?: string | null
           company_id?: string
           created_at?: string | null
           id?: string
@@ -9662,6 +9668,57 @@ export type Database = {
           },
         ]
       }
+      year_closing_log: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          executed_at: string
+          executed_by: string
+          id: string
+          notes: string | null
+          result: Json | null
+          status: string
+          step: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          executed_at?: string
+          executed_by: string
+          id?: string
+          notes?: string | null
+          result?: Json | null
+          status?: string
+          step: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          executed_at?: string
+          executed_by?: string
+          id?: string
+          notes?: string | null
+          result?: Json | null
+          status?: string
+          step?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "year_closing_log_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "year_closing_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -9714,6 +9771,22 @@ export type Database = {
           _document_date: string
           _user_id: string
         }
+        Returns: string
+      }
+      generate_closing_entry_expenses: {
+        Args: { _year_id: string }
+        Returns: string
+      }
+      generate_closing_entry_result: {
+        Args: { _year_id: string }
+        Returns: string
+      }
+      generate_closing_entry_revenues: {
+        Args: { _year_id: string }
+        Returns: string
+      }
+      generate_opening_balance: {
+        Args: { _new_year_id: string; _old_year_id: string }
         Returns: string
       }
       get_article_all_warehouses_card: {
@@ -9890,6 +9963,20 @@ export type Database = {
           unit: string
         }[]
       }
+      get_warehouse_opening_stock_preview: {
+        Args: { _old_year_id: string }
+        Returns: {
+          article_code: string
+          article_id: string
+          article_name: string
+          qty: number
+          unit: string
+          value: number
+          warehouse_code: string
+          warehouse_id: string
+          warehouse_name: string
+        }[]
+      }
       get_warehouse_stock: {
         Args: {
           p_company_id: string
@@ -9985,6 +10072,7 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      lock_business_year: { Args: { _year_id: string }; Returns: undefined }
       post_advance_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
@@ -10185,6 +10273,10 @@ export type Database = {
           variant_code: string
           variant_id: string
         }[]
+      }
+      validate_year_closing_prerequisites: {
+        Args: { _year_id: string }
+        Returns: Json
       }
     }
     Enums: {
