@@ -10572,6 +10572,64 @@ export type Database = {
         Args: { _year_id: string }
         Returns: Json
       }
+      wac_get_account_for_doc_type: {
+        Args: { _doc_type: string }
+        Returns: string
+      }
+      wac_get_movement_timeline: {
+        Args: {
+          _article_id: string
+          _company_id: string
+          _from_date?: string
+          _to_date?: string
+          _warehouse_id: string
+        }
+        Returns: {
+          current_unit_cost: number
+          doc_id: string
+          doc_number: string
+          doc_type: string
+          is_posted: boolean
+          item_id: string
+          movement_date: string
+          movement_seq: number
+          qty_in: number
+          qty_out: number
+          unit_cost_in: number
+        }[]
+      }
+      wac_recon_apply: {
+        Args: {
+          _override_pdv?: boolean
+          _override_reason?: string
+          _run_id: string
+        }
+        Returns: string
+      }
+      wac_recon_detect: {
+        Args: {
+          _article_id?: string
+          _company_id: string
+          _from_date?: string
+          _notes?: string
+          _trigger_source_id?: string
+          _trigger_source_type?: string
+          _trigger_type?: Database["public"]["Enums"]["wac_recon_trigger"]
+          _warehouse_id: string
+        }
+        Returns: string
+      }
+      wac_recon_preview: {
+        Args: { _run_id: string }
+        Returns: {
+          affected_docs: number
+          total_diff: number
+        }[]
+      }
+      wac_recon_revert: {
+        Args: { _reason?: string; _run_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       absence_type:
