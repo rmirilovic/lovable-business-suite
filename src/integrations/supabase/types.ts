@@ -9162,6 +9162,300 @@ export type Database = {
           },
         ]
       }
+      wac_reconciliation_audit_log: {
+        Row: {
+          action: string
+          company_id: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          performed_at: string
+          performed_by: string
+          run_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          company_id: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          performed_at?: string
+          performed_by: string
+          run_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          company_id?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          performed_at?: string
+          performed_by?: string
+          run_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wac_reconciliation_audit_log_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wac_reconciliation_audit_log_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "wac_reconciliation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wac_reconciliation_changes: {
+        Row: {
+          account_code: string | null
+          applied: boolean
+          applied_at: string | null
+          article_id: string
+          company_id: string
+          cost_center_code: string | null
+          cost_difference: number
+          created_at: string
+          document_date: string
+          document_id: string
+          document_item_id: string
+          document_number: string | null
+          document_type: string
+          id: string
+          new_total_cost: number
+          new_unit_cost: number
+          old_total_cost: number
+          old_unit_cost: number
+          processing_order: number
+          quantity: number
+          run_id: string
+          variant_id: string | null
+          warehouse_id: string
+        }
+        Insert: {
+          account_code?: string | null
+          applied?: boolean
+          applied_at?: string | null
+          article_id: string
+          company_id: string
+          cost_center_code?: string | null
+          cost_difference?: number
+          created_at?: string
+          document_date: string
+          document_id: string
+          document_item_id: string
+          document_number?: string | null
+          document_type: string
+          id?: string
+          new_total_cost?: number
+          new_unit_cost?: number
+          old_total_cost?: number
+          old_unit_cost?: number
+          processing_order?: number
+          quantity?: number
+          run_id: string
+          variant_id?: string | null
+          warehouse_id: string
+        }
+        Update: {
+          account_code?: string | null
+          applied?: boolean
+          applied_at?: string | null
+          article_id?: string
+          company_id?: string
+          cost_center_code?: string | null
+          cost_difference?: number
+          created_at?: string
+          document_date?: string
+          document_id?: string
+          document_item_id?: string
+          document_number?: string | null
+          document_type?: string
+          id?: string
+          new_total_cost?: number
+          new_unit_cost?: number
+          old_total_cost?: number
+          old_unit_cost?: number
+          processing_order?: number
+          quantity?: number
+          run_id?: string
+          variant_id?: string | null
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wac_reconciliation_changes_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wac_reconciliation_changes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wac_reconciliation_changes_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "wac_reconciliation_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wac_reconciliation_changes_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "article_variants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wac_reconciliation_changes_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wac_reconciliation_runs: {
+        Row: {
+          affected_articles_count: number
+          affected_documents_count: number
+          applied_at: string | null
+          applied_by: string | null
+          article_id: string | null
+          business_year_id: string | null
+          company_id: string
+          correction_journal_entry_id: string | null
+          created_at: string
+          created_by: string
+          error_message: string | null
+          id: string
+          notes: string | null
+          override_pdv_period: boolean
+          override_reason: string | null
+          previewed_at: string | null
+          previewed_by: string | null
+          reconcile_from_date: string
+          reconcile_to_date: string | null
+          reverted_at: string | null
+          reverted_by: string | null
+          status: Database["public"]["Enums"]["wac_recon_status"]
+          total_value_difference: number
+          trigger_source_id: string | null
+          trigger_source_type: string | null
+          trigger_type: Database["public"]["Enums"]["wac_recon_trigger"]
+          updated_at: string
+          warehouse_id: string | null
+        }
+        Insert: {
+          affected_articles_count?: number
+          affected_documents_count?: number
+          applied_at?: string | null
+          applied_by?: string | null
+          article_id?: string | null
+          business_year_id?: string | null
+          company_id: string
+          correction_journal_entry_id?: string | null
+          created_at?: string
+          created_by: string
+          error_message?: string | null
+          id?: string
+          notes?: string | null
+          override_pdv_period?: boolean
+          override_reason?: string | null
+          previewed_at?: string | null
+          previewed_by?: string | null
+          reconcile_from_date: string
+          reconcile_to_date?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          status?: Database["public"]["Enums"]["wac_recon_status"]
+          total_value_difference?: number
+          trigger_source_id?: string | null
+          trigger_source_type?: string | null
+          trigger_type?: Database["public"]["Enums"]["wac_recon_trigger"]
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Update: {
+          affected_articles_count?: number
+          affected_documents_count?: number
+          applied_at?: string | null
+          applied_by?: string | null
+          article_id?: string | null
+          business_year_id?: string | null
+          company_id?: string
+          correction_journal_entry_id?: string | null
+          created_at?: string
+          created_by?: string
+          error_message?: string | null
+          id?: string
+          notes?: string | null
+          override_pdv_period?: boolean
+          override_reason?: string | null
+          previewed_at?: string | null
+          previewed_by?: string | null
+          reconcile_from_date?: string
+          reconcile_to_date?: string | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          status?: Database["public"]["Enums"]["wac_recon_status"]
+          total_value_difference?: number
+          trigger_source_id?: string | null
+          trigger_source_type?: string | null
+          trigger_type?: Database["public"]["Enums"]["wac_recon_trigger"]
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wac_reconciliation_runs_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wac_reconciliation_runs_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wac_reconciliation_runs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wac_reconciliation_runs_correction_journal_entry_id_fkey"
+            columns: ["correction_journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wac_reconciliation_runs_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       warehouse_reservations: {
         Row: {
           article_code: string
@@ -10325,6 +10619,13 @@ export type Database = {
         | "penzioner"
       sales_document_type: "quote" | "invoice" | "delivery_note"
       svk_type: "0" | "1" | "2" | "6" | "8" | "9"
+      wac_recon_status:
+        | "draft"
+        | "previewed"
+        | "applied"
+        | "reverted"
+        | "failed"
+      wac_recon_trigger: "manual" | "auto" | "cron"
       warehouse_type: "1" | "2" | "6" | "9" | "12"
     }
     CompositeTypes: {
@@ -10503,6 +10804,8 @@ export const Constants = {
       ],
       sales_document_type: ["quote", "invoice", "delivery_note"],
       svk_type: ["0", "1", "2", "6", "8", "9"],
+      wac_recon_status: ["draft", "previewed", "applied", "reverted", "failed"],
+      wac_recon_trigger: ["manual", "auto", "cron"],
       warehouse_type: ["1", "2", "6", "9", "12"],
     },
   },
