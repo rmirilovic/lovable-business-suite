@@ -10572,6 +10572,14 @@ export type Database = {
         Args: { _year_id: string }
         Returns: Json
       }
+      wac_find_mismatch_date: {
+        Args: {
+          _company_id: string
+          _tolerance?: number
+          _warehouse_id: string
+        }
+        Returns: string
+      }
       wac_get_account_for_doc_type: {
         Args: { _doc_type: string }
         Returns: string
@@ -10606,6 +10614,7 @@ export type Database = {
         Args: { _company_id: string; _from_date: string; _warehouse_id: string }
         Returns: boolean
       }
+      wac_nightly_integrity_check: { Args: never; Returns: Json }
       wac_recon_apply: {
         Args: {
           _override_pdv?: boolean
