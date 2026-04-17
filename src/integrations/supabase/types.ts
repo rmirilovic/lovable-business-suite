@@ -10598,6 +10598,14 @@ export type Database = {
           unit_cost_in: number
         }[]
       }
+      wac_has_open_draft: {
+        Args: { _company_id: string; _from_date: string; _warehouse_id: string }
+        Returns: boolean
+      }
+      wac_has_outflows_after: {
+        Args: { _company_id: string; _from_date: string; _warehouse_id: string }
+        Returns: boolean
+      }
       wac_recon_apply: {
         Args: {
           _override_pdv?: boolean
