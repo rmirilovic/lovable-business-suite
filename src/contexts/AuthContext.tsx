@@ -82,7 +82,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const pendingSignOutCheckRef = useRef<number | null>(null);
   const bootstrapRepairTimeoutRef = useRef<number | null>(null);
   const bootstrapRepairUserIdRef = useRef<string | null>(null);
-  const authBootstrapWatchdogRef = useRef<number | null>(null);
   const signedOutPermanentlyRef = useRef(
     (() => {
       try {
@@ -124,40 +123,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       bootstrapRepairTimeoutRef.current = null;
     }
   };
-
-  const clearAuthBootstrapWatchdog = () => {
-    if (authBootstrapWatchdogRef.current !== null) {
-      window.clearTimeout(authBootstrapWatchdogRef.current);
-      authBootstrapWatchdogRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-    if (!loading || initialLoadDone) {
-      clearAuthBootstrapWatchdog();
-      return;
-    }
-
-    if (authBootstrapWatchdogRef.current !== null) {
-      return;
-    }
-
-    authBootstrapWatchdogRef.current = window.setTimeout(() => {
-      authBootstrapWatchdogRef.current = null;
-      console.warn("[AuthContext] Bootstrap watchdog released stuck loading state", {
-        hasUser: !!sessionRef.current?.user,
-        initialLoadDone: initialLoadDoneRef.current,
-        userDataLoading: userDataLoadingRef.current,
-      });
-      userDataLoadingRef.current = false;
-      updateInitialLoadDone(true);
-      setLoading(false);
-    }, 10000);
-
-    return () => {
-      clearAuthBootstrapWatchdog();
-    };
-  }, [loading, initialLoadDone]);
 
   const setIntentionalSignOutState = (value: boolean) => {
     signedOutPermanentlyRef.current = value;
