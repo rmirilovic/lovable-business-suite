@@ -245,12 +245,24 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
                 <DropdownMenuTrigger asChild>
                   <button
                     className={cn(
-                      "w-full flex items-center justify-center p-2 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
+                      "relative w-full flex items-center justify-center p-2 rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors",
                       isParentActive(item.children) && "text-sidebar-foreground bg-sidebar-accent"
                     )}
-                    title={item.label}
+                    title={
+                      showPncBadge && item.children?.some((c) => c.href === PNC_HREF)
+                        ? `${item.label} (${pncPendingCount} novo usklađivanje PNC)`
+                        : item.label
+                    }
                   >
                     <item.icon className="w-5 h-5" />
+                    {showPncBadge && item.children?.some((c) => c.href === PNC_HREF) && (
+                      <span
+                        aria-label={`${pncPendingCount} novih usklađivanja PNC`}
+                        className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-warning text-warning-foreground text-[10px] font-bold flex items-center justify-center"
+                      >
+                        {pncPendingCount > 9 ? "9+" : pncPendingCount}
+                      </span>
+                    )}
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right" align="start" className="min-w-48">
@@ -260,10 +272,16 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
                       key={child.href}
                       onClick={() => navigate(child.href)}
                       className={cn(
+                        "flex items-center justify-between gap-2",
                         isActive(child.href) && "bg-accent font-medium"
                       )}
                     >
-                      {child.label}
+                      <span>{child.label}</span>
+                      {showPncBadge && child.href === PNC_HREF && (
+                        <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-warning text-warning-foreground text-[10px] font-bold flex items-center justify-center">
+                          {pncPendingCount > 99 ? "99+" : pncPendingCount}
+                        </span>
+                      )}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -280,6 +298,15 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
                   <span className="flex items-center gap-3">
                     <item.icon className="w-5 h-5" />
                     <span>{item.label}</span>
+                    {showPncBadge && item.children?.some((c) => c.href === PNC_HREF) && (
+                      <span
+                        aria-label={`${pncPendingCount} novih usklađivanja PNC`}
+                        title={`${pncPendingCount} novih usklađivanja PNC`}
+                        className="min-w-[20px] h-5 px-1.5 rounded-full bg-warning text-warning-foreground text-[10px] font-bold flex items-center justify-center"
+                      >
+                        {pncPendingCount > 99 ? "99+" : pncPendingCount}
+                      </span>
+                    )}
                   </span>
                   <ChevronDown
                     className={cn(
@@ -299,12 +326,17 @@ export function Sidebar({ mobileOpen, onMobileClose, collapsed = false }: Sideba
                           navigate(child.href);
                         }}
                         className={cn(
-                          "block px-3 py-2 text-sm rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors",
+                          "flex items-center justify-between gap-2 px-3 py-2 text-sm rounded-md text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors",
                           isActive(child.href) &&
                             "text-sidebar-foreground bg-sidebar-accent/50 font-medium"
                         )}
                       >
-                        {child.label}
+                        <span>{child.label}</span>
+                        {showPncBadge && child.href === PNC_HREF && (
+                          <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-warning text-warning-foreground text-[10px] font-bold flex items-center justify-center">
+                            {pncPendingCount > 99 ? "99+" : pncPendingCount}
+                          </span>
+                        )}
                       </a>
                     ))}
                   </div>
