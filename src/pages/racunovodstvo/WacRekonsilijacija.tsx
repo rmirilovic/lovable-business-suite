@@ -153,7 +153,7 @@ export default function WacRekonsilijacija() {
 
   const handleRevert = async () => {
     if (!selectedRunId) return;
-    if (!confirm("Da li ste sigurni da želite da poništite ovu rekonsilijaciju? Cene će biti vraćene na prethodne vrednosti, a nalog ispravke u GK će biti storniran.")) return;
+    if (!confirm("Da li ste sigurni da želite da poništite ovo usklađivanje PNC? Cene će biti vraćene na prethodne vrednosti, a nalog ispravke u GK će biti storniran.")) return;
     await revert.mutateAsync({ runId: selectedRunId, reason: "Ručni revert iz UI" });
   };
 
@@ -251,7 +251,7 @@ export default function WacRekonsilijacija() {
                     </li>
                   </ol>
                   <p className="pt-2">
-                    Ako napraviš grešku, koristi <strong>"Poništi rekonsilijaciju"</strong> — sistem će vratiti cene i
+                    Ako napraviš grešku, koristi <strong>"Poništi usklađivanje"</strong> — sistem će vratiti cene i
                     stornirati nalog ispravke.
                   </p>
                 </AccordionContent>
@@ -260,7 +260,7 @@ export default function WacRekonsilijacija() {
               <AccordionItem value="pdv">
                 <AccordionTrigger className="text-sm">
                   <span className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                    <AlertTriangle className="w-4 h-4 text-warning" />
                     Šta sa zaključenim PDV periodom?
                   </span>
                 </AccordionTrigger>
@@ -282,7 +282,7 @@ export default function WacRekonsilijacija() {
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Search className="w-4 h-4" />
-                1. Pokreni novu rekonsilijaciju
+                1. Pokreni novo usklađivanje
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -354,7 +354,7 @@ export default function WacRekonsilijacija() {
                 ) : (
                   <Search className="w-4 h-4" />
                 )}
-                Inicijalizuj rekonsilijaciju
+                Inicijalizuj usklađivanje
               </Button>
             </CardContent>
           </Card>
@@ -370,7 +370,7 @@ export default function WacRekonsilijacija() {
             <CardContent className="space-y-3">
               {!selectedRun ? (
                 <p className="text-sm text-muted-foreground">
-                  Izaberite zapis iz tabele ili pokrenite novu rekonsilijaciju.
+                  Izaberite zapis iz tabele ili pokrenite novo usklađivanje PNC.
                 </p>
               ) : (
                 <>
@@ -469,7 +469,7 @@ export default function WacRekonsilijacija() {
                           disabled={!canManage || revert.isPending}
                         >
                           {revert.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-                          Poništi rekonsilijaciju
+                          Poništi usklađivanje
                         </Button>
                       </>
                     )}
@@ -493,7 +493,7 @@ export default function WacRekonsilijacija() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <FileText className="w-4 h-4" />
-              Istorija rekonsilijacija
+              Istorija usklađivanja PNC
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -523,7 +523,7 @@ export default function WacRekonsilijacija() {
                   ) : runs.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={10} className="text-center py-6 text-muted-foreground">
-                        Nema zapisa rekonsilijacije.
+                        Nema zapisa usklađivanja.
                       </TableCell>
                     </TableRow>
                   ) : (
