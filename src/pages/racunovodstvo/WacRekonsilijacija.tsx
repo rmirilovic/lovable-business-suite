@@ -19,8 +19,11 @@ import {
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
+  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   AlertTriangle, Calculator, CheckCircle2, FileText, Loader2,
-  PlayCircle, RotateCcw, Search, ExternalLink,
+  PlayCircle, RotateCcw, Search, ExternalLink, HelpCircle, Info,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,6 +57,17 @@ const DOC_TYPE_LABELS: Record<string, string> = {
   inventory_count: "Popis",
   article_swap: "Zamena artikla",
   customs_clearance: "Carinski obračun",
+};
+
+const TRIGGER_SOURCE_LABELS: Record<string, string> = {
+  goods_receipt: "Prijemnica",
+  calculation: "Kalkulacija",
+  price_adjustment: "Nivelacija",
+  customs_clearance: "Carinski obračun",
+  inventory_count: "Popis",
+  inter_warehouse_transfer_in: "MMP - ulaz",
+  production_delivery_note: "Predajnica GP",
+  reprocessing_delivery_note: "Predajnica RPR",
 };
 
 export default function WacRekonsilijacija() {
