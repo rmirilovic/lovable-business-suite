@@ -9162,6 +9162,115 @@ export type Database = {
           },
         ]
       }
+      vat_period_lock_audit: {
+        Row: {
+          action: string
+          company_id: string
+          details: Json | null
+          id: string
+          performed_at: string
+          performed_by: string
+          reason: string | null
+          vat_period_lock_id: string
+        }
+        Insert: {
+          action: string
+          company_id: string
+          details?: Json | null
+          id?: string
+          performed_at?: string
+          performed_by: string
+          reason?: string | null
+          vat_period_lock_id: string
+        }
+        Update: {
+          action?: string
+          company_id?: string
+          details?: Json | null
+          id?: string
+          performed_at?: string
+          performed_by?: string
+          reason?: string | null
+          vat_period_lock_id?: string
+        }
+        Relationships: []
+      }
+      vat_period_locks: {
+        Row: {
+          business_year_id: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          locked_at: string
+          locked_by: string
+          period_end: string
+          period_label: string
+          period_start: string
+          pp_pdv_return_id: string | null
+          unlock_reason: string | null
+          unlocked_at: string | null
+          unlocked_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_year_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          locked_at?: string
+          locked_by: string
+          period_end: string
+          period_label: string
+          period_start: string
+          pp_pdv_return_id?: string | null
+          unlock_reason?: string | null
+          unlocked_at?: string | null
+          unlocked_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_year_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          locked_at?: string
+          locked_by?: string
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          pp_pdv_return_id?: string | null
+          unlock_reason?: string | null
+          unlocked_at?: string | null
+          unlocked_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vat_period_locks_business_year_id_fkey"
+            columns: ["business_year_id"]
+            isOneToOne: false
+            referencedRelation: "business_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vat_period_locks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vat_period_locks_pp_pdv_return_id_fkey"
+            columns: ["pp_pdv_return_id"]
+            isOneToOne: false
+            referencedRelation: "pp_pdv_returns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wac_reconciliation_audit_log: {
         Row: {
           action: string
@@ -10366,7 +10475,12 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      is_vat_period_locked: {
+        Args: { _check_date: string; _company_id: string }
+        Returns: boolean
+      }
       lock_business_year: { Args: { _year_id: string }; Returns: undefined }
+      lock_vat_period: { Args: { _pp_pdv_return_id: string }; Returns: string }
       post_advance_invoice: {
         Args: { _invoice_id: string; _user_id: string }
         Returns: boolean
@@ -10469,6 +10583,10 @@ export type Database = {
       remove_session: { Args: { _session_token: string }; Returns: undefined }
       reopen_reprocessing_work_order: {
         Args: { _order_id: string; _user_id: string }
+        Returns: boolean
+      }
+      unlock_vat_period: {
+        Args: { _lock_id: string; _reason: string }
         Returns: boolean
       }
       unpost_advance_invoice: {
