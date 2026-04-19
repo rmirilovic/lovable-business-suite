@@ -220,6 +220,12 @@ export default function PpPdvEdit() {
             <span className={ret.status === "finalized" ? "erp-badge-success" : "erp-badge-warning"}>
               {ret.status === "finalized" ? "Zaključena" : "Nacrt"}
             </span>
+            {periodLock && (
+              <Badge variant="default" className="gap-1">
+                <Lock className="h-3 w-3" />
+                PDV period zaključan
+              </Badge>
+            )}
           </div>
           <div className="flex gap-2 flex-wrap">
             {isDraft && ret.popdv_report_id && (
@@ -249,7 +255,36 @@ export default function PpPdvEdit() {
                 disabled={finalizeReturn.isPending}
               >
                 <Lock className="w-4 h-4 mr-2" />
-                Zaključi
+                Zaključi prijavu
+              </Button>
+            )}
+            {isFinalized && !periodLock && isAdmin && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  if (
+                    confirm(
+                      `Zaključati PDV period ${ret.period_label}?\n\nNakon zaključavanja, neće biti moguće menjati PDV-relevantne dokumente (fakture, UFR, UFU, KO, carinske obračune, avansne fakture) sa datumom u tom periodu.\n\nOtključavanje je moguće od strane administratora uz unos razloga.`
+                    )
+                  ) {
+                    lockPeriod.mutate(ret.id);
+                  }
+                }}
+                disabled={lockPeriod.isPending}
+              >
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                Zaključaj PDV period
+              </Button>
+            )}
+            {isFinalized && periodLock && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate("/racunovodstvo/zakljucavanje-pdv")}
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                Upravljanje lockom
               </Button>
             )}
           </div>
