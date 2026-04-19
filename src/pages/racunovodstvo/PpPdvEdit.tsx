@@ -1,11 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { usePpPdvReturnDetail, usePpPdvReturnMutations } from "@/hooks/usePpPdvReturns";
 import { usePopdvReportCells } from "@/hooks/usePopdvReports";
+import { useAuth } from "@/contexts/AuthContext";
+import { useVatPeriodLocks, useVatPeriodLockMutations } from "@/hooks/useVatPeriodLocks";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Lock, RefreshCw, Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Lock, RefreshCw, Download, ShieldCheck } from "lucide-react";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { toast } from "sonner";
 import { generatePpPdvXml } from "@/lib/ppPdvXmlGenerator";
@@ -64,10 +67,23 @@ export default function PpPdvEdit() {
   const navigate = useNavigate();
   const returnQuery = usePpPdvReturnDetail(id);
   const { updateFields, finalizeReturn } = usePpPdvReturnMutations(id);
+  const { isSuperAdmin, isLocalAdmin } = useAuth();
+  const isAdmin = isSuperAdmin || isLocalAdmin;
+  const locksQuery = useVatPeriodLocks();
+  const { lockPeriod } = useVatPeriodLockMutations();
   const [calculating, setCalculating] = useState(false);
 
   const ret = returnQuery.data;
   const isDraft = ret?.status === "draft";
+  const isFinalized = ret?.status === "finalized";
+
+  // Da li je ovaj period već zaključan?
+  const periodLock = useMemo(() => {
+    if (!ret) return null;
+    return (locksQuery.data || []).find(
+      (l) => l.is_active && l.period_start === ret.period_start && l.period_end === ret.period_end
+    ) || null;
+  }, [ret, locksQuery.data]);
 
   // Cells from linked POPDV
   const { cellsQuery } = usePopdvReportCells(ret?.popdv_report_id || undefined);
@@ -204,6 +220,12 @@ export default function PpPdvEdit() {
             <span className={ret.status === "finalized" ? "erp-badge-success" : "erp-badge-warning"}>
               {ret.status === "finalized" ? "Zaključena" : "Nacrt"}
             </span>
+            {periodLock && (
+              <Badge variant="default" className="gap-1">
+                <Lock className="h-3 w-3" />
+                PDV period zaključan
+              </Badge>
+            )}
           </div>
           <div className="flex gap-2 flex-wrap">
             {isDraft && ret.popdv_report_id && (
@@ -233,7 +255,36 @@ export default function PpPdvEdit() {
                 disabled={finalizeReturn.isPending}
               >
                 <Lock className="w-4 h-4 mr-2" />
-                Zaključi
+                Zaključi prijavu
+              </Button>
+            )}
+            {isFinalized && !periodLock && isAdmin && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  if (
+                    confirm(
+                      `Zaključati PDV period ${ret.period_label}?\n\nNakon zaključavanja, neće biti moguće menjati PDV-relevantne dokumente (fakture, UFR, UFU, KO, carinske obračune, avansne fakture) sa datumom u tom periodu.\n\nOtključavanje je moguće od strane administratora uz unos razloga.`
+                    )
+                  ) {
+                    lockPeriod.mutate(ret.id);
+                  }
+                }}
+                disabled={lockPeriod.isPending}
+              >
+                <ShieldCheck className="w-4 h-4 mr-2" />
+                Zaključaj PDV period
+              </Button>
+            )}
+            {isFinalized && periodLock && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate("/racunovodstvo/zakljucavanje-pdv")}
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                Upravljanje lockom
               </Button>
             )}
           </div>
