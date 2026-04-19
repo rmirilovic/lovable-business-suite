@@ -1,11 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { usePpPdvReturnDetail, usePpPdvReturnMutations } from "@/hooks/usePpPdvReturns";
 import { usePopdvReportCells } from "@/hooks/usePopdvReports";
+import { useAuth } from "@/contexts/AuthContext";
+import { useVatPeriodLocks, useVatPeriodLockMutations } from "@/hooks/useVatPeriodLocks";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Lock, RefreshCw, Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Lock, RefreshCw, Download, ShieldCheck } from "lucide-react";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { toast } from "sonner";
 import { generatePpPdvXml } from "@/lib/ppPdvXmlGenerator";
@@ -64,10 +67,23 @@ export default function PpPdvEdit() {
   const navigate = useNavigate();
   const returnQuery = usePpPdvReturnDetail(id);
   const { updateFields, finalizeReturn } = usePpPdvReturnMutations(id);
+  const { isSuperAdmin, isLocalAdmin } = useAuth();
+  const isAdmin = isSuperAdmin || isLocalAdmin;
+  const locksQuery = useVatPeriodLocks();
+  const { lockPeriod } = useVatPeriodLockMutations();
   const [calculating, setCalculating] = useState(false);
 
   const ret = returnQuery.data;
   const isDraft = ret?.status === "draft";
+  const isFinalized = ret?.status === "finalized";
+
+  // Da li je ovaj period već zaključan?
+  const periodLock = useMemo(() => {
+    if (!ret) return null;
+    return (locksQuery.data || []).find(
+      (l) => l.is_active && l.period_start === ret.period_start && l.period_end === ret.period_end
+    ) || null;
+  }, [ret, locksQuery.data]);
 
   // Cells from linked POPDV
   const { cellsQuery } = usePopdvReportCells(ret?.popdv_report_id || undefined);
