@@ -34,6 +34,7 @@ import BilansStanja from "./pages/racunovodstvo/BilansStanja";
 import StatistickiIzvestaj from "./pages/racunovodstvo/StatistickiIzvestaj";
 import TroskoviPoMT from "./pages/racunovodstvo/TroskoviPoMT";
 import ObracunProizvodnje from "./pages/racunovodstvo/ObracunProizvodnje";
+import ZakljucniList from "./pages/racunovodstvo/ZakljucniList";
 import ZatvaranjeGodine from "./pages/racunovodstvo/ZatvaranjeGodine";
 import ZakljucavanjePdvPerioda from "./pages/racunovodstvo/ZakljucavanjePdvPerioda";
 import WacRekonsilijacija from "./pages/racunovodstvo/WacRekonsilijacija";
@@ -289,6 +290,11 @@ const App = () => (
               <Route path="/racunovodstvo/obracun-proizvodnje" element={
                 <ProtectedRoute>
                   <ObracunProizvodnje />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/zakljucni-list" element={
+                <ProtectedRoute>
+                  <ZakljucniList />
                 </ProtectedRoute>
               } />
               <Route path="/racunovodstvo/zatvaranje-godine" element={
