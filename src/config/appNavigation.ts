@@ -152,6 +152,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Bilans stanja", href: "/racunovodstvo/bilans-stanja", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "Statistički izveštaj", href: "/racunovodstvo/statisticki-izvestaj", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "Troškovi po MT", href: "/racunovodstvo/troskovi-po-mt", moduleCode: "racunovodstvo.bruto_bilans" },
+      { label: "Obračun troškova proizvodnje", href: "/racunovodstvo/obracun-proizvodnje", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "Zatvaranje godine", href: "/racunovodstvo/zatvaranje-godine", moduleCode: "racunovodstvo.nalozi" },
       { label: "Usklađivanje PNC", href: "/racunovodstvo/uskladjivanje-pnc", moduleCode: "racunovodstvo.wac_rekonsilijacija" },
     ],
