@@ -567,7 +567,7 @@ export default function Partneri() {
                 <TableHead className="w-[100px]">
                   <SortableHeader column="code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead>
+                <TableHead className="min-w-[280px] lg:min-w-0">
                   <SortableHeader column="name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
                 <TableHead className="w-[140px]">
