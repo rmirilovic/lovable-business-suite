@@ -373,18 +373,6 @@ export default function Partneri() {
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             {/* Search and Filters */}
             <div className="flex flex-wrap gap-3 flex-1 w-full">
-              {/* Search is always visible */}
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Pretraži..."
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  autoComplete="off"
-                />
-              </div>
-
               {/* Toggle button — visible only below lg (mobile + tablet) */}
               <Button
                 variant="outline"
