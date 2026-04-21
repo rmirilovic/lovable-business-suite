@@ -344,26 +344,28 @@ export default function NaloziZaPlacanja() {
   return (
     <MainLayout title="Nalozi za plaćanja">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Nalozi za plaćanja</h1>
             <p className="text-sm text-muted-foreground">Evidencija i planiranje plaćanja obaveza</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => exportPaymentOrdersToExcel(sortedData, { companyName: selectedCompany?.name ?? "" })}>
-              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => exportPaymentOrdersToPdf(sortedData, { companyName: selectedCompany?.name ?? "" })}>
-              <FileText className="w-4 h-4 mr-2" /> PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => printPaymentOrders(sortedData, { companyName: selectedCompany?.name ?? "" })}>
-              <Printer className="w-4 h-4 mr-2" /> Štampa
-            </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="grid grid-cols-4 sm:flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => refetch()} className="w-full sm:w-auto">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportPaymentOrdersToExcel(sortedData, { companyName: selectedCompany?.name ?? "" })} className="w-full sm:w-auto">
+                <FileSpreadsheet className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Excel</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportPaymentOrdersToPdf(sortedData, { companyName: selectedCompany?.name ?? "" })} className="w-full sm:w-auto">
+                <FileText className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">PDF</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => printPaymentOrders(sortedData, { companyName: selectedCompany?.name ?? "" })} className="w-full sm:w-auto">
+                <Printer className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Štampa</span>
+              </Button>
+            </div>
             {canEdit && (
-              <Button size="sm" onClick={handleCreate}>
+              <Button size="sm" onClick={handleCreate} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-1" />
                 Novi nalog
               </Button>
@@ -371,26 +373,26 @@ export default function NaloziZaPlacanja() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative w-64">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center lg:gap-3 gap-3 flex-wrap">
+          <div className="relative sm:col-span-2 lg:col-span-1 lg:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Pretraži..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
           </div>
           <Select value={roleView} onValueChange={setRoleView}>
-            <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full lg:w-[180px] h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
               {ROLE_VIEWS.map((r) => (<SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>))}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full lg:w-[150px] h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
               {STATUS_OPTIONS.map((s) => (<SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>))}
             </SelectContent>
           </Select>
           <DropdownMenu open={columnSettingsOpen} onOpenChange={setColumnSettingsOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm"><Settings2 className="w-4 h-4 mr-1" />Kolone</Button>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto"><Settings2 className="w-4 h-4 mr-1" />Kolone</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               {ALL_COLUMNS.map((col) => (
@@ -403,7 +405,7 @@ export default function NaloziZaPlacanja() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <span className="text-sm text-muted-foreground ml-auto">{sortedData.length} naloga</span>
+          <span className="text-sm text-muted-foreground sm:col-span-2 lg:col-span-1 lg:ml-auto">{sortedData.length} naloga</span>
         </div>
 
         <TableScrollContainer>

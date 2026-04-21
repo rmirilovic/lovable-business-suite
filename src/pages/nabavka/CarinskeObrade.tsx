@@ -84,15 +84,15 @@ export default function CarinskeObrade() {
   return (
     <MainLayout title="Carinski obračuni">
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h1 className="text-2xl font-bold">Carinski obračuni</h1>
-          <Button onClick={() => setHeaderDialogOpen(true)}>
+          <Button onClick={() => setHeaderDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" /> Novi obračun
           </Button>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Pretraga..."
