@@ -396,14 +396,6 @@ export default function Partneri() {
                   filtersExpanded ? "flex" : "hidden",
                 )}
               >
-
-              {/* Collapsible filters: always visible on lg+, toggleable below */}
-              <div
-                className={cn(
-                  "flex-wrap gap-3 flex-1 w-full lg:flex lg:w-auto",
-                  filtersExpanded ? "flex" : "hidden",
-                )}
-              >
                 <Select
                   value={typeFilter}
                   onValueChange={(val) => setTypeFilter(val as TypeFilter)}
