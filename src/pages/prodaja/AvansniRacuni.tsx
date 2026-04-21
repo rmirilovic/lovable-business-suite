@@ -91,37 +91,39 @@ export default function AvansniRacuni() {
     <MainLayout title="Fakture za avans">
       <div className="space-y-4">
         {/* Actions row */}
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={() => exportAdvanceInvoicesToExcel(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
-            <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => exportAdvanceInvoicesToPdf(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
-            <FileText className="w-4 h-4 mr-2" /> PDF
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => printAdvanceInvoices(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>
-            <Printer className="w-4 h-4 mr-2" /> Štampa
-          </Button>
-          <Button onClick={() => setDialogOpen(true)}><Plus className="mr-2 h-4 w-4" />Nova faktura za avans</Button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2">
+          <div className="grid grid-cols-3 sm:flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => exportAdvanceInvoicesToExcel(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} className="w-full sm:w-auto">
+              <FileSpreadsheet className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Excel</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => exportAdvanceInvoicesToPdf(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} className="w-full sm:w-auto">
+              <FileText className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">PDF</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => printAdvanceInvoices(sortedItems, { companyName: selectedCompany?.name || "", dateFrom, dateTo })} className="w-full sm:w-auto">
+              <Printer className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Štampa</span>
+            </Button>
+          </div>
+          <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" />Nova faktura za avans</Button>
         </div>
 
         {/* Filters row */}
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-end gap-3 lg:gap-4">
+          <div className="relative sm:col-span-2 lg:col-span-1 lg:flex-1 lg:min-w-[200px] lg:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Pretraži..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum od</Label>
-            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-full lg:w-[170px]" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum do</Label>
-            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-full lg:w-[170px]" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 sm:col-span-2 lg:col-span-1">
             <Label className="text-xs">Status</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full lg:w-[170px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Svi</SelectItem>
                 <SelectItem value="draft">Nacrt</SelectItem>
@@ -131,7 +133,7 @@ export default function AvansniRacuni() {
           </div>
         </div>
 
-        <div className="border rounded-lg">
+        <TableScrollContainer className="border rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
@@ -177,7 +179,7 @@ export default function AvansniRacuni() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
 
          <AdvanceInvoiceHeaderDialog
            open={dialogOpen}
