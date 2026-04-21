@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useInvoices, Invoice, InvoiceFormData } from "@/hooks/useInvoices";
@@ -103,9 +104,9 @@ export default function Fakture() {
     <MainLayout title="Fakture">
       <div className="space-y-4">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
+        <div className="flex flex-col lg:flex-row gap-4 lg:justify-between lg:items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-end gap-3 lg:gap-4">
+            <div className="relative sm:col-span-2 lg:col-span-1 lg:flex-1 lg:min-w-[200px] lg:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Pretraži fakture..."
@@ -116,16 +117,16 @@ export default function Fakture() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Datum od</Label>
-              <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+              <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-full lg:w-[170px]" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Datum do</Label>
-              <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+              <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-full lg:w-[170px]" />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 sm:col-span-2 lg:col-span-1">
               <Label className="text-xs">Status</Label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[170px]">
+                <SelectTrigger className="w-full lg:w-[170px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -137,12 +138,12 @@ export default function Fakture() {
               </Select>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setFromSourceDialogOpen(true)}>
+          <div className="flex flex-col sm:flex-row gap-2 lg:shrink-0">
+            <Button variant="outline" onClick={() => setFromSourceDialogOpen(true)} className="w-full sm:w-auto">
               <FileInput className="mr-2 h-4 w-4" />
               Iz dokumenta
             </Button>
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Nova faktura
             </Button>
@@ -150,7 +151,7 @@ export default function Fakture() {
         </div>
 
         {/* Table */}
-        <div className="border rounded-lg">
+        <TableScrollContainer className="border rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
@@ -239,7 +240,7 @@ export default function Fakture() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
 
         {/* Create dialog */}
         <InvoiceDialog
