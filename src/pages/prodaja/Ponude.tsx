@@ -264,7 +264,7 @@ export default function Ponude() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
 
         {/* Create dialog */}
         <QuoteDialog
