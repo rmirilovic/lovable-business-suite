@@ -12,6 +12,9 @@ import {
   ChevronsLeft,
   ChevronsRight,
   History,
+  ChevronDown,
+  ChevronUp,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +57,7 @@ import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
+import { cn } from "@/lib/utils";
 
 type TypeFilter = "all" | "customer" | "supplier";
 type StatusFilter = "all" | "active" | "inactive";
@@ -77,6 +81,7 @@ export default function Partneri() {
 
   // Check if user has write access to partners module
   const canEdit = hasAccess("sifarnici.partneri", "write");
+  const [filtersExpanded, setFiltersExpanded] = useState<boolean>(false);
 
   const saved = loadPartneriState();
 
@@ -367,7 +372,8 @@ export default function Partneri() {
         <div className="erp-card p-4">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
             {/* Search and Filters */}
-            <div className="flex flex-wrap gap-3 flex-1">
+            <div className="flex flex-wrap gap-3 flex-1 w-full">
+              {/* Search is always visible */}
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -379,132 +385,156 @@ export default function Partneri() {
                 />
               </div>
 
-              <Select
-                value={typeFilter}
-                onValueChange={(val) => setTypeFilter(val as TypeFilter)}
+              {/* Toggle button — visible only below lg (mobile + tablet) */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFiltersExpanded((v) => !v)}
+                className="lg:hidden"
               >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Tip" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Svi tipovi</SelectItem>
-                  <SelectItem value="customer">Kupci</SelectItem>
-                  <SelectItem value="supplier">Dobavljači</SelectItem>
-                </SelectContent>
-              </Select>
+                <SlidersHorizontal className="w-4 h-4 mr-2" />
+                Filteri
+                {filtersExpanded ? (
+                  <ChevronUp className="w-4 h-4 ml-2" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                )}
+              </Button>
 
-              <Select
-                value={statusFilter}
-                onValueChange={(val) => setStatusFilter(val as StatusFilter)}
+              {/* Collapsible filters: always visible on lg+, toggleable below */}
+              <div
+                className={cn(
+                  "flex-wrap gap-3 flex-1 w-full lg:flex lg:w-auto",
+                  filtersExpanded ? "flex" : "hidden",
+                )}
               >
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Svi statusi</SelectItem>
-                  <SelectItem value="active">Aktivni</SelectItem>
-                  <SelectItem value="inactive">Neaktivni</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select
+                  value={typeFilter}
+                  onValueChange={(val) => setTypeFilter(val as TypeFilter)}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Tip" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Svi tipovi</SelectItem>
+                    <SelectItem value="customer">Kupci</SelectItem>
+                    <SelectItem value="supplier">Dobavljači</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={groupFilter} onValueChange={setGroupFilter}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Grupa" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Sve grupe</SelectItem>
-                  <SelectItem value="none">Bez grupe</SelectItem>
-                  {groups.map((group) => (
-                    <SelectItem key={group.id} value={group.id}>
-                      {group.code} - {group.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(val) => setStatusFilter(val as StatusFilter)}
+                >
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Svi statusi</SelectItem>
+                    <SelectItem value="active">Aktivni</SelectItem>
+                    <SelectItem value="inactive">Neaktivni</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={cityFilter} onValueChange={setCityFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Mesto" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Sva mesta</SelectItem>
-                  {uniqueCities.map((city) => (
-                    <SelectItem key={city} value={city}>
-                      {city}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Select value={groupFilter} onValueChange={setGroupFilter}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Grupa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Sve grupe</SelectItem>
+                    <SelectItem value="none">Bez grupe</SelectItem>
+                    {groups.map((group) => (
+                      <SelectItem key={group.id} value={group.id}>
+                        {group.code} - {group.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              <Input
-                placeholder="PIB..."
-                className="w-[120px]"
-                value={pibFilter}
-                onChange={(e) => setPibFilter(e.target.value)}
-                autoComplete="off"
-              />
+                <Select value={cityFilter} onValueChange={setCityFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Mesto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Sva mesta</SelectItem>
+                    {uniqueCities.map((city) => (
+                      <SelectItem key={city} value={city}>
+                        {city}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              <Input
-                placeholder="Mat. broj..."
-                className="w-[120px]"
-                value={mbFilter}
-                onChange={(e) => setMbFilter(e.target.value)}
-                autoComplete="off"
-              />
+                <Input
+                  placeholder="PIB..."
+                  className="w-[120px]"
+                  value={pibFilter}
+                  onChange={(e) => setPibFilter(e.target.value)}
+                  autoComplete="off"
+                />
 
-              <Select value={legalStatusFilter} onValueChange={setLegalStatusFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Pravni status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Svi statusi</SelectItem>
-                  {Object.entries(LEGAL_STATUS_LABELS).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Input
+                  placeholder="Mat. broj..."
+                  className="w-[120px]"
+                  value={mbFilter}
+                  onChange={(e) => setMbFilter(e.target.value)}
+                  autoComplete="off"
+                />
 
-              <Input
-                placeholder="Adresa..."
-                className="w-[130px]"
-                value={addressFilter}
-                onChange={(e) => setAddressFilter(e.target.value)}
-                autoComplete="off"
-              />
+                <Select value={legalStatusFilter} onValueChange={setLegalStatusFilter}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Pravni status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Svi statusi</SelectItem>
+                    {Object.entries(LEGAL_STATUS_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              <Select value={countryFilter} onValueChange={setCountryFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Država" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Sve države</SelectItem>
-                  <SelectItem value="none">Bez države</SelectItem>
-                  {uniqueCountries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Input
+                  placeholder="Adresa..."
+                  className="w-[130px]"
+                  value={addressFilter}
+                  onChange={(e) => setAddressFilter(e.target.value)}
+                  autoComplete="off"
+                />
 
-              <Select value={pdvFilter} onValueChange={setPdvFilter}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="PDV" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Svi PDV</SelectItem>
-                  <SelectItem value="yes">U PDV-u</SelectItem>
-                  <SelectItem value="no">Nije u PDV-u</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={countryFilter} onValueChange={setCountryFilter}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Država" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Sve države</SelectItem>
+                    <SelectItem value="none">Bez države</SelectItem>
+                    {uniqueCountries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              {hasActiveFilters && (
-                <Button variant="ghost" size="icon" onClick={resetFilters}>
-                  <RotateCcw className="w-4 h-4" />
-                </Button>
-              )}
+                <Select value={pdvFilter} onValueChange={setPdvFilter}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="PDV" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Svi PDV</SelectItem>
+                    <SelectItem value="yes">U PDV-u</SelectItem>
+                    <SelectItem value="no">Nije u PDV-u</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="icon" onClick={resetFilters}>
+                    <RotateCcw className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Actions */}
@@ -535,7 +565,7 @@ export default function Partneri() {
                 <TableHead className="w-[100px]">
                   <SortableHeader column="code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
-                <TableHead>
+                <TableHead className="min-w-[280px] lg:min-w-0">
                   <SortableHeader column="name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
                 <TableHead className="w-[140px]">
