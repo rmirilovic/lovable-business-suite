@@ -3,14 +3,14 @@ import { Camera, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Html5Qrcode } from "html5-qrcode";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTouchDevice } from "@/hooks/use-touch-device";
 
 interface BarcodeScannerButtonProps {
   onScan: (code: string) => void;
 }
 
 export function BarcodeScannerButton({ onScan }: BarcodeScannerButtonProps) {
-  const isMobile = useIsMobile();
+  const isTouchDevice = useIsTouchDevice();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -79,7 +79,7 @@ export function BarcodeScannerButton({ onScan }: BarcodeScannerButtonProps) {
     if (!open) setError(null);
   }, [open]);
 
-  if (!isMobile) return null;
+  if (!isTouchDevice) return null;
 
   return (
     <>
