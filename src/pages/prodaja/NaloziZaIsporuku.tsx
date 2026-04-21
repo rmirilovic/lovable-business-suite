@@ -267,7 +267,7 @@ export default function NaloziZaIsporuku() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
     </MainLayout>
   );
