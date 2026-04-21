@@ -82,7 +82,6 @@ export default function Partneri() {
 
   // Check if user has write access to partners module
   const canEdit = hasAccess("sifarnici.partneri", "write");
-  const isMobile = useIsMobile();
   const [filtersExpanded, setFiltersExpanded] = useState<boolean>(false);
 
   const saved = loadPartneriState();
