@@ -196,7 +196,7 @@ export default function KnjiznaOdobrenja() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
 
         <CreditNoteHeaderDialog
           open={dialogOpen}
