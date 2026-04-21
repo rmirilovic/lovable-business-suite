@@ -79,7 +79,7 @@ export function BarcodeScannerButton({ onScan }: BarcodeScannerButtonProps) {
     if (!open) setError(null);
   }, [open]);
 
-  if (!isMobile) return null;
+  if (!isTouchDevice) return null;
 
   return (
     <>
