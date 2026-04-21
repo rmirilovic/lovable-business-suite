@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
