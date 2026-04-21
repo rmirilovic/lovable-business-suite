@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -124,19 +125,19 @@ export default function UlazneFakture() {
     <MainLayout title="Ulazne fakture">
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Ulazne fakture</h1>
             <p className="text-muted-foreground">Upravljanje ulaznim fakturama od dobavljača</p>
           </div>
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Nova ulazna faktura
           </Button>
         </div>
 
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-end gap-3 lg:gap-4">
+          <div className="relative sm:col-span-2 lg:col-span-1 lg:flex-1 lg:min-w-[200px] lg:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Pretraži po broju ili dobavljaču..."
@@ -148,16 +149,16 @@ export default function UlazneFakture() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum od</Label>
-            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-full lg:w-[170px]" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum do</Label>
-            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-full lg:w-[170px]" />
           </div>
         </div>
 
         {/* Table */}
-        <div className="border rounded-lg">
+        <TableScrollContainer className="border rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
@@ -251,7 +252,7 @@ export default function UlazneFakture() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
 
       <PurchaseInvoiceHeaderDialog

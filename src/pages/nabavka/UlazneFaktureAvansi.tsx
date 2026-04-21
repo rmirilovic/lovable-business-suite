@@ -10,6 +10,7 @@ import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -96,43 +97,45 @@ export default function UlazneFaktureAvansi() {
   return (
     <MainLayout title="UF za plaćene avanse">
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Ulazne fakture za plaćene avanse</h1>
             <p className="text-muted-foreground">Fakture za avanse plaćene dobavljačima</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportAdvancePurchaseInvoicesToExcel(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
-              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => exportAdvancePurchaseInvoicesToPdf(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
-              <FileText className="w-4 h-4 mr-2" /> PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => printAdvancePurchaseInvoices(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
-              <Printer className="w-4 h-4 mr-2" /> Štampa
-            </Button>
-            <Button onClick={() => setHeaderDialogOpen(true)}>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="grid grid-cols-3 sm:flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => exportAdvancePurchaseInvoicesToExcel(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })} className="w-full sm:w-auto">
+                <FileSpreadsheet className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Excel</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportAdvancePurchaseInvoicesToPdf(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })} className="w-full sm:w-auto">
+                <FileText className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">PDF</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => printAdvancePurchaseInvoices(filteredInvoices, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })} className="w-full sm:w-auto">
+                <Printer className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Štampa</span>
+              </Button>
+            </div>
+            <Button onClick={() => setHeaderDialogOpen(true)} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />Nova UFA
             </Button>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-end gap-3 lg:gap-4">
+          <div className="relative sm:col-span-2 lg:col-span-1 lg:flex-1 lg:min-w-[200px] lg:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input placeholder="Pretraži po broju ili dobavljaču..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" autoComplete="off" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum od</Label>
-            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-full lg:w-[170px]" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum do</Label>
-            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-full lg:w-[170px]" />
           </div>
         </div>
 
-        <div className="border rounded-lg">
+        <TableScrollContainer className="border rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
@@ -210,7 +213,7 @@ export default function UlazneFaktureAvansi() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
 
       <AdvancePurchaseInvoiceHeaderDialog open={headerDialogOpen} onOpenChange={setHeaderDialogOpen} invoice={null} onSaved={handleNewSaved} />
