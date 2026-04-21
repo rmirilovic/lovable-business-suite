@@ -58,6 +58,7 @@ import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
+import { cn } from "@/lib/utils";
 
 type TypeFilter = "all" | "customer" | "supplier";
 type StatusFilter = "all" | "active" | "inactive";
