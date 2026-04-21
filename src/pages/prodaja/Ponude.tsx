@@ -97,22 +97,24 @@ export default function Ponude() {
     <MainLayout title="Ponude">
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Ponude</h1>
             <p className="text-muted-foreground">Upravljanje ponudama za kupce</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => exportQuotesToExcel(filteredQuotes, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
-              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => exportQuotesToPdf(filteredQuotes, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
-              <FileText className="w-4 h-4 mr-2" /> PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => printQuotes(filteredQuotes, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })}>
-              <Printer className="w-4 h-4 mr-2" /> Štampa
-            </Button>
-            <Button onClick={handleCreate}>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="grid grid-cols-3 sm:flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => exportQuotesToExcel(filteredQuotes, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })} className="w-full sm:w-auto">
+                <FileSpreadsheet className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Excel</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportQuotesToPdf(filteredQuotes, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })} className="w-full sm:w-auto">
+                <FileText className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">PDF</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => printQuotes(filteredQuotes, { companyName: selectedCompany?.name ?? "", dateFrom, dateTo })} className="w-full sm:w-auto">
+                <Printer className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Štampa</span>
+              </Button>
+            </div>
+            <Button onClick={handleCreate} className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Nova ponuda
             </Button>
@@ -120,8 +122,8 @@ export default function Ponude() {
         </div>
 
         {/* Search & Date Filters */}
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-end gap-3 lg:gap-4">
+          <div className="relative sm:col-span-2 lg:col-span-1 lg:flex-1 lg:min-w-[200px] lg:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Pretraži po broju ili kupcu..."
@@ -132,16 +134,16 @@ export default function Ponude() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum od</Label>
-            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-[170px]" />
+            <LocaleDateInput value={dateFrom} onChange={setDateFrom} className="w-full lg:w-[170px]" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Datum do</Label>
-            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-[170px]" />
+            <LocaleDateInput value={dateTo} onChange={setDateTo} className="w-full lg:w-[170px]" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Sastavio</Label>
             <Select value={composedByFilter} onValueChange={setComposedByFilter}>
-              <SelectTrigger className="w-[170px]">
+              <SelectTrigger className="w-full lg:w-[170px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -152,10 +154,10 @@ export default function Ponude() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 sm:col-span-2 lg:col-span-1">
             <Label className="text-xs">Status</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[170px]">
+              <SelectTrigger className="w-full lg:w-[170px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -171,7 +173,7 @@ export default function Ponude() {
         </div>
 
         {/* Table */}
-        <div className="border rounded-lg">
+        <TableScrollContainer className="border rounded-lg">
           <Table>
             <TableHeader>
              <TableRow>
