@@ -213,7 +213,7 @@ export default function UlazneFaktureAvansi() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
 
       <AdvancePurchaseInvoiceHeaderDialog open={headerDialogOpen} onOpenChange={setHeaderDialogOpen} invoice={null} onSaved={handleNewSaved} />

@@ -132,7 +132,7 @@ export default function PrimljenaKnjiznaOdobrenja() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
 
       <ReceivedCreditNoteHeaderDialog open={headerDialogOpen} onOpenChange={setHeaderDialogOpen} doc={null} onSaved={handleNewSaved} />

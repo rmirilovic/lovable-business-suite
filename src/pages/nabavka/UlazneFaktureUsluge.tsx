@@ -370,7 +370,7 @@ export default function UlazneFaktureUsluge() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
 
       <ServicePurchaseInvoiceHeaderDialog

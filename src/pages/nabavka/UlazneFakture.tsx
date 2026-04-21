@@ -252,7 +252,7 @@ export default function UlazneFakture() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
 
       <PurchaseInvoiceHeaderDialog

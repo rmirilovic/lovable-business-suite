@@ -356,7 +356,7 @@ export default function UlazneFaktureRoba() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </TableScrollContainer>
       </div>
 
       <GoodsPurchaseInvoiceHeaderDialog
