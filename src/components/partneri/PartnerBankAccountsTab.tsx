@@ -102,17 +102,19 @@ export function PartnerBankAccountsTab({ partnerId }: PartnerBankAccountsTabProp
       </p>
 
       {/* Add new account */}
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <Input
           value={newAccountNumber}
           onChange={(e) => setNewAccountNumber(e.target.value.replace(/[^\d-]/g, ""))}
           placeholder="Broj tekućeg računa (samo brojevi i crtice)"
           className="flex-1"
           autoComplete="off"
+          inputMode="numeric"
         />
         <Button
           onClick={handleCreate}
           disabled={isCreating || !newAccountNumber.trim()}
+          className="w-full sm:w-auto"
         >
           <Plus className="w-4 h-4 mr-1" />
           Dodaj
@@ -120,7 +122,7 @@ export function PartnerBankAccountsTab({ partnerId }: PartnerBankAccountsTabProp
       </div>
 
       {/* Accounts table */}
-      <div className="border rounded-md">
+      <div className="border rounded-md overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -156,9 +158,9 @@ export function PartnerBankAccountsTab({ partnerId }: PartnerBankAccountsTabProp
                     <GripVertical className="w-4 h-4 text-muted-foreground" />
                   </TableCell>
                   <TableCell className="font-mono">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {index === 0 && (
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded whitespace-nowrap">
                           Podrazumevani
                         </span>
                       )}
@@ -177,7 +179,7 @@ export function PartnerBankAccountsTab({ partnerId }: PartnerBankAccountsTabProp
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="h-9 w-9 text-destructive hover:text-destructive"
                       onClick={() => setDeleteConfirmId(account.id)}
                     >
                       <Trash2 className="w-4 h-4" />
