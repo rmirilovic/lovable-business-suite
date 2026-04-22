@@ -3,7 +3,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Search,
   Plus,
-  Edit2,
   Trash2,
   Users,
   RotateCcw,
@@ -19,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
