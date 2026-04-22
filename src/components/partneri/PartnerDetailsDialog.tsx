@@ -396,6 +396,16 @@ export function PartnerDetailsDialog({
                     />
                     <Label htmlFor="is_in_pdv">U sistemu PDV-a</Label>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="is_active"
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) =>
+                        updateField("is_active", checked === true)
+                      }
+                    />
+                    <Label htmlFor="is_active">Aktivan</Label>
+                  </div>
                 </div>
               </div>
 
@@ -648,6 +658,7 @@ export function PartnerDetailsDialog({
               {partner && <PartnerContactsTab partnerId={partner.id} />}
             </TabsContent>
           </div>
+          </fieldset>
         </Tabs>
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t">
