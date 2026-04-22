@@ -18,7 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Partner,
   PartnerInsert,
@@ -295,8 +294,8 @@ export function PartnerDetailsDialog({
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 min-h-0 h-[calc(95vh-14rem)] sm:h-[60vh] pr-2 sm:pr-4">
-            <TabsContent value="osnovni" className="space-y-4 mt-4">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <TabsContent value="osnovni" className="space-y-4 mt-4 h-full overflow-y-auto pr-2 sm:pr-4">
               {/* Code and Name */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
                 <div>
@@ -602,7 +601,7 @@ export function PartnerDetailsDialog({
               </div>
             </TabsContent>
 
-            <TabsContent value="dodatni" className="space-y-4 mt-4">
+            <TabsContent value="dodatni" className="space-y-4 mt-4 h-full overflow-y-auto pr-2 sm:pr-4">
               <div>
                 <Label htmlFor="note">Napomena</Label>
                 <Input
@@ -635,14 +634,14 @@ export function PartnerDetailsDialog({
               </div>
             </TabsContent>
 
-            <TabsContent value="racuni" className="mt-4">
+            <TabsContent value="racuni" className="mt-4 h-full overflow-y-auto pr-2 sm:pr-4">
               {partner && <PartnerBankAccountsTab partnerId={partner.id} />}
             </TabsContent>
 
-            <TabsContent value="kontakti" className="mt-4">
+            <TabsContent value="kontakti" className="mt-4 h-full overflow-y-auto pr-2 sm:pr-4">
               {partner && <PartnerContactsTab partnerId={partner.id} />}
             </TabsContent>
-          </ScrollArea>
+          </div>
         </Tabs>
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t">
