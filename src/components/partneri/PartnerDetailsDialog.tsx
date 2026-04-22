@@ -29,6 +29,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { PartnerBankAccountsTab } from "./PartnerBankAccountsTab";
 import { PartnerContactsTab } from "./PartnerContactsTab";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
