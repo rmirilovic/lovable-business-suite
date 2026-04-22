@@ -111,22 +111,22 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={handleOpenCreate}>
+        <Button onClick={handleOpenCreate} className="w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-1" />
           Nova kontakt osoba
         </Button>
       </div>
 
       {/* Contacts table */}
-      <div className="border rounded-md">
+      <div className="border rounded-md overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Ime i prezime</TableHead>
-              <TableHead>Funkcija</TableHead>
-              <TableHead>Telefon 1</TableHead>
-              <TableHead>Telefon 2</TableHead>
-              <TableHead>E-mail</TableHead>
+              <TableHead className="whitespace-nowrap">Ime i prezime</TableHead>
+              <TableHead className="whitespace-nowrap">Funkcija</TableHead>
+              <TableHead className="whitespace-nowrap">Telefon 1</TableHead>
+              <TableHead className="whitespace-nowrap">Telefon 2</TableHead>
+              <TableHead className="whitespace-nowrap">E-mail</TableHead>
               <TableHead className="w-[100px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -146,17 +146,17 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
             ) : (
               contacts.map((contact) => (
                 <TableRow key={contact.id}>
-                  <TableCell className="font-medium">{contact.contact_name}</TableCell>
-                  <TableCell>{contact.position || "-"}</TableCell>
-                  <TableCell>{contact.phone1 || "-"}</TableCell>
-                  <TableCell>{contact.phone2 || "-"}</TableCell>
-                  <TableCell>{contact.email || "-"}</TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{contact.contact_name}</TableCell>
+                  <TableCell className="whitespace-nowrap">{contact.position || "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{contact.phone1 || "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{contact.phone2 || "-"}</TableCell>
+                  <TableCell className="whitespace-nowrap">{contact.email || "-"}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-9 w-9"
                         onClick={() => handleOpenEdit(contact)}
                       >
                         <Edit2 className="w-4 h-4" />
@@ -164,7 +164,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        className="h-9 w-9 text-destructive hover:text-destructive"
                         onClick={() => setDeleteConfirmId(contact.id)}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -180,9 +180,9 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
 
       {/* Contact form dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="w-[calc(100vw-1rem)] sm:w-full max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-base sm:text-lg">
               {editingContact ? "Izmena kontakta" : "Nova kontakt osoba"}
             </DialogTitle>
           </DialogHeader>
@@ -209,7 +209,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <Label htmlFor="phone1">Telefon 1</Label>
                 <Input
@@ -217,6 +217,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                   value={formData.phone1}
                   onChange={(e) => updateField("phone1", e.target.value)}
                   autoComplete="off"
+                  inputMode="tel"
                 />
               </div>
               <div>
@@ -226,6 +227,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                   value={formData.phone2}
                   onChange={(e) => updateField("phone2", e.target.value)}
                   autoComplete="off"
+                  inputMode="tel"
                 />
               </div>
             </div>
@@ -238,6 +240,7 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
                 value={formData.email}
                 onChange={(e) => updateField("email", e.target.value)}
                 autoComplete="off"
+                inputMode="email"
               />
             </div>
 
@@ -256,13 +259,14 @@ export function PartnerContactsTab({ partnerId }: PartnerContactsTabProps) {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="w-full sm:w-auto">
               Odustani
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={isCreating || isUpdating || !formData.contact_name.trim()}
+              className="w-full sm:w-auto"
             >
               {editingContact ? "Sačuvaj" : "Dodaj"}
             </Button>
