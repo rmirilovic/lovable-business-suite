@@ -276,29 +276,29 @@ export function PartnerDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-4xl w-[calc(100vw-1rem)] sm:w-full max-h-[95vh] sm:max-h-[90vh] p-4 sm:p-6 flex flex-col">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-base sm:text-lg pr-8 break-words">
             {mode === "create" ? "Novi partner" : `Izmena partnera: ${partner?.name}`}
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="osnovni" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="osnovni">Osnovni podaci</TabsTrigger>
-            <TabsTrigger value="dodatni">Dodatni podaci</TabsTrigger>
-            <TabsTrigger value="racuni" disabled={mode === "create"}>
+        <Tabs defaultValue="osnovni" className="w-full flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="osnovni" className="text-xs sm:text-sm py-2">Osnovni podaci</TabsTrigger>
+            <TabsTrigger value="dodatni" className="text-xs sm:text-sm py-2">Dodatni podaci</TabsTrigger>
+            <TabsTrigger value="racuni" disabled={mode === "create"} className="text-xs sm:text-sm py-2">
               Tekući računi
             </TabsTrigger>
-            <TabsTrigger value="kontakti" disabled={mode === "create"}>
+            <TabsTrigger value="kontakti" disabled={mode === "create"} className="text-xs sm:text-sm py-2">
               Kontakti
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="h-[60vh] pr-4">
+          <ScrollArea className="flex-1 min-h-0 h-[calc(95vh-14rem)] sm:h-[60vh] pr-2 sm:pr-4">
             <TabsContent value="osnovni" className="space-y-4 mt-4">
               {/* Code and Name */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
                 <div>
                   <Label htmlFor="code">Šifra *</Label>
                   <Input
@@ -308,7 +308,7 @@ export function PartnerDetailsDialog({
                     autoComplete="off"
                   />
                 </div>
-                <div className="col-span-3">
+                <div className="sm:col-span-3">
                   <Label htmlFor="name">Naziv *</Label>
                   <Input
                     id="name"
@@ -320,7 +320,7 @@ export function PartnerDetailsDialog({
               </div>
 
               {/* Legal status and Type */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                   <Label>Pravni status</Label>
                   <Select
@@ -339,7 +339,28 @@ export function PartnerDetailsDialog({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-end gap-4">
+                <div>
+                  <Label>Grupa</Label>
+                  <Select
+                    value={formData.group_id || "none"}
+                    onValueChange={(val) =>
+                      updateField("group_id", val === "none" ? null : val)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Bez grupe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Bez grupe</SelectItem>
+                      {groups.map((group) => (
+                        <SelectItem key={group.id} value={group.id}>
+                          {group.code} - {group.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:items-end sm:col-span-2 lg:col-span-1">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="is_customer"
@@ -371,31 +392,10 @@ export function PartnerDetailsDialog({
                     <Label htmlFor="is_in_pdv">U sistemu PDV-a</Label>
                   </div>
                 </div>
-                <div>
-                  <Label>Grupa</Label>
-                  <Select
-                    value={formData.group_id || "none"}
-                    onValueChange={(val) =>
-                      updateField("group_id", val === "none" ? null : val)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Bez grupe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Bez grupe</SelectItem>
-                      {groups.map((group) => (
-                        <SelectItem key={group.id} value={group.id}>
-                          {group.code} - {group.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
 
               {/* Payment Priority */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div>
                   <Label>Prioritet plaćanja</Label>
                   <Select
@@ -420,7 +420,7 @@ export function PartnerDetailsDialog({
               </div>
 
               {/* PIB, MB, Activity code, JBKJS with APR lookup */}
-              <div className="grid grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                 <div>
                   <Label htmlFor="pib">PIB</Label>
                   <Input
@@ -428,6 +428,7 @@ export function PartnerDetailsDialog({
                     value={formData.pib}
                     onChange={(e) => updateField("pib", e.target.value)}
                     autoComplete="off"
+                    inputMode="numeric"
                   />
                 </div>
                 <div>
@@ -437,6 +438,7 @@ export function PartnerDetailsDialog({
                     value={formData.mb}
                     onChange={(e) => updateField("mb", e.target.value)}
                     autoComplete="off"
+                    inputMode="numeric"
                   />
                 </div>
                 <div>
@@ -458,7 +460,7 @@ export function PartnerDetailsDialog({
                     autoComplete="off"
                   />
                 </div>
-                <div className="flex items-end">
+                <div className="col-span-2 lg:col-span-1 flex items-end">
                   <Button
                     type="button"
                     variant="outline"
@@ -477,7 +479,7 @@ export function PartnerDetailsDialog({
               </div>
 
               {/* Address */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                 <div className="col-span-2">
                   <Label htmlFor="address">Adresa</Label>
                   <Input
@@ -498,6 +500,7 @@ export function PartnerDetailsDialog({
                     }}
                     maxLength={10}
                     autoComplete="off"
+                    inputMode="numeric"
                   />
                 </div>
                 <div>
@@ -512,8 +515,8 @@ export function PartnerDetailsDialog({
               </div>
 
               {/* Country */}
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div className="sm:col-span-2">
                   <Label htmlFor="country">Država</Label>
                   <Input
                     id="country"
@@ -526,7 +529,7 @@ export function PartnerDetailsDialog({
               </div>
 
               {/* Contact info */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                   <Label htmlFor="phone">Telefon</Label>
                   <Input
@@ -534,6 +537,7 @@ export function PartnerDetailsDialog({
                     value={formData.phone}
                     onChange={(e) => updateField("phone", e.target.value)}
                     autoComplete="off"
+                    inputMode="tel"
                   />
                 </div>
                 <div>
@@ -544,6 +548,7 @@ export function PartnerDetailsDialog({
                     value={formData.email}
                     onChange={(e) => updateField("email", e.target.value)}
                     autoComplete="off"
+                    inputMode="email"
                   />
                 </div>
                 <div>
@@ -554,12 +559,13 @@ export function PartnerDetailsDialog({
                     onChange={(e) => updateField("website", e.target.value)}
                     placeholder="www.example.com"
                     autoComplete="off"
+                    inputMode="url"
                   />
                 </div>
               </div>
 
               {/* Responsible person */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <Label htmlFor="responsible_person">Odgovorno lice</Label>
                   <Input
@@ -639,11 +645,11 @@ export function PartnerDetailsDialog({
           </ScrollArea>
         </Tabs>
 
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
             Odustani
           </Button>
-          <Button onClick={handleSubmit} disabled={isSaving}>
+          <Button onClick={handleSubmit} disabled={isSaving} className="w-full sm:w-auto">
             {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             {mode === "create" ? "Kreiraj" : "Sačuvaj"}
           </Button>
