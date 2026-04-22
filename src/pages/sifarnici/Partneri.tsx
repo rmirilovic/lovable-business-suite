@@ -606,55 +606,11 @@ export default function Partneri() {
                     onClick={() => handleRowClick(partner)}
                   >
                     <TableCell className="font-mono">{partner.code}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <InlineEditCell
-                        value={partner.name}
-                        onSave={async (val) => {
-                          await updatePartner({ id: partner.id, updates: { name: val } });
-                        }}
-                        disabled={!canEdit}
-                      />
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <InlineSelectCell
-                        value={String(partner.legal_status)}
-                        options={legalStatusOptions}
-                        onSave={async (val) => {
-                          await updatePartner({
-                            id: partner.id,
-                            updates: { legal_status: Number(val) },
-                          });
-                        }}
-                        disabled={!canEdit}
-                      />
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <InlineEditCell
-                        value={partner.city || ""}
-                        onSave={async (val) => {
-                          await updatePartner({ id: partner.id, updates: { city: val } });
-                        }}
-                        disabled={!canEdit}
-                      />
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <InlineEditCell
-                        value={partner.pib || ""}
-                        onSave={async (val) => {
-                          await updatePartner({ id: partner.id, updates: { pib: val } });
-                        }}
-                        disabled={!canEdit}
-                      />
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <InlineEditCell
-                        value={partner.phone || ""}
-                        onSave={async (val) => {
-                          await updatePartner({ id: partner.id, updates: { phone: val } });
-                        }}
-                        disabled={!canEdit}
-                      />
-                    </TableCell>
+                    <TableCell>{partner.name}</TableCell>
+                    <TableCell>{LEGAL_STATUS_LABELS[partner.legal_status] || ""}</TableCell>
+                    <TableCell>{partner.city || ""}</TableCell>
+                    <TableCell>{partner.pib || ""}</TableCell>
+                    <TableCell>{partner.phone || ""}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
                         {partner.is_customer && (
@@ -680,18 +636,11 @@ export default function Partneri() {
                         {partner.is_in_pdv ? "Da" : "Ne"}
                       </Badge>
                     </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <InlineSelectCell
-                        value={partner.group_id || "none"}
-                        options={groupOptions}
-                        onSave={async (val) => {
-                          await updatePartner({
-                            id: partner.id,
-                            updates: { group_id: val === "none" ? null : val },
-                          });
-                        }}
-                        disabled={!canEdit}
-                      />
+                    <TableCell>
+                      {(() => {
+                        const g = groups.find((x) => x.id === partner.group_id);
+                        return g ? `${g.code} - ${g.name}` : "";
+                      })()}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center">
