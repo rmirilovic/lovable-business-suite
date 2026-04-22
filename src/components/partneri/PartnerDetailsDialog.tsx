@@ -300,10 +300,7 @@ export function PartnerDetailsDialog({
             </TabsTrigger>
           </TabsList>
 
-          <div
-            className="flex-1 min-h-0 overflow-hidden"
-            {...(readOnly ? { inert: "" as any } : {})}
-          >
+          <div className="flex-1 min-h-0 overflow-hidden">
             <TabsContent value="osnovni" className="space-y-4 mt-4 h-full overflow-y-auto pr-2 sm:pr-4">
               {/* Code and Name */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
