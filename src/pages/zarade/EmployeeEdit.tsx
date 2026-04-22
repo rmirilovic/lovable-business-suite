@@ -242,7 +242,7 @@ export default function EmployeeEdit() {
 
   return (
     <MainLayout title={isNew ? "Novi zaposleni" : `${form.last_name} ${form.first_name}`}>
-      <div className="flex flex-col gap-4 max-w-5xl flex-1 min-h-0">
+      <div className="flex flex-col gap-4 max-w-5xl">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/zarade/zaposleni")}>
@@ -283,7 +283,7 @@ export default function EmployeeEdit() {
           </div>
         </div>
 
-        <Tabs defaultValue="licni" className="flex-1">
+        <Tabs defaultValue="licni" className="w-full">
           <TabsList>
             <TabsTrigger value="licni">Lični podaci</TabsTrigger>
             <TabsTrigger value="zaposlenje">Zaposlenje</TabsTrigger>
