@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -286,6 +287,9 @@ export function PartnerDetailsDialog({
                 ? `Pregled partnera: ${partner?.name}`
                 : `Izmena partnera: ${partner?.name}`}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Forma za pregled i izmenu osnovnih i dodatnih podataka partnera.
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="osnovni" className="w-full flex-1 flex flex-col min-h-0 overflow-hidden">
