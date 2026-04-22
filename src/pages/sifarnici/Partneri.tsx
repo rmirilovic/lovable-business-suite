@@ -314,7 +314,7 @@ export default function Partneri() {
     setDetailsDialogOpen(true);
   };
 
-  const handleEdit = (partner: Partner) => {
+  const handleRowClick = (partner: Partner) => {
     setSelectedPartner(partner);
     setDetailsMode("edit");
     setDetailsDialogOpen(true);
