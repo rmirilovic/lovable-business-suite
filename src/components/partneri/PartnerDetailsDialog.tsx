@@ -38,6 +38,7 @@ interface PartnerDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   partner: Partner | null;
   mode: "create" | "edit";
+  readOnly?: boolean;
 }
 
 const defaultFormData: Omit<PartnerInsert, "company_id"> = {
@@ -72,6 +73,7 @@ export function PartnerDetailsDialog({
   onOpenChange,
   partner,
   mode,
+  readOnly = false,
 }: PartnerDetailsDialogProps) {
   const { selectedCompany } = useAuth();
   const { createPartner, updatePartner, isCreating, isUpdating } = usePartners();
@@ -278,11 +280,16 @@ export function PartnerDetailsDialog({
       <DialogContent className="max-w-4xl w-[calc(100vw-1rem)] sm:w-full max-h-[95vh] sm:max-h-[90vh] p-4 sm:p-6 flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-base sm:text-lg pr-8 break-words">
-            {mode === "create" ? "Novi partner" : `Izmena partnera: ${partner?.name}`}
+            {mode === "create"
+              ? "Novi partner"
+              : readOnly
+                ? `Pregled partnera: ${partner?.name}`
+                : `Izmena partnera: ${partner?.name}`}
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="osnovni" className="w-full flex-1 flex flex-col min-h-0">
+          <fieldset disabled={readOnly} className="contents">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
             <TabsTrigger value="osnovni" className="text-xs sm:text-sm py-2">Osnovni podaci</TabsTrigger>
             <TabsTrigger value="dodatni" className="text-xs sm:text-sm py-2">Dodatni podaci</TabsTrigger>
@@ -389,6 +396,16 @@ export function PartnerDetailsDialog({
                       }
                     />
                     <Label htmlFor="is_in_pdv">U sistemu PDV-a</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="is_active"
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) =>
+                        updateField("is_active", checked === true)
+                      }
+                    />
+                    <Label htmlFor="is_active">Aktivan</Label>
                   </div>
                 </div>
               </div>
@@ -642,16 +659,19 @@ export function PartnerDetailsDialog({
               {partner && <PartnerContactsTab partnerId={partner.id} />}
             </TabsContent>
           </div>
+          </fieldset>
         </Tabs>
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
-            Odustani
+            {readOnly ? "Zatvori" : "Odustani"}
           </Button>
-          <Button onClick={handleSubmit} disabled={isSaving} className="w-full sm:w-auto">
-            {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {mode === "create" ? "Kreiraj" : "Sačuvaj"}
-          </Button>
+          {!readOnly && (
+            <Button onClick={handleSubmit} disabled={isSaving} className="w-full sm:w-auto">
+              {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {mode === "create" ? "Kreiraj" : "Sačuvaj"}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -3,7 +3,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import {
   Search,
   Plus,
-  Edit2,
   Trash2,
   Users,
   RotateCcw,
@@ -19,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -314,7 +313,7 @@ export default function Partneri() {
     setDetailsDialogOpen(true);
   };
 
-  const handleEdit = (partner: Partner) => {
+  const handleRowClick = (partner: Partner) => {
     setSelectedPartner(partner);
     setDetailsMode("edit");
     setDetailsDialogOpen(true);
@@ -600,10 +599,14 @@ export default function Partneri() {
                 paginatedPartners.map((partner) => (
                   <TableRow
                     key={partner.id}
-                    className={!partner.is_active ? "opacity-60" : ""}
+                    className={cn(
+                      "cursor-pointer hover:bg-muted/50",
+                      !partner.is_active && "opacity-60"
+                    )}
+                    onClick={() => handleRowClick(partner)}
                   >
                     <TableCell className="font-mono">{partner.code}</TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <InlineEditCell
                         value={partner.name}
                         onSave={async (val) => {
@@ -612,7 +615,7 @@ export default function Partneri() {
                         disabled={!canEdit}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <InlineSelectCell
                         value={String(partner.legal_status)}
                         options={legalStatusOptions}
@@ -625,7 +628,7 @@ export default function Partneri() {
                         disabled={!canEdit}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <InlineEditCell
                         value={partner.city || ""}
                         onSave={async (val) => {
@@ -634,7 +637,7 @@ export default function Partneri() {
                         disabled={!canEdit}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <InlineEditCell
                         value={partner.pib || ""}
                         onSave={async (val) => {
@@ -643,7 +646,7 @@ export default function Partneri() {
                         disabled={!canEdit}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <InlineEditCell
                         value={partner.phone || ""}
                         onSave={async (val) => {
@@ -667,17 +670,17 @@ export default function Partneri() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge 
-                        variant="outline" 
-                        className={partner.is_in_pdv 
-                          ? "text-xs bg-primary/10 text-primary border-primary/30" 
+                      <Badge
+                        variant="outline"
+                        className={partner.is_in_pdv
+                          ? "text-xs bg-primary/10 text-primary border-primary/30"
                           : "text-xs bg-muted text-muted-foreground border-muted-foreground/30"
                         }
                       >
                         {partner.is_in_pdv ? "Da" : "Ne"}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <InlineSelectCell
                         value={partner.group_id || "none"}
                         options={groupOptions}
@@ -691,18 +694,15 @@ export default function Partneri() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Switch
-                        checked={partner.is_active}
-                        onCheckedChange={async (checked) => {
-                          await updatePartner({
-                            id: partner.id,
-                            updates: { is_active: checked },
-                          });
-                        }}
-                        disabled={!canEdit}
-                      />
+                      <div className="flex items-center justify-center">
+                        <Checkbox
+                          checked={partner.is_active}
+                          disabled
+                          aria-label={partner.is_active ? "Aktivan" : "Neaktivan"}
+                        />
+                      </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-1">
                         <Button
                           variant="ghost"
@@ -717,24 +717,15 @@ export default function Partneri() {
                           <History className="w-4 h-4" />
                         </Button>
                         {canEdit && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => handleEdit(partner)}
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => setDeleteConfirmId(partner.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => setDeleteConfirmId(partner.id)}
+                            title="Obriši"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>
@@ -845,6 +836,7 @@ export default function Partneri() {
         onOpenChange={setDetailsDialogOpen}
         partner={selectedPartner}
         mode={detailsMode}
+        readOnly={detailsMode === "edit" && !canEdit}
       />
 
       {/* Partner Groups Dialog */}
