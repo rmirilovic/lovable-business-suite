@@ -278,7 +278,7 @@ export function PartnerDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-[calc(100vw-1rem)] sm:w-full max-h-[95vh] sm:max-h-[90vh] p-4 sm:p-6 flex flex-col">
+      <DialogContent className="max-w-4xl w-[calc(100vw-1rem)] sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-base sm:text-lg pr-8 break-words">
             {mode === "create"
@@ -292,7 +292,7 @@ export function PartnerDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="osnovni" className="w-full flex-1 flex flex-col min-h-0 overflow-hidden">
+        <Tabs defaultValue="osnovni" className="w-full">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
             <TabsTrigger value="osnovni" className="text-xs sm:text-sm py-2">Osnovni podaci</TabsTrigger>
             <TabsTrigger value="dodatni" className="text-xs sm:text-sm py-2">Dodatni podaci</TabsTrigger>
@@ -304,10 +304,8 @@ export function PartnerDetailsDialog({
             </TabsTrigger>
           </TabsList>
 
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <TabsContent value="osnovni" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden">
-              <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-2 sm:pr-4">
-                <div className="space-y-4 pb-4">
+          <div>
+            <TabsContent value="osnovni" className="mt-4 space-y-4 data-[state=inactive]:hidden">
               {/* Code and Name */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
                 <div>
@@ -621,13 +619,9 @@ export function PartnerDetailsDialog({
                 />
                 <Label htmlFor="is_active">Aktivan</Label>
               </div>
-                </div>
-              </div>
             </TabsContent>
 
-            <TabsContent value="dodatni" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden">
-              <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-2 sm:pr-4">
-                <div className="space-y-4 pb-4">
+            <TabsContent value="dodatni" className="mt-4 space-y-4 data-[state=inactive]:hidden">
               <div>
                 <Label htmlFor="note">Napomena</Label>
                 <Input
@@ -658,20 +652,14 @@ export function PartnerDetailsDialog({
                   {formData.other_data?.length || 0}/511 karaktera
                 </p>
               </div>
-                </div>
-              </div>
             </TabsContent>
 
-            <TabsContent value="racuni" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden">
-              <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-2 sm:pr-4">
-                {partner && <PartnerBankAccountsTab partnerId={partner.id} />}
-              </div>
+            <TabsContent value="racuni" className="mt-4 data-[state=inactive]:hidden">
+              {partner && <PartnerBankAccountsTab partnerId={partner.id} />}
             </TabsContent>
 
-            <TabsContent value="kontakti" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden">
-              <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-2 sm:pr-4">
-                {partner && <PartnerContactsTab partnerId={partner.id} />}
-              </div>
+            <TabsContent value="kontakti" className="mt-4 data-[state=inactive]:hidden">
+              {partner && <PartnerContactsTab partnerId={partner.id} />}
             </TabsContent>
           </div>
         </Tabs>
