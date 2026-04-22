@@ -661,7 +661,6 @@ export function PartnerDetailsDialog({
               {partner && <PartnerContactsTab partnerId={partner.id} />}
             </TabsContent>
           </div>
-          </fieldset>
         </Tabs>
 
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-4 border-t">
