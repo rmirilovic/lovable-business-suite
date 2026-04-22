@@ -301,8 +301,8 @@ export function PartnerDetailsDialog({
           </TabsList>
 
           <div className="flex-1 min-h-0 overflow-hidden">
-            <TabsContent value="osnovni" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden data-[state=active]:flex data-[state=active]:flex-col">
-              <ScrollArea className="h-full min-h-0 pr-2 sm:pr-4">
+            <TabsContent value="osnovni" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden">
+              <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-2 sm:pr-4">
                 <div className="space-y-4 pb-4">
               {/* Code and Name */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
@@ -618,11 +618,11 @@ export function PartnerDetailsDialog({
                 <Label htmlFor="is_active">Aktivan</Label>
               </div>
                 </div>
-              </ScrollArea>
+              </div>
             </TabsContent>
 
-            <TabsContent value="dodatni" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden data-[state=active]:flex data-[state=active]:flex-col">
-              <ScrollArea className="h-full min-h-0 pr-2 sm:pr-4">
+            <TabsContent value="dodatni" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden">
+              <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-2 sm:pr-4">
                 <div className="space-y-4 pb-4">
               <div>
                 <Label htmlFor="note">Napomena</Label>
@@ -655,17 +655,17 @@ export function PartnerDetailsDialog({
                 </p>
               </div>
                 </div>
-              </ScrollArea>
+              </div>
             </TabsContent>
 
-            <TabsContent value="racuni" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden data-[state=active]:flex data-[state=active]:flex-col">
-              <div className="h-full min-h-0 overflow-y-auto pr-2 sm:pr-4">
+            <TabsContent value="racuni" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden">
+              <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-2 sm:pr-4">
                 {partner && <PartnerBankAccountsTab partnerId={partner.id} />}
               </div>
             </TabsContent>
 
-            <TabsContent value="kontakti" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden data-[state=active]:flex data-[state=active]:flex-col">
-              <div className="h-full min-h-0 overflow-y-auto pr-2 sm:pr-4">
+            <TabsContent value="kontakti" className="mt-4 h-full min-h-0 data-[state=inactive]:hidden">
+              <div className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-2 sm:pr-4">
                 {partner && <PartnerContactsTab partnerId={partner.id} />}
               </div>
             </TabsContent>
