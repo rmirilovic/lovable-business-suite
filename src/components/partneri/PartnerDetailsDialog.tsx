@@ -289,7 +289,6 @@ export function PartnerDetailsDialog({
         </DialogHeader>
 
         <Tabs defaultValue="osnovni" className="w-full flex-1 flex flex-col min-h-0">
-          <fieldset disabled={readOnly} className="contents">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
             <TabsTrigger value="osnovni" className="text-xs sm:text-sm py-2">Osnovni podaci</TabsTrigger>
             <TabsTrigger value="dodatni" className="text-xs sm:text-sm py-2">Dodatni podaci</TabsTrigger>
@@ -301,7 +300,10 @@ export function PartnerDetailsDialog({
             </TabsTrigger>
           </TabsList>
 
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div
+            className="flex-1 min-h-0 overflow-hidden"
+            {...(readOnly ? { inert: "" as any } : {})}
+          >
             <TabsContent value="osnovni" className="space-y-4 mt-4 h-full overflow-y-auto pr-2 sm:pr-4">
               {/* Code and Name */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
