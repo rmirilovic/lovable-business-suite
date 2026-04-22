@@ -289,6 +289,7 @@ export function PartnerDetailsDialog({
         </DialogHeader>
 
         <Tabs defaultValue="osnovni" className="w-full flex-1 flex flex-col min-h-0">
+          <fieldset disabled={readOnly} className="contents">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
             <TabsTrigger value="osnovni" className="text-xs sm:text-sm py-2">Osnovni podaci</TabsTrigger>
             <TabsTrigger value="dodatni" className="text-xs sm:text-sm py-2">Dodatni podaci</TabsTrigger>
