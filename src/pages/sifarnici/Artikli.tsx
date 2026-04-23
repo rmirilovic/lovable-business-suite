@@ -1166,7 +1166,7 @@ export default function Artikli() {
                       onClick={() => handleSort('is_active')}
                     >
                       <div className="flex items-center justify-center">
-                        Status
+                        Aktivan
                         <SortIndicator column="is_active" />
                       </div>
                     </th>
