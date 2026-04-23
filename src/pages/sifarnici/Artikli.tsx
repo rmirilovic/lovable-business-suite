@@ -1299,23 +1299,14 @@ export default function Artikli() {
                           />
                         </td>
                         <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
-                          <InlineSelectCell
-                            value={article.is_active ? "active" : "inactive"}
-                            options={[
-                              { value: "active", label: "Aktivan" },
-                              { value: "inactive", label: "Neaktivan" },
-                            ]}
-                            onSave={async (val) => {
-                              const isActive = val === "active";
-                              await handleInlineEdit(article.id, 'is_active', String(isActive));
-                            }}
-                            disabled={!canEdit}
-                            className={
-                              article.is_active
-                                ? "erp-badge-success"
-                                : "erp-badge-destructive"
-                            }
-                          />
+                          <div className="flex items-center justify-center">
+                            <Checkbox
+                              checked={!!article.is_active}
+                              disabled
+                              aria-label={article.is_active ? "Aktivan" : "Neaktivan"}
+                              className="cursor-default disabled:opacity-100 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                            />
+                          </div>
                         </td>
                         <td className="p-3" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end">
