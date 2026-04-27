@@ -638,7 +638,21 @@ export default function ObracunEdit() {
           <div className="space-y-1">
             <Label className="text-xs">Period</Label>
             <div className="flex gap-2">
-              <Select value={String(header.period_month)} disabled={isPosted} onValueChange={(value) => setHeader({ ...header, period_month: parseInt(value) })}>
+              <Select value={String(header.period_month)} disabled={isPosted} onValueChange={(value) => {
+                const newMonth = parseInt(value);
+                setHeader((prev) => {
+                  const next = { ...prev, period_month: newMonth };
+                  if (isAutoPayrollCalcNumber(prev.calculation_number)) {
+                    next.calculation_number = generatePayrollCalcNumber(
+                      (allCalculations || []) as any,
+                      newMonth,
+                      prev.period_year,
+                      id,
+                    );
+                  }
+                  return next;
+                });
+              }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {MONTH_NAMES.map((month, index) => (
@@ -654,7 +668,21 @@ export default function ObracunEdit() {
                 disabled={isPosted}
                 onChange={(e) => {
                   const val = e.target.value.replace(/\D/g, "");
-                  if (val.length <= 4) setHeader({ ...header, period_year: parseInt(val) || header.period_year });
+                  if (val.length <= 4) {
+                    const newYear = parseInt(val) || header.period_year;
+                    setHeader((prev) => {
+                      const next = { ...prev, period_year: newYear };
+                      if (isAutoPayrollCalcNumber(prev.calculation_number)) {
+                        next.calculation_number = generatePayrollCalcNumber(
+                          (allCalculations || []) as any,
+                          prev.period_month,
+                          newYear,
+                          id,
+                        );
+                      }
+                      return next;
+                    });
+                  }
                 }}
               />
             </div>
