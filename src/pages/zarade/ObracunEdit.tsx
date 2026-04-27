@@ -35,6 +35,7 @@ import { initializePdfFonts } from "@/lib/pdfFonts";
 import { generatePppPdXml, buildPppPdItems, type PppPdData } from "@/lib/pppPdXmlGenerator";
 import { generatePppPdPdf, type PppPdPdfRow } from "@/lib/pppPdPdfGenerator";
 import { DateActionDialog } from "@/components/shared/DateActionDialog";
+import { generatePayrollCalcNumber, isAutoPayrollCalcNumber } from "@/lib/payrollCalcNumber";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
