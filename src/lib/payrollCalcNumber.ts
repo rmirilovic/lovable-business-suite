@@ -1,5 +1,5 @@
 // Generator broja obračuna zarada
-// Format: OBR-YYMMNN (YY = poslednje 2 cifre godine, MM = mesec 01-12, NN = redni broj 01-99 u tom mesecu)
+// Format: OZ-YYMMNN (YY = poslednje 2 cifre godine, MM = mesec 01-12, NN = redni broj 01-99 u tom mesecu)
 
 export interface CalcNumberItem {
   calculation_number: string;
