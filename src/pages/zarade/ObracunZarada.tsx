@@ -14,6 +14,7 @@ import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { toast } from "sonner";
 import { formatDate, formatPrice } from "@/lib/formatting";
+import { generatePayrollCalcNumber } from "@/lib/payrollCalcNumber";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
@@ -43,15 +44,16 @@ export default function ObracunZarada() {
 
   const handleNew = async () => {
     const now = new Date();
-    const count = (calculations?.length || 0) + 1;
-    const calcNum = `OBR-${String(count).padStart(4, "0")}`;
+    const periodMonth = now.getMonth() + 1;
+    const periodYear = selectedYear?.year || now.getFullYear();
+    const calcNum = generatePayrollCalcNumber(calculations || [], periodMonth, periodYear);
     try {
       const result = await createCalculation.mutateAsync({
         calculation_number: calcNum,
         calculation_type: "redovna_zarada",
         calculation_date: now.toISOString().slice(0, 10),
-        period_month: now.getMonth() + 1,
-        period_year: selectedYear?.year || now.getFullYear(),
+        period_month: periodMonth,
+        period_year: periodYear,
         created_by: user?.id,
       } as any);
       navigate(`/zarade/obracun/${(result as any).id}`);
