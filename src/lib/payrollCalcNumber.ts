@@ -8,12 +8,12 @@ export interface CalcNumberItem {
 }
 
 /**
- * Vraća prefiks za zadati period: OBR-YYMM
+ * Vraća prefiks za zadati period: OZ-YYMM
  */
 export function payrollCalcPrefix(periodMonth: number, periodYear: number): string {
   const yy = String(periodYear % 100).padStart(2, "0");
   const mm = String(periodMonth).padStart(2, "0");
-  return `OBR-${yy}${mm}`;
+  return `OZ-${yy}${mm}`;
 }
 
 /**
