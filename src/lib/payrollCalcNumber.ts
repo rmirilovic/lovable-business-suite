@@ -1,5 +1,5 @@
 // Generator broja obračuna zarada
-// Format: OBR-YYMMNN (YY = poslednje 2 cifre godine, MM = mesec 01-12, NN = redni broj 01-99 u tom mesecu)
+// Format: OZ-YYMMNN (YY = poslednje 2 cifre godine, MM = mesec 01-12, NN = redni broj 01-99 u tom mesecu)
 
 export interface CalcNumberItem {
   calculation_number: string;
@@ -8,17 +8,17 @@ export interface CalcNumberItem {
 }
 
 /**
- * Vraća prefiks za zadati period: OBR-YYMM
+ * Vraća prefiks za zadati period: OZ-YYMM
  */
 export function payrollCalcPrefix(periodMonth: number, periodYear: number): string {
   const yy = String(periodYear % 100).padStart(2, "0");
   const mm = String(periodMonth).padStart(2, "0");
-  return `OBR-${yy}${mm}`;
+  return `OZ-${yy}${mm}`;
 }
 
 /**
  * Vraća sledeći raspoloživi broj obračuna za zadati mesec/godinu
- * Format: OBR-YYMMNN (npr. OBR-26040 1 -> "OBR-260401")
+ * Format: OZ-YYMMNN (npr. OZ-260401)
  */
 export function generatePayrollCalcNumber(
   existing: CalcNumberItem[],
@@ -43,8 +43,8 @@ export function generatePayrollCalcNumber(
 }
 
 /**
- * Da li broj odgovara auto-generisanom šablonu (OBR-YYMMNN)?
+ * Da li broj odgovara auto-generisanom šablonu (OZ-YYMMNN)?
  */
 export function isAutoPayrollCalcNumber(value: string): boolean {
-  return /^OBR-\d{6}$/.test(value || "");
+  return /^OZ-\d{6}$/.test(value || "");
 }
