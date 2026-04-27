@@ -18,7 +18,7 @@ export function payrollCalcPrefix(periodMonth: number, periodYear: number): stri
 
 /**
  * Vraća sledeći raspoloživi broj obračuna za zadati mesec/godinu
- * Format: OBR-YYMMNN (npr. OBR-26040 1 -> "OBR-260401")
+ * Format: OZ-YYMMNN (npr. OZ-260401)
  */
 export function generatePayrollCalcNumber(
   existing: CalcNumberItem[],
