@@ -43,8 +43,8 @@ export function generatePayrollCalcNumber(
 }
 
 /**
- * Da li broj odgovara auto-generisanom šablonu (OBR-YYMMNN)?
+ * Da li broj odgovara auto-generisanom šablonu (OZ-YYMMNN)?
  */
 export function isAutoPayrollCalcNumber(value: string): boolean {
-  return /^OBR-\d{6}$/.test(value || "");
+  return /^OZ-\d{6}$/.test(value || "");
 }
