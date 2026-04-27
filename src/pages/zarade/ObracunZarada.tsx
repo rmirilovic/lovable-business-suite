@@ -14,6 +14,7 @@ import { useTableSort } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { toast } from "sonner";
 import { formatDate, formatPrice } from "@/lib/formatting";
+import { generatePayrollCalcNumber } from "@/lib/payrollCalcNumber";
 
 const MONTH_NAMES = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
 
