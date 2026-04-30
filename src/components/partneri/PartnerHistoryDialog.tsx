@@ -89,6 +89,13 @@ function formatValue(value: any, field: string): string {
     const labels: Record<number, string> = { 1: "Pravno lice", 2: "Fizičko lice", 3: "Preduzetnik", 4: "Budžetski korisnik" };
     return labels[value] || String(value);
   }
+  if ((field === "created_at" || field === "updated_at") && typeof value === "string") {
+    try {
+      return format(new Date(value), "dd.MM.yyyy HH:mm:ss", { locale: sr });
+    } catch {
+      return String(value);
+    }
+  }
   if (typeof value === "number") return value.toLocaleString("sr-RS");
   return String(value);
 }
