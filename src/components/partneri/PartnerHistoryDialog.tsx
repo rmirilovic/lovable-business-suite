@@ -63,7 +63,7 @@ const FIELD_LABELS: Record<string, string> = {
   updated_at: "Datum poslednje izmene",
 };
 
-const IGNORED_FIELDS = ["id", "company_id"];
+const IGNORED_FIELDS = ["id", "company_id", "updated_at"];
 
 function getChangedFields(
   oldData: Record<string, any> | null,
