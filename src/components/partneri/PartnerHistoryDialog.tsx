@@ -58,9 +58,12 @@ const FIELD_LABELS: Record<string, string> = {
   assigned_to: "Zadužen",
   note: "Napomena",
   other_data: "Ostali podaci",
+  payment_priority: "Prioritet plaćanja",
+  created_at: "Datum dodavanja u bazu",
+  updated_at: "Datum poslednje izmene",
 };
 
-const IGNORED_FIELDS = ["id", "company_id", "created_at", "updated_at"];
+const IGNORED_FIELDS = ["id", "company_id"];
 
 function getChangedFields(
   oldData: Record<string, any> | null,
