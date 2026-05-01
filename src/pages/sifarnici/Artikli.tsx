@@ -870,6 +870,51 @@ export default function Artikli() {
               )}
               <Tooltip>
                 <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => exportArticlesToExcel(sortedArticles, { companyName: selectedCompany?.name ?? "" })}
+                    disabled={sortedArticles.length === 0}
+                  >
+                    <FileSpreadsheet className="w-4 h-4" />
+                    <span className="hidden md:inline">Excel</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent><p>Izvoz u Excel</p></TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => exportArticlesToPdf(sortedArticles, { companyName: selectedCompany?.name ?? "" })}
+                    disabled={sortedArticles.length === 0}
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span className="hidden md:inline">PDF</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent><p>Izvoz u PDF</p></TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => printArticles(sortedArticles, { companyName: selectedCompany?.name ?? "" })}
+                    disabled={sortedArticles.length === 0}
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span className="hidden md:inline">Štampa</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent><p>Štampa liste</p></TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <button 
                     className="erp-btn-primary gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/80"
                     onClick={() => refetch()}
