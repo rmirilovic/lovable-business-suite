@@ -20,7 +20,15 @@ import {
   RefreshCw,
   Tags,
   Barcode,
+  FileSpreadsheet,
+  FileText,
+  Printer,
 } from "lucide-react";
+import {
+  exportArticlesToExcel,
+  exportArticlesToPdf,
+  printArticles,
+} from "@/lib/articleListExportUtils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
