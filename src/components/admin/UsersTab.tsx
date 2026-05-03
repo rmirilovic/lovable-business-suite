@@ -560,6 +560,7 @@ export function UsersTab() {
       setIsDeletingUser(false);
     }
   };
+  return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="relative flex-1 max-w-sm">
