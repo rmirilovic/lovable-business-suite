@@ -25,7 +25,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Shield, Users, Building2, UserPlus, KeyRound, Copy } from "lucide-react";
+import { Search, Shield, Users, Building2, UserPlus, KeyRound, Copy, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,6 +108,11 @@ export function UsersTab() {
   const [resetPasswordValue, setResetPasswordValue] = useState("");
   const [resetPasswordResult, setResetPasswordResult] = useState<string | null>(null);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+
+  // Delete user dialog
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserWithRole | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
 
   // Filter companies for local admins in create dialog
   const availableCompaniesForCreate = isSuperAdmin 
@@ -511,6 +526,40 @@ export function UsersTab() {
       setIsResettingPassword(false);
     }
   };
+
+  const handleOpenDeleteDialog = (user: UserWithRole) => {
+    setUserToDelete(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeletingUser(true);
+    try {
+      const response = await supabase.functions.invoke("delete-user", {
+        body: { user_id: userToDelete.id },
+      });
+
+      if (response.error) {
+        toast.error(response.error.message || "Greška pri brisanju korisnika");
+        return;
+      }
+      if (response.data?.error) {
+        toast.error(response.data.error);
+        return;
+      }
+
+      toast.success("Korisnik obrisan");
+      setIsDeleteDialogOpen(false);
+      setUserToDelete(null);
+      fetchUsers();
+    } catch (e) {
+      console.error("Delete user error:", e);
+      toast.error("Greška pri brisanju korisnika");
+    } finally {
+      setIsDeletingUser(false);
+    }
+  };
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -620,6 +669,17 @@ export function UsersTab() {
                       >
                         <Building2 className="w-4 h-4" />
                       </Button>
+                      {isSuperAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDeleteDialog(user)}
+                          title="Obriši korisnika"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -951,6 +1011,34 @@ export function UsersTab() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Obriši korisnika</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite trajno da obrišete korisnika{" "}
+              <span className="font-semibold">{userToDelete?.email}</span>?
+              Ova akcija će ukloniti korisnika iz sistema, sve dodele firmi i uloga.
+              Ovo se ne može poništiti.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingUser}>Otkaži</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDeleteUser();
+              }}
+              disabled={isDeletingUser}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingUser ? "Brisanje..." : "Obriši"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
