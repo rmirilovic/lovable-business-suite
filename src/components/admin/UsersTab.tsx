@@ -669,6 +669,17 @@ export function UsersTab() {
                       >
                         <Building2 className="w-4 h-4" />
                       </Button>
+                      {isSuperAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDeleteDialog(user)}
+                          title="Obriši korisnika"
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
