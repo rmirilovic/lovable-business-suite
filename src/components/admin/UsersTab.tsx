@@ -1011,6 +1011,34 @@ export function UsersTab() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Obriši korisnika</AlertDialogTitle>
+            <AlertDialogDescription>
+              Da li ste sigurni da želite trajno da obrišete korisnika{" "}
+              <span className="font-semibold">{userToDelete?.email}</span>?
+              Ova akcija će ukloniti korisnika iz sistema, sve dodele firmi i uloga.
+              Ovo se ne može poništiti.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingUser}>Otkaži</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDeleteUser();
+              }}
+              disabled={isDeletingUser}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingUser ? "Brisanje..." : "Obriši"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
