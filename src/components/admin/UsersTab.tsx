@@ -526,7 +526,40 @@ export function UsersTab() {
       setIsResettingPassword(false);
     }
   };
-  return (
+
+  const handleOpenDeleteDialog = (user: UserWithRole) => {
+    setUserToDelete(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    setIsDeletingUser(true);
+    try {
+      const response = await supabase.functions.invoke("delete-user", {
+        body: { user_id: userToDelete.id },
+      });
+
+      if (response.error) {
+        toast.error(response.error.message || "Greška pri brisanju korisnika");
+        return;
+      }
+      if (response.data?.error) {
+        toast.error(response.data.error);
+        return;
+      }
+
+      toast.success("Korisnik obrisan");
+      setIsDeleteDialogOpen(false);
+      setUserToDelete(null);
+      fetchUsers();
+    } catch (e) {
+      console.error("Delete user error:", e);
+      toast.error("Greška pri brisanju korisnika");
+    } finally {
+      setIsDeletingUser(false);
+    }
+  };
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         <div className="relative flex-1 max-w-sm">
