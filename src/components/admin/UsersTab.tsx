@@ -109,6 +109,11 @@ export function UsersTab() {
   const [resetPasswordResult, setResetPasswordResult] = useState<string | null>(null);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
 
+  // Delete user dialog
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserWithRole | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+
   // Filter companies for local admins in create dialog
   const availableCompaniesForCreate = isSuperAdmin 
     ? companies 
