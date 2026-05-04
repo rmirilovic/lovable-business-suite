@@ -366,8 +366,8 @@ export default function UlazniTroskovi() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="space-y-2 col-span-1">
                 <Label htmlFor="vat_rate">Stopa PDV-a</Label>
                 <Select
                   value={String(formData.vat_rate)}
@@ -386,7 +386,7 @@ export default function UlazniTroskovi() {
                 </Select>
               </div>
 
-              <div className="space-y-2 flex items-end gap-4">
+              <div className="space-y-2 col-span-3 flex items-end gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="is_vat_deductible"
