@@ -15,10 +15,15 @@ export const formatNumber = (
   value: number | null | undefined,
   options?: Intl.NumberFormatOptions
 ): string => {
-  if (value === null || value === undefined || isNaN(value)) {
+  if (value === null || value === undefined) {
     return '';
   }
-  return new Intl.NumberFormat(getUserLocale(), options).format(value);
+  // Coerce to Number — Supabase numeric columns arrive as strings
+  const num = typeof value === 'number' ? value : Number(value);
+  if (isNaN(num)) {
+    return '';
+  }
+  return new Intl.NumberFormat(getUserLocale(), options).format(num);
 };
 
 /**
