@@ -471,12 +471,12 @@ function InventoryCountRow({ item, index, onFieldCommit, onDelete, onVariantChan
         />
       </TableCell>
       <TableCell className="text-right">
-        {item.surplus_qty > 0 ? (
+        {Number(item.surplus_qty) > 0 ? (
           <span className="text-green-600">{formatDecimal(item.surplus_qty, 3)}</span>
         ) : ""}
       </TableCell>
       <TableCell className="text-right">
-        {item.deficit_qty > 0 ? (
+        {Number(item.deficit_qty) > 0 ? (
           <span className="text-destructive">{formatDecimal(item.deficit_qty, 3)}</span>
         ) : ""}
       </TableCell>
@@ -490,12 +490,12 @@ function InventoryCountRow({ item, index, onFieldCommit, onDelete, onVariantChan
         />
       </TableCell>
       <TableCell className="text-right">
-        {item.surplus_value > 0 ? (
+        {Number(item.surplus_value) > 0 ? (
           <span className="text-green-600">{formatDecimal(item.surplus_value, 2)}</span>
         ) : ""}
       </TableCell>
       <TableCell className="text-right">
-        {item.deficit_value > 0 ? (
+        {Number(item.deficit_value) > 0 ? (
           <span className="text-destructive">{formatDecimal(item.deficit_value, 2)}</span>
         ) : ""}
       </TableCell>
