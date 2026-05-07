@@ -139,8 +139,8 @@ export default function InventoryCountEdit() {
 
   const totals = items.reduce(
     (acc, item) => ({
-      surplusValue: acc.surplusValue + item.surplus_value,
-      deficitValue: acc.deficitValue + item.deficit_value,
+      surplusValue: acc.surplusValue + Number(item.surplus_value || 0),
+      deficitValue: acc.deficitValue + Number(item.deficit_value || 0),
     }),
     { surplusValue: 0, deficitValue: 0 }
   );
@@ -200,8 +200,8 @@ export default function InventoryCountEdit() {
   const filteredTotals = useMemo(() =>
     filteredSortedItems.reduce(
       (acc, item) => ({
-        surplusValue: acc.surplusValue + item.surplus_value,
-        deficitValue: acc.deficitValue + item.deficit_value,
+        surplusValue: acc.surplusValue + Number(item.surplus_value || 0),
+        deficitValue: acc.deficitValue + Number(item.deficit_value || 0),
       }),
       { surplusValue: 0, deficitValue: 0 }
     ), [filteredSortedItems]);
@@ -420,11 +420,11 @@ export default function InventoryCountEdit() {
                        <TableCell>{item.unit}</TableCell>
                        <TableCell className="text-right">{formatDecimal(item.book_quantity, 2)}</TableCell>
                        <TableCell className="text-right">{formatDecimal(item.counted_quantity, 2)}</TableCell>
-                       <TableCell className="text-right">{item.surplus_qty > 0 ? <span className="text-green-600">{formatDecimal(item.surplus_qty, 2)}</span> : ""}</TableCell>
-                       <TableCell className="text-right">{item.deficit_qty > 0 ? <span className="text-destructive">{formatDecimal(item.deficit_qty, 2)}</span> : ""}</TableCell>
+                       <TableCell className="text-right">{Number(item.surplus_qty) > 0 ? <span className="text-green-600">{formatDecimal(item.surplus_qty, 2)}</span> : ""}</TableCell>
+                       <TableCell className="text-right">{Number(item.deficit_qty) > 0 ? <span className="text-destructive">{formatDecimal(item.deficit_qty, 2)}</span> : ""}</TableCell>
                        <TableCell className="text-right">{formatDecimal(item.price, 2)}</TableCell>
-                       <TableCell className="text-right">{item.surplus_value > 0 ? <span className="text-green-600">{formatDecimal(item.surplus_value, 2)}</span> : ""}</TableCell>
-                       <TableCell className="text-right">{item.deficit_value > 0 ? <span className="text-destructive">{formatDecimal(item.deficit_value, 2)}</span> : ""}</TableCell>
+                       <TableCell className="text-right">{Number(item.surplus_value) > 0 ? <span className="text-green-600">{formatDecimal(item.surplus_value, 2)}</span> : ""}</TableCell>
+                       <TableCell className="text-right">{Number(item.deficit_value) > 0 ? <span className="text-destructive">{formatDecimal(item.deficit_value, 2)}</span> : ""}</TableCell>
                      </TableRow>
                    ))
                  )}
