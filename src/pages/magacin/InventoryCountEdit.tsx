@@ -139,8 +139,8 @@ export default function InventoryCountEdit() {
 
   const totals = items.reduce(
     (acc, item) => ({
-      surplusValue: acc.surplusValue + item.surplus_value,
-      deficitValue: acc.deficitValue + item.deficit_value,
+      surplusValue: acc.surplusValue + Number(item.surplus_value || 0),
+      deficitValue: acc.deficitValue + Number(item.deficit_value || 0),
     }),
     { surplusValue: 0, deficitValue: 0 }
   );
