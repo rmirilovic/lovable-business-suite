@@ -58,21 +58,39 @@ export function LocaleDateInput({
   const [inputValue, setInputValue] = React.useState("");
   const { format: dateFormat, placeholder: defaultPlaceholder } = React.useMemo(getLocaleDateFormat, []);
 
+  // Parse ISO date as LOCAL date (not UTC) to avoid timezone-shift issues
+  // where 01.01. would be excluded in timezones east of UTC.
+  const parseIsoLocal = (iso: string): Date | undefined => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    if (!m) {
+      const d = new Date(iso);
+      return isValid(d) ? d : undefined;
+    }
+    const d = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+    return isValid(d) ? d : undefined;
+  };
+
   const parsedMinDate = React.useMemo(() => {
     if (!minDate) return undefined;
-    const d = new Date(minDate);
-    return isValid(d) ? d : undefined;
+    return parseIsoLocal(minDate);
   }, [minDate]);
 
   const parsedMaxDate = React.useMemo(() => {
     if (!maxDate) return undefined;
-    const d = new Date(maxDate);
-    return isValid(d) ? d : undefined;
+    return parseIsoLocal(maxDate);
   }, [maxDate]);
 
   const isDateInRange = React.useCallback((date: Date): boolean => {
-    if (parsedMinDate && date < parsedMinDate) return false;
-    if (parsedMaxDate && date > parsedMaxDate) return false;
+    // Compare by calendar day only (ignore time component)
+    const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    if (parsedMinDate) {
+      const minStart = new Date(parsedMinDate.getFullYear(), parsedMinDate.getMonth(), parsedMinDate.getDate());
+      if (dayStart < minStart) return false;
+    }
+    if (parsedMaxDate) {
+      const maxStart = new Date(parsedMaxDate.getFullYear(), parsedMaxDate.getMonth(), parsedMaxDate.getDate());
+      if (dayStart > maxStart) return false;
+    }
     return true;
   }, [parsedMinDate, parsedMaxDate]);
 
