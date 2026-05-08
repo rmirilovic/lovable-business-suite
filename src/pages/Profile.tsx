@@ -521,6 +521,7 @@ export default function Profile() {
             </form>
           </CardContent>
         </Card>
+        </div>
       </div>
     </MainLayout>
   );
