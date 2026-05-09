@@ -9,7 +9,7 @@ const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableE
     // Our standard is to wrap tables with <TableScrollContainer /> which provides overflow.
     // Therefore Table itself must NOT set any overflow.
     <div className="relative w-full">
-      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
+      <table ref={ref} className={cn("w-auto min-w-full caption-bottom text-sm", className)} {...props} />
     </div>
   ),
 );
