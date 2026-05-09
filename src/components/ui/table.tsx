@@ -9,7 +9,7 @@ const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableE
     // Our standard is to wrap tables with <TableScrollContainer /> which provides overflow.
     // Therefore Table itself must NOT set any overflow.
     <div className="relative w-full">
-      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
+      <table ref={ref} className={cn("w-auto min-w-full caption-bottom text-sm", className)} {...props} />
     </div>
   ),
 );
@@ -58,7 +58,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
       className={cn(
         // Sticky on TH is more reliable across browsers than sticky on THEAD.
         // Uses semantic tokens for background to avoid transparent headers while scrolling.
-        "sticky top-0 z-20 h-12 bg-background px-4 text-left align-middle font-medium text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))] [&:has([role=checkbox])]:pr-0",
+        "sticky top-0 z-20 h-12 bg-background px-4 text-left align-middle font-medium text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))] whitespace-nowrap [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
@@ -69,7 +69,7 @@ TableHead.displayName = "TableHead";
 
 const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(
   ({ className, ...props }, ref) => (
-    <td ref={ref} className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)} {...props} />
+    <td ref={ref} className={cn("p-4 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0", className)} {...props} />
   ),
 );
 TableCell.displayName = "TableCell";
