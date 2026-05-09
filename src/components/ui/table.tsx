@@ -58,7 +58,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
       className={cn(
         // Sticky on TH is more reliable across browsers than sticky on THEAD.
         // Uses semantic tokens for background to avoid transparent headers while scrolling.
-        "sticky top-0 z-20 h-12 bg-background px-4 text-left align-middle font-medium text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))] [&:has([role=checkbox])]:pr-0",
+        "sticky top-0 z-20 h-12 bg-background px-4 text-left align-middle font-medium text-muted-foreground shadow-[0_1px_0_0_hsl(var(--border))] whitespace-nowrap [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}
