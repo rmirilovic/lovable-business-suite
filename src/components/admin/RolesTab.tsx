@@ -486,7 +486,7 @@ export function RolesTab() {
       </Dialog>
 
       <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Dozvole za ulogu: {editingRole?.name}</DialogTitle>
           </DialogHeader>
