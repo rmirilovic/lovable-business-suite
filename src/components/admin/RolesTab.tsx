@@ -311,7 +311,7 @@ export function RolesTab() {
                 onValueChange={(value) => updatePermission(node.code, "access_level", value)}
                 disabled={!canManageRoles}
               >
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
