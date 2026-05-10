@@ -505,13 +505,13 @@ export function RolesTab() {
             ) : filteredSections.length === 0 ? (
               <div className="p-4 text-center text-muted-foreground">Nema rezultata za „{moduleSearch}"</div>
             ) : (
-              <Table>
+              <Table className="table-fixed w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-1/3">Modul</TableHead>
-                    <TableHead>Nivo pristupa</TableHead>
-                    <TableHead className="text-center">Knjiženje</TableHead>
-                    <TableHead className="text-center">Storniranje</TableHead>
+                    <TableHead className="w-[40%]">Modul</TableHead>
+                    <TableHead className="w-[28%]">Nivo pristupa</TableHead>
+                    <TableHead className="w-[16%] text-center">Knjiženje</TableHead>
+                    <TableHead className="w-[16%] text-center">Storniranje</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
