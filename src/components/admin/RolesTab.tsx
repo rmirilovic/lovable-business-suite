@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -298,20 +299,20 @@ export function RolesTab() {
   const renderNodes = (nodes: PermissionDisplayNode[], depth = 0): React.ReactNode =>
     nodes.map((node) => {
       const permission = permissionsMap[node.code] || DEFAULT_PERMISSION;
-      const indentClass = depth === 0 ? "pl-8 font-medium" : depth === 1 ? "pl-14 text-sm text-muted-foreground" : "pl-20 text-sm text-muted-foreground";
+      const indentClass = depth === 0 ? "pl-4 font-medium" : depth === 1 ? "pl-8 text-sm text-muted-foreground" : "pl-12 text-sm text-muted-foreground";
       const rowClass = depth === 0 ? "border-l-2 border-l-border" : "bg-muted/20 border-l-2 border-l-border";
 
       return (
         <React.Fragment key={node.key}>
           <TableRow className={rowClass}>
-            <TableCell className={indentClass}>{depth > 0 ? `↳ ${node.name}` : node.name}</TableCell>
+            <TableCell className={cn("whitespace-normal break-words", indentClass)}>{depth > 0 ? `↳ ${node.name}` : node.name}</TableCell>
             <TableCell>
               <Select
                 value={permission.access_level}
                 onValueChange={(value) => updatePermission(node.code, "access_level", value)}
                 disabled={!canManageRoles}
               >
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -486,7 +487,7 @@ export function RolesTab() {
       </Dialog>
 
       <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Dozvole za ulogu: {editingRole?.name}</DialogTitle>
           </DialogHeader>
@@ -505,13 +506,13 @@ export function RolesTab() {
             ) : filteredSections.length === 0 ? (
               <div className="p-4 text-center text-muted-foreground">Nema rezultata za „{moduleSearch}"</div>
             ) : (
-              <Table>
+              <Table className="table-fixed w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-1/3">Modul</TableHead>
-                    <TableHead>Nivo pristupa</TableHead>
-                    <TableHead className="text-center">Knjiženje</TableHead>
-                    <TableHead className="text-center">Storniranje</TableHead>
+                    <TableHead className="w-[40%]">Modul</TableHead>
+                    <TableHead className="w-[28%]">Nivo pristupa</TableHead>
+                    <TableHead className="w-[16%] text-center">Knjiženje</TableHead>
+                    <TableHead className="w-[16%] text-center">Storniranje</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
