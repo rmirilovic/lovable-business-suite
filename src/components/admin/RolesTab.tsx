@@ -298,13 +298,13 @@ export function RolesTab() {
   const renderNodes = (nodes: PermissionDisplayNode[], depth = 0): React.ReactNode =>
     nodes.map((node) => {
       const permission = permissionsMap[node.code] || DEFAULT_PERMISSION;
-      const indentClass = depth === 0 ? "pl-8 font-medium" : depth === 1 ? "pl-14 text-sm text-muted-foreground" : "pl-20 text-sm text-muted-foreground";
+      const indentClass = depth === 0 ? "pl-4 font-medium" : depth === 1 ? "pl-8 text-sm text-muted-foreground" : "pl-12 text-sm text-muted-foreground";
       const rowClass = depth === 0 ? "border-l-2 border-l-border" : "bg-muted/20 border-l-2 border-l-border";
 
       return (
         <React.Fragment key={node.key}>
           <TableRow className={rowClass}>
-            <TableCell className={indentClass}>{depth > 0 ? `↳ ${node.name}` : node.name}</TableCell>
+            <TableCell className={cn("whitespace-normal break-words", indentClass)}>{depth > 0 ? `↳ ${node.name}` : node.name}</TableCell>
             <TableCell>
               <Select
                 value={permission.access_level}
