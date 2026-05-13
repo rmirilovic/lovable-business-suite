@@ -187,7 +187,7 @@ export default function VariantSwapEdit() {
           <div className="flex items-center gap-2">
             {swap && (
               <Badge variant={isPosted ? "default" : "outline"} className="text-sm">
-                {isPosted ? "Proknjižen" : "Priprema"}
+                {isPosted ? "Proknjiženo" : "Nacrt"}
               </Badge>
             )}
             {!isPosted && canEdit && (
