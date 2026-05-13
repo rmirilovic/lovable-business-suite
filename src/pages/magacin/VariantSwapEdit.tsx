@@ -110,8 +110,8 @@ export default function VariantSwapEdit() {
   const isDisabled = isPosted || !canEdit;
 
   const handleSave = async () => {
-    if (!articleId || !warehouseId || !targetVariantId) {
-      toast.error("Artikal, magacin i ciljna varijanta su obavezni");
+    if (!articleId || !warehouseId || !sourceVariantId || !targetVariantId) {
+      toast.error("Artikal, magacin, izvorna i ciljna varijanta su obavezni");
       return;
     }
     const qty = parseLocaleNumber(quantityStr);
