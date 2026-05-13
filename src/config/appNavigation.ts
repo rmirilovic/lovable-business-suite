@@ -84,7 +84,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Primljena KO", href: "/nabavka/primljena-ko", moduleCode: "nabavka.ulazne_fakture" },
       { label: "Carinski obračun", href: "/nabavka/carinski-obracun", moduleCode: "nabavka.ulazne_fakture" },
       { label: "Kalkulacije", href: "/magacin/kalkulacije", moduleCode: "robno.prijemnice" },
-      { label: "Narudžbenice", href: "/nabavka/narudzbenice", moduleCode: "nabavka.porudzbine" },
+      
     ],
   },
   {
