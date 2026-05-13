@@ -234,7 +234,7 @@ export default function VariantSwapEdit() {
               <div className="mt-2 border rounded-md overflow-x-auto">
                 <table className="w-full text-xs sm:text-sm min-w-full">
                   <thead className="bg-muted">
-                    <tr className="sticky top-0 z-10 bg-muted">
+                    <tr className="sticky top-0 z-10 bg-muted shadow-sm border-b border-border/50">
                       <th className="text-left px-2 sm:px-3 py-1 sm:py-1.5 font-medium whitespace-nowrap">Šifra varijante</th>
                       <th className="text-left px-2 sm:px-3 py-1 sm:py-1.5 font-medium whitespace-nowrap">Opis</th>
                       <th className="text-right px-2 sm:px-3 py-1 sm:py-1.5 font-medium whitespace-nowrap">Stanje</th>
