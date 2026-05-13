@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Authenticated users can manage their company posting schema" ON public.customs_clearance_posting_schema;
