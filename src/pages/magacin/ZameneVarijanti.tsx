@@ -20,6 +20,7 @@ import { exportVariantSwapsToExcel, exportVariantSwapsToPdf, printVariantSwaps }
 export default function ZameneVarijanti() {
   const navigate = useNavigate();
   const { hasAccess } = usePermissions();
+  const { selectedCompany } = useAuth();
   const canEdit = hasAccess("robno.prijemnice", "write");
 
   const { swaps, isLoading } = useVariantSwaps();
