@@ -231,8 +231,30 @@ export default function VariantSwapEdit() {
             />
             {selectedArticle && (
               <p className="text-sm text-muted-foreground">
-                {selectedArticle.code} — {selectedArticle.name} | JM: {selectedArticle.unit} | Ukupno na stanju: {formatDecimal(articleTotalStock, 3)}
+                {selectedArticle.code} — {selectedArticle.name} | JM: {selectedArticle.unit} | Ukupno na stanju: {formatDecimal(articleVariantStocks.reduce((s, v) => s + v.balance_qty, 0), 3)}
               </p>
+            )}
+            {selectedArticle && warehouseId && articleVariantStocks.length > 0 && (
+              <div className="mt-2 border rounded-md overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="text-left px-3 py-1.5 font-medium">Šifra varijante</th>
+                      <th className="text-left px-3 py-1.5 font-medium">Opis</th>
+                      <th className="text-right px-3 py-1.5 font-medium">Stanje</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {articleVariantStocks.map((s) => (
+                      <tr key={s.variant_id || "none"} className="border-t">
+                        <td className="px-3 py-1.5">{s.variant_code || "—"}</td>
+                        <td className="px-3 py-1.5">{s.variant_description || ""}</td>
+                        <td className="px-3 py-1.5 text-right tabular-nums">{formatDecimal(s.balance_qty, 3)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
           <div className="space-y-2">
