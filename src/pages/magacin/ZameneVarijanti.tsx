@@ -121,7 +121,7 @@ export default function ZameneVarijanti() {
                       <TableCell className="text-right">{formatDecimal(s.quantity)}</TableCell>
                       <TableCell>
                         <Badge variant={s.status === "posted" ? "default" : "outline"}>
-                          {s.status === "posted" ? "Proknjižen" : "Priprema"}
+                          {s.status === "posted" ? "Proknjiženo" : "Nacrt"}
                         </Badge>
                       </TableCell>
                       {canEdit && (
