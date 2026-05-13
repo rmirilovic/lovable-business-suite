@@ -63,16 +63,29 @@ export default function ZameneVarijanti() {
   return (
     <MainLayout title="Zamena varijante">
       <div className="flex flex-col h-full min-h-0 gap-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-end justify-between">
-          <div className="relative flex-1 min-w-[200px]">
+        <div className="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
+          <div className="relative flex-1 min-w-[200px] lg:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Pretraži..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" autoComplete="off" />
           </div>
-          {canEdit && (
-            <Button onClick={() => navigate("/magacin/zamene-varijanti/new")} className="gap-2">
-              <Plus className="w-4 h-4" />Nova zamena
-            </Button>
-          )}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="grid grid-cols-3 sm:flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => exportVariantSwapsToExcel(sorted, { companyName: selectedCompany?.name ?? "" })} className="w-full sm:w-auto">
+                <FileSpreadsheet className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Excel</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => exportVariantSwapsToPdf(sorted, { companyName: selectedCompany?.name ?? "" })} className="w-full sm:w-auto">
+                <FileText className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">PDF</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => printVariantSwaps(sorted, { companyName: selectedCompany?.name ?? "" })} className="w-full sm:w-auto">
+                <Printer className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Štampa</span>
+              </Button>
+            </div>
+            {canEdit && (
+              <Button onClick={() => navigate("/magacin/zamene-varijanti/new")} className="w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />Nova zamena
+              </Button>
+            )}
+          </div>
         </div>
 
         {isLoading ? (
