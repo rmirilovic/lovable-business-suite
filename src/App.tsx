@@ -558,6 +558,16 @@ const App = () => (
                   <ArticleSwapEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/magacin/zamene-varijanti" element={
+                <ProtectedRoute>
+                  <ZameneVarijanti />
+                </ProtectedRoute>
+              } />
+              <Route path="/magacin/zamene-varijanti/:id" element={
+                <ProtectedRoute requireCompany={false}>
+                  <VariantSwapEdit />
+                </ProtectedRoute>
+              } />
               <Route path="/magacin/promet" element={
                 <ProtectedRoute>
                   <PrometMagacina />

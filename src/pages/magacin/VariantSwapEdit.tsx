@@ -66,9 +66,10 @@ export default function VariantSwapEdit() {
   );
 
   const selectedArticle = articles.find((a) => a.id === articleId);
-  const articleTotalStock = useMemo(() => {
-    if (!stockByVariant || !articleId) return 0;
-    return stockByVariant.filter((s) => s.article_id === articleId).reduce((sum, s) => sum + s.balance_qty, 0);
+
+  const articleVariantStocks = useMemo(() => {
+    if (!stockByVariant || !articleId) return [];
+    return stockByVariant.filter((s) => s.article_id === articleId);
   }, [stockByVariant, articleId]);
 
   const sourceVariantStock = useMemo(() => {
@@ -110,8 +111,8 @@ export default function VariantSwapEdit() {
   const isDisabled = isPosted || !canEdit;
 
   const handleSave = async () => {
-    if (!articleId || !warehouseId || !targetVariantId) {
-      toast.error("Artikal, magacin i ciljna varijanta su obavezni");
+    if (!articleId || !warehouseId || !sourceVariantId || !targetVariantId) {
+      toast.error("Artikal, magacin, izvorna i ciljna varijanta su obavezni");
       return;
     }
     const qty = parseLocaleNumber(quantityStr);
@@ -226,16 +227,37 @@ export default function VariantSwapEdit() {
             />
             {selectedArticle && (
               <p className="text-sm text-muted-foreground">
-                {selectedArticle.code} — {selectedArticle.name} | JM: {selectedArticle.unit} | Ukupno na stanju: {formatDecimal(articleTotalStock, 3)}
+                {selectedArticle.code} — {selectedArticle.name} | JM: {selectedArticle.unit} | Ukupno na stanju: {formatDecimal(articleVariantStocks.reduce((s, v) => s + v.balance_qty, 0), 3)}
               </p>
+            )}
+            {selectedArticle && warehouseId && articleVariantStocks.length > 0 && (
+              <div className="mt-2 border rounded-md overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="text-left px-3 py-1.5 font-medium">Šifra varijante</th>
+                      <th className="text-left px-3 py-1.5 font-medium">Opis</th>
+                      <th className="text-right px-3 py-1.5 font-medium">Stanje</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {articleVariantStocks.map((s) => (
+                      <tr key={s.variant_id || "none"} className="border-t">
+                        <td className="px-3 py-1.5">{s.variant_code || "—"}</td>
+                        <td className="px-3 py-1.5">{s.variant_description || ""}</td>
+                        <td className="px-3 py-1.5 text-right tabular-nums">{formatDecimal(s.balance_qty, 3)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
           <div className="space-y-2">
-            <Label>Sa varijante (izvorna)</Label>
+            <Label>Sa varijante (izvorna) *</Label>
             <Select value={sourceVariantId} onValueChange={setSourceVariantId} disabled={isDisabled}>
-              <SelectTrigger><SelectValue placeholder="Bez varijante (prazno)" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Izaberite..." /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">Bez varijante (prazno)</SelectItem>
                 {articleVariants.map((v) => (<SelectItem key={v.id} value={v.id}>{v.code} — {v.description}</SelectItem>))}
               </SelectContent>
             </Select>
