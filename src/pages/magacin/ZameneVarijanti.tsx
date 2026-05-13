@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { Plus, Search, Loader2, Trash2, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useVariantSwaps, VariantSwap } from "@/hooks/useVariantSwaps";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { useTableSort } from "@/hooks/useTableSort";
 import { TableScrollContainer } from "@/components/ui/table-scroll-container";
 import { format } from "date-fns";
 import { formatDecimal } from "@/lib/formatting";
+import { exportVariantSwapsToExcel, exportVariantSwapsToPdf, printVariantSwaps } from "@/lib/variantSwapListExportUtils";
 
 export default function ZameneVarijanti() {
   const navigate = useNavigate();
