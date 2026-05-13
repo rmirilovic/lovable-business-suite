@@ -66,10 +66,6 @@ export default function VariantSwapEdit() {
   );
 
   const selectedArticle = articles.find((a) => a.id === articleId);
-  const articleTotalStock = useMemo(() => {
-    if (!stockByVariant || !articleId) return 0;
-    return stockByVariant.filter((s) => s.article_id === articleId).reduce((sum, s) => sum + s.balance_qty, 0);
-  }, [stockByVariant, articleId]);
 
   const articleVariantStocks = useMemo(() => {
     if (!stockByVariant || !articleId) return [];
