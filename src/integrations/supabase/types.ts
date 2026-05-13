@@ -9075,7 +9075,9 @@ export type Database = {
           status: string
           swap_date: string
           swap_number: string
+          swap_value: number
           target_variant_id: string
+          unit_price: number
           updated_at: string
           warehouse_id: string
         }
@@ -9094,7 +9096,9 @@ export type Database = {
           status?: string
           swap_date?: string
           swap_number: string
+          swap_value?: number
           target_variant_id: string
+          unit_price?: number
           updated_at?: string
           warehouse_id: string
         }
@@ -9113,7 +9117,9 @@ export type Database = {
           status?: string
           swap_date?: string
           swap_number?: string
+          swap_value?: number
           target_variant_id?: string
+          unit_price?: number
           updated_at?: string
           warehouse_id?: string
         }
@@ -10569,6 +10575,7 @@ export type Database = {
         Args: { _invoice_id: string; _user_id: string }
         Returns: string
       }
+      post_variant_swap: { Args: { p_swap_id: string }; Returns: undefined }
       register_session: {
         Args: {
           _browser?: string

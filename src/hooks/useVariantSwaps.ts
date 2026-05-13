@@ -142,16 +142,13 @@ export function useVariantSwaps() {
   const postSwap = useMutation({
     mutationFn: async (swapId: string) => {
       if (!user?.id) throw new Error("Niste prijavljeni");
-      // Simple post - just update status, no journal entry
-      const { error } = await supabase
-        .from("variant_swaps")
-        .update({ status: "posted", posted_at: new Date().toISOString(), posted_by: user.id })
-        .eq("id", swapId);
+      const { error } = await supabase.rpc("post_variant_swap", { p_swap_id: swapId });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["variant-swaps"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-stock-by-variant"] });
+      queryClient.invalidateQueries({ queryKey: ["article-all-warehouses-card"] });
       toast.success("Zamena varijante proknjižena");
     },
     onError: (e) => toast.error(`Greška: ${e.message}`),
@@ -161,13 +158,14 @@ export function useVariantSwaps() {
     mutationFn: async (swapId: string) => {
       const { error } = await supabase
         .from("variant_swaps")
-        .update({ status: "draft", posted_at: null, posted_by: null })
+        .update({ status: "draft", posted_at: null, posted_by: null, unit_price: 0, swap_value: 0 })
         .eq("id", swapId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["variant-swaps"] });
       queryClient.invalidateQueries({ queryKey: ["warehouse-stock-by-variant"] });
+      queryClient.invalidateQueries({ queryKey: ["article-all-warehouses-card"] });
       toast.success("Knjiženje poništeno");
     },
     onError: (e) => toast.error(`Greška: ${e.message}`),
