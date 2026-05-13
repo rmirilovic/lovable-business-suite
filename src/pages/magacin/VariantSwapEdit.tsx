@@ -231,21 +231,21 @@ export default function VariantSwapEdit() {
               </p>
             )}
             {selectedArticle && warehouseId && articleVariantStocks.length > 0 && (
-              <div className="mt-2 border rounded-md overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="mt-2 border rounded-md overflow-x-auto">
+                <table className="w-full text-xs sm:text-sm min-w-full">
                   <thead className="bg-muted">
                     <tr>
-                      <th className="text-left px-3 py-1.5 font-medium">Šifra varijante</th>
-                      <th className="text-left px-3 py-1.5 font-medium">Opis</th>
-                      <th className="text-right px-3 py-1.5 font-medium">Stanje</th>
+                      <th className="text-left px-2 sm:px-3 py-1 sm:py-1.5 font-medium whitespace-nowrap">Šifra varijante</th>
+                      <th className="text-left px-2 sm:px-3 py-1 sm:py-1.5 font-medium whitespace-nowrap">Opis</th>
+                      <th className="text-right px-2 sm:px-3 py-1 sm:py-1.5 font-medium whitespace-nowrap">Stanje</th>
                     </tr>
                   </thead>
                   <tbody>
                     {articleVariantStocks.map((s) => (
                       <tr key={s.variant_id || "none"} className="border-t">
-                        <td className="px-3 py-1.5">{s.variant_code || "—"}</td>
-                        <td className="px-3 py-1.5">{s.variant_description || ""}</td>
-                        <td className="px-3 py-1.5 text-right tabular-nums">{formatDecimal(s.balance_qty, 3)}</td>
+                        <td className="px-2 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">{s.variant_code || "—"}</td>
+                        <td className="px-2 sm:px-3 py-1 sm:py-1.5 whitespace-nowrap">{s.variant_description || ""}</td>
+                        <td className="px-2 sm:px-3 py-1 sm:py-1.5 text-right tabular-nums whitespace-nowrap">{formatDecimal(s.balance_qty, 3)}</td>
                       </tr>
                     ))}
                   </tbody>
