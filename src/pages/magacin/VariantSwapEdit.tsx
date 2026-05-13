@@ -231,11 +231,10 @@ export default function VariantSwapEdit() {
             )}
           </div>
           <div className="space-y-2">
-            <Label>Sa varijante (izvorna)</Label>
+            <Label>Sa varijante (izvorna) *</Label>
             <Select value={sourceVariantId} onValueChange={setSourceVariantId} disabled={isDisabled}>
-              <SelectTrigger><SelectValue placeholder="Bez varijante (prazno)" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Izaberite..." /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">Bez varijante (prazno)</SelectItem>
                 {articleVariants.map((v) => (<SelectItem key={v.id} value={v.id}>{v.code} — {v.description}</SelectItem>))}
               </SelectContent>
             </Select>
