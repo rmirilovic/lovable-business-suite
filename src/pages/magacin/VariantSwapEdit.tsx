@@ -258,7 +258,16 @@ export default function VariantSwapEdit() {
             <Select value={sourceVariantId} onValueChange={setSourceVariantId} disabled={isDisabled}>
               <SelectTrigger><SelectValue placeholder="Izaberite..." /></SelectTrigger>
               <SelectContent>
-                {articleVariants.map((v) => (<SelectItem key={v.id} value={v.id}>{v.code} — {v.description}</SelectItem>))}
+                {articleVariants
+                  .filter((v) => (articleVariantStocks.find((s) => s.variant_id === v.id)?.balance_qty ?? 0) > 0)
+                  .map((v) => {
+                    const qty = articleVariantStocks.find((s) => s.variant_id === v.id)?.balance_qty ?? 0;
+                    return (
+                      <SelectItem key={v.id} value={v.id}>
+                        {v.code} — {v.description} ({formatDecimal(qty, 3)})
+                      </SelectItem>
+                    );
+                  })}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">Na stanju: {formatDecimal(sourceVariantStock, 3)}</p>
