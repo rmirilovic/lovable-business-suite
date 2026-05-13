@@ -181,7 +181,7 @@ export default function VariantSwapEdit() {
 
   return (
     <MainLayout title={`Zamena varijante${swap ? ` — ${swap.swap_number}` : ""}`}>
-      <div className="flex flex-col gap-6 max-w-3xl">
+      <div className="flex flex-col gap-6 max-w-3xl flex-1 min-h-0 overflow-auto">
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/magacin/zamene-varijanti")}><ArrowLeft className="w-4 h-4 mr-2" />Nazad</Button>
           <div className="flex items-center gap-2">
