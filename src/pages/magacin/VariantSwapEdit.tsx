@@ -71,6 +71,11 @@ export default function VariantSwapEdit() {
     return stockByVariant.filter((s) => s.article_id === articleId).reduce((sum, s) => sum + s.balance_qty, 0);
   }, [stockByVariant, articleId]);
 
+  const articleVariantStocks = useMemo(() => {
+    if (!stockByVariant || !articleId) return [];
+    return stockByVariant.filter((s) => s.article_id === articleId);
+  }, [stockByVariant, articleId]);
+
   const sourceVariantStock = useMemo(() => {
     if (!stockByVariant || !articleId) return 0;
     const vid = sourceVariantId || null;
