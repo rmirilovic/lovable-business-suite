@@ -29,7 +29,7 @@ import {
 } from "@/lib/productionLinesExportUtils";
 import { toast } from "sonner";
 
-const PRODUCTION_TYPES = ["Sopstvena", "Usluzna", "Lon", "Prerada", "Mesovita"];
+const PRODUCTION_TYPES = ["PVC", "PE", "PP-KK", "PP-UK"];
 
 interface FormState {
   id?: string;
