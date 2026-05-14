@@ -32,6 +32,7 @@ import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWorkOrders } from "@/hooks/useWorkOrders";
 import { useShiftManagers } from "@/hooks/useShiftManagers";
 import { useArticleVariants } from "@/hooks/useArticleVariants";
+import { useProductionLines } from "@/hooks/useProductionLines";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber, formatPrice, parseLocaleNumber } from "@/lib/formatting";
