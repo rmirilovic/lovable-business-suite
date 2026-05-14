@@ -191,6 +191,11 @@ export default function PredajniceGP() {
 
   const handleCreate = async () => {
     if (!newForm.warehouse_id || !newForm.delivery_date) return;
+    if (!activeProductionLines.some((l) => l.code === newForm.production_line)) {
+      const { toast } = await import("sonner");
+      toast.error("Izaberite važeću proizvodnu liniju iz šifarnika");
+      return;
+    }
     const result = await createNote.mutateAsync({
       delivery_date: newForm.delivery_date,
       warehouse_id: newForm.warehouse_id,
