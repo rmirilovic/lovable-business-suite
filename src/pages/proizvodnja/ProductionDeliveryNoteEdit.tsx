@@ -32,6 +32,7 @@ import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWorkOrders } from "@/hooks/useWorkOrders";
 import { useShiftManagers } from "@/hooks/useShiftManagers";
 import { useArticleVariants } from "@/hooks/useArticleVariants";
+import { useProductionLines } from "@/hooks/useProductionLines";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber, formatPrice, parseLocaleNumber } from "@/lib/formatting";
@@ -59,6 +60,16 @@ export default function ProductionDeliveryNoteEdit() {
   const { orders } = useWorkOrders();
   const { managers } = useShiftManagers();
   const { variants } = useArticleVariants(companyId);
+  const { data: productionLines = [] } = useProductionLines();
+  const activeProductionLines = useMemo(() => {
+    const list = productionLines.filter((l) => l.is_active);
+    // Ako trenutna linija nije aktivna ali postoji, uključi je radi pravilnog prikaza
+    if (note && !list.some((l) => l.code === note.production_line)) {
+      const existing = productionLines.find((l) => l.code === note.production_line);
+      if (existing) return [...list, existing].sort((a, b) => a.code - b.code);
+    }
+    return list;
+  }, [productionLines, note]);
 
   // Fetch variant assignments for articles in items
   const [variantAssignments, setVariantAssignments] = useState<Record<string, { id: string; code: string; description: string }[]>>({});
@@ -128,6 +139,10 @@ export default function ProductionDeliveryNoteEdit() {
 
   const handleSaveHeader = async () => {
     if (!id) return;
+    if (!productionLines.some((l) => l.code === headerForm.production_line && l.is_active)) {
+      toast.error("Izaberite važeću proizvodnu liniju iz šifarnika");
+      return;
+    }
     const { error } = await (supabase as any)
       .from("production_delivery_notes")
       .update({
@@ -347,15 +362,18 @@ export default function ProductionDeliveryNoteEdit() {
             </select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Proizvodna linija (1-19)</Label>
-            <Input
-              type="number"
-              min={1}
-              max={19}
+            <Label className="text-xs">Proizvodna linija</Label>
+            <select
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
               value={headerForm.production_line}
-              onChange={(e) => updateHeaderField("production_line", Math.min(19, Math.max(1, parseInt(e.target.value) || 1)))}
+              onChange={(e) => updateHeaderField("production_line", parseInt(e.target.value) || 0)}
               disabled={!isDraft}
-            />
+            >
+              {activeProductionLines.length === 0 && <option value={0}>-- Nema definisanih linija --</option>}
+              {activeProductionLines.map((l) => (
+                <option key={l.id} value={l.code}>{l.code} - {l.name} ({l.production_type})</option>
+              ))}
+            </select>
           </div>
         </div>
 

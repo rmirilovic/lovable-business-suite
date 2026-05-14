@@ -16,6 +16,7 @@ import { Plus, Search, Trash2, Lock, Unlock, MoreHorizontal, Eye, FileSpreadshee
 import { useReprocessingDeliveryNotes, RDN_STATUS_LABELS, RDN_STATUS_COLORS, ReprocessingDeliveryNote } from "@/hooks/useReprocessingDeliveryNotes";
 import { useReprocessingWorkOrders } from "@/hooks/useReprocessingWorkOrders";
 import { useWarehouses } from "@/hooks/useWarehouses";
+import { useProductionLines } from "@/hooks/useProductionLines";
 import { useTableSort } from "@/hooks/useTableSort";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfYear } from "date-fns";
@@ -23,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/formatting";
 import { exportRDNToExcel, exportRDNToPdf, printRDN, EnrichedRDN } from "@/lib/reprocessingDeliveryNoteExportUtils";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const STORAGE_KEY = "reprocessing_dn_filters";
 function loadFilters() { try { const r = sessionStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
@@ -36,6 +38,8 @@ export default function ReprocessingDeliveryNotesList() {
   const { orders } = useReprocessingWorkOrders();
   const { warehouses } = useWarehouses(companyId);
   const gpWarehouses = warehouses.filter((w) => w.warehouse_type === "9" && w.is_active);
+  const { data: productionLines = [] } = useProductionLines();
+  const activeProductionLines = useMemo(() => productionLines.filter((l) => l.is_active), [productionLines]);
   const activeOrders = useMemo(() => orders.filter((o) => o.status === "launched" || o.status === "closed"), [orders]);
 
   const saved = loadFilters();
@@ -111,12 +115,16 @@ export default function ReprocessingDeliveryNotesList() {
   };
 
   const handleOpenNewDialog = () => {
-    setNewForm({ delivery_date: format(new Date(), "yyyy-MM-dd"), warehouse_id: gpWarehouses.length === 1 ? gpWarehouses[0].id : "", work_order_id: "", production_line: 1, responsible_person: operatorName });
+    setNewForm({ delivery_date: format(new Date(), "yyyy-MM-dd"), warehouse_id: gpWarehouses.length === 1 ? gpWarehouses[0].id : "", work_order_id: "", production_line: activeProductionLines[0]?.code ?? 0, responsible_person: operatorName });
     setShowNewDialog(true);
   };
 
   const handleCreate = async () => {
     if (!newForm.warehouse_id || !newForm.delivery_date || !newForm.work_order_id) return;
+    if (!activeProductionLines.some((l) => l.code === newForm.production_line)) {
+      toast.error("Izaberite važeću proizvodnu liniju iz šifarnika");
+      return;
+    }
     const result = await createNote.mutateAsync({ delivery_date: newForm.delivery_date, warehouse_id: newForm.warehouse_id, work_order_id: newForm.work_order_id, production_line: newForm.production_line, responsible_person: newForm.responsible_person });
     setShowNewDialog(false);
     navigate(`/proizvodnja/predajnice-prerada/${result.id}`);
@@ -228,8 +236,11 @@ export default function ReprocessingDeliveryNotesList() {
               </select>
             </div>
             <div className="space-y-1">
-              <Label>Proizvodna linija (1-19)</Label>
-              <Input type="number" min={1} max={19} value={newForm.production_line} onChange={(e) => setNewForm((p) => ({ ...p, production_line: Math.min(19, Math.max(1, parseInt(e.target.value) || 1)) }))} />
+              <Label>Proizvodna linija</Label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={newForm.production_line} onChange={(e) => setNewForm((p) => ({ ...p, production_line: parseInt(e.target.value) || 0 }))}>
+                {activeProductionLines.length === 0 && <option value={0}>-- Nema definisanih linija --</option>}
+                {activeProductionLines.map((l) => <option key={l.id} value={l.code}>{l.code} - {l.name} ({l.production_type})</option>)}
+              </select>
             </div>
             <div className="space-y-1"><Label>Odgovorno lice</Label><Input value={newForm.responsible_person} onChange={(e) => setNewForm((p) => ({ ...p, responsible_person: e.target.value }))} /></div>
           </div>

@@ -27,6 +27,7 @@ import {
 } from "@/hooks/useProductionDeliveryNotes";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWorkOrders } from "@/hooks/useWorkOrders";
+import { useProductionLines } from "@/hooks/useProductionLines";
 import { useTableSort } from "@/hooks/useTableSort";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfYear } from "date-fns";
@@ -54,6 +55,8 @@ export default function PredajniceGP() {
   const { notes, isLoading, createNote, deleteNote, postNote, unpostNote } = useProductionDeliveryNotes();
   const { warehouses } = useWarehouses(companyId);
   const { orders } = useWorkOrders();
+  const { data: productionLines = [] } = useProductionLines();
+  const activeProductionLines = useMemo(() => productionLines.filter((l) => l.is_active), [productionLines]);
   const gpWarehouses = warehouses.filter((w) => w.warehouse_type === "9" && w.is_active);
 
   // Launched / closed work orders for dropdown
@@ -138,7 +141,7 @@ export default function PredajniceGP() {
       delivery_date: format(new Date(), "yyyy-MM-dd"),
       warehouse_id: gpWarehouses.length === 1 ? gpWarehouses[0].id : "",
       work_order_id: "",
-      production_line: 1,
+      production_line: activeProductionLines[0]?.code ?? 0,
       responsible_person: operatorName,
     });
     setShowNewDialog(true);
@@ -188,6 +191,11 @@ export default function PredajniceGP() {
 
   const handleCreate = async () => {
     if (!newForm.warehouse_id || !newForm.delivery_date) return;
+    if (!activeProductionLines.some((l) => l.code === newForm.production_line)) {
+      const { toast } = await import("sonner");
+      toast.error("Izaberite važeću proizvodnu liniju iz šifarnika");
+      return;
+    }
     const result = await createNote.mutateAsync({
       delivery_date: newForm.delivery_date,
       warehouse_id: newForm.warehouse_id,
@@ -424,14 +432,17 @@ export default function PredajniceGP() {
               </select>
             </div>
             <div className="space-y-1">
-              <Label>Proizvodna linija (1-19)</Label>
-              <Input
-                type="number"
-                min={1}
-                max={19}
+              <Label>Proizvodna linija</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={newForm.production_line}
-                onChange={(e) => setNewForm((p) => ({ ...p, production_line: Math.min(19, Math.max(1, parseInt(e.target.value) || 1)) }))}
-              />
+                onChange={(e) => setNewForm((p) => ({ ...p, production_line: parseInt(e.target.value) || 0 }))}
+              >
+                {activeProductionLines.length === 0 && <option value={0}>-- Nema definisanih linija --</option>}
+                {activeProductionLines.map((l) => (
+                  <option key={l.id} value={l.code}>{l.code} - {l.name} ({l.production_type})</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-1">
               <Label>Odgovorno lice</Label>

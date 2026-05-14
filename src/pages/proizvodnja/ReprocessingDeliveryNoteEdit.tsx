@@ -23,6 +23,7 @@ import {
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useReprocessingWorkOrders } from "@/hooks/useReprocessingWorkOrders";
 import { useShiftManagers } from "@/hooks/useShiftManagers";
+import { useProductionLines } from "@/hooks/useProductionLines";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
@@ -79,9 +80,18 @@ export default function ReprocessingDeliveryNoteEdit() {
   const { warehouses } = useWarehouses(companyId);
   const { orders } = useReprocessingWorkOrders();
   const { managers } = useShiftManagers();
+  const { data: productionLines = [] } = useProductionLines();
 
   const gpWarehouses = useMemo(() => warehouses.filter((w) => w.warehouse_type === "9" && w.is_active), [warehouses]);
   const activeOrders = useMemo(() => orders.filter((o) => o.status === "launched" || o.status === "closed"), [orders]);
+  const activeProductionLines = useMemo(() => {
+    const list = productionLines.filter((l) => l.is_active);
+    if (note && !list.some((l) => l.code === note.production_line)) {
+      const existing = productionLines.find((l) => l.code === note.production_line);
+      if (existing) return [...list, existing].sort((a, b) => a.code - b.code);
+    }
+    return list;
+  }, [productionLines, note]);
 
   const [headerForm, setHeaderForm] = useState({ delivery_date: "", warehouse_id: "", work_order_id: "", production_line: 1, shift_manager_1_id: "", shift_manager_2_id: "", shift_manager_3_id: "", note: "", responsible_person: "" });
   const [headerDirty, setHeaderDirty] = useState(false);
@@ -104,6 +114,10 @@ export default function ReprocessingDeliveryNoteEdit() {
 
   const handleSaveHeader = async () => {
     if (!id) return;
+    if (!productionLines.some((l) => l.code === headerForm.production_line && l.is_active)) {
+      toast.error("Izaberite važeću proizvodnu liniju iz šifarnika");
+      return;
+    }
     const { error } = await (supabase as any).from("reprocessing_delivery_notes").update({
       delivery_date: headerForm.delivery_date, warehouse_id: headerForm.warehouse_id,
       work_order_id: headerForm.work_order_id || null, production_line: headerForm.production_line,
@@ -177,7 +191,13 @@ export default function ReprocessingDeliveryNoteEdit() {
               {gpWarehouses.map((w) => <option key={w.id} value={w.id}>{w.code} - {w.name}</option>)}
             </select>
           </div>
-          <div className="space-y-1"><Label className="text-xs">Proizvodna linija</Label><Input type="number" min={1} max={19} value={headerForm.production_line} onChange={(e) => updateHeaderField("production_line", Math.min(19, Math.max(1, parseInt(e.target.value) || 1)))} disabled={!isDraft} /></div>
+          <div className="space-y-1">
+            <Label className="text-xs">Proizvodna linija</Label>
+            <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50" value={headerForm.production_line} onChange={(e) => updateHeaderField("production_line", parseInt(e.target.value) || 0)} disabled={!isDraft}>
+              {activeProductionLines.length === 0 && <option value={0}>-- Nema definisanih linija --</option>}
+              {activeProductionLines.map((l) => <option key={l.id} value={l.code}>{l.code} - {l.name} ({l.production_type})</option>)}
+            </select>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-card">
