@@ -141,7 +141,7 @@ export default function PredajniceGP() {
       delivery_date: format(new Date(), "yyyy-MM-dd"),
       warehouse_id: gpWarehouses.length === 1 ? gpWarehouses[0].id : "",
       work_order_id: "",
-      production_line: 1,
+      production_line: activeProductionLines[0]?.code ?? 0,
       responsible_person: operatorName,
     });
     setShowNewDialog(true);
