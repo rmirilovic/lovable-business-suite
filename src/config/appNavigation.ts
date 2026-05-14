@@ -131,7 +131,6 @@ export const appNavigation: NavigationItem[] = [
       { label: "Predajnice GP", href: "/proizvodnja/predajnice", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "RN za preradu", href: "/proizvodnja/prerada", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Predajnice preradu", href: "/proizvodnja/predajnice-prerada", moduleCode: "proizvodnja.radni_nalozi" },
-      { label: "Recepture", href: "/proizvodnja/recepture", moduleCode: "proizvodnja.sastavnice" },
     ],
   },
   {
