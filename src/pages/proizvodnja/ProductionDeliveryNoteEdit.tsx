@@ -358,15 +358,18 @@ export default function ProductionDeliveryNoteEdit() {
             </select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Proizvodna linija (1-19)</Label>
-            <Input
-              type="number"
-              min={1}
-              max={19}
+            <Label className="text-xs">Proizvodna linija</Label>
+            <select
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
               value={headerForm.production_line}
-              onChange={(e) => updateHeaderField("production_line", Math.min(19, Math.max(1, parseInt(e.target.value) || 1)))}
+              onChange={(e) => updateHeaderField("production_line", parseInt(e.target.value) || 0)}
               disabled={!isDraft}
-            />
+            >
+              {activeProductionLines.length === 0 && <option value={0}>-- Nema definisanih linija --</option>}
+              {activeProductionLines.map((l) => (
+                <option key={l.id} value={l.code}>{l.code} - {l.name} ({l.production_type})</option>
+              ))}
+            </select>
           </div>
         </div>
 
