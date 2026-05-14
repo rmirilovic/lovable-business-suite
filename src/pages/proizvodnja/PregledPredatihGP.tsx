@@ -81,7 +81,7 @@ export default function PregledPredatihGP() {
       if (itemsErr) throw itemsErr;
 
       const filteredItems = (items || []).filter((it: any) => noteIds.includes(it.delivery_note_id));
-      const articleIds = Array.from(new Set(filteredItems.map((i: any) => i.article_id)));
+      const articleIds = Array.from(new Set(filteredItems.map((i: any) => i.article_id))) as string[];
 
       const { data: articles } = await supabase
         .from("articles")
