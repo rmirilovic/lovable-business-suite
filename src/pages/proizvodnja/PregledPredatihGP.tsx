@@ -154,8 +154,8 @@ export default function PregledPredatihGP() {
   }, [sorted]);
 
   const fmtDate = (d: string) => (d ? format(new Date(d), "dd.MM.yyyy") : "-");
-  const fmtQty = (v: number) => (v ? formatDecimal(v, 3) : "-");
-  const fmtVal = (v: number) => (v ? formatPrice(v) : "-");
+  const fmtQty = (v: number) => (v ? formatDecimal(v, 0) : "-");
+  const fmtVal = (v: number) => (v ? formatDecimal(v, 0) : "-");
 
   const exportMeta = { companyName: selectedCompany?.name ?? "", dateFrom, dateTo };
 
