@@ -634,6 +634,11 @@ const App = () => (
                   <ProductionDeliveryNoteEdit />
                 </ProtectedRoute>
               } />
+              <Route path="/proizvodnja/pregled-predatih-gp" element={
+                <ProtectedRoute>
+                  <PregledPredatihGP />
+                </ProtectedRoute>
+              } />
               <Route path="/proizvodnja/prerada" element={
                 <ProtectedRoute>
                   <ReprocessingWorkOrders />
