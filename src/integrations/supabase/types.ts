@@ -7146,6 +7146,78 @@ export type Database = {
           },
         ]
       }
+      production_lines: {
+        Row: {
+          code: number
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          name: string
+          production_type: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          code: number
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          production_type: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          code?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          production_type?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      production_lines_history: {
+        Row: {
+          action: string
+          changed_at: string
+          changed_by: string | null
+          company_id: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          production_line_id: string
+        }
+        Insert: {
+          action: string
+          changed_at?: string
+          changed_by?: string | null
+          company_id: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          production_line_id: string
+        }
+        Update: {
+          action?: string
+          changed_at?: string
+          changed_by?: string | null
+          company_id?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          production_line_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
