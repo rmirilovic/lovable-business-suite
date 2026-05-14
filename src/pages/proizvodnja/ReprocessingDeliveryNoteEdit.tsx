@@ -23,6 +23,7 @@ import {
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useReprocessingWorkOrders } from "@/hooks/useReprocessingWorkOrders";
 import { useShiftManagers } from "@/hooks/useShiftManagers";
+import { useProductionLines } from "@/hooks/useProductionLines";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatNumber, parseLocaleNumber } from "@/lib/formatting";
