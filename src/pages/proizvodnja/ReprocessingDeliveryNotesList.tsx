@@ -37,6 +37,8 @@ export default function ReprocessingDeliveryNotesList() {
   const { orders } = useReprocessingWorkOrders();
   const { warehouses } = useWarehouses(companyId);
   const gpWarehouses = warehouses.filter((w) => w.warehouse_type === "9" && w.is_active);
+  const { data: productionLines = [] } = useProductionLines();
+  const activeProductionLines = useMemo(() => productionLines.filter((l) => l.is_active), [productionLines]);
   const activeOrders = useMemo(() => orders.filter((o) => o.status === "launched" || o.status === "closed"), [orders]);
 
   const saved = loadFilters();
