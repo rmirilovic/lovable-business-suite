@@ -114,6 +114,10 @@ export default function ReprocessingDeliveryNoteEdit() {
 
   const handleSaveHeader = async () => {
     if (!id) return;
+    if (!productionLines.some((l) => l.code === headerForm.production_line && l.is_active)) {
+      toast.error("Izaberite važeću proizvodnu liniju iz šifarnika");
+      return;
+    }
     const { error } = await (supabase as any).from("reprocessing_delivery_notes").update({
       delivery_date: headerForm.delivery_date, warehouse_id: headerForm.warehouse_id,
       work_order_id: headerForm.work_order_id || null, production_line: headerForm.production_line,
