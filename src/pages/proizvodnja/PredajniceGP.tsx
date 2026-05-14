@@ -55,6 +55,8 @@ export default function PredajniceGP() {
   const { notes, isLoading, createNote, deleteNote, postNote, unpostNote } = useProductionDeliveryNotes();
   const { warehouses } = useWarehouses(companyId);
   const { orders } = useWorkOrders();
+  const { data: productionLines = [] } = useProductionLines();
+  const activeProductionLines = useMemo(() => productionLines.filter((l) => l.is_active), [productionLines]);
   const gpWarehouses = warehouses.filter((w) => w.warehouse_type === "9" && w.is_active);
 
   // Launched / closed work orders for dropdown
