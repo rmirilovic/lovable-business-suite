@@ -16,6 +16,7 @@ import { Plus, Search, Trash2, Lock, Unlock, MoreHorizontal, Eye, FileSpreadshee
 import { useReprocessingDeliveryNotes, RDN_STATUS_LABELS, RDN_STATUS_COLORS, ReprocessingDeliveryNote } from "@/hooks/useReprocessingDeliveryNotes";
 import { useReprocessingWorkOrders } from "@/hooks/useReprocessingWorkOrders";
 import { useWarehouses } from "@/hooks/useWarehouses";
+import { useProductionLines } from "@/hooks/useProductionLines";
 import { useTableSort } from "@/hooks/useTableSort";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfYear } from "date-fns";
