@@ -236,8 +236,11 @@ export default function ReprocessingDeliveryNotesList() {
               </select>
             </div>
             <div className="space-y-1">
-              <Label>Proizvodna linija (1-19)</Label>
-              <Input type="number" min={1} max={19} value={newForm.production_line} onChange={(e) => setNewForm((p) => ({ ...p, production_line: Math.min(19, Math.max(1, parseInt(e.target.value) || 1)) }))} />
+              <Label>Proizvodna linija</Label>
+              <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={newForm.production_line} onChange={(e) => setNewForm((p) => ({ ...p, production_line: parseInt(e.target.value) || 0 }))}>
+                {activeProductionLines.length === 0 && <option value={0}>-- Nema definisanih linija --</option>}
+                {activeProductionLines.map((l) => <option key={l.id} value={l.code}>{l.code} - {l.name} ({l.production_type})</option>)}
+              </select>
             </div>
             <div className="space-y-1"><Label>Odgovorno lice</Label><Input value={newForm.responsible_person} onChange={(e) => setNewForm((p) => ({ ...p, responsible_person: e.target.value }))} /></div>
           </div>
