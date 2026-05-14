@@ -139,6 +139,10 @@ export default function ProductionDeliveryNoteEdit() {
 
   const handleSaveHeader = async () => {
     if (!id) return;
+    if (!productionLines.some((l) => l.code === headerForm.production_line && l.is_active)) {
+      toast.error("Izaberite važeću proizvodnu liniju iz šifarnika");
+      return;
+    }
     const { error } = await (supabase as any)
       .from("production_delivery_notes")
       .update({
