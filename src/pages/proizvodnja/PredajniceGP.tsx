@@ -27,6 +27,7 @@ import {
 } from "@/hooks/useProductionDeliveryNotes";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useWorkOrders } from "@/hooks/useWorkOrders";
+import { useProductionLines } from "@/hooks/useProductionLines";
 import { useTableSort } from "@/hooks/useTableSort";
 import { supabase } from "@/integrations/supabase/client";
 import { format, startOfYear } from "date-fns";
