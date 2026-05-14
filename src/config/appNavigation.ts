@@ -129,6 +129,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Radni nalozi", href: "/proizvodnja/nalozi", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Trebovanja", href: "/proizvodnja/trebovanja", moduleCode: "proizvodnja.trebovanja" },
       { label: "Predajnice GP", href: "/proizvodnja/predajnice", moduleCode: "proizvodnja.radni_nalozi" },
+      { label: "Pregled predatih GP", href: "/proizvodnja/pregled-predatih-gp", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "RN za preradu", href: "/proizvodnja/prerada", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Predajnice preradu", href: "/proizvodnja/predajnice-prerada", moduleCode: "proizvodnja.radni_nalozi" },
     ],
