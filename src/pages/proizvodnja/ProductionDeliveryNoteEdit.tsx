@@ -60,6 +60,16 @@ export default function ProductionDeliveryNoteEdit() {
   const { orders } = useWorkOrders();
   const { managers } = useShiftManagers();
   const { variants } = useArticleVariants(companyId);
+  const { data: productionLines = [] } = useProductionLines();
+  const activeProductionLines = useMemo(() => {
+    const list = productionLines.filter((l) => l.is_active);
+    // Ako trenutna linija nije aktivna ali postoji, uključi je radi pravilnog prikaza
+    if (note && !list.some((l) => l.code === note.production_line)) {
+      const existing = productionLines.find((l) => l.code === note.production_line);
+      if (existing) return [...list, existing].sort((a, b) => a.code - b.code);
+    }
+    return list;
+  }, [productionLines, note]);
 
   // Fetch variant assignments for articles in items
   const [variantAssignments, setVariantAssignments] = useState<Record<string, { id: string; code: string; description: string }[]>>({});
