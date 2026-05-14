@@ -83,22 +83,46 @@ export default function ProizvodneLinije() {
   };
 
   const handleSave = async () => {
-    const code = parseInt(form.code, 10);
+    const trimmedCode = form.code.trim();
+    if (!/^\d+$/.test(trimmedCode)) {
+      toast.error("Šifra mora biti ceo broj između 1 i 99");
+      return;
+    }
+    const code = parseInt(trimmedCode, 10);
     if (!Number.isInteger(code) || code < 1 || code > 99) {
-      toast.error("Šifra mora biti broj između 1 i 99");
+      toast.error("Šifra mora biti ceo broj između 1 i 99");
+      return;
+    }
+    const duplicate = lines.some((l) => l.code === code && l.id !== form.id);
+    if (duplicate) {
+      toast.error(`Šifra ${code} već postoji u šifarniku`);
       return;
     }
     if (!form.name.trim()) { toast.error("Naziv je obavezan"); return; }
+    if (form.name.trim().length > 63) { toast.error("Naziv može imati najviše 63 karaktera"); return; }
     if (!form.production_type.trim()) { toast.error("Vrsta proizvodnje je obavezna"); return; }
+    if (!PRODUCTION_TYPES.includes(form.production_type)) {
+      toast.error("Vrsta proizvodnje nije validna");
+      return;
+    }
 
-    await upsert.mutateAsync({
-      id: form.id,
-      code,
-      name: form.name.trim(),
-      production_type: form.production_type.trim(),
-      is_active: form.is_active,
-    });
-    setDialogOpen(false);
+    try {
+      await upsert.mutateAsync({
+        id: form.id,
+        code,
+        name: form.name.trim(),
+        production_type: form.production_type.trim(),
+        is_active: form.is_active,
+      });
+      setDialogOpen(false);
+    } catch (e: any) {
+      const msg = String(e?.message ?? "");
+      if (msg.includes("production_lines_company_id_code_key") || msg.toLowerCase().includes("duplicate")) {
+        toast.error(`Šifra ${code} već postoji u šifarniku`);
+      } else if (msg.includes("production_lines_code_check")) {
+        toast.error("Šifra mora biti između 1 i 99");
+      }
+    }
   };
 
   const handleDelete = async () => {
