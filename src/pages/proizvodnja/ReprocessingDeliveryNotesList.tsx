@@ -115,12 +115,16 @@ export default function ReprocessingDeliveryNotesList() {
   };
 
   const handleOpenNewDialog = () => {
-    setNewForm({ delivery_date: format(new Date(), "yyyy-MM-dd"), warehouse_id: gpWarehouses.length === 1 ? gpWarehouses[0].id : "", work_order_id: "", production_line: 1, responsible_person: operatorName });
+    setNewForm({ delivery_date: format(new Date(), "yyyy-MM-dd"), warehouse_id: gpWarehouses.length === 1 ? gpWarehouses[0].id : "", work_order_id: "", production_line: activeProductionLines[0]?.code ?? 0, responsible_person: operatorName });
     setShowNewDialog(true);
   };
 
   const handleCreate = async () => {
     if (!newForm.warehouse_id || !newForm.delivery_date || !newForm.work_order_id) return;
+    if (!activeProductionLines.some((l) => l.code === newForm.production_line)) {
+      toast.error("Izaberite važeću proizvodnu liniju iz šifarnika");
+      return;
+    }
     const result = await createNote.mutateAsync({ delivery_date: newForm.delivery_date, warehouse_id: newForm.warehouse_id, work_order_id: newForm.work_order_id, production_line: newForm.production_line, responsible_person: newForm.responsible_person });
     setShowNewDialog(false);
     navigate(`/proizvodnja/predajnice-prerada/${result.id}`);
