@@ -80,9 +80,18 @@ export default function ReprocessingDeliveryNoteEdit() {
   const { warehouses } = useWarehouses(companyId);
   const { orders } = useReprocessingWorkOrders();
   const { managers } = useShiftManagers();
+  const { data: productionLines = [] } = useProductionLines();
 
   const gpWarehouses = useMemo(() => warehouses.filter((w) => w.warehouse_type === "9" && w.is_active), [warehouses]);
   const activeOrders = useMemo(() => orders.filter((o) => o.status === "launched" || o.status === "closed"), [orders]);
+  const activeProductionLines = useMemo(() => {
+    const list = productionLines.filter((l) => l.is_active);
+    if (note && !list.some((l) => l.code === note.production_line)) {
+      const existing = productionLines.find((l) => l.code === note.production_line);
+      if (existing) return [...list, existing].sort((a, b) => a.code - b.code);
+    }
+    return list;
+  }, [productionLines, note]);
 
   const [headerForm, setHeaderForm] = useState({ delivery_date: "", warehouse_id: "", work_order_id: "", production_line: 1, shift_manager_1_id: "", shift_manager_2_id: "", shift_manager_3_id: "", note: "", responsible_person: "" });
   const [headerDirty, setHeaderDirty] = useState(false);
