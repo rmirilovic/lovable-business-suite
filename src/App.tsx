@@ -22,6 +22,7 @@ import Magacini from "./pages/sifarnici/Magacini";
 import OrganizacioneJedinice from "./pages/sifarnici/OrganizacioneJedinice";
 import UlazniTroskovi from "./pages/sifarnici/UlazniTroskovi";
 import SefoviSmena from "./pages/sifarnici/SefoviSmena";
+import ProizvodneLinije from "./pages/sifarnici/ProizvodneLinije";
 import TekuciRacuni from "./pages/sifarnici/TekuciRacuni";
 import AdminPanel from "./pages/admin/AdminPanel";
 import KontniPlan from "./pages/racunovodstvo/KontniPlan";
@@ -226,6 +227,11 @@ const App = () => (
               <Route path="/sifarnici/sefovi-smena" element={
                 <ProtectedRoute>
                   <SefoviSmena />
+                </ProtectedRoute>
+              } />
+              <Route path="/sifarnici/proizvodne-linije" element={
+                <ProtectedRoute>
+                  <ProizvodneLinije />
                 </ProtectedRoute>
               } />
               <Route path="/sifarnici/tekuci-racuni" element={

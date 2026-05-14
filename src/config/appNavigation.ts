@@ -45,6 +45,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Kontni plan", href: "/sifarnici/kontni-plan", moduleCode: "racunovodstvo.kontni_plan" },
       { label: "Ulazni troškovi", href: "/sifarnici/ulazni-troskovi", moduleCode: "sifarnici.ulazni_troskovi" },
       { label: "Šefovi smena", href: "/sifarnici/sefovi-smena", moduleCode: "sifarnici.ulazni_troskovi" },
+      { label: "Proizvodne linije", href: "/sifarnici/proizvodne-linije", moduleCode: "sifarnici.magacini" },
       { label: "Tekući računi", href: "/sifarnici/tekuci-racuni", moduleCode: "sifarnici.magacini" },
       { label: "Šifarnik plaćanja", href: "/sifarnici/sifarnik-placanja", moduleCode: "racunovodstvo.nalozi" },
       { label: "Kursna lista NBS", href: "/sifarnici/kursna-lista", moduleCode: "racunovodstvo.nalozi" },
