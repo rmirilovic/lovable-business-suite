@@ -92,6 +92,7 @@ import Trebovanja from "./pages/proizvodnja/Trebovanja";
 import RequisitionEdit from "./pages/proizvodnja/RequisitionEdit";
 import PredajniceGP from "./pages/proizvodnja/PredajniceGP";
 import ProductionDeliveryNoteEdit from "./pages/proizvodnja/ProductionDeliveryNoteEdit";
+import PregledPredatihGP from "./pages/proizvodnja/PregledPredatihGP";
 import ReprocessingWorkOrders from "./pages/proizvodnja/ReprocessingWorkOrders";
 import ReprocessingWorkOrderEdit from "./pages/proizvodnja/ReprocessingWorkOrderEdit";
 import ReprocessingDeliveryNotesList from "./pages/proizvodnja/ReprocessingDeliveryNotesList";
