@@ -94,6 +94,7 @@ import RequisitionEdit from "./pages/proizvodnja/RequisitionEdit";
 import PredajniceGP from "./pages/proizvodnja/PredajniceGP";
 import ProductionDeliveryNoteEdit from "./pages/proizvodnja/ProductionDeliveryNoteEdit";
 import PregledPredatihGP from "./pages/proizvodnja/PregledPredatihGP";
+import ProizvodnjaPoSifKlasama from "./pages/proizvodnja/ProizvodnjaPoSifKlasama";
 import ReprocessingWorkOrders from "./pages/proizvodnja/ReprocessingWorkOrders";
 import ReprocessingWorkOrderEdit from "./pages/proizvodnja/ReprocessingWorkOrderEdit";
 import ReprocessingDeliveryNotesList from "./pages/proizvodnja/ReprocessingDeliveryNotesList";
@@ -643,6 +644,11 @@ const App = () => (
               <Route path="/proizvodnja/pregled-predatih-gp" element={
                 <ProtectedRoute>
                   <PregledPredatihGP />
+                </ProtectedRoute>
+              } />
+              <Route path="/proizvodnja/proizvodnja-po-sif-klasama" element={
+                <ProtectedRoute>
+                  <ProizvodnjaPoSifKlasama />
                 </ProtectedRoute>
               } />
               <Route path="/proizvodnja/prerada" element={
