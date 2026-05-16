@@ -38,6 +38,10 @@ interface Meta {
 const fmtDate = (d: string) => (d ? format(new Date(d), "dd.MM.yyyy") : "");
 const fmtQty = (v: number) => (v ? formatDecimal(v, 0) : "-");
 
+function mgrTotal(c: SefSmeneCell) {
+  return Math.round(c.s1 + c.s2 + c.s3);
+}
+
 function headerRows(r: SefSmeneReport): string[][] {
   return [
     [
@@ -45,15 +49,18 @@ function headerRows(r: SefSmeneReport): string[][] {
       `${r.managerNames.m1 || "Šef 1"}`,
       "",
       "",
+      "",
       `${r.managerNames.m2 || "Šef 2"}`,
+      "",
       "",
       "",
       `${r.managerNames.m3 || "Šef 3"}`,
       "",
       "",
+      "",
       "Ukupno za dan",
     ],
-    ["", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena", ""],
+    ["", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", ""],
   ];
 }
 
@@ -63,12 +70,15 @@ function bodyRows(r: SefSmeneReport): (string | number)[][] {
     Math.round(row.m1.s1),
     Math.round(row.m1.s2),
     Math.round(row.m1.s3),
+    mgrTotal(row.m1),
     Math.round(row.m2.s1),
     Math.round(row.m2.s2),
     Math.round(row.m2.s3),
+    mgrTotal(row.m2),
     Math.round(row.m3.s1),
     Math.round(row.m3.s2),
     Math.round(row.m3.s3),
+    mgrTotal(row.m3),
     Math.round(row.total),
   ]);
   rows.push([
@@ -76,12 +86,15 @@ function bodyRows(r: SefSmeneReport): (string | number)[][] {
     Math.round(r.totals.m1.s1),
     Math.round(r.totals.m1.s2),
     Math.round(r.totals.m1.s3),
+    mgrTotal(r.totals.m1),
     Math.round(r.totals.m2.s1),
     Math.round(r.totals.m2.s2),
     Math.round(r.totals.m2.s3),
+    mgrTotal(r.totals.m2),
     Math.round(r.totals.m3.s1),
     Math.round(r.totals.m3.s2),
     Math.round(r.totals.m3.s3),
+    mgrTotal(r.totals.m3),
     Math.round(r.totals.total),
   ]);
   return rows;
@@ -95,11 +108,11 @@ export function exportSefoviToExcel(report: SefSmeneReport, meta: Meta) {
   bodyRows(report).forEach((b) => aoa.push(b));
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws["!merges"] = [
-    { s: { r: 2, c: 1 }, e: { r: 2, c: 3 } },
-    { s: { r: 2, c: 4 }, e: { r: 2, c: 6 } },
-    { s: { r: 2, c: 7 }, e: { r: 2, c: 9 } },
+    { s: { r: 2, c: 1 }, e: { r: 2, c: 4 } },
+    { s: { r: 2, c: 5 }, e: { r: 2, c: 8 } },
+    { s: { r: 2, c: 9 }, e: { r: 2, c: 12 } },
     { s: { r: 2, c: 0 }, e: { r: 3, c: 0 } },
-    { s: { r: 2, c: 10 }, e: { r: 3, c: 10 } },
+    { s: { r: 2, c: 13 }, e: { r: 3, c: 13 } },
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Šefovi smena");
@@ -128,12 +141,12 @@ async function buildPdf(report: SefSmeneReport, meta: Meta): Promise<jsPDF> {
   const head = [
     [
       { content: "Datum", rowSpan: 2, styles: { valign: "middle" as const } },
-      { content: report.managerNames.m1 || "Šef 1", colSpan: 3, styles: { halign: "center" as const } },
-      { content: report.managerNames.m2 || "Šef 2", colSpan: 3, styles: { halign: "center" as const } },
-      { content: report.managerNames.m3 || "Šef 3", colSpan: 3, styles: { halign: "center" as const } },
+      { content: report.managerNames.m1 || "Šef 1", colSpan: 4, styles: { halign: "center" as const } },
+      { content: report.managerNames.m2 || "Šef 2", colSpan: 4, styles: { halign: "center" as const } },
+      { content: report.managerNames.m3 || "Šef 3", colSpan: 4, styles: { halign: "center" as const } },
       { content: "Ukupno\nza dan", rowSpan: 2, styles: { valign: "middle" as const, halign: "right" as const } },
     ],
-    ["I smena", "II smena", "III smena", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena"],
+    ["I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno"],
   ];
 
   const body = bodyRows(report).map((r, idx) => {
