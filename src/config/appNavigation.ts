@@ -132,6 +132,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Predajnice GP", href: "/proizvodnja/predajnice", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Pregled predatih GP", href: "/proizvodnja/pregled-predatih-gp", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Proizvodnja GP po šiframa i klasama", href: "/proizvodnja/proizvodnja-po-sif-klasama", moduleCode: "proizvodnja.radni_nalozi" },
+      { label: "Dnevni izveštaj proizvodnje", href: "/proizvodnja/dnevni-izvestaj", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "RN za preradu", href: "/proizvodnja/prerada", moduleCode: "proizvodnja.radni_nalozi" },
       { label: "Predajnice preradu", href: "/proizvodnja/predajnice-prerada", moduleCode: "proizvodnja.radni_nalozi" },
     ],
