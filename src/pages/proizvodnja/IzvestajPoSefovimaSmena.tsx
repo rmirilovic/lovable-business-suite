@@ -183,13 +183,13 @@ export default function IzvestajPoSefovimaSmena() {
             <TableHeader>
               <TableRow>
                 <TableHead rowSpan={2} className="align-middle w-[120px]">Datum</TableHead>
-                <TableHead colSpan={3} className="text-center border-l">
+                <TableHead colSpan={4} className="text-center border-l">
                   {report.managerNames.m1 || "Šef 1"}
                 </TableHead>
-                <TableHead colSpan={3} className="text-center border-l">
+                <TableHead colSpan={4} className="text-center border-l">
                   {report.managerNames.m2 || "Šef 2"}
                 </TableHead>
-                <TableHead colSpan={3} className="text-center border-l">
+                <TableHead colSpan={4} className="text-center border-l">
                   {report.managerNames.m3 || "Šef 3"}
                 </TableHead>
                 <TableHead rowSpan={2} className="align-middle text-right w-[120px] border-l">
@@ -200,12 +200,15 @@ export default function IzvestajPoSefovimaSmena() {
                 <TableHead className="text-right border-l">I smena</TableHead>
                 <TableHead className="text-right">II smena</TableHead>
                 <TableHead className="text-right">III smena</TableHead>
+                <TableHead className="text-right">Ukupno</TableHead>
                 <TableHead className="text-right border-l">I smena</TableHead>
                 <TableHead className="text-right">II smena</TableHead>
                 <TableHead className="text-right">III smena</TableHead>
+                <TableHead className="text-right">Ukupno</TableHead>
                 <TableHead className="text-right border-l">I smena</TableHead>
                 <TableHead className="text-right">II smena</TableHead>
                 <TableHead className="text-right">III smena</TableHead>
+                <TableHead className="text-right">Ukupno</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
