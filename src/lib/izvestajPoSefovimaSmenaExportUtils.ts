@@ -141,12 +141,12 @@ async function buildPdf(report: SefSmeneReport, meta: Meta): Promise<jsPDF> {
   const head = [
     [
       { content: "Datum", rowSpan: 2, styles: { valign: "middle" as const } },
-      { content: report.managerNames.m1 || "Šef 1", colSpan: 3, styles: { halign: "center" as const } },
-      { content: report.managerNames.m2 || "Šef 2", colSpan: 3, styles: { halign: "center" as const } },
-      { content: report.managerNames.m3 || "Šef 3", colSpan: 3, styles: { halign: "center" as const } },
+      { content: report.managerNames.m1 || "Šef 1", colSpan: 4, styles: { halign: "center" as const } },
+      { content: report.managerNames.m2 || "Šef 2", colSpan: 4, styles: { halign: "center" as const } },
+      { content: report.managerNames.m3 || "Šef 3", colSpan: 4, styles: { halign: "center" as const } },
       { content: "Ukupno\nza dan", rowSpan: 2, styles: { valign: "middle" as const, halign: "right" as const } },
     ],
-    ["I smena", "II smena", "III smena", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena"],
+    ["I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno"],
   ];
 
   const body = bodyRows(report).map((r, idx) => {
