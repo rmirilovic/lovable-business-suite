@@ -38,6 +38,10 @@ interface Meta {
 const fmtDate = (d: string) => (d ? format(new Date(d), "dd.MM.yyyy") : "");
 const fmtQty = (v: number) => (v ? formatDecimal(v, 0) : "-");
 
+function mgrTotal(c: SefSmeneCell) {
+  return Math.round(c.s1 + c.s2 + c.s3);
+}
+
 function headerRows(r: SefSmeneReport): string[][] {
   return [
     [
@@ -45,15 +49,18 @@ function headerRows(r: SefSmeneReport): string[][] {
       `${r.managerNames.m1 || "Šef 1"}`,
       "",
       "",
+      "",
       `${r.managerNames.m2 || "Šef 2"}`,
+      "",
       "",
       "",
       `${r.managerNames.m3 || "Šef 3"}`,
       "",
       "",
+      "",
       "Ukupno za dan",
     ],
-    ["", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena", ""],
+    ["", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", ""],
   ];
 }
 
