@@ -146,22 +146,36 @@ async function buildPdf(report: SefSmeneReport, meta: Meta): Promise<jsPDF> {
   const head = [
     [
       { content: "Datum", rowSpan: 2, styles: { valign: "middle" as const } },
-      { content: report.managerNames.m1 || "Šef 1", colSpan: 4, styles: { halign: "center" as const } },
-      { content: report.managerNames.m2 || "Šef 2", colSpan: 4, styles: { halign: "center" as const } },
-      { content: report.managerNames.m3 || "Šef 3", colSpan: 4, styles: { halign: "center" as const } },
+      { content: report.managerNames.m1 || "Šef 1", colSpan: 3, styles: { halign: "center" as const } },
+      { content: report.managerNames.m2 || "Šef 2", colSpan: 3, styles: { halign: "center" as const } },
+      { content: report.managerNames.m3 || "Šef 3", colSpan: 3, styles: { halign: "center" as const } },
       { content: "Ukupno\nza dan", rowSpan: 2, styles: { valign: "middle" as const, halign: "right" as const } },
     ],
-    ["I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno"],
+    ["I smena", "II smena", "III smena", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena"],
   ];
 
-  const body = bodyRows(report).map((r, idx) => {
-    const isTotal = idx === report.rows.length;
+  const allRows = bodyRows(report);
+  const totalIdx = report.rows.length;
+  const periodIdx = report.rows.length + 1;
+  const body = allRows.map((r, idx) => {
+    const isTotal = idx === totalIdx;
+    const isPeriod = idx === periodIdx;
+    if (isPeriod) {
+      // 11 source columns: label + m1(3) + m2(3) + m3(3) + grand. Merge each manager triplet.
+      return [
+        { content: r[0], styles: { halign: "left" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+        { content: fmtQty(r[1] as number), colSpan: 3, styles: { halign: "right" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+        { content: fmtQty(r[4] as number), colSpan: 3, styles: { halign: "right" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+        { content: fmtQty(r[7] as number), colSpan: 3, styles: { halign: "right" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+        { content: fmtQty(r[10] as number), styles: { halign: "right" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+      ];
+    }
     return r.map((c, i) => ({
       content: i === 0 ? c : typeof c === "number" ? fmtQty(c as number) : c,
       styles: {
         halign: (i === 0 ? "left" : "right") as "left" | "right",
         fontStyle: (isTotal ? "bold" : "normal") as "bold" | "normal",
-        fillColor: isTotal ? [220, 220, 220] : undefined,
+        fillColor: isTotal ? ([220, 220, 220] as [number, number, number]) : undefined,
       },
     }));
   });
