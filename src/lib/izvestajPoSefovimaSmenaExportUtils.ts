@@ -49,18 +49,15 @@ function headerRows(r: SefSmeneReport): string[][] {
       `${r.managerNames.m1 || "Šef 1"}`,
       "",
       "",
-      "",
       `${r.managerNames.m2 || "Šef 2"}`,
-      "",
       "",
       "",
       `${r.managerNames.m3 || "Šef 3"}`,
       "",
       "",
-      "",
       "Ukupno za dan",
     ],
-    ["", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", ""],
+    ["", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena", ""],
   ];
 }
 
@@ -70,15 +67,12 @@ function bodyRows(r: SefSmeneReport): (string | number)[][] {
     Math.round(row.m1.s1),
     Math.round(row.m1.s2),
     Math.round(row.m1.s3),
-    mgrTotal(row.m1),
     Math.round(row.m2.s1),
     Math.round(row.m2.s2),
     Math.round(row.m2.s3),
-    mgrTotal(row.m2),
     Math.round(row.m3.s1),
     Math.round(row.m3.s2),
     Math.round(row.m3.s3),
-    mgrTotal(row.m3),
     Math.round(row.total),
   ]);
   rows.push([
@@ -86,15 +80,20 @@ function bodyRows(r: SefSmeneReport): (string | number)[][] {
     Math.round(r.totals.m1.s1),
     Math.round(r.totals.m1.s2),
     Math.round(r.totals.m1.s3),
-    mgrTotal(r.totals.m1),
     Math.round(r.totals.m2.s1),
     Math.round(r.totals.m2.s2),
     Math.round(r.totals.m2.s3),
-    mgrTotal(r.totals.m2),
     Math.round(r.totals.m3.s1),
     Math.round(r.totals.m3.s2),
     Math.round(r.totals.m3.s3),
-    mgrTotal(r.totals.m3),
+    Math.round(r.totals.total),
+  ]);
+  // Final summary row: per-manager totals across the whole period
+  rows.push([
+    "UKUPNO ZA PERIOD PO ŠEFU",
+    mgrTotal(r.totals.m1), "", "",
+    mgrTotal(r.totals.m2), "", "",
+    mgrTotal(r.totals.m3), "", "",
     Math.round(r.totals.total),
   ]);
   return rows;
@@ -107,12 +106,18 @@ export function exportSefoviToExcel(report: SefSmeneReport, meta: Meta) {
   headerRows(report).forEach((h) => aoa.push(h));
   bodyRows(report).forEach((b) => aoa.push(b));
   const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // Header merges (header rows are at sheet rows 2 and 3)
+  const periodRowIdx = 2 + 2 + report.rows.length + 1; // title + blank? actually: r0 title, r1 blank, r2-3 header, then rows, +1 UKUPNO row -> period row
   ws["!merges"] = [
-    { s: { r: 2, c: 1 }, e: { r: 2, c: 4 } },
-    { s: { r: 2, c: 5 }, e: { r: 2, c: 8 } },
-    { s: { r: 2, c: 9 }, e: { r: 2, c: 12 } },
+    { s: { r: 2, c: 1 }, e: { r: 2, c: 3 } },
+    { s: { r: 2, c: 4 }, e: { r: 2, c: 6 } },
+    { s: { r: 2, c: 7 }, e: { r: 2, c: 9 } },
     { s: { r: 2, c: 0 }, e: { r: 3, c: 0 } },
-    { s: { r: 2, c: 13 }, e: { r: 3, c: 13 } },
+    { s: { r: 2, c: 10 }, e: { r: 3, c: 10 } },
+    // Period summary row: merge per-manager 3 shift cells
+    { s: { r: periodRowIdx, c: 1 }, e: { r: periodRowIdx, c: 3 } },
+    { s: { r: periodRowIdx, c: 4 }, e: { r: periodRowIdx, c: 6 } },
+    { s: { r: periodRowIdx, c: 7 }, e: { r: periodRowIdx, c: 9 } },
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Šefovi smena");
@@ -141,22 +146,36 @@ async function buildPdf(report: SefSmeneReport, meta: Meta): Promise<jsPDF> {
   const head = [
     [
       { content: "Datum", rowSpan: 2, styles: { valign: "middle" as const } },
-      { content: report.managerNames.m1 || "Šef 1", colSpan: 4, styles: { halign: "center" as const } },
-      { content: report.managerNames.m2 || "Šef 2", colSpan: 4, styles: { halign: "center" as const } },
-      { content: report.managerNames.m3 || "Šef 3", colSpan: 4, styles: { halign: "center" as const } },
+      { content: report.managerNames.m1 || "Šef 1", colSpan: 3, styles: { halign: "center" as const } },
+      { content: report.managerNames.m2 || "Šef 2", colSpan: 3, styles: { halign: "center" as const } },
+      { content: report.managerNames.m3 || "Šef 3", colSpan: 3, styles: { halign: "center" as const } },
       { content: "Ukupno\nza dan", rowSpan: 2, styles: { valign: "middle" as const, halign: "right" as const } },
     ],
-    ["I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno"],
+    ["I smena", "II smena", "III smena", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena"],
   ];
 
-  const body = bodyRows(report).map((r, idx) => {
-    const isTotal = idx === report.rows.length;
+  const allRows = bodyRows(report);
+  const totalIdx = report.rows.length;
+  const periodIdx = report.rows.length + 1;
+  const body = allRows.map((r, idx) => {
+    const isTotal = idx === totalIdx;
+    const isPeriod = idx === periodIdx;
+    if (isPeriod) {
+      // 11 source columns: label + m1(3) + m2(3) + m3(3) + grand. Merge each manager triplet.
+      return [
+        { content: r[0], styles: { halign: "left" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+        { content: fmtQty(r[1] as number), colSpan: 3, styles: { halign: "right" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+        { content: fmtQty(r[4] as number), colSpan: 3, styles: { halign: "right" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+        { content: fmtQty(r[7] as number), colSpan: 3, styles: { halign: "right" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+        { content: fmtQty(r[10] as number), styles: { halign: "right" as const, fontStyle: "bold" as const, fillColor: [200, 200, 200] as [number, number, number] } },
+      ];
+    }
     return r.map((c, i) => ({
       content: i === 0 ? c : typeof c === "number" ? fmtQty(c as number) : c,
       styles: {
         halign: (i === 0 ? "left" : "right") as "left" | "right",
         fontStyle: (isTotal ? "bold" : "normal") as "bold" | "normal",
-        fillColor: isTotal ? [220, 220, 220] : undefined,
+        fillColor: isTotal ? ([220, 220, 220] as [number, number, number]) : undefined,
       },
     }));
   });

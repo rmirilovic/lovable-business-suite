@@ -183,13 +183,13 @@ export default function IzvestajPoSefovimaSmena() {
             <TableHeader>
               <TableRow>
                 <TableHead rowSpan={2} className="align-middle w-[120px]">Datum</TableHead>
-                <TableHead colSpan={4} className="text-center border-l">
+                <TableHead colSpan={3} className="text-center border-l">
                   {report.managerNames.m1 || "Šef 1"}
                 </TableHead>
-                <TableHead colSpan={4} className="text-center border-l">
+                <TableHead colSpan={3} className="text-center border-l">
                   {report.managerNames.m2 || "Šef 2"}
                 </TableHead>
-                <TableHead colSpan={4} className="text-center border-l">
+                <TableHead colSpan={3} className="text-center border-l">
                   {report.managerNames.m3 || "Šef 3"}
                 </TableHead>
                 <TableHead rowSpan={2} className="align-middle text-right w-[120px] border-l">
@@ -200,22 +200,19 @@ export default function IzvestajPoSefovimaSmena() {
                 <TableHead className="text-right border-l">I smena</TableHead>
                 <TableHead className="text-right">II smena</TableHead>
                 <TableHead className="text-right">III smena</TableHead>
-                <TableHead className="text-right">Ukupno</TableHead>
                 <TableHead className="text-right border-l">I smena</TableHead>
                 <TableHead className="text-right">II smena</TableHead>
                 <TableHead className="text-right">III smena</TableHead>
-                <TableHead className="text-right">Ukupno</TableHead>
                 <TableHead className="text-right border-l">I smena</TableHead>
                 <TableHead className="text-right">II smena</TableHead>
                 <TableHead className="text-right">III smena</TableHead>
-                <TableHead className="text-right">Ukupno</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={14} className="text-center py-8">Učitavanje...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={11} className="text-center py-8">Učitavanje...</TableCell></TableRow>
               ) : report.rows.length === 0 ? (
-                <TableRow><TableCell colSpan={14} className="text-center py-8 text-muted-foreground">Nema podataka za izabrani period.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Nema podataka za izabrani period.</TableCell></TableRow>
               ) : (
                 <>
                   {report.rows.map((r) => (
@@ -224,15 +221,12 @@ export default function IzvestajPoSefovimaSmena() {
                       <TableCell className="text-right font-mono border-l">{fmtQty(r.m1.s1)}</TableCell>
                       <TableCell className="text-right font-mono">{fmtQty(r.m1.s2)}</TableCell>
                       <TableCell className="text-right font-mono">{fmtQty(r.m1.s3)}</TableCell>
-                      <TableCell className="text-right font-mono">{fmtQty(mgrTotal(r.m1))}</TableCell>
                       <TableCell className="text-right font-mono border-l">{fmtQty(r.m2.s1)}</TableCell>
                       <TableCell className="text-right font-mono">{fmtQty(r.m2.s2)}</TableCell>
                       <TableCell className="text-right font-mono">{fmtQty(r.m2.s3)}</TableCell>
-                      <TableCell className="text-right font-mono">{fmtQty(mgrTotal(r.m2))}</TableCell>
                       <TableCell className="text-right font-mono border-l">{fmtQty(r.m3.s1)}</TableCell>
                       <TableCell className="text-right font-mono">{fmtQty(r.m3.s2)}</TableCell>
                       <TableCell className="text-right font-mono">{fmtQty(r.m3.s3)}</TableCell>
-                      <TableCell className="text-right font-mono">{fmtQty(mgrTotal(r.m3))}</TableCell>
                       <TableCell className="text-right font-mono border-l">{fmtQty(r.total)}</TableCell>
                     </TableRow>
                   ))}
@@ -241,15 +235,19 @@ export default function IzvestajPoSefovimaSmena() {
                     <TableCell className="text-right font-mono border-l">{fmtQty(report.totals.m1.s1)}</TableCell>
                     <TableCell className="text-right font-mono">{fmtQty(report.totals.m1.s2)}</TableCell>
                     <TableCell className="text-right font-mono">{fmtQty(report.totals.m1.s3)}</TableCell>
-                    <TableCell className="text-right font-mono">{fmtQty(mgrTotal(report.totals.m1))}</TableCell>
                     <TableCell className="text-right font-mono border-l">{fmtQty(report.totals.m2.s1)}</TableCell>
                     <TableCell className="text-right font-mono">{fmtQty(report.totals.m2.s2)}</TableCell>
                     <TableCell className="text-right font-mono">{fmtQty(report.totals.m2.s3)}</TableCell>
-                    <TableCell className="text-right font-mono">{fmtQty(mgrTotal(report.totals.m2))}</TableCell>
                     <TableCell className="text-right font-mono border-l">{fmtQty(report.totals.m3.s1)}</TableCell>
                     <TableCell className="text-right font-mono">{fmtQty(report.totals.m3.s2)}</TableCell>
                     <TableCell className="text-right font-mono">{fmtQty(report.totals.m3.s3)}</TableCell>
-                    <TableCell className="text-right font-mono">{fmtQty(mgrTotal(report.totals.m3))}</TableCell>
+                    <TableCell className="text-right font-mono border-l">{fmtQty(report.totals.total)}</TableCell>
+                  </TableRow>
+                  <TableRow className="bg-primary/25 font-bold">
+                    <TableCell>UKUPNO ZA PERIOD PO ŠEFU</TableCell>
+                    <TableCell colSpan={3} className="text-right font-mono border-l">{fmtQty(mgrTotal(report.totals.m1))}</TableCell>
+                    <TableCell colSpan={3} className="text-right font-mono border-l">{fmtQty(mgrTotal(report.totals.m2))}</TableCell>
+                    <TableCell colSpan={3} className="text-right font-mono border-l">{fmtQty(mgrTotal(report.totals.m3))}</TableCell>
                     <TableCell className="text-right font-mono border-l">{fmtQty(report.totals.total)}</TableCell>
                   </TableRow>
                 </>
