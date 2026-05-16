@@ -67,8 +67,8 @@ const HEADERS = [
   "III smena",
   "Predato za dan",
   "Predato u kg",
-  "Predato ukupno do sada",
-  "Predato škarta (kg)",
+  "Predato ukupno\ndo sada",
+  "Predato\nškarta (kg)",
 ];
 
 function buildAoa(data: DnevniReportData, meta: ExportMeta): (string | number)[][] {
@@ -247,8 +247,8 @@ async function buildPdf(data: DnevniReportData, meta: ExportMeta): Promise<jsPDF
       9: { cellWidth: 18, halign: "right" },
       10: { cellWidth: 20, halign: "right" },
       11: { cellWidth: 20, halign: "right" },
-      12: { cellWidth: 24, halign: "right" },
-      13: { cellWidth: 20, halign: "right" },
+      12: { cellWidth: 16, halign: "right" },
+      13: { cellWidth: 16, halign: "right" },
     },
   });
 
