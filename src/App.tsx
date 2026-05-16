@@ -96,6 +96,7 @@ import ProductionDeliveryNoteEdit from "./pages/proizvodnja/ProductionDeliveryNo
 import PregledPredatihGP from "./pages/proizvodnja/PregledPredatihGP";
 import ProizvodnjaPoSifKlasama from "./pages/proizvodnja/ProizvodnjaPoSifKlasama";
 import DnevniIzvestajProizvodnje from "./pages/proizvodnja/DnevniIzvestajProizvodnje";
+import IzvestajPoSefovimaSmena from "./pages/proizvodnja/IzvestajPoSefovimaSmena";
 import ReprocessingWorkOrders from "./pages/proizvodnja/ReprocessingWorkOrders";
 import ReprocessingWorkOrderEdit from "./pages/proizvodnja/ReprocessingWorkOrderEdit";
 import ReprocessingDeliveryNotesList from "./pages/proizvodnja/ReprocessingDeliveryNotesList";
