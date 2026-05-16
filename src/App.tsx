@@ -658,6 +658,11 @@ const App = () => (
                   <DnevniIzvestajProizvodnje />
                 </ProtectedRoute>
               } />
+              <Route path="/proizvodnja/izvestaj-sefovi-smena" element={
+                <ProtectedRoute>
+                  <IzvestajPoSefovimaSmena />
+                </ProtectedRoute>
+              } />
               <Route path="/proizvodnja/prerada" element={
                 <ProtectedRoute>
                   <ReprocessingWorkOrders />
