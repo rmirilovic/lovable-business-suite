@@ -49,18 +49,15 @@ function headerRows(r: SefSmeneReport): string[][] {
       `${r.managerNames.m1 || "Šef 1"}`,
       "",
       "",
-      "",
       `${r.managerNames.m2 || "Šef 2"}`,
-      "",
       "",
       "",
       `${r.managerNames.m3 || "Šef 3"}`,
       "",
       "",
-      "",
       "Ukupno za dan",
     ],
-    ["", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", "I smena", "II smena", "III smena", "Ukupno", ""],
+    ["", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena", "I smena", "II smena", "III smena", ""],
   ];
 }
 
@@ -70,15 +67,12 @@ function bodyRows(r: SefSmeneReport): (string | number)[][] {
     Math.round(row.m1.s1),
     Math.round(row.m1.s2),
     Math.round(row.m1.s3),
-    mgrTotal(row.m1),
     Math.round(row.m2.s1),
     Math.round(row.m2.s2),
     Math.round(row.m2.s3),
-    mgrTotal(row.m2),
     Math.round(row.m3.s1),
     Math.round(row.m3.s2),
     Math.round(row.m3.s3),
-    mgrTotal(row.m3),
     Math.round(row.total),
   ]);
   rows.push([
@@ -86,15 +80,20 @@ function bodyRows(r: SefSmeneReport): (string | number)[][] {
     Math.round(r.totals.m1.s1),
     Math.round(r.totals.m1.s2),
     Math.round(r.totals.m1.s3),
-    mgrTotal(r.totals.m1),
     Math.round(r.totals.m2.s1),
     Math.round(r.totals.m2.s2),
     Math.round(r.totals.m2.s3),
-    mgrTotal(r.totals.m2),
     Math.round(r.totals.m3.s1),
     Math.round(r.totals.m3.s2),
     Math.round(r.totals.m3.s3),
-    mgrTotal(r.totals.m3),
+    Math.round(r.totals.total),
+  ]);
+  // Final summary row: per-manager totals across the whole period
+  rows.push([
+    "UKUPNO ZA PERIOD PO ŠEFU",
+    mgrTotal(r.totals.m1), "", "",
+    mgrTotal(r.totals.m2), "", "",
+    mgrTotal(r.totals.m3), "", "",
     Math.round(r.totals.total),
   ]);
   return rows;
