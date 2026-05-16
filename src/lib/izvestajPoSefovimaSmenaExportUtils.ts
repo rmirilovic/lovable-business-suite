@@ -106,12 +106,18 @@ export function exportSefoviToExcel(report: SefSmeneReport, meta: Meta) {
   headerRows(report).forEach((h) => aoa.push(h));
   bodyRows(report).forEach((b) => aoa.push(b));
   const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // Header merges (header rows are at sheet rows 2 and 3)
+  const periodRowIdx = 2 + 2 + report.rows.length + 1; // title + blank? actually: r0 title, r1 blank, r2-3 header, then rows, +1 UKUPNO row -> period row
   ws["!merges"] = [
-    { s: { r: 2, c: 1 }, e: { r: 2, c: 4 } },
-    { s: { r: 2, c: 5 }, e: { r: 2, c: 8 } },
-    { s: { r: 2, c: 9 }, e: { r: 2, c: 12 } },
+    { s: { r: 2, c: 1 }, e: { r: 2, c: 3 } },
+    { s: { r: 2, c: 4 }, e: { r: 2, c: 6 } },
+    { s: { r: 2, c: 7 }, e: { r: 2, c: 9 } },
     { s: { r: 2, c: 0 }, e: { r: 3, c: 0 } },
-    { s: { r: 2, c: 13 }, e: { r: 3, c: 13 } },
+    { s: { r: 2, c: 10 }, e: { r: 3, c: 10 } },
+    // Period summary row: merge per-manager 3 shift cells
+    { s: { r: periodRowIdx, c: 1 }, e: { r: periodRowIdx, c: 3 } },
+    { s: { r: periodRowIdx, c: 4 }, e: { r: periodRowIdx, c: 6 } },
+    { s: { r: periodRowIdx, c: 7 }, e: { r: periodRowIdx, c: 9 } },
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Šefovi smena");
