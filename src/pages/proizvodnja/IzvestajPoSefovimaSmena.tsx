@@ -21,6 +21,7 @@ import {
 } from "@/lib/izvestajPoSefovimaSmenaExportUtils";
 
 const fmtQty = (v: number) => (v ? formatDecimal(v, 0) : "-");
+const mgrTotal = (c: { s1: number; s2: number; s3: number }) => Math.round(c.s1 + c.s2 + c.s3);
 
 export default function IzvestajPoSefovimaSmena() {
   const { selectedCompany, selectedYear } = useAuth();
