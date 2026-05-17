@@ -366,25 +366,25 @@ export default function Artikli() {
   // Articles are now fetched automatically by useArticles hook with caching
 
   const filteredArticles = useMemo(() => {
-    const lowerSearchTerm = searchTerm.toLowerCase();
+    const codeLower = codeFilter.toLowerCase();
+    const nameLower = nameFilter.toLowerCase();
     
     return articles.filter((article) => {
-      // Search filter - includes attributes
-      let matchesSearch = 
-        article.name.toLowerCase().includes(lowerSearchTerm) ||
-        article.code.toLowerCase().includes(lowerSearchTerm);
-      
-      // Also search in attributes if no match yet
-      if (!matchesSearch && searchTerm) {
+      // Code filter with wildcard support
+      const matchesCode = !codeFilter || matchWildcard(article.code.toLowerCase(), codeLower);
+      if (!matchesCode) return false;
+
+      // Name filter (also searches in attributes)
+      let matchesName = !nameFilter || article.name.toLowerCase().includes(nameLower);
+      if (!matchesName && nameFilter) {
         const attrs = getAttributes(article.id);
-        matchesSearch = attrs.some(
+        matchesName = attrs.some(
           (attr) =>
-            attr.name.toLowerCase().includes(lowerSearchTerm) ||
-            attr.value.toLowerCase().includes(lowerSearchTerm)
+            attr.name.toLowerCase().includes(nameLower) ||
+            attr.value.toLowerCase().includes(nameLower)
         );
       }
-      
-      if (!matchesSearch) return false;
+      if (!matchesName) return false;
 
       // SVK filter
       if (filters.svk && article.svk !== filters.svk) return false;
@@ -464,7 +464,7 @@ export default function Artikli() {
 
       return true;
     });
-  }, [articles, searchTerm, filters, getAttributes, availableAttributes, articlesWithVariants]);
+  }, [articles, codeFilter, nameFilter, filters, getAttributes, availableAttributes, articlesWithVariants]);
 
   // Sorted articles
   const sortedArticles = useMemo(() => {
