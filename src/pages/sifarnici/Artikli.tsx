@@ -147,8 +147,19 @@ const emptyFilters: ArticleFilters = {
 
 const ARTIKLI_STORAGE_KEY = "artikli_view_state";
 
+function matchWildcard(text: string, pattern: string): boolean {
+  if (!pattern.includes("*")) {
+    return text.includes(pattern);
+  }
+  const regex = new RegExp(
+    "^" + pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$"
+  );
+  return regex.test(text);
+}
+
 interface ArtikliViewState {
-  searchTerm: string;
+  codeFilter: string;
+  nameFilter: string;
   filters: ArticleFilters;
   filtersOpen: boolean;
   sortColumn: string | null;
@@ -210,7 +221,8 @@ export default function Artikli() {
 
   const saved = loadViewState();
   
-  const [searchTerm, setSearchTerm] = useState(saved.searchTerm ?? "");
+  const [codeFilter, setCodeFilter] = useState(saved.codeFilter ?? "");
+  const [nameFilter, setNameFilter] = useState(saved.nameFilter ?? "");
   
   const [filtersOpen, setFiltersOpen] = useState(saved.filtersOpen ?? false);
   const [filters, setFilters] = useState<ArticleFilters>(saved.filters ?? emptyFilters);
@@ -294,10 +306,10 @@ export default function Artikli() {
   useEffect(() => {
     const scrollTop = tableContainerRef.current?.scrollTop ?? 0;
     saveViewState({
-      searchTerm, filters, filtersOpen, sortColumn, sortDirection,
+      codeFilter, nameFilter, filters, filtersOpen, sortColumn, sortDirection,
       currentPage, itemsPerPage, scrollTop,
     });
-  }, [searchTerm, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
+  }, [codeFilter, nameFilter, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
 
   // Restore scroll position after data loads
   useEffect(() => {
@@ -317,13 +329,13 @@ export default function Artikli() {
     if (!el) return;
     const handleScroll = () => {
       saveViewState({
-        searchTerm, filters, filtersOpen, sortColumn, sortDirection,
+        codeFilter, nameFilter, filters, filtersOpen, sortColumn, sortDirection,
         currentPage, itemsPerPage, scrollTop: el.scrollTop,
       });
     };
     el.addEventListener("scroll", handleScroll, { passive: true });
     return () => el.removeEventListener("scroll", handleScroll);
-  }, [searchTerm, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
+  }, [codeFilter, nameFilter, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
 
   // Define editable fields order for Tab navigation
   const editableFields = ['name', 'article_group', 'unit', 'purchase_price', 'selling_price'] as const;
@@ -348,31 +360,31 @@ export default function Artikli() {
 
   // Check if any filter is active
   const hasActiveFilters = useMemo(() => {
-    return Object.values(filters).some(v => v !== "");
-  }, [filters]);
+    return Object.values(filters).some(v => v !== "") || !!codeFilter || !!nameFilter;
+  }, [filters, codeFilter, nameFilter]);
 
   // Articles are now fetched automatically by useArticles hook with caching
 
   const filteredArticles = useMemo(() => {
-    const lowerSearchTerm = searchTerm.toLowerCase();
+    const codeLower = codeFilter.toLowerCase();
+    const nameLower = nameFilter.toLowerCase();
     
     return articles.filter((article) => {
-      // Search filter - includes attributes
-      let matchesSearch = 
-        article.name.toLowerCase().includes(lowerSearchTerm) ||
-        article.code.toLowerCase().includes(lowerSearchTerm);
-      
-      // Also search in attributes if no match yet
-      if (!matchesSearch && searchTerm) {
+      // Code filter with wildcard support
+      const matchesCode = !codeFilter || matchWildcard(article.code.toLowerCase(), codeLower);
+      if (!matchesCode) return false;
+
+      // Name filter (also searches in attributes)
+      let matchesName = !nameFilter || article.name.toLowerCase().includes(nameLower);
+      if (!matchesName && nameFilter) {
         const attrs = getAttributes(article.id);
-        matchesSearch = attrs.some(
+        matchesName = attrs.some(
           (attr) =>
-            attr.name.toLowerCase().includes(lowerSearchTerm) ||
-            attr.value.toLowerCase().includes(lowerSearchTerm)
+            attr.name.toLowerCase().includes(nameLower) ||
+            attr.value.toLowerCase().includes(nameLower)
         );
       }
-      
-      if (!matchesSearch) return false;
+      if (!matchesName) return false;
 
       // SVK filter
       if (filters.svk && article.svk !== filters.svk) return false;
@@ -452,7 +464,7 @@ export default function Artikli() {
 
       return true;
     });
-  }, [articles, searchTerm, filters, getAttributes, availableAttributes, articlesWithVariants]);
+  }, [articles, codeFilter, nameFilter, filters, getAttributes, availableAttributes, articlesWithVariants]);
 
   // Sorted articles
   const sortedArticles = useMemo(() => {
@@ -558,7 +570,7 @@ export default function Artikli() {
       return;
     }
     setCurrentPage(1);
-  }, [searchTerm, filters, sortColumn, sortDirection]);
+  }, [codeFilter, nameFilter, filters, sortColumn, sortDirection]);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
@@ -566,6 +578,8 @@ export default function Artikli() {
 
   const clearFilters = () => {
     setFilters(emptyFilters);
+    setCodeFilter("");
+    setNameFilter("");
   };
   const toggleArticleExpand = async (articleId: string) => {
     setExpandedArticles(prev => {
@@ -827,18 +841,22 @@ export default function Artikli() {
         <div className="erp-card p-4">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex flex-1 gap-3 w-full md:w-auto">
-              <div className="relative flex-1 md:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Pretraži po šifri ili nazivu..."
-                  className="erp-input w-full pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <BarcodeScannerButton onScan={(code) => setSearchTerm(code)} />
+            <div className="flex flex-1 gap-3 w-full md:w-auto flex-wrap">
+              <Input
+                placeholder="Šifra..."
+                className="w-[140px]"
+                value={codeFilter}
+                onChange={(e) => setCodeFilter(e.target.value)}
+                autoComplete="off"
+              />
+              <Input
+                placeholder="Naziv artikla..."
+                className="w-[200px]"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                autoComplete="off"
+              />
+              <BarcodeScannerButton onScan={(code) => setCodeFilter(code)} />
               <button 
                 className={`erp-btn-primary gap-2 ${hasActiveFilters ? 'bg-primary text-primary-foreground' : ''}`}
                 onClick={() => setFiltersOpen(!filtersOpen)}
@@ -1230,7 +1248,7 @@ export default function Artikli() {
                   {paginatedArticles.length === 0 ? (
                     <tr>
                       <td colSpan={11} className="p-8 text-center text-muted-foreground">
-                        {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
+                        {codeFilter || nameFilter ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
                   ) : (
