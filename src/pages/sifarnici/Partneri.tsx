@@ -84,7 +84,8 @@ export default function Partneri() {
 
   const saved = loadPartneriState();
 
-  const [searchTerm, setSearchTerm] = useState(saved.searchTerm ?? "");
+  const [nameFilter, setNameFilter] = useState(saved.nameFilter ?? "");
+  const [codeFilter, setCodeFilter] = useState(saved.codeFilter ?? "");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>(saved.typeFilter ?? "all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(saved.statusFilter ?? "active");
   const [groupFilter, setGroupFilter] = useState<string>(saved.groupFilter ?? "all");
