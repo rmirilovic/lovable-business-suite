@@ -430,7 +430,7 @@ export default function Partneri() {
                 variant="outline"
                 size="sm"
                 onClick={() => setFiltersExpanded((v) => !v)}
-                className="lg:hidden"
+                className="wide:hidden"
               >
                 <SlidersHorizontal className="w-4 h-4 mr-2" />
                 Filteri
