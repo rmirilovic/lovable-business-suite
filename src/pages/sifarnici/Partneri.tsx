@@ -688,7 +688,7 @@ export default function Partneri() {
                   };
                   const widths: Partial<Record<PartnerColumnKey, string>> = {
                     code: "w-[100px]",
-                    name: "w-[160px] sm:w-[200px] md:w-[240px] lg:w-[280px] xl:w-[320px] 2xl:w-[360px]",
+                    name: "w-[140px] sm:w-[160px] md:w-[180px] lg:w-[220px] xl:w-[240px] 2xl:w-[260px]",
                     legal_status: "w-[140px]",
                     tip: "w-[100px]",
                     is_in_pdv: "w-[70px]",
@@ -785,6 +785,13 @@ export default function Partneri() {
                                 aria-label={partner.is_active ? "Aktivan" : "Neaktivan"}
                               />
                             </div>
+                          </TableCell>
+                        );
+                      }
+                      if (col.key === "name") {
+                        return (
+                          <TableCell key={col.key} className="whitespace-normal break-words leading-snug align-top">
+                            {col.value(partner, groups)}
                           </TableCell>
                         );
                       }
