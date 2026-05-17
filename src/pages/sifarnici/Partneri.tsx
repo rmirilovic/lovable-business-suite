@@ -200,13 +200,14 @@ export default function Partneri() {
 
   const filteredPartners = useMemo(() => {
     return partners.filter((partner) => {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch =
-        !searchTerm ||
-        partner.name.toLowerCase().includes(searchLower) ||
-        partner.code.toLowerCase().includes(searchLower) ||
-        partner.pib?.includes(searchTerm) ||
-        partner.mb?.includes(searchTerm);
+      const nameLower = nameFilter.toLowerCase();
+      const codeLower = codeFilter.toLowerCase();
+      const matchesName =
+        !nameFilter ||
+        partner.name.toLowerCase().includes(nameLower);
+      const matchesCode =
+        !codeFilter ||
+        partner.code.toLowerCase().includes(codeLower);
 
       const matchesType =
         typeFilter === "all" ||
