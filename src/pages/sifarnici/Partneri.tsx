@@ -14,11 +14,25 @@ import {
   ChevronDown,
   ChevronUp,
   SlidersHorizontal,
+  Columns3,
+  FileSpreadsheet,
+  FileText,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import {
+  PARTNER_COLUMNS,
+  DEFAULT_VISIBLE_PARTNER_COLUMNS,
+  exportPartneriToExcel,
+  exportPartneriToPdf,
+  printPartneri,
+  type PartnerColumnKey,
+} from "@/lib/partneriExportUtils";
 import {
   Select,
   SelectContent,
@@ -121,6 +135,24 @@ export default function Partneri() {
   const [itemsPerPage, setItemsPerPage] = useState(saved.itemsPerPage ?? 25);
   const [goToPageInput, setGoToPageInput] = useState("");
 
+  // Vidljive kolone
+  const [visibleColumns, setVisibleColumns] = useState<PartnerColumnKey[]>(() => {
+    if (Array.isArray(saved.visibleColumns) && saved.visibleColumns.length > 0) {
+      const valid = saved.visibleColumns.filter((k: string) =>
+        PARTNER_COLUMNS.some((c) => c.key === k)
+      ) as PartnerColumnKey[];
+      if (valid.length > 0) return valid;
+    }
+    return DEFAULT_VISIBLE_PARTNER_COLUMNS;
+  });
+
+  const toggleColumn = (key: PartnerColumnKey) => {
+    setVisibleColumns((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+  const resetColumns = () => setVisibleColumns(DEFAULT_VISIBLE_PARTNER_COLUMNS);
+
   // Persist itemsPerPage in localStorage per company
   const storageKey = selectedCompany ? `partners_itemsPerPage_${selectedCompany.id}` : null;
 
@@ -177,11 +209,11 @@ export default function Partneri() {
     sessionStorage.setItem(PARTNERI_STORAGE_KEY, JSON.stringify({
       nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter,
       pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
-      sortColumn, sortDirection, currentPage, itemsPerPage, scrollTop,
+      sortColumn, sortDirection, currentPage, itemsPerPage, scrollTop, visibleColumns,
     }));
   }, [nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter,
       pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
-      sortColumn, sortDirection, currentPage, itemsPerPage]);
+      sortColumn, sortDirection, currentPage, itemsPerPage, visibleColumns]);
 
   // Restore scroll
   useEffect(() => {
@@ -557,6 +589,74 @@ export default function Partneri() {
 
             {/* Actions */}
             <div className="flex gap-2 flex-wrap">
+              {/* Izbor kolona */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" title="Izbor kolona">
+                    <Columns3 className="w-4 h-4 mr-2" />
+                    Kolone
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-64 p-3 max-h-[60vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium">Prikaz kolona</p>
+                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={resetColumns}>
+                      Reset
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {PARTNER_COLUMNS.map((col) => {
+                      const checked = visibleColumns.includes(col.key);
+                      const onlyOne = checked && visibleColumns.length === 1;
+                      return (
+                        <div key={col.key} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`col-${col.key}`}
+                            checked={checked}
+                            disabled={onlyOne}
+                            onCheckedChange={() => toggleColumn(col.key)}
+                          />
+                          <Label htmlFor={`col-${col.key}`} className="text-sm cursor-pointer font-normal">
+                            {col.label}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportPartneriToExcel(sortedPartners, groups)}
+                disabled={sortedPartners.length === 0}
+                title="Izvoz u Excel (svi podaci)"
+              >
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Excel
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportPartneriToPdf(sortedPartners, groups, visibleColumns)}
+                disabled={sortedPartners.length === 0}
+                title="Izvoz u PDF (prikazane kolone)"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => printPartneri(sortedPartners, groups, visibleColumns)}
+                disabled={sortedPartners.length === 0}
+                title="Štampa (prikazane kolone)"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Štampa
+              </Button>
+
               {canEdit && (
                 <Button variant="outline" onClick={() => setGroupsDialogOpen(true)}>
                   <Users className="w-4 h-4 mr-2" />
@@ -580,32 +680,37 @@ export default function Partneri() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">
-                  <SortableHeader column="code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="min-w-[280px] lg:min-w-0">
-                  <SortableHeader column="name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="w-[140px]">
-                  <SortableHeader column="legal_status" label="Pravni status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="city" label="Mesto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="pib" label="PIB" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="phone" label="Telefon" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="w-[100px]">Tip</TableHead>
-                <TableHead className="w-[70px]">
-                  <SortableHeader column="is_in_pdv" label="PDV" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="w-[140px]">Grupa</TableHead>
-                <TableHead className="w-[80px]">
-                  <SortableHeader column="is_active" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
+                {PARTNER_COLUMNS.filter((c) => visibleColumns.includes(c.key)).map((col) => {
+                  const sortable: Record<string, boolean> = {
+                    code: true, name: true, legal_status: true, city: true,
+                    pib: true, phone: true, is_in_pdv: true, is_active: true,
+                  };
+                  const widths: Partial<Record<PartnerColumnKey, string>> = {
+                    code: "w-[100px]",
+                    name: "min-w-[280px] lg:min-w-0",
+                    legal_status: "w-[140px]",
+                    tip: "w-[100px]",
+                    is_in_pdv: "w-[70px]",
+                    group: "w-[140px]",
+                    is_active: "w-[80px]",
+                  };
+                  const sortKey = col.key === "group" ? null : (sortable[col.key] ? col.key : null);
+                  return (
+                    <TableHead key={col.key} className={widths[col.key]}>
+                      {sortKey ? (
+                        <SortableHeader
+                          column={sortKey}
+                          label={col.label}
+                          sortColumn={sortColumn}
+                          sortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                      ) : (
+                        col.label
+                      )}
+                    </TableHead>
+                  );
+                })}
                 <TableHead className="w-[100px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -613,7 +718,7 @@ export default function Partneri() {
               {isLoading ? (
                 Array.from({ length: itemsPerPage }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 11 }).map((_, j) => (
+                    {Array.from({ length: visibleColumns.length + 1 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-6 w-full" />
                       </TableCell>
@@ -622,7 +727,7 @@ export default function Partneri() {
                 ))
               ) : paginatedPartners.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={visibleColumns.length + 1} className="text-center text-muted-foreground py-8">
                     Nema pronađenih partnera
                   </TableCell>
                 </TableRow>
@@ -636,52 +741,54 @@ export default function Partneri() {
                     )}
                     onClick={() => handleRowClick(partner)}
                   >
-                    <TableCell className="font-mono">{partner.code}</TableCell>
-                    <TableCell>{partner.name}</TableCell>
-                    <TableCell>{LEGAL_STATUS_LABELS[partner.legal_status] || ""}</TableCell>
-                    <TableCell>{partner.city || ""}</TableCell>
-                    <TableCell>{partner.pib || ""}</TableCell>
-                    <TableCell>{partner.phone || ""}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {partner.is_customer && (
-                          <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
-                            K
-                          </Badge>
-                        )}
-                        {partner.is_supplier && (
-                          <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/30">
-                            D
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={partner.is_in_pdv
-                          ? "text-xs bg-primary/10 text-primary border-primary/30"
-                          : "text-xs bg-muted text-muted-foreground border-muted-foreground/30"
-                        }
-                      >
-                        {partner.is_in_pdv ? "Da" : "Ne"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {(() => {
-                        const g = groups.find((x) => x.id === partner.group_id);
-                        return g ? `${g.code} - ${g.name}` : "";
-                      })()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center">
-                        <Checkbox
-                          checked={partner.is_active}
-                          disabled
-                          aria-label={partner.is_active ? "Aktivan" : "Neaktivan"}
-                        />
-                      </div>
-                    </TableCell>
+                    {PARTNER_COLUMNS.filter((c) => visibleColumns.includes(c.key)).map((col) => {
+                      if (col.key === "code") {
+                        return <TableCell key={col.key} className="font-mono">{partner.code}</TableCell>;
+                      }
+                      if (col.key === "tip") {
+                        return (
+                          <TableCell key={col.key}>
+                            <div className="flex gap-1">
+                              {partner.is_customer && (
+                                <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">K</Badge>
+                              )}
+                              {partner.is_supplier && (
+                                <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/30">D</Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                        );
+                      }
+                      if (col.key === "is_in_pdv") {
+                        return (
+                          <TableCell key={col.key}>
+                            <Badge
+                              variant="outline"
+                              className={partner.is_in_pdv
+                                ? "text-xs bg-primary/10 text-primary border-primary/30"
+                                : "text-xs bg-muted text-muted-foreground border-muted-foreground/30"
+                              }
+                            >
+                              {partner.is_in_pdv ? "Da" : "Ne"}
+                            </Badge>
+                          </TableCell>
+                        );
+                      }
+                      if (col.key === "is_active") {
+                        return (
+                          <TableCell key={col.key}>
+                            <div className="flex items-center justify-center">
+                              <Checkbox
+                                checked={partner.is_active}
+                                disabled
+                                aria-label={partner.is_active ? "Aktivan" : "Neaktivan"}
+                              />
+                            </div>
+                          </TableCell>
+                        );
+                      }
+                      return <TableCell key={col.key}>{col.value(partner, groups)}</TableCell>;
+                    })}
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-1">
                         <Button
