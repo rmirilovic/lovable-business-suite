@@ -329,13 +329,13 @@ export default function Artikli() {
     if (!el) return;
     const handleScroll = () => {
       saveViewState({
-        searchTerm, filters, filtersOpen, sortColumn, sortDirection,
+        codeFilter, nameFilter, filters, filtersOpen, sortColumn, sortDirection,
         currentPage, itemsPerPage, scrollTop: el.scrollTop,
       });
     };
     el.addEventListener("scroll", handleScroll, { passive: true });
     return () => el.removeEventListener("scroll", handleScroll);
-  }, [searchTerm, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
+  }, [codeFilter, nameFilter, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
 
   // Define editable fields order for Tab navigation
   const editableFields = ['name', 'article_group', 'unit', 'purchase_price', 'selling_price'] as const;
