@@ -306,10 +306,10 @@ export default function Artikli() {
   useEffect(() => {
     const scrollTop = tableContainerRef.current?.scrollTop ?? 0;
     saveViewState({
-      searchTerm, filters, filtersOpen, sortColumn, sortDirection,
+      codeFilter, nameFilter, filters, filtersOpen, sortColumn, sortDirection,
       currentPage, itemsPerPage, scrollTop,
     });
-  }, [searchTerm, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
+  }, [codeFilter, nameFilter, filters, filtersOpen, sortColumn, sortDirection, currentPage, itemsPerPage]);
 
   // Restore scroll position after data loads
   useEffect(() => {
