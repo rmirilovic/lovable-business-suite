@@ -863,8 +863,8 @@ export default function Partneri() {
             {/* Pagination controls */}
             <div className="flex items-center gap-2">
               {/* Go to page */}
-              <div className="flex items-center gap-2 mr-4">
-                <span className="text-sm text-muted-foreground">Idi na:</span>
+              <div className="flex items-center gap-2 mr-4 pr-4 border-r border-border">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">Idi na stranicu:</span>
                 <Input
                   type="number"
                   min={1}
@@ -874,11 +874,11 @@ export default function Partneri() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleGoToPage();
                   }}
-                  className="w-16 h-8"
+                  className="w-16 h-8 text-center"
                   placeholder={String(currentPage)}
                   autoComplete="off"
                 />
-                <span className="text-sm text-muted-foreground">/ {totalPages}</span>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">od {totalPages}</span>
               </div>
 
               {/* Navigation buttons */}
