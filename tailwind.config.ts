@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      screens: {
+        wide: "1440px",
+      },
       fontFamily: {
         sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
       },
