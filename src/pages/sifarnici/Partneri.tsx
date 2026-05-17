@@ -589,6 +589,74 @@ export default function Partneri() {
 
             {/* Actions */}
             <div className="flex gap-2 flex-wrap">
+              {/* Izbor kolona */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" title="Izbor kolona">
+                    <Columns3 className="w-4 h-4 mr-2" />
+                    Kolone
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-64 p-3 max-h-[60vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium">Prikaz kolona</p>
+                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={resetColumns}>
+                      Reset
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {PARTNER_COLUMNS.map((col) => {
+                      const checked = visibleColumns.includes(col.key);
+                      const onlyOne = checked && visibleColumns.length === 1;
+                      return (
+                        <div key={col.key} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`col-${col.key}`}
+                            checked={checked}
+                            disabled={onlyOne}
+                            onCheckedChange={() => toggleColumn(col.key)}
+                          />
+                          <Label htmlFor={`col-${col.key}`} className="text-sm cursor-pointer font-normal">
+                            {col.label}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportPartneriToExcel(sortedPartners, groups)}
+                disabled={sortedPartners.length === 0}
+                title="Izvoz u Excel (svi podaci)"
+              >
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Excel
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportPartneriToPdf(sortedPartners, groups, visibleColumns)}
+                disabled={sortedPartners.length === 0}
+                title="Izvoz u PDF (prikazane kolone)"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => printPartneri(sortedPartners, groups, visibleColumns)}
+                disabled={sortedPartners.length === 0}
+                title="Štampa (prikazane kolone)"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Štampa
+              </Button>
+
               {canEdit && (
                 <Button variant="outline" onClick={() => setGroupsDialogOpen(true)}>
                   <Users className="w-4 h-4 mr-2" />
