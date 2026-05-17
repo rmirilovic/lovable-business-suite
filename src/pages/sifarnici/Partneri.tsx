@@ -14,11 +14,25 @@ import {
   ChevronDown,
   ChevronUp,
   SlidersHorizontal,
+  Columns3,
+  FileSpreadsheet,
+  FileText,
+  Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import {
+  PARTNER_COLUMNS,
+  DEFAULT_VISIBLE_PARTNER_COLUMNS,
+  exportPartneriToExcel,
+  exportPartneriToPdf,
+  printPartneri,
+  type PartnerColumnKey,
+} from "@/lib/partneriExportUtils";
 import {
   Select,
   SelectContent,
