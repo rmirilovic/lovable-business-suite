@@ -400,6 +400,22 @@ export default function Partneri() {
                   filtersExpanded ? "flex" : "hidden",
                 )}
               >
+                <Input
+                  placeholder="Naziv partnera..."
+                  className="w-[180px]"
+                  value={nameFilter}
+                  onChange={(e) => setNameFilter(e.target.value)}
+                  autoComplete="off"
+                />
+
+                <Input
+                  placeholder="Šifra..."
+                  className="w-[120px]"
+                  value={codeFilter}
+                  onChange={(e) => setCodeFilter(e.target.value)}
+                  autoComplete="off"
+                />
+
                 <Select
                   value={typeFilter}
                   onValueChange={(val) => setTypeFilter(val as TypeFilter)}
