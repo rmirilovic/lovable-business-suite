@@ -81,7 +81,7 @@ import { cn } from "@/lib/utils";
 type TypeFilter = "all" | "customer" | "supplier";
 type StatusFilter = "all" | "active" | "inactive";
 
-const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100, 200, 500];
 
 const PARTNERI_STORAGE_KEY = "partneri_view_state";
 
