@@ -851,7 +851,7 @@ export default function Artikli() {
               />
               <Input
                 placeholder="Naziv artikla..."
-                className="w-[200px]"
+                className="w-[320px]"
                 value={nameFilter}
                 onChange={(e) => setNameFilter(e.target.value)}
                 autoComplete="off"
