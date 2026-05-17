@@ -688,7 +688,7 @@ export default function Partneri() {
                   };
                   const widths: Partial<Record<PartnerColumnKey, string>> = {
                     code: "w-[100px]",
-                    name: "min-w-[140px] w-auto",
+                    name: "min-w-[140px] sm:min-w-[180px] md:min-w-[220px] lg:min-w-[280px] xl:min-w-[360px] 2xl:min-w-[460px] w-auto",
                     legal_status: "w-[140px]",
                     tip: "w-[100px]",
                     is_in_pdv: "w-[70px]",
