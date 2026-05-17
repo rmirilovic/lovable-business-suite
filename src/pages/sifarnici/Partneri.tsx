@@ -135,6 +135,24 @@ export default function Partneri() {
   const [itemsPerPage, setItemsPerPage] = useState(saved.itemsPerPage ?? 25);
   const [goToPageInput, setGoToPageInput] = useState("");
 
+  // Vidljive kolone
+  const [visibleColumns, setVisibleColumns] = useState<PartnerColumnKey[]>(() => {
+    if (Array.isArray(saved.visibleColumns) && saved.visibleColumns.length > 0) {
+      const valid = saved.visibleColumns.filter((k: string) =>
+        PARTNER_COLUMNS.some((c) => c.key === k)
+      ) as PartnerColumnKey[];
+      if (valid.length > 0) return valid;
+    }
+    return DEFAULT_VISIBLE_PARTNER_COLUMNS;
+  });
+
+  const toggleColumn = (key: PartnerColumnKey) => {
+    setVisibleColumns((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+  const resetColumns = () => setVisibleColumns(DEFAULT_VISIBLE_PARTNER_COLUMNS);
+
   // Persist itemsPerPage in localStorage per company
   const storageKey = selectedCompany ? `partners_itemsPerPage_${selectedCompany.id}` : null;
 
