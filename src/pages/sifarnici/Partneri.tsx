@@ -14,7 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   SlidersHorizontal,
-  Columns3,
+  Settings2,
   FileSpreadsheet,
   FileText,
   Printer,
@@ -24,6 +24,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import {
   PARTNER_COLUMNS,
@@ -590,41 +596,36 @@ export default function Partneri() {
             {/* Actions */}
             <div className="flex gap-2 flex-wrap">
               {/* Izbor kolona */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" title="Izbor kolona">
-                    <Columns3 className="w-4 h-4 mr-2" />
-                    Kolone
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" title="Podesi kolone">
+                    <Settings2 className="w-4 h-4 mr-2" /> Kolone
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-64 p-3 max-h-[60vh] overflow-y-auto">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium">Prikaz kolona</p>
-                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={resetColumns}>
-                      Reset
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    {PARTNER_COLUMNS.map((col) => {
-                      const checked = visibleColumns.includes(col.key);
-                      const onlyOne = checked && visibleColumns.length === 1;
-                      return (
-                        <div key={col.key} className="flex items-center gap-2">
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 max-h-[60vh] overflow-y-auto">
+                  {PARTNER_COLUMNS.map((col) => {
+                    const checked = visibleColumns.includes(col.key);
+                    const onlyOne = checked && visibleColumns.length === 1;
+                    return (
+                      <DropdownMenuItem key={col.key} onSelect={(e) => e.preventDefault()}>
+                        <label className="flex items-center gap-2 cursor-pointer w-full">
                           <Checkbox
-                            id={`col-${col.key}`}
                             checked={checked}
                             disabled={onlyOne}
                             onCheckedChange={() => toggleColumn(col.key)}
                           />
-                          <Label htmlFor={`col-${col.key}`} className="text-sm cursor-pointer font-normal">
-                            {col.label}
-                          </Label>
-                        </div>
-                      );
-                    })}
+                          <span className="text-sm">{col.label}</span>
+                        </label>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                  <div className="px-2 pt-2 border-t mt-1">
+                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs w-full" onClick={resetColumns}>
+                      <RotateCcw className="w-3 h-3 mr-1" /> Reset
+                    </Button>
                   </div>
-                </PopoverContent>
-              </Popover>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <Button
                 variant="outline"
