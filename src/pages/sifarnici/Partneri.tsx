@@ -14,7 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   SlidersHorizontal,
-  Columns3,
+  Settings2,
   FileSpreadsheet,
   FileText,
   Printer,
