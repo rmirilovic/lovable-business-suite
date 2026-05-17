@@ -207,7 +207,7 @@ export default function Partneri() {
         partner.name.toLowerCase().includes(nameLower);
       const matchesCode =
         !codeFilter ||
-        partner.code.toLowerCase().includes(codeLower);
+        matchWildcard(partner.code.toLowerCase(), codeLower);
 
       const matchesType =
         typeFilter === "all" ||
