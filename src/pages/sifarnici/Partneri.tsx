@@ -209,11 +209,11 @@ export default function Partneri() {
     sessionStorage.setItem(PARTNERI_STORAGE_KEY, JSON.stringify({
       nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter,
       pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
-      sortColumn, sortDirection, currentPage, itemsPerPage, scrollTop,
+      sortColumn, sortDirection, currentPage, itemsPerPage, scrollTop, visibleColumns,
     }));
   }, [nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter,
       pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
-      sortColumn, sortDirection, currentPage, itemsPerPage]);
+      sortColumn, sortDirection, currentPage, itemsPerPage, visibleColumns]);
 
   // Restore scroll
   useEffect(() => {
