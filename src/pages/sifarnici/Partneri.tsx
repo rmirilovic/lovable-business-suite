@@ -444,7 +444,7 @@ export default function Partneri() {
               {/* Collapsible filters: always visible on lg+, toggleable below */}
               <div
                 className={cn(
-                  "flex-wrap gap-3 flex-1 w-full lg:flex lg:w-auto",
+                  "flex-wrap gap-3 flex-1 w-full wide:flex wide:w-auto",
                   filtersExpanded ? "flex" : "hidden",
                 )}
               >
