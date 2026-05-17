@@ -841,18 +841,22 @@ export default function Artikli() {
         <div className="erp-card p-4">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-            <div className="flex flex-1 gap-3 w-full md:w-auto">
-              <div className="relative flex-1 md:w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Pretraži po šifri ili nazivu..."
-                  className="erp-input w-full pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <BarcodeScannerButton onScan={(code) => setSearchTerm(code)} />
+            <div className="flex flex-1 gap-3 w-full md:w-auto flex-wrap">
+              <Input
+                placeholder="Šifra..."
+                className="w-[140px]"
+                value={codeFilter}
+                onChange={(e) => setCodeFilter(e.target.value)}
+                autoComplete="off"
+              />
+              <Input
+                placeholder="Naziv artikla..."
+                className="w-[200px]"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                autoComplete="off"
+              />
+              <BarcodeScannerButton onScan={(code) => setCodeFilter(code)} />
               <button 
                 className={`erp-btn-primary gap-2 ${hasActiveFilters ? 'bg-primary text-primary-foreground' : ''}`}
                 onClick={() => setFiltersOpen(!filtersOpen)}
