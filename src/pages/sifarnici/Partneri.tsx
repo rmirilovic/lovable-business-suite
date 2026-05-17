@@ -165,11 +165,11 @@ export default function Partneri() {
   useEffect(() => {
     const scrollTop = tableScrollRef.current?.scrollTop ?? 0;
     sessionStorage.setItem(PARTNERI_STORAGE_KEY, JSON.stringify({
-      searchTerm, typeFilter, statusFilter, groupFilter, cityFilter,
+      nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter,
       pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
       sortColumn, sortDirection, currentPage, itemsPerPage, scrollTop,
     }));
-  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter,
+  }, [nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter,
       pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
       sortColumn, sortDirection, currentPage, itemsPerPage]);
 
