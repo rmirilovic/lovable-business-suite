@@ -84,7 +84,8 @@ export default function Partneri() {
 
   const saved = loadPartneriState();
 
-  const [searchTerm, setSearchTerm] = useState(saved.searchTerm ?? "");
+  const [nameFilter, setNameFilter] = useState(saved.nameFilter ?? "");
+  const [codeFilter, setCodeFilter] = useState(saved.codeFilter ?? "");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>(saved.typeFilter ?? "all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(saved.statusFilter ?? "active");
   const [groupFilter, setGroupFilter] = useState<string>(saved.groupFilter ?? "all");
@@ -164,11 +165,11 @@ export default function Partneri() {
   useEffect(() => {
     const scrollTop = tableScrollRef.current?.scrollTop ?? 0;
     sessionStorage.setItem(PARTNERI_STORAGE_KEY, JSON.stringify({
-      searchTerm, typeFilter, statusFilter, groupFilter, cityFilter,
+      nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter,
       pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
       sortColumn, sortDirection, currentPage, itemsPerPage, scrollTop,
     }));
-  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter,
+  }, [nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter,
       pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter,
       sortColumn, sortDirection, currentPage, itemsPerPage]);
 
@@ -199,13 +200,14 @@ export default function Partneri() {
 
   const filteredPartners = useMemo(() => {
     return partners.filter((partner) => {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch =
-        !searchTerm ||
-        partner.name.toLowerCase().includes(searchLower) ||
-        partner.code.toLowerCase().includes(searchLower) ||
-        partner.pib?.includes(searchTerm) ||
-        partner.mb?.includes(searchTerm);
+      const nameLower = nameFilter.toLowerCase();
+      const codeLower = codeFilter.toLowerCase();
+      const matchesName =
+        !nameFilter ||
+        partner.name.toLowerCase().includes(nameLower);
+      const matchesCode =
+        !codeFilter ||
+        partner.code.toLowerCase().includes(codeLower);
 
       const matchesType =
         typeFilter === "all" ||
@@ -248,7 +250,8 @@ export default function Partneri() {
         (pdvFilter === "no" && !partner.is_in_pdv);
 
       return (
-        matchesSearch &&
+        matchesName &&
+        matchesCode &&
         matchesType &&
         matchesStatus &&
         matchesGroup &&
@@ -261,7 +264,7 @@ export default function Partneri() {
         matchesPdv
       );
     });
-  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
+  }, [partners, nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
 
   // Sorted partners
   const sortedPartners = useMemo(() => {
@@ -283,7 +286,7 @@ export default function Partneri() {
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
+  }, [nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
 
   // Pagination calculations
   const totalItems = sortedPartners.length;
@@ -326,7 +329,8 @@ export default function Partneri() {
   };
 
   const resetFilters = () => {
-    setSearchTerm("");
+    setNameFilter("");
+    setCodeFilter("");
     setTypeFilter("all");
     setStatusFilter("active");
     setGroupFilter("all");
@@ -341,7 +345,8 @@ export default function Partneri() {
   };
 
   const hasActiveFilters =
-    searchTerm ||
+    nameFilter ||
+    codeFilter ||
     typeFilter !== "all" ||
     statusFilter !== "active" ||
     groupFilter !== "all" ||
@@ -395,6 +400,22 @@ export default function Partneri() {
                   filtersExpanded ? "flex" : "hidden",
                 )}
               >
+                <Input
+                  placeholder="Naziv partnera..."
+                  className="w-[180px]"
+                  value={nameFilter}
+                  onChange={(e) => setNameFilter(e.target.value)}
+                  autoComplete="off"
+                />
+
+                <Input
+                  placeholder="Šifra..."
+                  className="w-[120px]"
+                  value={codeFilter}
+                  onChange={(e) => setCodeFilter(e.target.value)}
+                  autoComplete="off"
+                />
+
                 <Select
                   value={typeFilter}
                   onValueChange={(val) => setTypeFilter(val as TypeFilter)}
