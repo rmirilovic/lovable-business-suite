@@ -221,7 +221,8 @@ export default function Artikli() {
 
   const saved = loadViewState();
   
-  const [searchTerm, setSearchTerm] = useState(saved.searchTerm ?? "");
+  const [codeFilter, setCodeFilter] = useState(saved.codeFilter ?? "");
+  const [nameFilter, setNameFilter] = useState(saved.nameFilter ?? "");
   
   const [filtersOpen, setFiltersOpen] = useState(saved.filtersOpen ?? false);
   const [filters, setFilters] = useState<ArticleFilters>(saved.filters ?? emptyFilters);
