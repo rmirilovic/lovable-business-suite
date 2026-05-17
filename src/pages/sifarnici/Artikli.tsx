@@ -570,7 +570,7 @@ export default function Artikli() {
       return;
     }
     setCurrentPage(1);
-  }, [searchTerm, filters, sortColumn, sortDirection]);
+  }, [codeFilter, nameFilter, filters, sortColumn, sortDirection]);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
