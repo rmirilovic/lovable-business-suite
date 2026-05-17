@@ -65,6 +65,16 @@ const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
 const PARTNERI_STORAGE_KEY = "partneri_view_state";
 
+function matchWildcard(text: string, pattern: string): boolean {
+  if (!pattern.includes("*")) {
+    return text.includes(pattern);
+  }
+  const regex = new RegExp(
+    "^" + pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$"
+  );
+  return regex.test(text);
+}
+
 function loadPartneriState() {
   try {
     const raw = sessionStorage.getItem(PARTNERI_STORAGE_KEY);
