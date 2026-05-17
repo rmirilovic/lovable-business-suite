@@ -578,6 +578,8 @@ export default function Artikli() {
 
   const clearFilters = () => {
     setFilters(emptyFilters);
+    setCodeFilter("");
+    setNameFilter("");
   };
   const toggleArticleExpand = async (articleId: string) => {
     setExpandedArticles(prev => {
