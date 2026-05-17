@@ -147,8 +147,19 @@ const emptyFilters: ArticleFilters = {
 
 const ARTIKLI_STORAGE_KEY = "artikli_view_state";
 
+function matchWildcard(text: string, pattern: string): boolean {
+  if (!pattern.includes("*")) {
+    return text.includes(pattern);
+  }
+  const regex = new RegExp(
+    "^" + pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$"
+  );
+  return regex.test(text);
+}
+
 interface ArtikliViewState {
-  searchTerm: string;
+  codeFilter: string;
+  nameFilter: string;
   filters: ArticleFilters;
   filtersOpen: boolean;
   sortColumn: string | null;
