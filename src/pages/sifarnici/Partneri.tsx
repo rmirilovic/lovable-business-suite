@@ -65,6 +65,16 @@ const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
 
 const PARTNERI_STORAGE_KEY = "partneri_view_state";
 
+function matchWildcard(text: string, pattern: string): boolean {
+  if (!pattern.includes("*")) {
+    return text.includes(pattern);
+  }
+  const regex = new RegExp(
+    "^" + pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*") + "$"
+  );
+  return regex.test(text);
+}
+
 function loadPartneriState() {
   try {
     const raw = sessionStorage.getItem(PARTNERI_STORAGE_KEY);
@@ -207,7 +217,7 @@ export default function Partneri() {
         partner.name.toLowerCase().includes(nameLower);
       const matchesCode =
         !codeFilter ||
-        partner.code.toLowerCase().includes(codeLower);
+        matchWildcard(partner.code.toLowerCase(), codeLower);
 
       const matchesType =
         typeFilter === "all" ||
@@ -401,18 +411,18 @@ export default function Partneri() {
                 )}
               >
                 <Input
-                  placeholder="Naziv partnera..."
-                  className="w-[180px]"
-                  value={nameFilter}
-                  onChange={(e) => setNameFilter(e.target.value)}
-                  autoComplete="off"
-                />
-
-                <Input
                   placeholder="Šifra..."
                   className="w-[120px]"
                   value={codeFilter}
                   onChange={(e) => setCodeFilter(e.target.value)}
+                  autoComplete="off"
+                />
+
+                <Input
+                  placeholder="Naziv partnera..."
+                  className="w-[180px]"
+                  value={nameFilter}
+                  onChange={(e) => setNameFilter(e.target.value)}
                   autoComplete="off"
                 />
 
