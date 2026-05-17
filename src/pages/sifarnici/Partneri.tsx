@@ -250,7 +250,8 @@ export default function Partneri() {
         (pdvFilter === "no" && !partner.is_in_pdv);
 
       return (
-        matchesSearch &&
+        matchesName &&
+        matchesCode &&
         matchesType &&
         matchesStatus &&
         matchesGroup &&
@@ -263,7 +264,7 @@ export default function Partneri() {
         matchesPdv
       );
     });
-  }, [partners, searchTerm, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
+  }, [partners, nameFilter, codeFilter, typeFilter, statusFilter, groupFilter, cityFilter, pibFilter, mbFilter, legalStatusFilter, addressFilter, countryFilter, pdvFilter]);
 
   // Sorted partners
   const sortedPartners = useMemo(() => {
