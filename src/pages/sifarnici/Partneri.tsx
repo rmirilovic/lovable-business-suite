@@ -422,7 +422,7 @@ export default function Partneri() {
         {/* Sticky Header */}
         <div className="bg-background pb-4">
         <div className="erp-card p-4">
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div className="flex flex-col wide:flex-row gap-4 items-start wide:items-center justify-between">
             {/* Search and Filters */}
             <div className="flex flex-wrap gap-3 flex-1 w-full">
               {/* Toggle button — visible only below lg (mobile + tablet) */}
