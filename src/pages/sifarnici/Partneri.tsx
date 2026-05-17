@@ -680,32 +680,37 @@ export default function Partneri() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">
-                  <SortableHeader column="code" label="Šifra" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="min-w-[280px] lg:min-w-0">
-                  <SortableHeader column="name" label="Naziv" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="w-[140px]">
-                  <SortableHeader column="legal_status" label="Pravni status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="city" label="Mesto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="pib" label="PIB" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead>
-                  <SortableHeader column="phone" label="Telefon" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="w-[100px]">Tip</TableHead>
-                <TableHead className="w-[70px]">
-                  <SortableHeader column="is_in_pdv" label="PDV" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
-                <TableHead className="w-[140px]">Grupa</TableHead>
-                <TableHead className="w-[80px]">
-                  <SortableHeader column="is_active" label="Status" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
-                </TableHead>
+                {PARTNER_COLUMNS.filter((c) => visibleColumns.includes(c.key)).map((col) => {
+                  const sortable: Record<string, boolean> = {
+                    code: true, name: true, legal_status: true, city: true,
+                    pib: true, phone: true, is_in_pdv: true, is_active: true,
+                  };
+                  const widths: Partial<Record<PartnerColumnKey, string>> = {
+                    code: "w-[100px]",
+                    name: "min-w-[280px] lg:min-w-0",
+                    legal_status: "w-[140px]",
+                    tip: "w-[100px]",
+                    is_in_pdv: "w-[70px]",
+                    group: "w-[140px]",
+                    is_active: "w-[80px]",
+                  };
+                  const sortKey = col.key === "group" ? null : (sortable[col.key] ? col.key : null);
+                  return (
+                    <TableHead key={col.key} className={widths[col.key]}>
+                      {sortKey ? (
+                        <SortableHeader
+                          column={sortKey}
+                          label={col.label}
+                          sortColumn={sortColumn}
+                          sortDirection={sortDirection}
+                          onSort={handleSort}
+                        />
+                      ) : (
+                        col.label
+                      )}
+                    </TableHead>
+                  );
+                })}
                 <TableHead className="w-[100px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -713,7 +718,7 @@ export default function Partneri() {
               {isLoading ? (
                 Array.from({ length: itemsPerPage }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 11 }).map((_, j) => (
+                    {Array.from({ length: visibleColumns.length + 1 }).map((_, j) => (
                       <TableCell key={j}>
                         <Skeleton className="h-6 w-full" />
                       </TableCell>
@@ -722,7 +727,7 @@ export default function Partneri() {
                 ))
               ) : paginatedPartners.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={visibleColumns.length + 1} className="text-center text-muted-foreground py-8">
                     Nema pronađenih partnera
                   </TableCell>
                 </TableRow>
@@ -736,52 +741,54 @@ export default function Partneri() {
                     )}
                     onClick={() => handleRowClick(partner)}
                   >
-                    <TableCell className="font-mono">{partner.code}</TableCell>
-                    <TableCell>{partner.name}</TableCell>
-                    <TableCell>{LEGAL_STATUS_LABELS[partner.legal_status] || ""}</TableCell>
-                    <TableCell>{partner.city || ""}</TableCell>
-                    <TableCell>{partner.pib || ""}</TableCell>
-                    <TableCell>{partner.phone || ""}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {partner.is_customer && (
-                          <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
-                            K
-                          </Badge>
-                        )}
-                        {partner.is_supplier && (
-                          <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/30">
-                            D
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={partner.is_in_pdv
-                          ? "text-xs bg-primary/10 text-primary border-primary/30"
-                          : "text-xs bg-muted text-muted-foreground border-muted-foreground/30"
-                        }
-                      >
-                        {partner.is_in_pdv ? "Da" : "Ne"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {(() => {
-                        const g = groups.find((x) => x.id === partner.group_id);
-                        return g ? `${g.code} - ${g.name}` : "";
-                      })()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center">
-                        <Checkbox
-                          checked={partner.is_active}
-                          disabled
-                          aria-label={partner.is_active ? "Aktivan" : "Neaktivan"}
-                        />
-                      </div>
-                    </TableCell>
+                    {PARTNER_COLUMNS.filter((c) => visibleColumns.includes(c.key)).map((col) => {
+                      if (col.key === "code") {
+                        return <TableCell key={col.key} className="font-mono">{partner.code}</TableCell>;
+                      }
+                      if (col.key === "tip") {
+                        return (
+                          <TableCell key={col.key}>
+                            <div className="flex gap-1">
+                              {partner.is_customer && (
+                                <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">K</Badge>
+                              )}
+                              {partner.is_supplier && (
+                                <Badge variant="outline" className="text-xs bg-accent/10 text-accent border-accent/30">D</Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                        );
+                      }
+                      if (col.key === "is_in_pdv") {
+                        return (
+                          <TableCell key={col.key}>
+                            <Badge
+                              variant="outline"
+                              className={partner.is_in_pdv
+                                ? "text-xs bg-primary/10 text-primary border-primary/30"
+                                : "text-xs bg-muted text-muted-foreground border-muted-foreground/30"
+                              }
+                            >
+                              {partner.is_in_pdv ? "Da" : "Ne"}
+                            </Badge>
+                          </TableCell>
+                        );
+                      }
+                      if (col.key === "is_active") {
+                        return (
+                          <TableCell key={col.key}>
+                            <div className="flex items-center justify-center">
+                              <Checkbox
+                                checked={partner.is_active}
+                                disabled
+                                aria-label={partner.is_active ? "Aktivan" : "Neaktivan"}
+                              />
+                            </div>
+                          </TableCell>
+                        );
+                      }
+                      return <TableCell key={col.key}>{col.value(partner, groups)}</TableCell>;
+                    })}
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-1">
                         <Button
