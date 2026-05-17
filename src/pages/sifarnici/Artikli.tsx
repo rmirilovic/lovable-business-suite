@@ -1248,7 +1248,7 @@ export default function Artikli() {
                   {paginatedArticles.length === 0 ? (
                     <tr>
                       <td colSpan={11} className="p-8 text-center text-muted-foreground">
-                        {searchTerm ? "Nema rezultata pretrage" : "Nema artikala"}
+                        {codeFilter || nameFilter ? "Nema rezultata pretrage" : "Nema artikala"}
                       </td>
                     </tr>
                   ) : (
