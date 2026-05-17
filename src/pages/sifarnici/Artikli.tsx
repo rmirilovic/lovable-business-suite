@@ -360,8 +360,8 @@ export default function Artikli() {
 
   // Check if any filter is active
   const hasActiveFilters = useMemo(() => {
-    return Object.values(filters).some(v => v !== "");
-  }, [filters]);
+    return Object.values(filters).some(v => v !== "") || !!codeFilter || !!nameFilter;
+  }, [filters, codeFilter, nameFilter]);
 
   // Articles are now fetched automatically by useArticles hook with caching
 
