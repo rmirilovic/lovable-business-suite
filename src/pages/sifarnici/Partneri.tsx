@@ -329,7 +329,8 @@ export default function Partneri() {
   };
 
   const resetFilters = () => {
-    setSearchTerm("");
+    setNameFilter("");
+    setCodeFilter("");
     setTypeFilter("all");
     setStatusFilter("active");
     setGroupFilter("all");
@@ -344,7 +345,8 @@ export default function Partneri() {
   };
 
   const hasActiveFilters =
-    searchTerm ||
+    nameFilter ||
+    codeFilter ||
     typeFilter !== "all" ||
     statusFilter !== "active" ||
     groupFilter !== "all" ||
