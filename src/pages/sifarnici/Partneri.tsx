@@ -688,12 +688,13 @@ export default function Partneri() {
                   };
                   const widths: Partial<Record<PartnerColumnKey, string>> = {
                     code: "w-[100px]",
-                    name: "w-[140px] sm:w-[160px] md:w-[180px] lg:w-[220px] xl:w-[240px] 2xl:w-[260px]",
-                    legal_status: "w-[140px]",
-                    tip: "w-[100px]",
-                    is_in_pdv: "w-[70px]",
-                    group: "w-[140px]",
-                    is_active: "w-[80px]",
+                     name: "w-[280px] sm:w-[320px] md:w-[360px] lg:w-[440px] xl:w-[480px] 2xl:w-[520px]",
+                     legal_status: "w-[140px]",
+                     tip: "w-[100px]",
+                     city: "w-[110px]",
+                     is_in_pdv: "w-[70px]",
+                     group: "w-[140px]",
+                     is_active: "w-[80px]",
                   };
                   const sortKey = col.key === "group" ? null : (sortable[col.key] ? col.key : null);
                   return (
