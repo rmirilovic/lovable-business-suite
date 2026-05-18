@@ -256,6 +256,18 @@ export default function QuoteEdit() {
     }
   };
 
+  const handleCancelConfirm = async () => {
+    if (!quote) return;
+    try {
+      await cancelQuote.mutateAsync({ quoteId: quote.id, reason: cancelReason });
+      setCancelDialogOpen(false);
+      setCancelReason("");
+      fetchQuote();
+    } catch {
+      // toast already shown
+    }
+  };
+
   const handleConvertToInvoice = async () => {
     if (!quote) return;
     try {
