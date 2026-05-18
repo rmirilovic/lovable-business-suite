@@ -225,6 +225,10 @@ export default function QuoteEdit() {
 
   const handleCopy = async () => {
     if (!quote) return;
+    if (quote.status === "draft") {
+      toast.warning("Nije moguće napraviti novu verziju ponude koja nije odobrena.");
+      return;
+    }
     setIsCopying(true);
     try {
       const newQuote = await copyQuote.mutateAsync(quote);
