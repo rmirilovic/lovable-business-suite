@@ -4,7 +4,8 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, FilePlus, ArrowRightLeft, Truck, Pencil, FileText, Undo2 } from "lucide-react";
+import { Loader2, ThumbsUp, ArrowLeft, RefreshCw, History, Printer, Copy, FilePlus, ArrowRightLeft, Truck, Pencil, FileText, Undo2, Ban } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { PartnerCardButton } from "@/components/shared/PartnerCardDialog";
 import { Quote, useQuotes, useQuoteItems } from "@/hooks/useQuotes";
 import { QuoteItemsEditor } from "@/components/prodaja/QuoteItemsEditor";
@@ -55,8 +56,10 @@ export default function QuoteEdit() {
   const [isCopying, setIsCopying] = useState(false);
   const [isCopyingNew, setIsCopyingNew] = useState(false);
   const [deliveryNoteDialogOpen, setDeliveryNoteDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
-  const { approveQuote, copyQuote, copyQuoteAsNew, revertQuoteToDraft } = useQuotes();
+  const { approveQuote, copyQuote, copyQuoteAsNew, revertQuoteToDraft, cancelQuote } = useQuotes();
   const { items } = useQuoteItems(quote?.id || null);
   const createFromQuote = useCreateInvoiceFromQuote();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
@@ -229,6 +232,10 @@ export default function QuoteEdit() {
       toast.warning("Nije moguće napraviti novu verziju ponude koja nije odobrena.");
       return;
     }
+    if (quote.status === "cancelled") {
+      toast.warning("Nije moguće napraviti novu verziju stornirane ponude. Koristite 'Kopiraj kao novu'.");
+      return;
+    }
     setIsCopying(true);
     try {
       const newQuote = await copyQuote.mutateAsync(quote);
@@ -246,6 +253,18 @@ export default function QuoteEdit() {
       navigate(`/prodaja/ponude/${newQuote.id}`);
     } finally {
       setIsCopyingNew(false);
+    }
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!quote) return;
+    try {
+      await cancelQuote.mutateAsync({ quoteId: quote.id, reason: cancelReason });
+      setCancelDialogOpen(false);
+      setCancelReason("");
+      fetchQuote();
+    } catch {
+      // toast already shown
     }
   };
 
@@ -316,31 +335,33 @@ export default function QuoteEdit() {
               Štampa
             </Button>
             {isDraft && (
-              <>
-                <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
-                </Button>
-                <Button size="sm" onClick={() => setApproveDialogOpen(true)}>
-                  <ThumbsUp className="h-4 w-4 mr-2" />Odobri
-                </Button>
-              </>
+              <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+              </Button>
             )}
             <Button variant="outline" size="sm" onClick={handleCopy} disabled={isCopying}>
               <Copy className="w-4 h-4 mr-2" />
               {isCopying ? "Kopiranje..." : "Kopiraj verziju"}
             </Button>
-            {isApproved && (
-              <>
-                {!quote.converted_to_invoice_id && (
-                  <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
-                    <Undo2 className="w-4 h-4 mr-2" />
-                    Vrati u nacrt
-                  </Button>
-                )}
-                {quote.converted_to_invoice_id && (
-                  <Badge variant="outline">Konvertovana u fakturu</Badge>
-                )}
-              </>
+            {(isDraft || isApproved) && !quote.converted_to_invoice_id && (
+              <Button variant="outline" size="sm" onClick={() => setCancelDialogOpen(true)}>
+                <Ban className="w-4 h-4 mr-2" />
+                Storno
+              </Button>
+            )}
+            {isApproved && quote.converted_to_invoice_id && (
+              <Badge variant="outline">Konvertovana u fakturu</Badge>
+            )}
+            {isDraft && (
+              <Button size="sm" onClick={() => setApproveDialogOpen(true)}>
+                <ThumbsUp className="h-4 w-4 mr-2" />Odobri
+              </Button>
+            )}
+            {isApproved && !quote.converted_to_invoice_id && (
+              <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
+                <Undo2 className="w-4 h-4 mr-2" />
+                Vrati u nacrt
+              </Button>
             )}
           </div>
         </div>
@@ -519,6 +540,36 @@ export default function QuoteEdit() {
           <AlertDialogFooter>
             <AlertDialogCancel>Otkaži</AlertDialogCancel>
             <AlertDialogAction onClick={handleRevertConfirm}>Vrati u nacrt</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={cancelDialogOpen} onOpenChange={(open) => { setCancelDialogOpen(open); if (!open) setCancelReason(""); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Storniranje ponude</AlertDialogTitle>
+            <AlertDialogDescription>
+              {quote.status === "approved"
+                ? `Unesite razlog storniranja ponude ${quote.quote_number}. Razlog će biti dodat na internu napomenu.`
+                : `Da li ste sigurni da želite da stornirate ponudu ${quote.quote_number}?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {quote.status === "approved" && (
+            <Textarea
+              placeholder="Razlog storniranja (obavezno)..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              rows={3}
+            />
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelConfirm}
+              disabled={quote.status === "approved" && !cancelReason.trim()}
+            >
+              Storniraj
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
