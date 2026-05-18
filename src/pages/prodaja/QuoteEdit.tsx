@@ -335,31 +335,33 @@ export default function QuoteEdit() {
               Štampa
             </Button>
             {isDraft && (
-              <>
-                <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
-                </Button>
-                <Button size="sm" onClick={() => setApproveDialogOpen(true)}>
-                  <ThumbsUp className="h-4 w-4 mr-2" />Odobri
-                </Button>
-              </>
+              <Button variant="outline" size="sm" onClick={() => setHeaderDialogOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />Uredi zaglavlje
+              </Button>
             )}
             <Button variant="outline" size="sm" onClick={handleCopy} disabled={isCopying}>
               <Copy className="w-4 h-4 mr-2" />
               {isCopying ? "Kopiranje..." : "Kopiraj verziju"}
             </Button>
-            {isApproved && (
-              <>
-                {!quote.converted_to_invoice_id && (
-                  <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
-                    <Undo2 className="w-4 h-4 mr-2" />
-                    Vrati u nacrt
-                  </Button>
-                )}
-                {quote.converted_to_invoice_id && (
-                  <Badge variant="outline">Konvertovana u fakturu</Badge>
-                )}
-              </>
+            {(isDraft || isApproved) && !quote.converted_to_invoice_id && (
+              <Button variant="outline" size="sm" onClick={() => setCancelDialogOpen(true)}>
+                <Ban className="w-4 h-4 mr-2" />
+                Storno
+              </Button>
+            )}
+            {isApproved && quote.converted_to_invoice_id && (
+              <Badge variant="outline">Konvertovana u fakturu</Badge>
+            )}
+            {isDraft && (
+              <Button size="sm" onClick={() => setApproveDialogOpen(true)}>
+                <ThumbsUp className="h-4 w-4 mr-2" />Odobri
+              </Button>
+            )}
+            {isApproved && !quote.converted_to_invoice_id && (
+              <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
+                <Undo2 className="w-4 h-4 mr-2" />
+                Vrati u nacrt
+              </Button>
             )}
           </div>
         </div>
