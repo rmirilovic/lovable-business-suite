@@ -366,10 +366,55 @@ export function useQuotes() {
     },
   });
 
+  const cancelQuote = useMutation({
+    mutationFn: async ({ quoteId, reason }: { quoteId: string; reason?: string }) => {
+      const { data: existing, error: fetchErr } = await supabase
+        .from("quotes")
+        .select("id, status, internal_note, converted_to_invoice_id")
+        .eq("id", quoteId)
+        .single();
+      if (fetchErr) throw fetchErr;
+      if (!["draft", "approved"].includes(existing.status)) {
+        throw new Error("Storniranje je moguće samo za ponude u statusu Nacrt ili Odobrena");
+      }
+      if (existing.converted_to_invoice_id) {
+        throw new Error("Ponuda je već konvertovana u fakturu");
+      }
+
+      let newInternalNote = existing.internal_note;
+      if (existing.status === "approved") {
+        const trimmedReason = (reason || "").trim();
+        if (!trimmedReason) {
+          throw new Error("Razlog storniranja je obavezan za odobrenu ponudu");
+        }
+        const stamp = `[Storno ${new Date().toLocaleDateString("sr-RS")}]: ${trimmedReason}`;
+        newInternalNote = existing.internal_note
+          ? `${existing.internal_note}\n${stamp}`
+          : stamp;
+      }
+
+      const { error } = await supabase
+        .from("quotes")
+        .update({ status: "cancelled", internal_note: newInternalNote })
+        .eq("id", quoteId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      toast.success("Ponuda je stornirana");
+    },
+    onError: (error) => {
+      toast.error(`Greška pri storniranju: ${error.message}`);
+    },
+  });
+
   const copyQuote = useMutation({
     mutationFn: async (sourceQuote: Quote) => {
       if (!selectedCompany?.id || !selectedYear?.id || !user?.id) {
         throw new Error("Potrebno je izabrati firmu i godinu");
+      }
+      if (sourceQuote.status === "cancelled") {
+        throw new Error("Nije moguće napraviti novu verziju stornirane ponude");
       }
 
       // Find base number from either new format (YYNNNN) or old format (PON-YY-NNNN)
