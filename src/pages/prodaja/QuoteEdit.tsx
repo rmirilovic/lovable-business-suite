@@ -56,8 +56,10 @@ export default function QuoteEdit() {
   const [isCopying, setIsCopying] = useState(false);
   const [isCopyingNew, setIsCopyingNew] = useState(false);
   const [deliveryNoteDialogOpen, setDeliveryNoteDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
-  const { approveQuote, copyQuote, copyQuoteAsNew, revertQuoteToDraft } = useQuotes();
+  const { approveQuote, copyQuote, copyQuoteAsNew, revertQuoteToDraft, cancelQuote } = useQuotes();
   const { items } = useQuoteItems(quote?.id || null);
   const createFromQuote = useCreateInvoiceFromQuote();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
