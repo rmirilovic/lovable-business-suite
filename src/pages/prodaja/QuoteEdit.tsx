@@ -325,12 +325,12 @@ export default function QuoteEdit() {
                 </Button>
               </>
             )}
+            <Button variant="outline" size="sm" onClick={handleCopy} disabled={isCopying}>
+              <Copy className="w-4 h-4 mr-2" />
+              {isCopying ? "Kopiranje..." : "Kopiraj verziju"}
+            </Button>
             {isApproved && (
               <>
-                <Button variant="outline" size="sm" onClick={handleCopy} disabled={isCopying}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  {isCopying ? "Kopiranje..." : "Kopiraj verziju"}
-                </Button>
                 {!quote.converted_to_invoice_id && (
                   <Button variant="outline" size="sm" onClick={() => setRevertDialogOpen(true)}>
                     <Undo2 className="w-4 h-4 mr-2" />
