@@ -232,6 +232,10 @@ export default function QuoteEdit() {
       toast.warning("Nije moguće napraviti novu verziju ponude koja nije odobrena.");
       return;
     }
+    if (quote.status === "cancelled") {
+      toast.warning("Nije moguće napraviti novu verziju stornirane ponude. Koristite 'Kopiraj kao novu'.");
+      return;
+    }
     setIsCopying(true);
     try {
       const newQuote = await copyQuote.mutateAsync(quote);
