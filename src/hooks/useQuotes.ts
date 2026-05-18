@@ -628,6 +628,7 @@ export function useQuotes() {
     revertQuoteToDraft,
     copyQuote,
     copyQuoteAsNew,
+    cancelQuote,
     getNextQuoteNumber,
   };
 }
