@@ -253,6 +253,10 @@ export default function Ponude() {
                               <Eye className="w-4 h-4 mr-2" />
                               Prikaži
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleCopyAsNew(quote)}>
+                              <FilePlus className="w-4 h-4 mr-2" />
+                              Kopiraj kao novu
+                            </DropdownMenuItem>
                             {quote.status === "draft" && (
                               <DropdownMenuItem
                                 onClick={() => handleDelete(quote)}
