@@ -85,6 +85,13 @@ export default function Ponude() {
     }
   };
 
+  const handleCopyAsNew = async (quote: Quote) => {
+    const newQuote = await copyQuoteAsNew.mutateAsync(quote);
+    if (newQuote) {
+      navigate(`/prodaja/ponude/${newQuote.id}`);
+    }
+  };
+
   const handleSave = async (data: QuoteFormData) => {
     const newQuote = await createQuote.mutateAsync(data);
     setDialogOpen(false);
