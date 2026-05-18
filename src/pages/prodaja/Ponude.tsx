@@ -30,7 +30,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
 
 export default function Ponude() {
   const navigate = useNavigate();
-  const { quotes, isLoading, createQuote, deleteQuote } = useQuotes();
+  const { quotes, isLoading, createQuote, deleteQuote, copyQuoteAsNew } = useQuotes();
   const { selectedCompany } = useAuth();
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
   const [searchTerm, setSearchTerm] = useState("");
