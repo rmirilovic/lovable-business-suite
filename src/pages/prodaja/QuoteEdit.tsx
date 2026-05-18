@@ -544,6 +544,36 @@ export default function QuoteEdit() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={cancelDialogOpen} onOpenChange={(open) => { setCancelDialogOpen(open); if (!open) setCancelReason(""); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Storniranje ponude</AlertDialogTitle>
+            <AlertDialogDescription>
+              {quote.status === "approved"
+                ? `Unesite razlog storniranja ponude ${quote.quote_number}. Razlog će biti dodat na internu napomenu.`
+                : `Da li ste sigurni da želite da stornirate ponudu ${quote.quote_number}?`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {quote.status === "approved" && (
+            <Textarea
+              placeholder="Razlog storniranja (obavezno)..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              rows={3}
+            />
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>Otkaži</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelConfirm}
+              disabled={quote.status === "approved" && !cancelReason.trim()}
+            >
+              Storniraj
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {quote && (
         <DocumentHistoryDialog
           open={historyOpen}
