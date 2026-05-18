@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye, FileSpreadsheet, Printer } from "lucide-react";
+import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye, FileSpreadsheet, Printer, FilePlus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ const STATUS_BADGES: Record<string, { label: string; variant: "default" | "secon
 
 export default function Ponude() {
   const navigate = useNavigate();
-  const { quotes, isLoading, createQuote, deleteQuote } = useQuotes();
+  const { quotes, isLoading, createQuote, deleteQuote, copyQuoteAsNew } = useQuotes();
   const { selectedCompany } = useAuth();
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort();
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,6 +82,13 @@ export default function Ponude() {
   const handleDelete = async (quote: Quote) => {
     if (window.confirm(`Da li ste sigurni da želite da obrišete ponudu ${quote.quote_number}?`)) {
       await deleteQuote.mutateAsync(quote.id);
+    }
+  };
+
+  const handleCopyAsNew = async (quote: Quote) => {
+    const newQuote = await copyQuoteAsNew.mutateAsync(quote);
+    if (newQuote) {
+      navigate(`/prodaja/ponude/${newQuote.id}`);
     }
   };
 
@@ -245,6 +252,10 @@ export default function Ponude() {
                             <DropdownMenuItem onClick={() => handleNavigate(quote)}>
                               <Eye className="w-4 h-4 mr-2" />
                               Prikaži
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleCopyAsNew(quote)}>
+                              <FilePlus className="w-4 h-4 mr-2" />
+                              Kopiraj kao novu
                             </DropdownMenuItem>
                             {quote.status === "draft" && (
                               <DropdownMenuItem
