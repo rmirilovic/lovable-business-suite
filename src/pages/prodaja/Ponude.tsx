@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye, FileSpreadsheet, Printer } from "lucide-react";
+import { Plus, Search, FileText, MoreHorizontal, Pencil, Trash2, Eye, FileSpreadsheet, Printer, FilePlus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
