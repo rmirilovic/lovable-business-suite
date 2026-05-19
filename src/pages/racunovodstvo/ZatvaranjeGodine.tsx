@@ -13,8 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   CheckCircle2, XCircle, AlertTriangle, FileText, Calculator,
-  ArrowRightCircle, Lock, Loader2, ListChecks,
+  ArrowRightCircle, Lock, Loader2, ListChecks, X,
 } from "lucide-react";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
