@@ -102,7 +102,7 @@ export default function Fakture() {
 
   return (
     <MainLayout title="Fakture">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Header */}
         <div className="flex flex-col lg:flex-row gap-4 lg:justify-between lg:items-end">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-end gap-3 lg:gap-4">

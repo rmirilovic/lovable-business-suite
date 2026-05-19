@@ -102,7 +102,7 @@ export default function Ponude() {
 
   return (
     <MainLayout title="Ponude">
-      <div className="space-y-6 animate-fade-in">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
