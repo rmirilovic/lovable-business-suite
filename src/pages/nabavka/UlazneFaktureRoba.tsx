@@ -187,7 +187,7 @@ export default function UlazneFaktureRoba() {
 
   return (
     <MainLayout title="Ulazne fakture za robu">
-      <div className="space-y-6 animate-fade-in">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6 animate-fade-in">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
            <div>
             <h1 className="text-2xl font-bold text-foreground">Ulazne fakture za robu</h1>

@@ -123,7 +123,7 @@ export default function UlazneFakture() {
 
   return (
     <MainLayout title="Ulazne fakture">
-      <div className="space-y-6 animate-fade-in">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
