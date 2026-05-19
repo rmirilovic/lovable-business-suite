@@ -225,7 +225,7 @@ export default function DeliveryNoteEdit() {
 
   return (
     <MainLayout title={`Otpremnica: ${deliveryNote.delivery_number}`}>
-      <div className="space-y-4 flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Header actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
