@@ -344,7 +344,7 @@ export default function KontniPlan() {
 
   return (
     <MainLayout title="Kontni plan">
-      <div className="flex flex-col flex-1 min-h-0 space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col flex-1 min-h-0 space-y-4">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between">
           <div className="relative flex-1 max-w-md">

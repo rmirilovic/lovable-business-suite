@@ -101,21 +101,21 @@ export default function PopdvAnalyticalEdit() {
   if (reportQuery.isLoading || detailRowsQuery.isLoading) {
     return (
       <MainLayout title="POPDV Analitički">
-        <div className="p-8 text-center text-muted-foreground">Učitavanje...</div>
+        <div className="flex-1 min-h-0 overflow-auto p-8 text-center text-muted-foreground">Učitavanje...</div>
       </MainLayout>
     );
   }
   if (!report) {
     return (
       <MainLayout title="POPDV Analitički">
-        <div className="p-8 text-center text-muted-foreground">Izveštaj nije pronađen</div>
+        <div className="flex-1 min-h-0 overflow-auto p-8 text-center text-muted-foreground">Izveštaj nije pronađen</div>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout title={`POPDV Analitički — ${report.period_label}`}>
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-3">

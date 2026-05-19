@@ -114,7 +114,7 @@ export default function PredmetEdit() {
   if (!crmCase) {
     return (
       <MainLayout title="Predmet">
-        <div className="text-center p-12 text-muted-foreground">Predmet nije pronađen</div>
+        <div className="flex-1 min-h-0 overflow-auto text-center p-12 text-muted-foreground">Predmet nije pronađen</div>
       </MainLayout>
     );
   }
@@ -225,7 +225,7 @@ export default function PredmetEdit() {
 
   return (
     <MainLayout title={`Predmet ${crmCase.case_number}`}>
-      <div className="flex flex-col gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4">
         {/* Header */}
         <div className="flex items-center gap-3 flex-wrap">
           <Button variant="ghost" size="sm" onClick={() => navigate("/pisarnica/predmeti")}>

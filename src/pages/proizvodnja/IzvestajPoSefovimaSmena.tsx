@@ -155,7 +155,7 @@ export default function IzvestajPoSefovimaSmena() {
 
   return (
     <MainLayout title="Izveštaj po šefovima smena">
-      <div className="flex flex-col h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col h-full min-h-0">
         <div className="flex flex-wrap gap-3 items-end mb-4">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Datum od</Label>

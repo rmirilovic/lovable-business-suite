@@ -242,7 +242,7 @@ export default function EmployeeEdit() {
 
   return (
     <MainLayout title={isNew ? "Novi zaposleni" : `${form.last_name} ${form.first_name}`}>
-      <div className="flex flex-col gap-4 max-w-5xl flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-1">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 max-w-5xl flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-1">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/zarade/zaposleni")}>

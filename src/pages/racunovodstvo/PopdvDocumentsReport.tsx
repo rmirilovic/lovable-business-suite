@@ -179,7 +179,7 @@ export default function PopdvDocumentsReport() {
 
   return (
     <MainLayout title="POPDV — Pregled uknjiženih dokumenata">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate("/racunovodstvo/popdv")}>
             <ArrowLeft className="w-5 h-5" />

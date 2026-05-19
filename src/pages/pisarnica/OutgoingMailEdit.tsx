@@ -210,7 +210,7 @@ export default function OutgoingMailEdit() {
 
   return (
     <MainLayout title={isNew ? "Novi dokument poslate pošte" : `Dokument ${mail?.mail_number}`}>
-      <div className="space-y-6 animate-fade-in max-w-4xl">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6 animate-fade-in max-w-4xl">
         {/* Header toolbar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

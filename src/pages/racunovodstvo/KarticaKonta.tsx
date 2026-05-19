@@ -134,7 +134,7 @@ export default function KarticaKonta() {
   }
   return (
     <MainLayout title={`Kartica konta: ${code} - ${accountName}`}>
-      <div className="space-y-4 print:space-y-2">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4 print:space-y-2">
         {/* Date and Analytics filters */}
         <div className="grid grid-cols-5 gap-4 print:hidden">
           <div className="flex items-end">

@@ -62,7 +62,7 @@ export default function ZameneVarijanti() {
 
   return (
     <MainLayout title="Zamena varijante">
-      <div className="flex flex-col h-full min-h-0 gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col h-full min-h-0 gap-4">
         <div className="flex flex-col lg:flex-row lg:items-end gap-4 justify-between">
           <div className="relative flex-1 min-w-[200px] lg:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

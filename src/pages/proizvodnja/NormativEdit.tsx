@@ -153,7 +153,7 @@ export default function NormativEdit() {
   if (normLoading || variantsLoading) {
     return (
       <MainLayout title="Učitavanje...">
-        <div className="py-8 text-center text-muted-foreground">Učitavanje...</div>
+        <div className="flex-1 min-h-0 overflow-auto py-8 text-center text-muted-foreground">Učitavanje...</div>
       </MainLayout>
     );
   }
@@ -161,14 +161,14 @@ export default function NormativEdit() {
   if (!norm) {
     return (
       <MainLayout title="Normativ nije pronađen">
-        <div className="py-8 text-center text-muted-foreground">Normativ nije pronađen</div>
+        <div className="flex-1 min-h-0 overflow-auto py-8 text-center text-muted-foreground">Normativ nije pronađen</div>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout title={`Normativ: ${norm.article_code} - ${norm.article_name}`}>
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={() => navigate("/proizvodnja/normativi")}>

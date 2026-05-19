@@ -137,7 +137,7 @@ export default function PriceAdjustmentEdit() {
 
   return (
     <MainLayout title={`Nivelacija: ${doc.adjustment_number}`}>
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate("/magacin/nivelacije")}>

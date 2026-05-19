@@ -67,7 +67,7 @@ export default function KalendarOdsustva() {
 
   return (
     <MainLayout title="Kalendar odsustva">
-      <div className="flex flex-col gap-4 h-full">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 h-full">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-1">
             <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>

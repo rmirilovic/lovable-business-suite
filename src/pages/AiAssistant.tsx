@@ -308,7 +308,7 @@ export default function AiAssistant() {
 
    return (
     <MainLayout title="AI Asistent">
-      <div className="flex h-[calc(100vh-8rem)] gap-0 md:gap-4 relative">
+      <div className="flex-1 min-h-0 overflow-auto flex h-[calc(100vh-8rem)] gap-0 md:gap-4 relative">
         {/* Mobile sidebar overlay */}
         {isMobile && showSidebar && (
           <div

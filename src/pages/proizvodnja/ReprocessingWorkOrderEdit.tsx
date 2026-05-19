@@ -311,7 +311,7 @@ export default function ReprocessingWorkOrderEdit() {
 
   return (
     <MainLayout title={`RN za preradu ${order.order_number}`}>
-      <div className="flex flex-col gap-4 h-full min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 h-full min-h-0 overflow-y-auto">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

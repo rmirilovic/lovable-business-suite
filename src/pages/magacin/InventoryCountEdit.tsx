@@ -234,7 +234,7 @@ export default function InventoryCountEdit() {
 
   return (
     <MainLayout title={`Popis: ${countDoc.count_number}`}>
-      <div className="flex flex-col h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col h-full min-h-0">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate("/magacin/popisi")}>

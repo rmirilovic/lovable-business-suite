@@ -164,7 +164,7 @@ export default function WacRekonsilijacija() {
 
   return (
     <MainLayout title="Usklađivanje PNC (Prosečna Nabavna Cena)">
-      <div className="flex flex-col gap-4 h-full min-h-0 overflow-auto">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 h-full min-h-0 overflow-auto">
         {!canManage && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />

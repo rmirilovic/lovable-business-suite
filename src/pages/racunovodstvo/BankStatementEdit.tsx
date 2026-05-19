@@ -148,7 +148,7 @@ export default function BankStatementEdit() {
   if (isLoading || !statement) {
     return (
       <MainLayout title="Izvod">
-        <div className="text-center py-8 text-muted-foreground">Učitavanje...</div>
+        <div className="flex-1 min-h-0 overflow-auto text-center py-8 text-muted-foreground">Učitavanje...</div>
       </MainLayout>
     );
   }
@@ -565,7 +565,7 @@ export default function BankStatementEdit() {
 
   return (
     <MainLayout title="Izvod">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

@@ -67,7 +67,7 @@ export default function KursnaLista() {
 
   return (
     <MainLayout title="Kursna lista NBS">
-      <div className="flex flex-col gap-4 h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 h-full min-h-0">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Datum:</span>

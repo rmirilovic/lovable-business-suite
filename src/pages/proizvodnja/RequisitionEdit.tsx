@@ -217,7 +217,7 @@ export default function RequisitionEdit() {
 
   return (
     <MainLayout title={`Trebovanje ${requisition.requisition_number}`}>
-      <div className="flex flex-col gap-4 pb-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 pb-4">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

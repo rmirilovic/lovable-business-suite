@@ -213,7 +213,7 @@ export default function Profile() {
 
   return (
     <MainLayout title="Moj profil">
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-auto">
         <div className="max-w-2xl space-y-6 pr-2 pb-6">
         {/* Avatar Upload */}
         <Card>

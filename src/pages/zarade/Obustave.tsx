@@ -98,7 +98,7 @@ export default function Obustave() {
 
   return (
     <MainLayout title="Obustave od zarada">
-      <div className="flex flex-col gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

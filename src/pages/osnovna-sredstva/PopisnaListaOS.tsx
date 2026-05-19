@@ -58,7 +58,7 @@ export default function PopisnaListaOS() {
 
   return (
     <MainLayout title="Popisna lista OS">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Popisna lista OS</h1>
           <Button variant="outline" onClick={handlePrint}>

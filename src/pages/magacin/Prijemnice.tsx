@@ -212,7 +212,7 @@ export default function Prijemnice() {
 
   return (
     <MainLayout title="Prijemnice">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">

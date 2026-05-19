@@ -175,7 +175,7 @@ export default function AbsenceEdit() {
 
   return (
     <MainLayout title={title}>
-      <div className="flex flex-col gap-4 max-w-3xl">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 max-w-3xl">
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/zarade/odsustva")}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Nazad
