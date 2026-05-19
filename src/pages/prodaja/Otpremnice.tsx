@@ -121,7 +121,7 @@ export default function Otpremnice() {
 
   return (
     <MainLayout title="Otpremnice">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Actions row */}
         <div className="flex items-center justify-end gap-2">
           <Button variant="outline" size="sm" onClick={() => exportDeliveryNotesToExcel(filteredDeliveryNotes, { companyName: selectedCompany?.name || "", dateFrom, dateTo })}>

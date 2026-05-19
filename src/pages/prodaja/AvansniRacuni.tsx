@@ -89,7 +89,7 @@ export default function AvansniRacuni() {
 
   return (
     <MainLayout title="Fakture za avans">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Actions row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2">
           <div className="grid grid-cols-3 sm:flex gap-2">
