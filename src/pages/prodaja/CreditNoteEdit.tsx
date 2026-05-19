@@ -240,7 +240,7 @@ export default function CreditNoteEdit() {
 
   return (
     <MainLayout title={`Knjižno odobrenje: ${doc.credit_note_number}`}>
-      <div className="space-y-4 flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate("/prodaja/knjizna-odobrenja")}><ArrowLeft className="w-4 h-4 mr-2" />Nazad</Button>
