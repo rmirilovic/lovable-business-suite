@@ -13,8 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   CheckCircle2, XCircle, AlertTriangle, FileText, Calculator,
-  ArrowRightCircle, Lock, Loader2, ListChecks,
+  ArrowRightCircle, Lock, Loader2, ListChecks, X,
 } from "lucide-react";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -206,37 +207,47 @@ export default function ZatvaranjeGodine() {
 
   if (!selectedCompany || !selectedYear) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        Izaberite firmu i poslovnu godinu.
-      </div>
+      <MainLayout title="Zatvaranje poslovne godine">
+        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+          Izaberite firmu i poslovnu godinu.
+        </div>
+      </MainLayout>
     );
   }
 
   const currentYearMeta = years.find((y) => y.id === selectedYear.id);
   if (currentYearMeta?.is_closed) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
-        <Alert>
-          <Lock className="h-4 w-4" />
-          <AlertTitle>Godina {selectedYear.year} je već zaključana</AlertTitle>
-          <AlertDescription>
-            Otvaranje godine se vrši iz Administracije → Poslovne godine.
-          </AlertDescription>
-        </Alert>
-      </div>
+      <MainLayout title="Zatvaranje poslovne godine">
+        <div className="p-6 max-w-2xl mx-auto">
+          <Alert>
+            <Lock className="h-4 w-4" />
+            <AlertTitle>Godina {selectedYear.year} je već zaključana</AlertTitle>
+            <AlertDescription>
+              Otvaranje godine se vrši iz Administracije → Poslovne godine.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </MainLayout>
     );
   }
 
   const allChecksOk = prereq?.checks.every((c) => c.ok) ?? false;
 
   return (
-    <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold">Zatvaranje poslovne godine {selectedYear.year}</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Wizard u 4 koraka: provere → zaključni listovi → početno stanje → zaključavanje.
-        </p>
-      </div>
+    <MainLayout title="Zatvaranje poslovne godine">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6 max-w-6xl mx-auto">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Zatvaranje poslovne godine {selectedYear.year}</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Wizard u 4 koraka: provere → zaključni listovi → početno stanje → zaključavanje.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate("/")}>
+            <X className="h-4 w-4 mr-1" /> Zatvori
+          </Button>
+        </div>
 
       {/* Stepper */}
       <div className="flex flex-wrap gap-2">
@@ -511,6 +522,7 @@ export default function ZatvaranjeGodine() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </MainLayout>
   );
 }
