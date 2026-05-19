@@ -522,6 +522,7 @@ export default function ZatvaranjeGodine() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </MainLayout>
   );
 }
