@@ -14,7 +14,7 @@ import {
 const Index = () => {
   return (
     <MainLayout title="Kontrolna tabla">
-      <div className="flex-1 min-h-0 overflow-auto flex-1 min-h-0 overflow-y-auto pr-1 pb-6">
+      <div className="flex-1 min-h-0 overflow-auto pr-1 pb-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <StatCard
