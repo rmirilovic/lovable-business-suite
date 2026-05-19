@@ -52,7 +52,7 @@ export default function SefoviSmena() {
 
   return (
     <MainLayout title="Šefovi smena">
-      <div className="flex flex-col gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Fiksno 3 zapisa — unesite ime i prezime šefa svake smene.

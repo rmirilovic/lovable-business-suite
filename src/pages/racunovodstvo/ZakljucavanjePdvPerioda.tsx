@@ -63,14 +63,14 @@ export default function ZakljucavanjePdvPerioda() {
   if (!selectedCompany) {
     return (
       <MainLayout title="Zaključavanje PDV perioda">
-        <div className="p-8 text-center text-muted-foreground">Izaberite firmu.</div>
+        <div className="flex-1 min-h-0 overflow-auto p-8 text-center text-muted-foreground">Izaberite firmu.</div>
       </MainLayout>
     );
   }
 
   return (
     <MainLayout title="Zaključavanje PDV perioda">
-      <div className="space-y-6">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold">Zaključavanje PDV perioda</h1>
           <p className="text-sm text-muted-foreground mt-1">

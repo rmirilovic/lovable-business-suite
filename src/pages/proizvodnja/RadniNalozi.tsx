@@ -270,7 +270,7 @@ export default function RadniNalozi() {
 
   return (
     <MainLayout title="Radni nalozi">
-      <div className="flex flex-col h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col h-full min-h-0">
         {/* Toolbar */}
         <div className="flex flex-col gap-3 mb-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-between">

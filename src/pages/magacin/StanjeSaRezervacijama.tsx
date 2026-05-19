@@ -172,7 +172,7 @@ export default function StanjeSaRezervacijama() {
 
   return (
     <MainLayout title="Stanje sa rezervacijama">
-      <div className="flex flex-col h-full min-h-0 gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col h-full min-h-0 gap-4">
         <div className="flex flex-col sm:flex-row gap-4 flex-wrap items-end">
           <div className="space-y-1">
             <Label className="text-xs">Magacin</Label>

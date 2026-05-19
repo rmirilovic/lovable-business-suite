@@ -194,17 +194,17 @@ export default function PpPdvEdit() {
   };
 
   if (returnQuery.isLoading) {
-    return <MainLayout title="PP-PDV"><div className="p-8 text-center text-muted-foreground">Učitavanje...</div></MainLayout>;
+    return <MainLayout title="PP-PDV"><div className="flex-1 min-h-0 overflow-auto p-8 text-center text-muted-foreground">Učitavanje...</div></MainLayout>;
   }
   if (!ret) {
-    return <MainLayout title="PP-PDV"><div className="p-8 text-center text-muted-foreground">Prijava nije pronađena</div></MainLayout>;
+    return <MainLayout title="PP-PDV"><div className="flex-1 min-h-0 overflow-auto p-8 text-center text-muted-foreground">Prijava nije pronađena</div></MainLayout>;
   }
 
   let currentSection = "";
 
   return (
     <MainLayout title={`PP-PDV — ${ret.period_label}`}>
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate("/racunovodstvo/pp-pdv")}>

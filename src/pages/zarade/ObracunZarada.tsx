@@ -73,7 +73,7 @@ export default function ObracunZarada() {
 
   return (
     <MainLayout title="Obračun zarada">
-      <div className="flex flex-col gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Obračun zarada</h1>

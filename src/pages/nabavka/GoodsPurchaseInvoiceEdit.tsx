@@ -349,7 +349,7 @@ export default function GoodsPurchaseInvoiceEdit() {
 
   return (
     <MainLayout title={`UF za robu: ${invoice.internal_number}`}>
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Header actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

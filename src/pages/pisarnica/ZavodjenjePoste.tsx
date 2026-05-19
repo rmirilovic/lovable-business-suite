@@ -96,7 +96,7 @@ export default function ZavodjenjePoste() {
 
   return (
     <MainLayout title="Zavođenje ulazne pošte">
-      <div className="space-y-6 animate-fade-in">
+      <div className="flex-1 min-h-0 overflow-auto space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Zavođenje ulazne pošte</h1>

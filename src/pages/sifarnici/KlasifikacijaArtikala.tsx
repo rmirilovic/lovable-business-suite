@@ -485,7 +485,7 @@ export default function KlasifikacijaArtikala() {
   if (!selectedCompany) {
     return (
       <MainLayout title="Klasifikacija artikala">
-        <div className="erp-card p-8 text-center text-muted-foreground">
+        <div className="flex-1 min-h-0 overflow-auto erp-card p-8 text-center text-muted-foreground">
           Molimo izaberite firmu
         </div>
       </MainLayout>
@@ -494,7 +494,7 @@ export default function KlasifikacijaArtikala() {
 
   return (
     <MainLayout title="Klasifikacija artikala">
-      <div className="flex flex-col flex-1 min-h-0 space-y-6">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col flex-1 min-h-0 space-y-6">
         {/* Toolbar */}
         <div className="erp-card p-4">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">

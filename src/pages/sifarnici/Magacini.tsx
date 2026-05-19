@@ -224,7 +224,7 @@ export default function Magacini() {
 
   return (
     <MainLayout title="Magacini">
-      <div className="flex flex-col flex-1 min-h-0 space-y-6">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col flex-1 min-h-0 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">

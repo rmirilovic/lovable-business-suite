@@ -181,7 +181,7 @@ export default function Normativi() {
 
   return (
     <MainLayout title="Normativi utroška materijala">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Normativi utroška materijala</h1>
           <div className="flex items-center gap-1">

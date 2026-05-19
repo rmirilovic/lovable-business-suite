@@ -129,7 +129,7 @@ export default function ReprocessingWorkOrders() {
 
   return (
     <MainLayout title="RN za preradu i doradu">
-      <div className="flex flex-col h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col h-full min-h-0">
         <div className="flex flex-col gap-3 mb-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <div className="flex gap-4 flex-1 items-end">

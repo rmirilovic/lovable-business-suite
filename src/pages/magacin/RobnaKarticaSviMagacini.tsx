@@ -124,7 +124,7 @@ export default function RobnaKarticaSviMagacini() {
 
   return (
     <MainLayout title="R.K. u svim magacinima">
-      <div className="flex flex-col gap-4 p-4 md:p-6">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 p-4 md:p-6">
         <h1 className="text-xl font-bold">R.K. u svim magacinima</h1>
 
         <div className="flex flex-wrap items-end gap-3">

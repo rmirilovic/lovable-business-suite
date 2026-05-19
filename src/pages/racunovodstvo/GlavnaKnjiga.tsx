@@ -307,7 +307,7 @@ export default function GlavnaKnjiga() {
 
   return (
     <MainLayout title="Glavna knjiga">
-      <div className="flex flex-col gap-4 h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 h-full min-h-0">
         {/* Filters */}
         <Card>
           <CardHeader className="py-3">

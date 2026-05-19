@@ -418,7 +418,7 @@ export default function Partneri() {
 
   return (
     <MainLayout title="Šifarnik partnera">
-      <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col flex-1 min-h-0">
         {/* Sticky Header */}
         <div className="bg-background pb-4">
         <div className="erp-card p-4">

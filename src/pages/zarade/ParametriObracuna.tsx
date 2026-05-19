@@ -90,7 +90,7 @@ export default function ParametriObracuna() {
 
   return (
     <MainLayout title="Parametri obračuna">
-      <div className="flex flex-col gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Parametri obračuna</h1>

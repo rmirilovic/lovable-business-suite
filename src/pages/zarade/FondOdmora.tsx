@@ -132,7 +132,7 @@ export default function FondOdmora() {
   };
   return (
     <MainLayout title="Fond godišnjeg odmora">
-      <div className="flex flex-col gap-4 h-full">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 h-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative">

@@ -159,7 +159,7 @@ export default function ReprocessingDeliveryNoteEdit() {
 
   return (
     <MainLayout title={`Predajnica preradu ${note.delivery_number}`}>
-      <div className="flex flex-col gap-4 h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 h-full min-h-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate("/proizvodnja/predajnice-prerada")}><ArrowLeft className="w-5 h-5" /></Button>

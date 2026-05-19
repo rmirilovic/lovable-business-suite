@@ -241,7 +241,7 @@ export default function NaloziZaKnjizenje() {
 
   return (
     <MainLayout title="Nalozi za knjiženje">
-      <div className="flex flex-col h-full min-h-0 gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col h-full min-h-0 gap-4">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between flex-shrink-0">
           <div className="flex gap-4 flex-1 flex-wrap">

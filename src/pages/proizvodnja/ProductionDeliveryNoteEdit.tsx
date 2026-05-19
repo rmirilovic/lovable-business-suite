@@ -269,7 +269,7 @@ export default function ProductionDeliveryNoteEdit() {
 
   return (
     <MainLayout title={`Predajnica GP ${note.delivery_number}`}>
-      <div className="flex flex-col gap-4 h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 h-full min-h-0">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

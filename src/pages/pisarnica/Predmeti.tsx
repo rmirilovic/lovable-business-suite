@@ -112,7 +112,7 @@ export default function Predmeti() {
 
   return (
     <MainLayout title="Predmeti (CRM)">
-      <div className="flex flex-col h-full gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col h-full gap-4">
         <div className="erp-card p-4">
           <div className="flex flex-wrap items-center gap-3">
             <Button onClick={handleCreate} disabled={types.length === 0}>

@@ -34,7 +34,7 @@ export default function OsnovnaSredstva() {
 
   return (
     <MainLayout title="Osnovna sredstva">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">Osnovna sredstva</h1>
           <Button onClick={() => navigate("/osnovna-sredstva/kartoni/new")}>

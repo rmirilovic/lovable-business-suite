@@ -171,7 +171,7 @@ export default function FixedAssetEdit() {
 
   return (
     <MainLayout title="Karton osnovnog sredstva">
-      <div className="flex flex-col min-h-0 flex-1">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col min-h-0 flex-1">
         <div className="flex items-center gap-4 shrink-0">
           <Button variant="ghost" size="icon" onClick={() => navigate("/osnovna-sredstva/kartoni")}>
             <ArrowLeft className="w-5 h-5" />

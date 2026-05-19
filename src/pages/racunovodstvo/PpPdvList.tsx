@@ -71,7 +71,7 @@ export default function PpPdvList() {
 
   return (
     <MainLayout title="PP-PDV Prijave">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">PP-PDV Poreske prijave</h1>
         </div>

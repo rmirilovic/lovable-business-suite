@@ -125,7 +125,7 @@ export default function PartnerBalancesReport({ dateMode, title }: Props) {
 
   return (
     <MainLayout title={title}>
-      <div className="flex flex-col h-full gap-4">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col h-full gap-4">
         {/* Filters */}
         <div className="erp-card p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">

@@ -257,7 +257,7 @@ export default function EvidencijaRadnogVremena() {
 
   return (
     <MainLayout title="Evidencija radnog vremena">
-      <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-auto flex flex-col gap-4 flex-1 min-h-0 overflow-hidden">
         {/* Month-level defaults */}
         <div className="flex flex-wrap items-end gap-4 rounded-lg border bg-card p-4">
           <div className="space-y-1">

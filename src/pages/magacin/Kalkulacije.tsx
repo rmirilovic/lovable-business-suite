@@ -150,7 +150,7 @@ export default function Kalkulacije() {
 
   return (
     <MainLayout title="Kalkulacije nabavne cene">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
