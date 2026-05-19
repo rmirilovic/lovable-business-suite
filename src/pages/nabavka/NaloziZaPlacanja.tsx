@@ -343,7 +343,7 @@ export default function NaloziZaPlacanja() {
 
   return (
     <MainLayout title="Nalozi za plaćanja">
-      <div className="space-y-4">
+      <div className="flex-1 min-h-0 overflow-auto space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Nalozi za plaćanja</h1>
