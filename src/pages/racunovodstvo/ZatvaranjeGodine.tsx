@@ -207,24 +207,28 @@ export default function ZatvaranjeGodine() {
 
   if (!selectedCompany || !selectedYear) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        Izaberite firmu i poslovnu godinu.
-      </div>
+      <MainLayout title="Zatvaranje poslovne godine">
+        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+          Izaberite firmu i poslovnu godinu.
+        </div>
+      </MainLayout>
     );
   }
 
   const currentYearMeta = years.find((y) => y.id === selectedYear.id);
   if (currentYearMeta?.is_closed) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
-        <Alert>
-          <Lock className="h-4 w-4" />
-          <AlertTitle>Godina {selectedYear.year} je već zaključana</AlertTitle>
-          <AlertDescription>
-            Otvaranje godine se vrši iz Administracije → Poslovne godine.
-          </AlertDescription>
-        </Alert>
-      </div>
+      <MainLayout title="Zatvaranje poslovne godine">
+        <div className="p-6 max-w-2xl mx-auto">
+          <Alert>
+            <Lock className="h-4 w-4" />
+            <AlertTitle>Godina {selectedYear.year} je već zaključana</AlertTitle>
+            <AlertDescription>
+              Otvaranje godine se vrši iz Administracije → Poslovne godine.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </MainLayout>
     );
   }
 
