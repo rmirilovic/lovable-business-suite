@@ -84,7 +84,7 @@ export default function NaloziZaKnjizenje() {
   const [newDialogOpen, setNewDialogOpen] = useState(false);
 
   const { sortColumn, sortDirection, handleSort, sortItems } = useTableSort(
-    saved.sortColumn ?? "entry_number",
+    saved.sortColumn ?? "entry_date",
     saved.sortDirection ?? "desc"
   );
 
