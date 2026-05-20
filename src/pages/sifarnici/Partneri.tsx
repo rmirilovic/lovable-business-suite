@@ -141,8 +141,23 @@ export default function Partneri() {
   const [itemsPerPage, setItemsPerPage] = useState(saved.itemsPerPage ?? 25);
   const [goToPageInput, setGoToPageInput] = useState("");
 
-  // Vidljive kolone
+  // Vidljive kolone — perzistentno u localStorage (po kompaniji)
+  const columnsStorageKey = selectedCompany ? `partners_visibleColumns_${selectedCompany.id}` : null;
   const [visibleColumns, setVisibleColumns] = useState<PartnerColumnKey[]>(() => {
+    try {
+      if (selectedCompany) {
+        const raw = localStorage.getItem(`partners_visibleColumns_${selectedCompany.id}`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            const valid = parsed.filter((k: string) =>
+              PARTNER_COLUMNS.some((c) => c.key === k)
+            ) as PartnerColumnKey[];
+            if (valid.length > 0) return valid;
+          }
+        }
+      }
+    } catch { /* ignore */ }
     if (Array.isArray(saved.visibleColumns) && saved.visibleColumns.length > 0) {
       const valid = saved.visibleColumns.filter((k: string) =>
         PARTNER_COLUMNS.some((c) => c.key === k)
@@ -152,12 +167,21 @@ export default function Partneri() {
     return DEFAULT_VISIBLE_PARTNER_COLUMNS;
   });
 
+  useEffect(() => {
+    if (columnsStorageKey) {
+      try {
+        localStorage.setItem(columnsStorageKey, JSON.stringify(visibleColumns));
+      } catch { /* ignore */ }
+    }
+  }, [columnsStorageKey, visibleColumns]);
+
   const toggleColumn = (key: PartnerColumnKey) => {
     setVisibleColumns((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   };
   const resetColumns = () => setVisibleColumns(DEFAULT_VISIBLE_PARTNER_COLUMNS);
+
 
   // Persist itemsPerPage in localStorage per company
   const storageKey = selectedCompany ? `partners_itemsPerPage_${selectedCompany.id}` : null;
