@@ -118,7 +118,7 @@ export function JournalEntryItemForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>{item ? "Uredi stavku" : "Nova stavka"}</DialogTitle>
         </DialogHeader>
