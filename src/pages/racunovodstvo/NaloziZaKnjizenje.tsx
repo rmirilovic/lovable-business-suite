@@ -437,22 +437,25 @@ export default function NaloziZaKnjizenje() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="entry_date">Datum knjiženja *</Label>
-              <Input
+              <LocaleDateInput
                 id="entry_date"
-                type="date"
                 value={newEntryForm.entry_date}
-                onChange={(e) => setNewEntryForm({ ...newEntryForm, entry_date: e.target.value })}
+                onChange={(value) => setNewEntryForm({ ...newEntryForm, entry_date: value })}
+                minDate={minDate}
+                maxDate={maxDate}
+                required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="document_date">Datum dokumenta</Label>
-                <Input
+                <LocaleDateInput
                   id="document_date"
-                  type="date"
                   value={newEntryForm.document_date}
-                  onChange={(e) => setNewEntryForm({ ...newEntryForm, document_date: e.target.value })}
+                  onChange={(value) => setNewEntryForm({ ...newEntryForm, document_date: value })}
+                  minDate={minDate}
+                  maxDate={maxDate}
                 />
               </div>
               <div className="space-y-2">
