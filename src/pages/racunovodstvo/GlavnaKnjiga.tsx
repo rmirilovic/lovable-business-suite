@@ -173,7 +173,8 @@ export default function GlavnaKnjiga() {
           id: item.id,
           entry_date: item.journal_entries.entry_date,
           document_date: item.journal_entries.document_date,
-          item_document_date: item.item_document_date || item.document_date,
+          item_document_date: item.document_date,
+          doc_date: item.item_document_date || item.journal_entries.document_date,
           entry_number: en,
           // Prioritet: broj dokumenta na stavci, fallback na zaglavlje naloga
           document_number: item.item_document_number || item.journal_entries.document_number || null,
