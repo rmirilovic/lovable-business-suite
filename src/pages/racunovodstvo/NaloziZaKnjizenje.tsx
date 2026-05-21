@@ -72,6 +72,7 @@ export default function NaloziZaKnjizenje() {
   const { data: entries = [], isLoading } = useJournalEntries();
   const { createEntry, deleteEntry, postEntry, unpostEntry } = useJournalEntryMutations();
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const restoredScroll = useRef(false);
