@@ -62,6 +62,7 @@ export default function KarticaKonta() {
   const [dateFrom, setDateFrom] = useState<string>(getInitialDateFrom());
   const [dateTo, setDateTo] = useState<string>(getInitialDateTo());
   const [analyticsFilter, setAnalyticsFilter] = useState<string>("__all__");
+  const [selectedAccountCode, setSelectedAccountCode] = useState<string>("");
 
   // Update document title
   useEffect(() => {
