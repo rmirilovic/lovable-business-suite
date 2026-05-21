@@ -193,14 +193,32 @@ export function JournalEntryItemForm({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Datum valute</Label>
-            <LocaleDateInput
-              value={form.document_date}
-              onChange={(v) => setForm({ ...form, document_date: v })}
-            />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Broj dokumenta</Label>
+              <Input
+                value={form.item_document_number}
+                onChange={(e) => setForm({ ...form, item_document_number: e.target.value })}
+                placeholder="Broj dokumenta na stavci"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Datum dokumenta</Label>
+              <LocaleDateInput
+                value={form.item_document_date}
+                onChange={(v) => setForm({ ...form, item_document_date: v })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Datum valute</Label>
+              <LocaleDateInput
+                value={form.document_date}
+                onChange={(v) => setForm({ ...form, document_date: v })}
+              />
+            </div>
           </div>
         </div>
+
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
