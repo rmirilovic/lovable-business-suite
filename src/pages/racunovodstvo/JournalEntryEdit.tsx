@@ -298,6 +298,7 @@ export default function JournalEntryEdit() {
                 <TableHead className="w-[200px]">Naziv konta</TableHead>
                 <TableHead className="w-[100px]">Analitika</TableHead>
                 <TableHead>Opis</TableHead>
+                <TableHead className="w-[140px]">Dokument</TableHead>
                 <TableHead className="w-[100px]">Valuta</TableHead>
                 <TableHead className="w-[160px] text-right">Duguje</TableHead>
                 <TableHead className="w-[160px] text-right">Potražuje</TableHead>
@@ -307,13 +308,13 @@ export default function JournalEntryEdit() {
             <TableBody>
               {itemsLoading ? (
                 <TableRow>
-                   <TableCell colSpan={isDraft ? 8 : 7} className="text-center py-8">
+                   <TableCell colSpan={isDraft ? 9 : 8} className="text-center py-8">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={isDraft ? 8 : 7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={isDraft ? 9 : 8} className="text-center py-8 text-muted-foreground">
                     Nema stavki. Dodajte prvu stavku.
                   </TableCell>
                 </TableRow>
@@ -324,6 +325,16 @@ export default function JournalEntryEdit() {
                     <TableCell className="text-sm">{item.account_name || "-"}</TableCell>
                     <TableCell className="font-mono text-xs">{item.cost_center_code || item.partner_code || "-"}</TableCell>
                     <TableCell>{item.description || "-"}</TableCell>
+                    <TableCell className="text-xs">
+                      <div className="leading-tight">
+                        {item.item_document_number || entry.document_number || "-"}
+                        {(item.item_document_date || entry.document_date) && (
+                          <div className="text-muted-foreground text-[10px]">
+                            {formatDate(item.item_document_date || entry.document_date)}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-xs">{item.document_date ? formatDate(item.document_date) : "-"}</TableCell>
                     <TableCell className="text-right font-mono">
                       {Number(item.debit_amount) !== 0 
@@ -353,7 +364,7 @@ export default function JournalEntryEdit() {
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={isDraft ? 5 : 5} className="text-right font-medium">
+                <TableCell colSpan={isDraft ? 6 : 6} className="text-right font-medium">
                   Ukupno:
                 </TableCell>
                 <TableCell className="text-right font-mono font-bold">
