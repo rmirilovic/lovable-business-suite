@@ -68,6 +68,8 @@ export function JournalEntryItemForm({
     partner_id: "",
     cost_center_code: "",
     document_date: "",
+    item_document_number: "",
+    item_document_date: "",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -84,6 +86,8 @@ export function JournalEntryItemForm({
           partner_id: item.partner_id || "",
           cost_center_code: item.cost_center_code || "",
           document_date: item.document_date || "",
+          item_document_number: item.item_document_number || "",
+          item_document_date: item.item_document_date || "",
         });
       } else {
         setForm({
@@ -94,6 +98,8 @@ export function JournalEntryItemForm({
           partner_id: "",
           cost_center_code: "",
           document_date: "",
+          item_document_number: "",
+          item_document_date: "",
         });
       }
     }
@@ -112,6 +118,8 @@ export function JournalEntryItemForm({
         partner_id: form.partner_id || null,
         cost_center_code: form.cost_center_code || null,
         document_date: form.document_date || null,
+        item_document_number: form.item_document_number.trim() || null,
+        item_document_date: form.item_document_date || null,
         item_order: item?.item_order ?? 0,
       });
       onOpenChange(false);
