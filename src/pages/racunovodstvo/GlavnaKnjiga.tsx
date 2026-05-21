@@ -66,6 +66,7 @@ interface LedgerEntry {
   document_date: string | null;
   item_document_date: string | null;
   entry_number: string;
+  document_number: string | null;
   description: string;
   account_code: string;
   item_description: string | null;
