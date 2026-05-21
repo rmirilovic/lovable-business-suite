@@ -67,7 +67,7 @@ export function JournalEntryItemForm({
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
+  const postingAccounts = useMemo(() => accounts.filter((a) => a.is_posting_allowed), [accounts]);
 
   useEffect(() => {
     if (open) {
