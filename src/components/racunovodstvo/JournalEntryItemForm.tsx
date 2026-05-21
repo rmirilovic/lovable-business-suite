@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
   Dialog,
@@ -10,17 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { usePartners } from "@/hooks/usePartners";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { parseLocaleNumber } from "@/lib/formatting";
+import { SearchableAccountInput } from "@/components/ui/searchable-account-input";
+import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 
 interface JournalEntryItemFormData {
   account_code: string;
@@ -72,7 +67,7 @@ export function JournalEntryItemForm({
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
+  const postingAccounts = useMemo(() => accounts.filter((a) => a.is_posting_allowed), [accounts]);
 
   useEffect(() => {
     if (open) {
@@ -131,21 +126,12 @@ export function JournalEntryItemForm({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Konto *</Label>
-            <Select
+            <SearchableAccountInput
               value={form.account_code}
-              onValueChange={(value) => setForm({ ...form, account_code: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Izaberite konto" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {postingAccounts.map((account) => (
-                  <SelectItem key={account.id} value={account.code}>
-                    {account.code} - {account.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => setForm((p) => ({ ...p, account_code: value }))}
+              accounts={postingAccounts}
+              placeholder="Izaberite konto"
+            />
           </div>
 
           <div className="space-y-2">
@@ -178,22 +164,12 @@ export function JournalEntryItemForm({
 
           <div className="space-y-2">
             <Label>Partner (opciono)</Label>
-            <Select
-              value={form.partner_id || "__none__"}
-              onValueChange={(value) => setForm({ ...form, partner_id: value === "__none__" ? "" : value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Bez partnera" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                <SelectItem value="__none__">Bez partnera</SelectItem>
-                {partners.map((partner) => (
-                  <SelectItem key={partner.id} value={partner.id}>
-                    {partner.code} - {partner.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchablePartnerSelect
+              partners={partners}
+              value={form.partner_id}
+              onValueChange={(value) => setForm((p) => ({ ...p, partner_id: value }))}
+              placeholder="Bez partnera"
+            />
           </div>
 
           <div className="space-y-2">
