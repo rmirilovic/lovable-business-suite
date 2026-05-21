@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import {
   Dialog,
@@ -10,17 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
 import { usePartners } from "@/hooks/usePartners";
 import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { parseLocaleNumber } from "@/lib/formatting";
+import { SearchableAccountInput } from "@/components/ui/searchable-account-input";
+import { SearchablePartnerSelect } from "@/components/ui/searchable-partner-select";
 
 interface JournalEntryItemFormData {
   account_code: string;
