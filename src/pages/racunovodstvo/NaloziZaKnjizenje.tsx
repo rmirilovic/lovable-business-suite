@@ -33,6 +33,7 @@ import {
 } from "@/hooks/useJournalEntries";
 import { useTableSort, SortDirection } from "@/hooks/useTableSort";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { format } from "date-fns";
 import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
