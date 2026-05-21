@@ -129,6 +129,8 @@ export default function GlavnaKnjiga() {
           debit_amount,
           credit_amount,
           document_date,
+          item_document_number,
+          item_document_date,
           cost_center_code,
           partner_id,
           partners(code),
@@ -137,6 +139,7 @@ export default function GlavnaKnjiga() {
             entry_number,
             entry_date,
             document_date,
+            document_number,
             description,
             status,
             business_year_id
@@ -167,8 +170,10 @@ export default function GlavnaKnjiga() {
           id: item.id,
           entry_date: item.journal_entries.entry_date,
           document_date: item.journal_entries.document_date,
-          item_document_date: item.document_date,
+          item_document_date: item.item_document_date || item.document_date,
           entry_number: en,
+          // Prioritet: broj dokumenta na stavci, fallback na zaglavlje naloga
+          document_number: item.item_document_number || item.journal_entries.document_number || null,
           description: item.journal_entries.description,
           account_code: item.account_code,
           item_description: item.description,
