@@ -147,6 +147,7 @@ export const appNavigation: NavigationItem[] = [
       { label: "Izvodi", href: "/racunovodstvo/izvodi", moduleCode: "racunovodstvo.nalozi" },
       { label: "Nalozi za plaćanja", href: "/racunovodstvo/nalozi-placanja", moduleCode: "racunovodstvo.nalozi_placanja" },
       { label: "Glavna knjiga", href: "/racunovodstvo/glavna-knjiga", moduleCode: "racunovodstvo.glavna_knjiga" },
+      { label: "Kartica konta", href: "/racunovodstvo/kartica-konta", moduleCode: "racunovodstvo.glavna_knjiga" },
       { label: "Bruto bilans", href: "/racunovodstvo/bruto-bilans", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "Zaključni list", href: "/racunovodstvo/zakljucni-list", moduleCode: "racunovodstvo.bruto_bilans" },
       { label: "POPDV", href: "/racunovodstvo/popdv", moduleCode: "racunovodstvo.nalozi" },
