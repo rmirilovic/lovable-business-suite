@@ -436,9 +436,8 @@ export default function NaloziZaKnjizenje() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="entry_date">Datum knjiženja *</Label>
+              <Label>Datum knjiženja *</Label>
               <LocaleDateInput
-                id="entry_date"
                 value={newEntryForm.entry_date}
                 onChange={(value) => setNewEntryForm({ ...newEntryForm, entry_date: value })}
                 minDate={minDate}
@@ -449,9 +448,8 @@ export default function NaloziZaKnjizenje() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="document_date">Datum dokumenta</Label>
+                <Label>Datum dokumenta</Label>
                 <LocaleDateInput
-                  id="document_date"
                   value={newEntryForm.document_date}
                   onChange={(value) => setNewEntryForm({ ...newEntryForm, document_date: value })}
                   minDate={minDate}
