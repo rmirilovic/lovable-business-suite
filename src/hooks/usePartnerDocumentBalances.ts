@@ -188,6 +188,8 @@ export function usePartnerDocumentBalances(
           debit_amount,
           credit_amount,
           document_date,
+          item_document_number,
+          item_document_date,
           description,
           journal_entries!inner(
             entry_number,
