@@ -25,6 +25,8 @@ interface JournalEntryItemFormData {
   partner_id: string | null;
   cost_center_code: string | null;
   document_date: string | null;
+  item_document_number: string | null;
+  item_document_date: string | null;
   item_order: number;
 }
 
@@ -39,6 +41,8 @@ interface JournalEntryItemFormProps {
     partner_id: string | null;
     cost_center_code: string | null;
     document_date: string | null;
+    item_document_number: string | null;
+    item_document_date: string | null;
     item_order: number;
   };
   open: boolean;
