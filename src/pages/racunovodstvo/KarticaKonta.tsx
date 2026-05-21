@@ -41,6 +41,7 @@ export default function KarticaKonta() {
   const navigate = useNavigate();
   const { selectedYear, selectedCompany } = useAuth();
   const { data: accounts = [] } = useChartOfAccounts();
+  const { data: accountsWithEntries = [] } = useAccountsWithEntries();
 
   // Get account name from code
   const account = accounts.find((a) => a.code === code);
