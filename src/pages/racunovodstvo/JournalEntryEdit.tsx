@@ -389,19 +389,22 @@ export default function JournalEntryEdit() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Datum knjiženja *</Label>
-              <Input
-                type="date"
+              <LocaleDateInput
                 value={headerForm.entry_date}
-                onChange={(e) => setHeaderForm({ ...headerForm, entry_date: e.target.value })}
+                onChange={(value) => setHeaderForm({ ...headerForm, entry_date: value })}
+                minDate={minDate}
+                maxDate={maxDate}
+                required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Datum dokumenta</Label>
-                <Input
-                  type="date"
+                <LocaleDateInput
                   value={headerForm.document_date}
-                  onChange={(e) => setHeaderForm({ ...headerForm, document_date: e.target.value })}
+                  onChange={(value) => setHeaderForm({ ...headerForm, document_date: value })}
+                  minDate={minDate}
+                  maxDate={maxDate}
                 />
               </div>
               <div className="space-y-2">
