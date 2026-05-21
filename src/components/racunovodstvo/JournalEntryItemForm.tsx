@@ -164,22 +164,12 @@ export function JournalEntryItemForm({
 
           <div className="space-y-2">
             <Label>Partner (opciono)</Label>
-            <Select
-              value={form.partner_id || "__none__"}
-              onValueChange={(value) => setForm({ ...form, partner_id: value === "__none__" ? "" : value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Bez partnera" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                <SelectItem value="__none__">Bez partnera</SelectItem>
-                {partners.map((partner) => (
-                  <SelectItem key={partner.id} value={partner.id}>
-                    {partner.code} - {partner.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchablePartnerSelect
+              partners={partners}
+              value={form.partner_id}
+              onValueChange={(value) => setForm((p) => ({ ...p, partner_id: value }))}
+              placeholder="Bez partnera"
+            />
           </div>
 
           <div className="space-y-2">
