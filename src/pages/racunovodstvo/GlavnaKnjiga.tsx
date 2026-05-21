@@ -237,6 +237,8 @@ export default function GlavnaKnjiga() {
         case "entry_date": return item.entry_date;
         case "document_date": return item.item_document_date || item.document_date || "";
         case "entry_number": return item.entry_number;
+        case "document_number": return item.document_number || "";
+        case "doc_date": return item.doc_date || "";
         case "account_code": return item.account_code;
         case "analytics": return item.analytics || "";
         case "description": return item.description;
