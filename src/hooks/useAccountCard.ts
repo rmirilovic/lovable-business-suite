@@ -6,6 +6,7 @@ export interface AccountCardItem {
   id: string;
   entry_date: string;
   document_date: string | null;
+  item_document_date: string | null;
   entry_number: string;
   document_number: string | null;
   analytics: string | null;
