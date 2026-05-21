@@ -62,6 +62,7 @@ export default function KarticaKonta() {
   const [dateFrom, setDateFrom] = useState<string>(getInitialDateFrom());
   const [dateTo, setDateTo] = useState<string>(getInitialDateTo());
   const [analyticsFilter, setAnalyticsFilter] = useState<string>("__all__");
+  const [selectedAccountCode, setSelectedAccountCode] = useState<string>("");
 
   // Update document title
   useEffect(() => {
@@ -114,10 +115,107 @@ export default function KarticaKonta() {
   const contextReady = !!selectedCompany && !!selectedYear;
 
   if (!code) {
+    const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
     return (
       <MainLayout title="Kartica konta">
-        <div className="flex items-center justify-center h-64 text-muted-foreground">
-          Konto nije specificiran
+        <div className="flex-1 min-h-0 overflow-auto flex items-start justify-center pt-16">
+          <div className="w-full max-w-md space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-xl font-semibold">Izaberite konto</h2>
+              <p className="text-muted-foreground text-sm">
+                Odaberite konto i period za prikaz kartice
+              </p>
+            </div>
+            <div className="border rounded-lg p-6 space-y-4 bg-card">
+              <div className="space-y-2">
+                <Label>Konto</Label>
+                <Select value={selectedAccountCode} onValueChange={setSelectedAccountCode}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Izaberite konto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {postingAccounts.map((a) => (
+                      <SelectItem key={a.code} value={a.code}>
+                        {a.code} - {a.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Datum od</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateFrom && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateFrom
+                        ? format(new Date(dateFrom), "dd.MM.yyyy", { locale: sr })
+                        : "Izaberite datum"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateFrom ? new Date(dateFrom) : undefined}
+                      onSelect={(date) =>
+                        setDateFrom(date?.toISOString().split("T")[0] || "")
+                      }
+                      locale={sr}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label>Datum do</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !dateTo && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateTo
+                        ? format(new Date(dateTo), "dd.MM.yyyy", { locale: sr })
+                        : "Izaberite datum"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={dateTo ? new Date(dateTo) : undefined}
+                      onSelect={(date) =>
+                        setDateTo(date?.toISOString().split("T")[0] || "")
+                      }
+                      locale={sr}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <Button
+                className="w-full"
+                disabled={!selectedAccountCode}
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  if (dateFrom) params.set("from", dateFrom);
+                  if (dateTo) params.set("to", dateTo);
+                  navigate(`/racunovodstvo/kartica-konta/${selectedAccountCode}?${params.toString()}`);
+                }}
+              >
+                Prikaži karticu
+              </Button>
+            </div>
+          </div>
         </div>
       </MainLayout>
     );
