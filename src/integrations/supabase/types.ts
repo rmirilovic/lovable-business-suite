@@ -4922,6 +4922,8 @@ export type Database = {
           description: string | null
           document_date: string | null
           id: string
+          item_document_date: string | null
+          item_document_number: string | null
           item_order: number
           journal_entry_id: string
           partner_id: string | null
@@ -4936,6 +4938,8 @@ export type Database = {
           description?: string | null
           document_date?: string | null
           id?: string
+          item_document_date?: string | null
+          item_document_number?: string | null
           item_order?: number
           journal_entry_id: string
           partner_id?: string | null
@@ -4950,6 +4954,8 @@ export type Database = {
           description?: string | null
           document_date?: string | null
           id?: string
+          item_document_date?: string | null
+          item_document_number?: string | null
           item_order?: number
           journal_entry_id?: string
           partner_id?: string | null
