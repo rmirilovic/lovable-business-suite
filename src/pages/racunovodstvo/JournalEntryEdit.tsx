@@ -129,6 +129,16 @@ export default function JournalEntryEdit() {
     fetchEntry();
   }, [id]);
 
+  // Auto-open "Dodaj stavku" kada je nalog tek kreiran (?addItem=1)
+  useEffect(() => {
+    if (!entry) return;
+    if (searchParams.get("addItem") === "1" && entry.status === "draft") {
+      setAddItemDialogOpen(true);
+      searchParams.delete("addItem");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [entry, searchParams, setSearchParams]);
+
   const handleSaveHeader = async () => {
     if (!entry) return;
     
