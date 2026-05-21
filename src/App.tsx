@@ -323,6 +323,11 @@ const App = () => (
                   <WacRekonsilijacija />
                 </ProtectedRoute>
               } />
+              <Route path="/racunovodstvo/kartica-konta" element={
+                <ProtectedRoute requireCompany={false}>
+                  <KarticaKonta />
+                </ProtectedRoute>
+              } />
               <Route path="/racunovodstvo/kartica-konta/:code" element={
                 <ProtectedRoute requireCompany={false}>
                   <KarticaKonta />
