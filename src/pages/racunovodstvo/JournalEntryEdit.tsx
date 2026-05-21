@@ -66,8 +66,10 @@ const SOURCE_DOCUMENT_LABELS: Record<string, string> = {
 export default function JournalEntryEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { selectedCompany, selectedYear, user } = useAuth();
-  
+  const { minDate, maxDate } = useBusinessYearDateLimits();
+
   const [entry, setEntry] = useState<JournalEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
