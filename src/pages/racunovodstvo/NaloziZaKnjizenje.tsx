@@ -164,7 +164,7 @@ export default function NaloziZaKnjizenje() {
   });
 
   const handleCreateEntry = async () => {
-    await createEntry.mutateAsync(newEntryForm);
+    const created = await createEntry.mutateAsync(newEntryForm);
     setNewDialogOpen(false);
     setNewEntryForm({
       description: "",
@@ -172,6 +172,9 @@ export default function NaloziZaKnjizenje() {
       document_date: "",
       document_number: "",
     });
+    if (created?.id) {
+      navigate(`/racunovodstvo/nalozi/${created.id}?addItem=1`);
+    }
   };
 
   const handleDeleteEntry = async (entry: JournalEntry) => {

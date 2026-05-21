@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import { formatNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -64,8 +66,10 @@ const SOURCE_DOCUMENT_LABELS: Record<string, string> = {
 export default function JournalEntryEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { selectedCompany, selectedYear, user } = useAuth();
-  
+  const { minDate, maxDate } = useBusinessYearDateLimits();
+
   const [entry, setEntry] = useState<JournalEntry | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [headerDialogOpen, setHeaderDialogOpen] = useState(false);
@@ -124,6 +128,16 @@ export default function JournalEntryEdit() {
   useEffect(() => {
     fetchEntry();
   }, [id]);
+
+  // Auto-open "Dodaj stavku" kada je nalog tek kreiran (?addItem=1)
+  useEffect(() => {
+    if (!entry) return;
+    if (searchParams.get("addItem") === "1" && entry.status === "draft") {
+      setAddItemDialogOpen(true);
+      searchParams.delete("addItem");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [entry, searchParams, setSearchParams]);
 
   const handleSaveHeader = async () => {
     if (!entry) return;
@@ -375,19 +389,22 @@ export default function JournalEntryEdit() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Datum knjiženja *</Label>
-              <Input
-                type="date"
+              <LocaleDateInput
                 value={headerForm.entry_date}
-                onChange={(e) => setHeaderForm({ ...headerForm, entry_date: e.target.value })}
+                onChange={(value) => setHeaderForm({ ...headerForm, entry_date: value })}
+                minDate={minDate}
+                maxDate={maxDate}
+                required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Datum dokumenta</Label>
-                <Input
-                  type="date"
+                <LocaleDateInput
                   value={headerForm.document_date}
-                  onChange={(e) => setHeaderForm({ ...headerForm, document_date: e.target.value })}
+                  onChange={(value) => setHeaderForm({ ...headerForm, document_date: value })}
+                  minDate={minDate}
+                  maxDate={maxDate}
                 />
               </div>
               <div className="space-y-2">
