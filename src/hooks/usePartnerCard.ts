@@ -70,10 +70,13 @@ export function usePartnerCard(
           debit_amount,
           credit_amount,
           document_date,
+          item_document_number,
+          item_document_date,
           journal_entries!inner(
             entry_date,
             entry_number,
             document_number,
+            document_date,
             status,
             business_year_id
           )
@@ -98,8 +101,9 @@ export function usePartnerCard(
         id: item.id,
         entry_date: item.journal_entries.entry_date,
         document_date: item.document_date,
+        item_document_date: item.item_document_date || item.journal_entries.document_date,
         entry_number: item.journal_entries.entry_number,
-        document_number: item.journal_entries.document_number,
+        document_number: item.item_document_number || item.journal_entries.document_number,
         account_code: item.account_code,
         description: item.description,
         debit_amount: Number(item.debit_amount),
