@@ -126,21 +126,12 @@ export function JournalEntryItemForm({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Konto *</Label>
-            <Select
+            <SearchableAccountInput
               value={form.account_code}
-              onValueChange={(value) => setForm({ ...form, account_code: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Izaberite konto" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {postingAccounts.map((account) => (
-                  <SelectItem key={account.id} value={account.code}>
-                    {account.code} - {account.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => setForm((p) => ({ ...p, account_code: value }))}
+              accounts={postingAccounts}
+              placeholder="Izaberite konto"
+            />
           </div>
 
           <div className="space-y-2">
