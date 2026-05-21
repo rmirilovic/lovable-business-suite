@@ -138,11 +138,17 @@ export default function KarticaKonta() {
                     <SelectValue placeholder="Izaberite konto" />
                   </SelectTrigger>
                   <SelectContent>
-                    {postingAccounts.map((a) => (
-                      <SelectItem key={a.code} value={a.code}>
-                        {a.code} - {a.name}
-                      </SelectItem>
-                    ))}
+                    {postingAccounts.length === 0 ? (
+                      <div className="px-2 py-3 text-sm text-muted-foreground">
+                        Nema konta sa uknjiženim promenama
+                      </div>
+                    ) : (
+                      postingAccounts.map((a) => (
+                        <SelectItem key={a.code} value={a.code}>
+                          {a.code} - {a.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
