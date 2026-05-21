@@ -154,6 +154,7 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
                   <TableHead className="w-[120px]">Konto</TableHead>
                   <TableHead>Naziv konta</TableHead>
                   <TableHead>Opis stavke</TableHead>
+                  <TableHead className="w-[140px]">Dokument</TableHead>
                   <TableHead className="w-[120px] text-right">Duguje</TableHead>
                   <TableHead className="w-[120px] text-right">Potražuje</TableHead>
                   {isDraft && <TableHead className="w-[60px]" />}
@@ -162,13 +163,13 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
               <TableBody>
                 {itemsLoading ? (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 6 : 5} className="text-center py-4">
+                    <TableCell colSpan={isDraft ? 7 : 6} className="text-center py-4">
                       Učitavanje...
                     </TableCell>
                   </TableRow>
                 ) : items.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 6 : 5} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={isDraft ? 7 : 6} className="text-center py-4 text-muted-foreground">
                       Nema stavki. Dodajte prvu stavku ispod.
                     </TableCell>
                   </TableRow>
@@ -178,6 +179,16 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
                       <TableCell className="font-mono">{item.account_code}</TableCell>
                       <TableCell>{getAccountName(item.account_code)}</TableCell>
                       <TableCell className="text-muted-foreground">{item.description || "-"}</TableCell>
+                      <TableCell className="text-xs">
+                        <div className="leading-tight">
+                          {item.item_document_number || entry.document_number || "-"}
+                          {(item.item_document_date || entry.document_date) && (
+                            <div className="text-muted-foreground text-[10px]">
+                              {format(new Date(item.item_document_date || entry.document_date!), "dd.MM.yyyy.", { locale: sr })}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right font-mono">
                         {Number(item.debit_amount) > 0 ? formatNumber(item.debit_amount, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}
                       </TableCell>
@@ -232,6 +243,7 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
                         autoComplete="off"
                       />
                     </TableCell>
+                    <TableCell />
                     <TableCell>
                       <LocaleNumberInput
                         value={newItem.debit_amount}
@@ -261,7 +273,7 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
               </TableBody>
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={3} className="text-right font-medium">
+                  <TableCell colSpan={4} className="text-right font-medium">
                     Ukupno:
                   </TableCell>
                   <TableCell className={cn("text-right font-mono font-bold", !isBalanced && "text-destructive")}>
@@ -274,7 +286,7 @@ export function JournalEntryDialog({ entry, open, onOpenChange }: JournalEntryDi
                 </TableRow>
                 {!isBalanced && items.length > 0 && (
                   <TableRow>
-                    <TableCell colSpan={isDraft ? 6 : 5} className="text-center text-destructive text-sm">
+                    <TableCell colSpan={isDraft ? 7 : 6} className="text-center text-destructive text-sm">
                       ⚠️ Nalog nije uravnotežen! Razlika: {formatNumber(Math.abs(totalDebit - totalCredit), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                   </TableRow>
