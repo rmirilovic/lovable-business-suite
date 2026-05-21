@@ -275,6 +275,8 @@ export default function GlavnaKnjiga() {
       "Datum": format(new Date(e.entry_date), "dd.MM.yyyy"),
       "Valuta": e.item_document_date ? format(new Date(e.item_document_date), "dd.MM.yyyy") : (e.document_date ? format(new Date(e.document_date), "dd.MM.yyyy") : ""),
       "Nalog": e.entry_number,
+      "Dokument": e.document_number || "",
+      "Datum dok.": e.doc_date ? format(new Date(e.doc_date), "dd.MM.yyyy") : "",
       "Konto": e.account_code,
       "Analitika": e.analytics || "",
       "Opis": e.item_description ? `${e.description} - ${e.item_description}` : e.description,
@@ -287,7 +289,7 @@ export default function GlavnaKnjiga() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Glavna knjiga");
     ws["!cols"] = [
-      { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 10 },
+      { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 10 },
       { wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
     ];
     const date = new Date().toISOString().split("T")[0];
