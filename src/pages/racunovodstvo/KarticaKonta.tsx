@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatting";
 import { useAccountCard } from "@/hooks/useAccountCard";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
+import { useAccountsWithEntries } from "@/hooks/useAccountsWithEntries";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function KarticaKonta() {
