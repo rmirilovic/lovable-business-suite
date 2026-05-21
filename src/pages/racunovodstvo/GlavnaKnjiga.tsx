@@ -484,6 +484,12 @@ export default function GlavnaKnjiga() {
                 <TableHead className="w-[80px]">
                   <SortableHeader column="entry_number" label="Nalog" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
+                <TableHead className="w-[110px]">
+                  <SortableHeader column="document_number" label="Dokument" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader column="doc_date" label="Datum dok." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 <TableHead className="w-[100px]">
                   <SortableHeader column="account_code" label="Konto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
@@ -505,13 +511,13 @@ export default function GlavnaKnjiga() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
+                  <TableCell colSpan={11} className="text-center py-8">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : filteredData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                     <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     Nema proknjiženih stavki za prikaz.
                   </TableCell>
@@ -522,6 +528,8 @@ export default function GlavnaKnjiga() {
                     <TableCell>{format(new Date(entry.entry_date), "dd.MM.yyyy")}</TableCell>
                     <TableCell>{entry.item_document_date ? format(new Date(entry.item_document_date), "dd.MM.yyyy") : (entry.document_date ? format(new Date(entry.document_date), "dd.MM.yyyy") : "-")}</TableCell>
                     <TableCell className="font-medium">{entry.entry_number}</TableCell>
+                    <TableCell>{entry.document_number || "-"}</TableCell>
+                    <TableCell>{entry.doc_date ? format(new Date(entry.doc_date), "dd.MM.yyyy") : "-"}</TableCell>
                     <TableCell className="font-mono">{entry.account_code}</TableCell>
                     <TableCell className="font-mono text-xs">{entry.analytics || "-"}</TableCell>
                     <TableCell>
