@@ -8,7 +8,9 @@ interface GLRow {
   entry_date: string;
   document_date: string | null;
   item_document_date: string | null;
+  doc_date?: string | null;
   entry_number: string;
+  document_number?: string | null;
   account_code: string;
   analytics: string | null;
   description: string;
@@ -63,6 +65,8 @@ export async function generateGlavnaKnjigaPdf(options: GLPdfOptions) {
         ? format(new Date(r.document_date), "dd.MM.yyyy")
         : "-",
     r.entry_number,
+    r.document_number || "-",
+    r.doc_date ? format(new Date(r.doc_date), "dd.MM.yyyy") : "-",
     r.account_code,
     r.analytics || "-",
     r.item_description ? `${r.description}\n${r.item_description}` : r.description,
@@ -76,22 +80,24 @@ export async function generateGlavnaKnjigaPdf(options: GLPdfOptions) {
 
   autoTable(doc, {
     startY: y,
-    head: [["Datum", "Valuta", "Nalog", "Konto", "Analitika", "Opis", "Duguje", "Potražuje", "Saldo"]],
+    head: [["Datum", "Valuta", "Nalog", "Dokument", "Datum dok.", "Konto", "Analitika", "Opis", "Duguje", "Potražuje", "Saldo"]],
     body: tableData,
-    foot: [["", "", "", "", "", `Ukupno (${options.rows.length})`, formatPrice(totalDebit), formatPrice(totalCredit), formatPrice(totalDebit - totalCredit)]],
+    foot: [["", "", "", "", "", "", "", `Ukupno (${options.rows.length})`, formatPrice(totalDebit), formatPrice(totalCredit), formatPrice(totalDebit - totalCredit)]],
     styles: { font: "DejaVuSans", fontSize: 7 },
     headStyles: { fillColor: [41, 128, 185] },
     footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: "bold" },
     columnStyles: {
-      0: { cellWidth: 22 },
-      1: { cellWidth: 22 },
-      2: { cellWidth: 22 },
-      3: { cellWidth: 18 },
-      4: { cellWidth: 18 },
-      5: { cellWidth: "auto" },
-      6: { cellWidth: 28, halign: "right" },
-      7: { cellWidth: 28, halign: "right" },
-      8: { cellWidth: 28, halign: "right" },
+      0: { cellWidth: 20 },
+      1: { cellWidth: 20 },
+      2: { cellWidth: 20 },
+      3: { cellWidth: 24 },
+      4: { cellWidth: 20 },
+      5: { cellWidth: 16 },
+      6: { cellWidth: 16 },
+      7: { cellWidth: "auto" },
+      8: { cellWidth: 24, halign: "right" },
+      9: { cellWidth: 24, halign: "right" },
+      10: { cellWidth: 24, halign: "right" },
     },
   });
 

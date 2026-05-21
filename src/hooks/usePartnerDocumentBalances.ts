@@ -33,6 +33,8 @@ interface RawItem {
   debit_amount: number;
   credit_amount: number;
   document_date: string | null;
+  item_document_number: string | null;
+  item_document_date: string | null;
   description: string | null;
   journal_entries: {
     entry_number: string;
@@ -72,6 +74,7 @@ function applyFifo(
     const debit = Number(item.debit_amount);
     const credit = Number(item.credit_amount);
     const docNum =
+      item.item_document_number ||
       item.journal_entries.document_number ||
       item.journal_entries.entry_number;
     return {
@@ -185,6 +188,8 @@ export function usePartnerDocumentBalances(
           debit_amount,
           credit_amount,
           document_date,
+          item_document_number,
+          item_document_date,
           description,
           journal_entries!inner(
             entry_number,

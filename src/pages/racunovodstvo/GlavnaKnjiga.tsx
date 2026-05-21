@@ -63,9 +63,13 @@ function saveGLState(state: GLViewState) {
 interface LedgerEntry {
   id: string;
   entry_date: string;
+  // "Valuta": prikazuje item.document_date (valuta stavke) ili entry.document_date kao fallback
   document_date: string | null;
   item_document_date: string | null;
+  // Datum dokumenta (novi): prioritet item.item_document_date, fallback entry.document_date
+  doc_date: string | null;
   entry_number: string;
+  document_number: string | null;
   description: string;
   account_code: string;
   item_description: string | null;
@@ -128,6 +132,8 @@ export default function GlavnaKnjiga() {
           debit_amount,
           credit_amount,
           document_date,
+          item_document_number,
+          item_document_date,
           cost_center_code,
           partner_id,
           partners(code),
@@ -136,6 +142,7 @@ export default function GlavnaKnjiga() {
             entry_number,
             entry_date,
             document_date,
+            document_number,
             description,
             status,
             business_year_id
@@ -167,7 +174,10 @@ export default function GlavnaKnjiga() {
           entry_date: item.journal_entries.entry_date,
           document_date: item.journal_entries.document_date,
           item_document_date: item.document_date,
+          doc_date: item.item_document_date || item.journal_entries.document_date,
           entry_number: en,
+          // Prioritet: broj dokumenta na stavci, fallback na zaglavlje naloga
+          document_number: item.item_document_number || item.journal_entries.document_number || null,
           description: item.journal_entries.description,
           account_code: item.account_code,
           item_description: item.description,
@@ -227,6 +237,8 @@ export default function GlavnaKnjiga() {
         case "entry_date": return item.entry_date;
         case "document_date": return item.item_document_date || item.document_date || "";
         case "entry_number": return item.entry_number;
+        case "document_number": return item.document_number || "";
+        case "doc_date": return item.doc_date || "";
         case "account_code": return item.account_code;
         case "analytics": return item.analytics || "";
         case "description": return item.description;
@@ -265,6 +277,8 @@ export default function GlavnaKnjiga() {
       "Datum": format(new Date(e.entry_date), "dd.MM.yyyy"),
       "Valuta": e.item_document_date ? format(new Date(e.item_document_date), "dd.MM.yyyy") : (e.document_date ? format(new Date(e.document_date), "dd.MM.yyyy") : ""),
       "Nalog": e.entry_number,
+      "Dokument": e.document_number || "",
+      "Datum dok.": e.doc_date ? format(new Date(e.doc_date), "dd.MM.yyyy") : "",
       "Konto": e.account_code,
       "Analitika": e.analytics || "",
       "Opis": e.item_description ? `${e.description} - ${e.item_description}` : e.description,
@@ -277,7 +291,7 @@ export default function GlavnaKnjiga() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Glavna knjiga");
     ws["!cols"] = [
-      { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 10 },
+      { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 10 },
       { wch: 40 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
     ];
     const date = new Date().toISOString().split("T")[0];
@@ -472,6 +486,12 @@ export default function GlavnaKnjiga() {
                 <TableHead className="w-[80px]">
                   <SortableHeader column="entry_number" label="Nalog" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
+                <TableHead className="w-[110px]">
+                  <SortableHeader column="document_number" label="Dokument" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
+                <TableHead className="w-[100px]">
+                  <SortableHeader column="doc_date" label="Datum dok." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
+                </TableHead>
                 <TableHead className="w-[100px]">
                   <SortableHeader column="account_code" label="Konto" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                 </TableHead>
@@ -493,13 +513,13 @@ export default function GlavnaKnjiga() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
+                  <TableCell colSpan={11} className="text-center py-8">
                     Učitavanje...
                   </TableCell>
                 </TableRow>
               ) : filteredData.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                     <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     Nema proknjiženih stavki za prikaz.
                   </TableCell>
@@ -510,6 +530,8 @@ export default function GlavnaKnjiga() {
                     <TableCell>{format(new Date(entry.entry_date), "dd.MM.yyyy")}</TableCell>
                     <TableCell>{entry.item_document_date ? format(new Date(entry.item_document_date), "dd.MM.yyyy") : (entry.document_date ? format(new Date(entry.document_date), "dd.MM.yyyy") : "-")}</TableCell>
                     <TableCell className="font-medium">{entry.entry_number}</TableCell>
+                    <TableCell>{entry.document_number || "-"}</TableCell>
+                    <TableCell>{entry.doc_date ? format(new Date(entry.doc_date), "dd.MM.yyyy") : "-"}</TableCell>
                     <TableCell className="font-mono">{entry.account_code}</TableCell>
                     <TableCell className="font-mono text-xs">{entry.analytics || "-"}</TableCell>
                     <TableCell>
@@ -536,7 +558,7 @@ export default function GlavnaKnjiga() {
             {filteredData.length > 0 && (
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-right font-medium">
+                  <TableCell colSpan={8} className="text-right font-medium">
                     Ukupno:
                   </TableCell>
                   <TableCell className="text-right font-mono font-bold">

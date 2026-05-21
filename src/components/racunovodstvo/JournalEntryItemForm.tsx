@@ -25,6 +25,8 @@ interface JournalEntryItemFormData {
   partner_id: string | null;
   cost_center_code: string | null;
   document_date: string | null;
+  item_document_number: string | null;
+  item_document_date: string | null;
   item_order: number;
 }
 
@@ -39,6 +41,8 @@ interface JournalEntryItemFormProps {
     partner_id: string | null;
     cost_center_code: string | null;
     document_date: string | null;
+    item_document_number: string | null;
+    item_document_date: string | null;
     item_order: number;
   };
   open: boolean;
@@ -64,6 +68,8 @@ export function JournalEntryItemForm({
     partner_id: "",
     cost_center_code: "",
     document_date: "",
+    item_document_number: "",
+    item_document_date: "",
   });
   const [isSaving, setIsSaving] = useState(false);
 
@@ -80,6 +86,8 @@ export function JournalEntryItemForm({
           partner_id: item.partner_id || "",
           cost_center_code: item.cost_center_code || "",
           document_date: item.document_date || "",
+          item_document_number: item.item_document_number || "",
+          item_document_date: item.item_document_date || "",
         });
       } else {
         setForm({
@@ -90,6 +98,8 @@ export function JournalEntryItemForm({
           partner_id: "",
           cost_center_code: "",
           document_date: "",
+          item_document_number: "",
+          item_document_date: "",
         });
       }
     }
@@ -108,6 +118,8 @@ export function JournalEntryItemForm({
         partner_id: form.partner_id || null,
         cost_center_code: form.cost_center_code || null,
         document_date: form.document_date || null,
+        item_document_number: form.item_document_number.trim() || null,
+        item_document_date: form.item_document_date || null,
         item_order: item?.item_order ?? 0,
       });
       onOpenChange(false);
@@ -181,14 +193,32 @@ export function JournalEntryItemForm({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Datum valute</Label>
-            <LocaleDateInput
-              value={form.document_date}
-              onChange={(v) => setForm({ ...form, document_date: v })}
-            />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Broj dokumenta</Label>
+              <Input
+                value={form.item_document_number}
+                onChange={(e) => setForm({ ...form, item_document_number: e.target.value })}
+                placeholder="Broj dokumenta na stavci"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Datum dokumenta</Label>
+              <LocaleDateInput
+                value={form.item_document_date}
+                onChange={(v) => setForm({ ...form, item_document_date: v })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Datum valute</Label>
+              <LocaleDateInput
+                value={form.document_date}
+                onChange={(v) => setForm({ ...form, document_date: v })}
+              />
+            </div>
           </div>
         </div>
+
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

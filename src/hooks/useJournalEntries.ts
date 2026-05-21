@@ -42,6 +42,8 @@ export interface JournalEntryItem {
   cost_center_code: string | null;
   created_at: string;
   document_date: string | null;
+  item_document_number: string | null;
+  item_document_date: string | null;
 }
 
 export function useJournalEntries() {

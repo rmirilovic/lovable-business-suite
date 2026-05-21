@@ -6,6 +6,7 @@ export interface AccountCardItem {
   id: string;
   entry_date: string;
   document_date: string | null;
+  item_document_date: string | null;
   entry_number: string;
   document_number: string | null;
   analytics: string | null;
@@ -95,12 +96,15 @@ export function useAccountCard(
           debit_amount,
           credit_amount,
           document_date,
+          item_document_number,
+          item_document_date,
           partner_id,
           partners(code, name),
           journal_entries!inner(
             entry_date,
             entry_number,
             document_number,
+            document_date,
             status,
             business_year_id
           )
@@ -149,7 +153,9 @@ export function useAccountCard(
         entry_date: item.journal_entries.entry_date,
         document_date: item.document_date,
         entry_number: item.journal_entries.entry_number,
-        document_number: item.journal_entries.document_number,
+        // Prioritet: broj/datum dokumenta na stavci, fallback na zaglavlje
+        document_number: item.item_document_number || item.journal_entries.document_number,
+        item_document_date: item.item_document_date || item.journal_entries.document_date,
         analytics: getAnalytics(item),
         partner_name: item.partners?.name || null,
         description: item.description,
