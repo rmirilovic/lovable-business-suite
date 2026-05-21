@@ -13,6 +13,8 @@ import { formatNumber } from "@/lib/formatting";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useDocumentLock } from "@/hooks/useDocumentLock";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
+import { LocaleDateInput } from "@/components/ui/locale-date-input";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
