@@ -320,7 +320,11 @@ export default function JournalEntryEdit() {
                 </TableRow>
               ) : (
                 items.map((item) => (
-                  <TableRow key={item.id}>
+                  <TableRow 
+                    key={item.id}
+                    className={cn(isDraft && "cursor-pointer hover:bg-muted/50")}
+                    onClick={() => isDraft && setEditingItem(item)}
+                  >
                     <TableCell className="font-mono">{item.account_code}</TableCell>
                     <TableCell className="text-sm">{item.account_name || "-"}</TableCell>
                     <TableCell className="font-mono text-xs">{item.cost_center_code || item.partner_code || "-"}</TableCell>
@@ -347,12 +351,12 @@ export default function JournalEntryEdit() {
                         : ""}
                     </TableCell>
                     {isDraft && (
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => setEditingItem(item)}>
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); setEditingItem(item); }}>
                             <Pencil className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item)}>
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleDeleteItem(item); }}>
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </div>
