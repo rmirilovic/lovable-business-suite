@@ -86,11 +86,11 @@ export function SearchablePartnerSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between font-normal"
+          className="w-full justify-between font-normal h-auto py-2 min-h-10"
           disabled={disabled}
         >
           {selectedPartner ? (
-            <span className="truncate">
+            <span className="whitespace-normal break-words text-left leading-tight">
               {selectedPartner.code} - {selectedPartner.name}
               {selectedPartner.city && ` (${selectedPartner.city})`}
             </span>
@@ -100,7 +100,7 @@ export function SearchablePartnerSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
+      <PopoverContent className="w-[520px] p-0" align="start">
         <Command shouldFilter={false}>
           <div className="flex items-center border-b px-3">
             <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -129,12 +129,12 @@ export function SearchablePartnerSelect({
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 h-4 w-4 shrink-0",
                       value === partner.id ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  <div className="flex flex-col">
-                    <span className="font-medium">
+                  <div className="flex flex-col min-w-1">
+                    <span className="font-medium whitespace-normal break-words leading-tight">
                       {partner.code} - {partner.name}
                     </span>
                     {partner.city && (
