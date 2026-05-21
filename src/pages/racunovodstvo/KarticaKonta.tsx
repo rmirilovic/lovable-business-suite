@@ -280,7 +280,8 @@ export default function KarticaKonta() {
                 <TableHead className="w-[90px]">Datum</TableHead>
                 <TableHead className="w-[90px]">Valuta</TableHead>
                 <TableHead className="w-[70px]">Nalog</TableHead>
-                <TableHead className="w-[100px]">Dokument</TableHead>
+                <TableHead className="w-[110px]">Dokument</TableHead>
+                <TableHead className="w-[90px]">Datum dok.</TableHead>
                 <TableHead className="w-[80px]">Analitika</TableHead>
                 <TableHead>Partner / Opis</TableHead>
                 <TableHead className="w-[100px] text-right">Duguje</TableHead>
@@ -291,13 +292,13 @@ export default function KarticaKonta() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
+                  <TableCell colSpan={10} className="text-center py-8">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                   </TableCell>
                 </TableRow>
               ) : itemsWithBalance.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                     Nema stavki za prikaz
                   </TableCell>
                 </TableRow>
@@ -310,6 +311,9 @@ export default function KarticaKonta() {
                     </TableCell>
                     <TableCell className="font-medium">{item.entry_number}</TableCell>
                     <TableCell>{item.document_number || "-"}</TableCell>
+                    <TableCell>
+                      {item.item_document_date ? format(new Date(item.item_document_date), "dd.MM.yyyy") : "-"}
+                    </TableCell>
                     <TableCell className="font-mono text-xs">
                       {item.analytics || "-"}
                     </TableCell>
