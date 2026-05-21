@@ -63,8 +63,11 @@ function saveGLState(state: GLViewState) {
 interface LedgerEntry {
   id: string;
   entry_date: string;
+  // "Valuta": prikazuje item.document_date (valuta stavke) ili entry.document_date kao fallback
   document_date: string | null;
   item_document_date: string | null;
+  // Datum dokumenta (novi): prioritet item.item_document_date, fallback entry.document_date
+  doc_date: string | null;
   entry_number: string;
   document_number: string | null;
   description: string;
