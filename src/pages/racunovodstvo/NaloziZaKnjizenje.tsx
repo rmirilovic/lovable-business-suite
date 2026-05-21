@@ -33,6 +33,7 @@ import {
 } from "@/hooks/useJournalEntries";
 import { useTableSort, SortDirection } from "@/hooks/useTableSort";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { format } from "date-fns";
 import { formatNumber } from "@/lib/formatting";
 import { cn } from "@/lib/utils";
@@ -71,6 +72,7 @@ export default function NaloziZaKnjizenje() {
   const { data: entries = [], isLoading } = useJournalEntries();
   const { createEntry, deleteEntry, postEntry, unpostEntry } = useJournalEntryMutations();
   const { selectedCompany } = useAuth();
+  const { minDate, maxDate } = useBusinessYearDateLimits();
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const restoredScroll = useRef(false);
@@ -434,23 +436,24 @@ export default function NaloziZaKnjizenje() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="entry_date">Datum knjiženja *</Label>
-              <Input
-                id="entry_date"
-                type="date"
+              <Label>Datum knjiženja *</Label>
+              <LocaleDateInput
                 value={newEntryForm.entry_date}
-                onChange={(e) => setNewEntryForm({ ...newEntryForm, entry_date: e.target.value })}
+                onChange={(value) => setNewEntryForm({ ...newEntryForm, entry_date: value })}
+                minDate={minDate}
+                maxDate={maxDate}
+                required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="document_date">Datum dokumenta</Label>
-                <Input
-                  id="document_date"
-                  type="date"
+                <Label>Datum dokumenta</Label>
+                <LocaleDateInput
                   value={newEntryForm.document_date}
-                  onChange={(e) => setNewEntryForm({ ...newEntryForm, document_date: e.target.value })}
+                  onChange={(value) => setNewEntryForm({ ...newEntryForm, document_date: value })}
+                  minDate={minDate}
+                  maxDate={maxDate}
                 />
               </div>
               <div className="space-y-2">
