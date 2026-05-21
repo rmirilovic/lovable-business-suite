@@ -556,7 +556,7 @@ export default function GlavnaKnjiga() {
             {filteredData.length > 0 && (
               <TableFooter>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-right font-medium">
+                  <TableCell colSpan={8} className="text-right font-medium">
                     Ukupno:
                   </TableCell>
                   <TableCell className="text-right font-mono font-bold">
