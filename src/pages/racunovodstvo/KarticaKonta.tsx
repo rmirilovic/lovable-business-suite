@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatting";
 import { useAccountCard } from "@/hooks/useAccountCard";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
+import { useAccountsWithEntries } from "@/hooks/useAccountsWithEntries";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function KarticaKonta() {
@@ -40,6 +41,7 @@ export default function KarticaKonta() {
   const navigate = useNavigate();
   const { selectedYear, selectedCompany } = useAuth();
   const { data: accounts = [] } = useChartOfAccounts();
+  const { data: accountsWithEntries = [] } = useAccountsWithEntries();
 
   // Get account name from code
   const account = accounts.find((a) => a.code === code);
@@ -115,7 +117,9 @@ export default function KarticaKonta() {
   const contextReady = !!selectedCompany && !!selectedYear;
 
   if (!code) {
-    const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
+    const postingAccounts = accounts.filter(
+      (a) => a.is_posting_allowed && accountsWithEntries.includes(a.code)
+    );
     return (
       <MainLayout title="Kartica konta">
         <div className="flex-1 min-h-0 overflow-auto flex items-start justify-center pt-16">
@@ -134,11 +138,17 @@ export default function KarticaKonta() {
                     <SelectValue placeholder="Izaberite konto" />
                   </SelectTrigger>
                   <SelectContent>
-                    {postingAccounts.map((a) => (
-                      <SelectItem key={a.code} value={a.code}>
-                        {a.code} - {a.name}
-                      </SelectItem>
-                    ))}
+                    {postingAccounts.length === 0 ? (
+                      <div className="px-2 py-3 text-sm text-muted-foreground">
+                        Nema konta sa uknjiženim promenama
+                      </div>
+                    ) : (
+                      postingAccounts.map((a) => (
+                        <SelectItem key={a.code} value={a.code}>
+                          {a.code} - {a.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
