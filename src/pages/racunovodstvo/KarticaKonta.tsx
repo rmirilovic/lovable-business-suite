@@ -117,7 +117,9 @@ export default function KarticaKonta() {
   const contextReady = !!selectedCompany && !!selectedYear;
 
   if (!code) {
-    const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
+    const postingAccounts = accounts.filter(
+      (a) => a.is_posting_allowed && accountsWithEntries.includes(a.code)
+    );
     return (
       <MainLayout title="Kartica konta">
         <div className="flex-1 min-h-0 overflow-auto flex items-start justify-center pt-16">
