@@ -410,6 +410,7 @@ export default function GlavnaKnjiga() {
                     if (dateFrom) params.set('from', dateFrom);
                     if (dateTo) params.set('to', dateTo);
                     params.set('account', selectedAccount);
+                    params.set('ref', 'glavna-knjiga');
                     const href = `/racunovodstvo/kartica-konta/${selectedAccount}?${params.toString()}`;
                     return (
                       <Button

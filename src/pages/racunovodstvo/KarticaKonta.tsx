@@ -109,6 +109,12 @@ export default function KarticaKonta() {
   };
 
   const handleBack = () => {
+    const ref = searchParams.get("ref");
+    if (ref === "menu") {
+      navigate("/");
+      return;
+    }
+    // Podrazumevano vrati se u Glavnu knjigu
     const params = new URLSearchParams();
     const accountParam = searchParams.get("account");
     const fromParam = searchParams.get("from");
@@ -130,15 +136,6 @@ export default function KarticaKonta() {
         <div className="flex-1 min-h-0 overflow-auto flex items-start justify-center pt-16">
           <div className="w-full max-w-md space-y-6">
             <div className="text-center space-y-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="mb-2"
-                onClick={() => navigate("/")}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Nazad na meni
-              </Button>
               <h2 className="text-xl font-semibold">Izaberite konto</h2>
               <p className="text-muted-foreground text-sm">
                 Odaberite konto i period za prikaz kartice
@@ -238,6 +235,7 @@ export default function KarticaKonta() {
                   const params = new URLSearchParams();
                   if (dateFrom) params.set("from", dateFrom);
                   if (dateTo) params.set("to", dateTo);
+                  params.set("ref", "menu");
                   navigate(`/racunovodstvo/kartica-konta/${selectedAccountCode}?${params.toString()}`);
                 }}
               >
@@ -267,7 +265,7 @@ export default function KarticaKonta() {
           <div className="flex items-end">
             <Button variant="outline" size="sm" onClick={handleBack}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Glavna knjiga
+              {searchParams.get("ref") === "menu" ? "Nazad na meni" : "Glavna knjiga"}
             </Button>
           </div>
           <div className="space-y-1">
