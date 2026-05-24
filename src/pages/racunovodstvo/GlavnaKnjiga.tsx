@@ -355,7 +355,10 @@ export default function GlavnaKnjiga() {
                     <SelectItem value="__all__">Svi konta</SelectItem>
                     {postingAccounts.map((account) => (
                       <SelectItem key={account.id} value={account.code}>
-                        {account.code} - {account.name}
+                        <div className="flex items-center justify-between gap-3 w-full">
+                          <span>{account.code} - {account.name}</span>
+                          <span className="text-muted-foreground text-xs">({entryCountByCode.get(account.code)} prom.)</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
