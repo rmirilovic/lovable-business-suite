@@ -42,6 +42,11 @@ export default function KarticaKonta() {
   const { selectedYear, selectedCompany } = useAuth();
   const { data: accounts = [] } = useChartOfAccounts();
   const { data: accountsWithEntries = [] } = useAccountsWithEntries();
+  const entryCountByCode = useMemo(() => {
+    const map = new Map<string, number>();
+    accountsWithEntries.forEach((a) => map.set(a.code, a.count));
+    return map;
+  }, [accountsWithEntries]);
 
   // Get account name from code
   const account = accounts.find((a) => a.code === code);
