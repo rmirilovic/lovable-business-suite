@@ -159,7 +159,12 @@ export default function KarticaKonta() {
                     ) : (
                       postingAccounts.map((a) => (
                         <SelectItem key={a.code} value={a.code}>
-                          {a.code} - {a.name}
+                          <span className="flex items-center justify-between w-full gap-4">
+                            <span>{a.code} - {a.name}</span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              ({entryCountByCode.get(a.code)} prom.)
+                            </span>
+                          </span>
                         </SelectItem>
                       ))
                     )}
