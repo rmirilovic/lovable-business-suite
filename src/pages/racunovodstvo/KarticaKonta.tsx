@@ -42,6 +42,11 @@ export default function KarticaKonta() {
   const { selectedYear, selectedCompany } = useAuth();
   const { data: accounts = [] } = useChartOfAccounts();
   const { data: accountsWithEntries = [] } = useAccountsWithEntries();
+  const entryCountByCode = useMemo(() => {
+    const map = new Map<string, number>();
+    accountsWithEntries.forEach((a) => map.set(a.code, a.count));
+    return map;
+  }, [accountsWithEntries]);
 
   // Get account name from code
   const account = accounts.find((a) => a.code === code);
@@ -118,7 +123,7 @@ export default function KarticaKonta() {
 
   if (!code) {
     const postingAccounts = accounts.filter(
-      (a) => a.is_posting_allowed && accountsWithEntries.includes(a.code)
+      (a) => a.is_posting_allowed && entryCountByCode.has(a.code)
     );
     return (
       <MainLayout title="Kartica konta">
@@ -154,7 +159,12 @@ export default function KarticaKonta() {
                     ) : (
                       postingAccounts.map((a) => (
                         <SelectItem key={a.code} value={a.code}>
-                          {a.code} - {a.name}
+                          <span className="flex items-center justify-between w-full gap-4">
+                            <span>{a.code} - {a.name}</span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              ({entryCountByCode.get(a.code)} prom.)
+                            </span>
+                          </span>
                         </SelectItem>
                       ))
                     )}
