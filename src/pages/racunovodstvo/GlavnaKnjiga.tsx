@@ -28,6 +28,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
+import { useAccountsWithEntries } from "@/hooks/useAccountsWithEntries";
 import { useTableSort, SortDirection } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { format } from "date-fns";
