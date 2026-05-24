@@ -117,7 +117,16 @@ export default function GlavnaKnjiga() {
     });
   }, [selectedAccount, dateFrom, dateTo, analyticsFilter, docTypeFilter, sortColumn, sortDirection]);
 
-  const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
+  const { data: accountsWithEntries = [] } = useAccountsWithEntries(dateFrom, dateTo);
+  const entryCountByCode = useMemo(() => {
+    const map = new Map<string, number>();
+    accountsWithEntries.forEach((a) => map.set(a.code, a.count));
+    return map;
+  }, [accountsWithEntries]);
+
+  const postingAccounts = accounts.filter(
+    (a) => a.is_posting_allowed && entryCountByCode.has(a.code)
+  );
 
   const { data: ledgerData = [], isLoading } = useQuery({
     queryKey: ["general-ledger", selectedCompany?.id, selectedYear?.id, selectedAccount, dateFrom, dateTo],
