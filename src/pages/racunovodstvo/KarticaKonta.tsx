@@ -265,7 +265,7 @@ export default function KarticaKonta() {
           <div className="flex items-end">
             <Button variant="outline" size="sm" onClick={handleBack}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Glavna knjiga
+              {searchParams.get("ref") === "menu" ? "Nazad na meni" : "Glavna knjiga"}
             </Button>
           </div>
           <div className="space-y-1">
