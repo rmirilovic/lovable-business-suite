@@ -28,6 +28,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChartOfAccounts } from "@/hooks/useChartOfAccounts";
+import { useAccountsWithEntries } from "@/hooks/useAccountsWithEntries";
 import { useTableSort, SortDirection } from "@/hooks/useTableSort";
 import { SortableHeader } from "@/components/ui/sortable-header";
 import { format } from "date-fns";
@@ -116,7 +117,16 @@ export default function GlavnaKnjiga() {
     });
   }, [selectedAccount, dateFrom, dateTo, analyticsFilter, docTypeFilter, sortColumn, sortDirection]);
 
-  const postingAccounts = accounts.filter((a) => a.is_posting_allowed);
+  const { data: accountsWithEntries = [] } = useAccountsWithEntries(dateFrom, dateTo);
+  const entryCountByCode = useMemo(() => {
+    const map = new Map<string, number>();
+    accountsWithEntries.forEach((a) => map.set(a.code, a.count));
+    return map;
+  }, [accountsWithEntries]);
+
+  const postingAccounts = accounts.filter(
+    (a) => a.is_posting_allowed && entryCountByCode.has(a.code)
+  );
 
   const { data: ledgerData = [], isLoading } = useQuery({
     queryKey: ["general-ledger", selectedCompany?.id, selectedYear?.id, selectedAccount, dateFrom, dateTo],
@@ -345,7 +355,10 @@ export default function GlavnaKnjiga() {
                     <SelectItem value="__all__">Svi konta</SelectItem>
                     {postingAccounts.map((account) => (
                       <SelectItem key={account.id} value={account.code}>
-                        {account.code} - {account.name}
+                        <div className="flex items-center justify-between gap-3 w-full">
+                          <span>{account.code} - {account.name}</span>
+                          <span className="text-muted-foreground text-xs">({entryCountByCode.get(account.code)} prom.)</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
