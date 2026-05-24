@@ -7,18 +7,26 @@ export interface AccountWithEntryCount {
   count: number;
 }
 
-export function useAccountsWithEntries() {
+export function useAccountsWithEntries(dateFrom?: string, dateTo?: string) {
   const { selectedCompany, selectedYear } = useAuth();
+  const hasDateFilter = !!(dateFrom || dateTo);
 
   return useQuery({
-    queryKey: ["accounts-with-entries", selectedCompany?.id, selectedYear?.id],
+    queryKey: ["accounts-with-entries", selectedCompany?.id, selectedYear?.id, dateFrom || null, dateTo || null],
     queryFn: async (): Promise<AccountWithEntryCount[]> => {
       if (!selectedCompany?.id || !selectedYear?.id) return [];
 
-      const { data, error } = await supabase.rpc("get_accounts_with_entry_counts", {
-        _company_id: selectedCompany.id,
-        _business_year_id: selectedYear.id,
-      });
+      const { data, error } = hasDateFilter
+        ? await supabase.rpc("get_accounts_with_entry_counts_by_date", {
+            _company_id: selectedCompany.id,
+            _business_year_id: selectedYear.id,
+            _date_from: dateFrom || null,
+            _date_to: dateTo || null,
+          })
+        : await supabase.rpc("get_accounts_with_entry_counts", {
+            _company_id: selectedCompany.id,
+            _business_year_id: selectedYear.id,
+          });
 
       if (error) throw error;
 
@@ -37,3 +45,4 @@ export function useAccountsWithEntries() {
     refetchOnWindowFocus: false,
   });
 }
+
