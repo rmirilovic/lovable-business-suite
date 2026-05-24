@@ -125,6 +125,15 @@ export default function KarticaKonta() {
         <div className="flex-1 min-h-0 overflow-auto flex items-start justify-center pt-16">
           <div className="w-full max-w-md space-y-6">
             <div className="text-center space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="mb-2"
+                onClick={() => navigate("/")}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Nazad na meni
+              </Button>
               <h2 className="text-xl font-semibold">Izaberite konto</h2>
               <p className="text-muted-foreground text-sm">
                 Odaberite konto i period za prikaz kartice
