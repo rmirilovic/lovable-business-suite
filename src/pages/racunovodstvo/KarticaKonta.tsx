@@ -123,7 +123,7 @@ export default function KarticaKonta() {
 
   if (!code) {
     const postingAccounts = accounts.filter(
-      (a) => a.is_posting_allowed && accountsWithEntries.includes(a.code)
+      (a) => a.is_posting_allowed && entryCountByCode.has(a.code)
     );
     return (
       <MainLayout title="Kartica konta">
