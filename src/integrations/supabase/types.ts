@@ -10276,6 +10276,13 @@ export type Database = {
         Args: { _new_year_id: string; _old_year_id: string }
         Returns: string
       }
+      get_accounts_with_entry_counts: {
+        Args: { _business_year_id: string; _company_id: string }
+        Returns: {
+          account_code: string
+          entry_count: number
+        }[]
+      }
       get_article_all_warehouses_card: {
         Args: {
           p_article_id: string

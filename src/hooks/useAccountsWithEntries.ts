@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -15,27 +15,25 @@ export function useAccountsWithEntries() {
     queryFn: async (): Promise<AccountWithEntryCount[]> => {
       if (!selectedCompany?.id || !selectedYear?.id) return [];
 
-      const { data, error } = await supabase
-        .from("journal_entry_items")
-        .select("account_code, journal_entries!inner(status, business_year_id)")
-        .eq("company_id", selectedCompany.id)
-        .eq("journal_entries.status", "posted")
-        .eq("journal_entries.business_year_id", selectedYear.id)
-        .not("account_code", "is", null);
+      const { data, error } = await supabase.rpc("get_accounts_with_entry_counts", {
+        _company_id: selectedCompany.id,
+        _business_year_id: selectedYear.id,
+      });
 
       if (error) throw error;
 
-      const counts = new Map<string, number>();
-      (data || []).forEach((item: any) => {
-        if (item.account_code) {
-          counts.set(item.account_code, (counts.get(item.account_code) || 0) + 1);
-        }
-      });
-
-      return Array.from(counts.entries())
-        .map(([code, count]) => ({ code, count }))
-        .sort((a, b) => a.code.localeCompare(b.code));
+      return (data || []).map((row: any) => ({
+        code: row.account_code as string,
+        count: Number(row.entry_count) || 0,
+      }));
     },
     enabled: !!selectedCompany?.id && !!selectedYear?.id,
+    // Keširanje: rezultat ostaje svež 5 min, u cache-u 30 min — brzo prebacivanje
+    // između prethodno otvorenih firmi/godina bez ponovnog upita.
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    // Pri promeni firme/godine zadrži prethodne podatke dok stignu novi (bez treperenja).
+    placeholderData: keepPreviousData,
+    refetchOnWindowFocus: false,
   });
 }
