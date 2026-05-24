@@ -10283,6 +10283,18 @@ export type Database = {
           entry_count: number
         }[]
       }
+      get_accounts_with_entry_counts_by_date: {
+        Args: {
+          _business_year_id: string
+          _company_id: string
+          _date_from?: string
+          _date_to?: string
+        }
+        Returns: {
+          account_code: string
+          entry_count: number
+        }[]
+      }
       get_article_all_warehouses_card: {
         Args: {
           p_article_id: string
