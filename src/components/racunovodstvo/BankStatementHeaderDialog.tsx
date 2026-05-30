@@ -167,11 +167,36 @@ export function BankStatementHeaderDialog({
           <div>
             <Label>Tekući račun</Label>
             <Input
-              value={selectedAccount ? `${selectedAccount.account_number} - ${selectedAccount.bank_name}` : "-"}
+              value={selectedAccount ? `${selectedAccount.account_number} - ${selectedAccount.bank_name} (${selectedAccount.currency})` : "-"}
               disabled
               className="font-mono"
             />
           </div>
+          {isForeign && (
+            <div>
+              <Label>Kurs ({selectedAccount!.currency} → RSD)</Label>
+              <div className="flex gap-2">
+                {readOnly ? (
+                  <Input value={formData.exchange_rate} disabled className="font-mono" />
+                ) : (
+                  <LocaleNumberInput
+                    value={formData.exchange_rate}
+                    onChange={(val) => setFormData({ ...formData, exchange_rate: val })}
+                    className="font-mono"
+                  />
+                )}
+                {!readOnly && (
+                  <Button type="button" variant="outline" size="sm" onClick={handleFetchNbsRate}>
+                    <Download className="h-4 w-4 mr-1" />
+                    NBS kurs
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Iznosi stavki se unose u {selectedAccount!.currency}; preračun u RSD ide preko kursa.
+              </p>
+            </div>
+          )}
           <div>
             <Label>R.br. izvoda banke</Label>
             {readOnly ? (
