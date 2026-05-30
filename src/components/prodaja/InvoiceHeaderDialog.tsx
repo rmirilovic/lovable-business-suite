@@ -150,6 +150,18 @@ export function InvoiceHeaderDialog({
   }
   const [availableDeliveryNotes, setAvailableDeliveryNotes] = useState<AvailableDeliveryNote[]>([]);
   const selectedDeliveryNote = availableDeliveryNotes.find((dn) => dn.id === formData.source_delivery_note_id);
+  const selectedDeliveryNoteLabel = selectedDeliveryNote
+    ? `${selectedDeliveryNote.delivery_number} (${new Date(selectedDeliveryNote.delivery_date).toLocaleDateString("sr-Latn-RS")})`
+    : undefined;
+
+  const handleDeliveryNoteChange = (value: string) => {
+    if (value === "") return;
+
+    setFormData((prev) => ({
+      ...prev,
+      source_delivery_note_id: value === "none" ? null : value,
+    }));
+  };
 
   useEffect(() => {
     if (!invoice || !open) return;
@@ -625,11 +637,13 @@ export function InvoiceHeaderDialog({
             <Label>Otpremnica (po kojoj su isporučena dobra)</Label>
             <Select
               value={formData.source_delivery_note_id || "none"}
-              onValueChange={(v) => setFormData({ ...formData, source_delivery_note_id: v === "none" ? null : v })}
+              onValueChange={handleDeliveryNoteChange}
               disabled={readOnly || !formData.partner_id}
             >
               <SelectTrigger>
-                <SelectValue placeholder={formData.partner_id ? "-- Bez otpremnice --" : "Prvo izaberite kupca"} />
+                <SelectValue placeholder={formData.partner_id ? "-- Bez otpremnice --" : "Prvo izaberite kupca"}>
+                  {selectedDeliveryNoteLabel}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">-- Bez otpremnice --</SelectItem>
