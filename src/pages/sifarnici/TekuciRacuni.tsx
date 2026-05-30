@@ -241,12 +241,14 @@ export default function TekuciRacuni() {
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                       {searchTerm || statusFilter !== "active" ? "Nema rezultata pretrage" : "Nema tekućih računa. Kliknite 'Novi tekući račun' da dodate."}
                     </TableCell>
                   </TableRow>
