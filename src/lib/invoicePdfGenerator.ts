@@ -43,17 +43,59 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
-const formatPdfNumber = (value: number | null | undefined): string => {
-  if (value === null || value === undefined || isNaN(value)) return "0,00";
-  return value.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const formatPdfNumber = (value: number | null | undefined, lang: "sr" | "en" = "sr"): string => {
+  if (value === null || value === undefined || isNaN(value)) return lang === "en" ? "0.00" : "0,00";
+  const locale = lang === "en" ? "en-US" : "sr-RS";
+  return value.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-const TAX_CATEGORY_LABELS: Record<string, string> = {
+const TAX_CATEGORY_LABELS_SR: Record<string, string> = {
   S: "Standardna stopa",
   E: "Oslobođeno PDV-a",
   O: "Van sistema PDV-a",
   AE: "Obrnuti obračun PDV-a",
 };
+
+const TAX_CATEGORY_LABELS_EN: Record<string, string> = {
+  S: "Standard rate",
+  E: "VAT exempt",
+  O: "Outside VAT system",
+  AE: "Reverse charge VAT",
+};
+
+type Lang = "sr" | "en";
+
+const L = (lang: Lang) => ({
+  invoice: lang === "en" ? "INVOICE" : "FAKTURA",
+  invoiceDetails: lang === "en" ? "Invoice details:" : "Detalji fakture:",
+  invoiceDate: lang === "en" ? "Invoice date" : "Datum fakture",
+  dueDate: lang === "en" ? "Due date" : "Datum valute",
+  deliveryDate: lang === "en" ? "Delivery date" : "Datum prometa",
+  deliveryPlace: lang === "en" ? "Place of delivery" : "Mesto prometa",
+  deliveryNote: lang === "en" ? "Delivery note" : "Otpremnica",
+  currency: lang === "en" ? "Currency" : "Valuta",
+  exchangeRate: lang === "en" ? "NBS middle exchange rate" : "Srednji kurs NBS",
+  jci: lang === "en" ? "Customs declaration (JCI)" : "JCI",
+  of: lang === "en" ? "of" : "od",
+  incoterms: lang === "en" ? "Delivery (Incoterms)" : "Isporuka (Incoterms)",
+  customer: lang === "en" ? "Customer:" : "Kupac:",
+  pib: lang === "en" ? "VAT ID" : "PIB",
+  mb: lang === "en" ? "Reg. No." : "MB",
+  bankAccount: lang === "en" ? "Bank account" : "Broj tekućeg računa",
+  tableHead: lang === "en"
+    ? ["#", "Description", "UoM", "Qty", "Price", "Disc.", "VAT%", "Net", "VAT", "Total"]
+    : ["#", "Naziv", "JM", "Kol.", "Cena", "Rab.", "PDV%", "Osnovica", "PDV iznos", "Ukupno"],
+  subtotal: lang === "en" ? "Subtotal:" : "Osnovica:",
+  vat: lang === "en" ? "VAT:" : "PDV:",
+  total: lang === "en" ? "TOTAL:" : "UKUPNO:",
+  advance: lang === "en" ? "Advance" : "Avans",
+  amountToPay: lang === "en" ? "AMOUNT TO PAY:" : "IZNOS ZA UPLATU:",
+  rsdEquiv: lang === "en" ? "RSD equivalent (at rate" : "RSD ekvivalent (po kursu",
+  taxExempt: lang === "en" ? "Tax exemption" : "Poresko oslobođenje",
+  notes: lang === "en" ? "Notes:" : "Napomena:",
+  composedBy: lang === "en" ? "Prepared by:" : "Fakturu sastavio:",
+  authorizedPerson: lang === "en" ? "Authorized person:" : "Ovlašćeno lice:",
+});
 
 async function buildInvoicePdf(
   invoice: Invoice,
@@ -62,8 +104,11 @@ async function buildInvoicePdf(
   partner: PartnerData,
   bankAccountText?: string | null,
   deliveryNoteNumber?: string | null,
-  advanceInfo?: { number: string; amount: number }
+  advanceInfo?: { number: string; amount: number },
+  lang: Lang = "sr"
 ): Promise<jsPDF> {
+  const t = L(lang);
+  const dateFmt = (d: Date | string) => format(new Date(d), lang === "en" ? "dd/MM/yyyy" : "dd.MM.yyyy.", lang === "en" ? undefined : { locale: sr });
   await initializePdfFonts();
 
   const doc = new jsPDF();
