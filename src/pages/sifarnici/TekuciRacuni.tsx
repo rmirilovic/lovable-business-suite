@@ -215,6 +215,12 @@ export default function TekuciRacuni() {
                   <TableHead>
                     <SortableHeader column="bank_name" label="Naziv banke" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
+                  <TableHead className="w-[90px] text-center">
+                    <SortableHeader column="currency" label="Valuta" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
+                  <TableHead className="w-[110px] text-center">
+                    <SortableHeader column="gl_account_code" label="Konto GK" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
                   <TableHead className="w-[100px] text-center">
                     <SortableHeader column="is_default" label="Podraz." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
                   </TableHead>
