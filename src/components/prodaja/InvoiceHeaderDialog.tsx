@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +51,7 @@ export function InvoiceHeaderDialog({
   onSaved,
 }: InvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const queryClient = useQueryClient();
   const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
@@ -173,12 +175,12 @@ export function InvoiceHeaderDialog({
 
     // Fetch available advances for the partner
     fetchAdvancesForPartner(invoice.partner_id);
-    fetchDeliveryNotesForPartner(invoice.partner_id);
+    fetchDeliveryNotesForPartner(invoice.partner_id, invoice.source_delivery_note_id);
 
     loadDefaults();
   }, [invoice, open, bankAccounts, selectedCompany?.id]);
 
-  const fetchDeliveryNotesForPartner = async (partnerId: string) => {
+  const fetchDeliveryNotesForPartner = async (partnerId: string, currentDeliveryNoteId?: string | null) => {
     if (!partnerId || !selectedCompany?.id) {
       setAvailableDeliveryNotes([]);
       return;
@@ -191,7 +193,24 @@ export function InvoiceHeaderDialog({
       .neq("status", "cancelled")
       .order("delivery_date", { ascending: false });
 
-    if (!data) { setAvailableDeliveryNotes([]); return; }
+    const deliveryNotes = data ? [...data] : [];
+
+    if (currentDeliveryNoteId && !deliveryNotes.some((d) => d.id === currentDeliveryNoteId)) {
+      const { data: currentDn } = await supabase
+        .from("delivery_notes")
+        .select("id, delivery_number, delivery_date")
+        .eq("id", currentDeliveryNoteId)
+        .maybeSingle();
+
+      if (currentDn) {
+        deliveryNotes.unshift(currentDn);
+      }
+    }
+
+    if (deliveryNotes.length === 0) {
+      setAvailableDeliveryNotes([]);
+      return;
+    }
 
     // Filter out delivery notes already linked to other invoices
     const { data: usedDns } = await supabase
@@ -202,7 +221,8 @@ export function InvoiceHeaderDialog({
       .neq("id", invoice?.id || "00000000-0000-0000-0000-000000000000");
 
     const usedIds = new Set((usedDns || []).map((u) => u.source_delivery_note_id));
-    const available = data.filter((d) => !usedIds.has(d.id) || d.id === invoice?.source_delivery_note_id);
+    const activeDeliveryNoteId = currentDeliveryNoteId ?? invoice?.source_delivery_note_id ?? null;
+    const available = deliveryNotes.filter((d) => !usedIds.has(d.id) || d.id === activeDeliveryNoteId);
     setAvailableDeliveryNotes(available);
   };
 
@@ -263,7 +283,7 @@ export function InvoiceHeaderDialog({
     }));
     if (currency === "RSD") setExchangeRateText("1");
     fetchAdvancesForPartner(partnerId);
-    fetchDeliveryNotesForPartner(partnerId);
+    fetchDeliveryNotesForPartner(partnerId, null);
     setFormData((prev) => ({ ...prev, source_delivery_note_id: "" }));
   };
 
