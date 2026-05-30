@@ -29,6 +29,20 @@ const DOC_TYPE_LABEL: Record<string, string> = {
   fx_loss: "Negativna kursna razlika",
 };
 
+type ExportColKey = "date" | "doc" | "type" | "description" | "rate" | "debit_orig" | "credit_orig" | "debit_rsd" | "credit_rsd";
+const EXPORT_COLS: { key: ExportColKey; label: (cur: string) => string }[] = [
+  { key: "date", label: () => "Datum" },
+  { key: "doc", label: () => "Dokument" },
+  { key: "type", label: () => "Tip" },
+  { key: "description", label: () => "Opis" },
+  { key: "rate", label: () => "Kurs" },
+  { key: "debit_orig", label: (c) => `Duguje (${c})` },
+  { key: "credit_orig", label: (c) => `Potražuje (${c})` },
+  { key: "debit_rsd", label: () => "Duguje (RSD)" },
+  { key: "credit_rsd", label: () => "Potražuje (RSD)" },
+];
+const DEFAULT_EXPORT_COLS: ExportColKey[] = EXPORT_COLS.map((c) => c.key);
+
 const CURRENCIES = ["EUR", "USD", "CHF", "GBP"];
 
 export default function DeviznaKartica() {
