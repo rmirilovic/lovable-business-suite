@@ -326,7 +326,7 @@ export default function JournalEntryEdit() {
                     onClick={() => isDraft && setEditingItem(item)}
                   >
                     <TableCell className="font-mono">{item.account_code}</TableCell>
-                    <TableCell className="text-sm">{item.account_name || "-"}</TableCell>
+                    <TableCell className="text-sm whitespace-normal break-words leading-tight">{item.account_name || "-"}</TableCell>
                     <TableCell className="font-mono text-xs">{item.cost_center_code || item.partner_code || "-"}</TableCell>
                     <TableCell>{item.description || "-"}</TableCell>
                     <TableCell className="text-xs">
