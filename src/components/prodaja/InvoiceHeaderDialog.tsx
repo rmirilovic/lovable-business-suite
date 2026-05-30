@@ -199,6 +199,10 @@ export function InvoiceHeaderDialog({
 
   const handlePartnerChange = (partnerId: string) => {
     const p = customerPartners.find((x) => x.id === partnerId);
+    const isIno = p?.legal_status === 4;
+    const currency = isIno ? (p?.default_currency || "EUR") : "RSD";
+    const countryCode = (p?.country_code || (isIno ? "" : "RS")).toUpperCase();
+
     setFormData((prev) => ({
       ...prev,
       partner_id: partnerId,
@@ -209,13 +213,59 @@ export function InvoiceHeaderDialog({
       partner_pib: p?.pib ?? "",
       partner_mb: p?.mb ?? "",
       advance_invoice_id: "", // Reset advance when partner changes
+      // Ino partner — automatska podešavanja za izvoznu fakturu
+      currency,
+      partner_country_code: countryCode || prev.partner_country_code,
+      payment_means_code: isIno ? "42" : prev.payment_means_code,
+      tax_category_code: isIno ? "E" : prev.tax_category_code,
+      tax_exemption_reason: isIno
+        ? (prev.tax_exemption_reason || "Član 24. stav 1. tačka 2) ZPDV — izvoz dobara")
+        : prev.tax_exemption_reason,
+      exchange_rate: currency === "RSD" ? 1 : prev.exchange_rate,
     }));
+    if (currency === "RSD") setExchangeRateText("1");
     fetchAdvancesForPartner(partnerId);
+  };
+
+  const loadNbsRate = async () => {
+    const dateToUse = formData.datum_prometa || formData.invoice_date;
+    if (!dateToUse) {
+      toast.error("Unesite datum prometa ili datum fakture");
+      return;
+    }
+    if (formData.currency === "RSD") return;
+    setLoadingNbsRate(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nbs-exchange-rates", {
+        body: { date: dateToUse },
+      });
+      if (error || !data?.success) {
+        toast.error(data?.error || "Greška pri preuzimanju kursne liste");
+        return;
+      }
+      const rate = (data.rates || []).find((r: any) => r.currencyCode === formData.currency);
+      if (!rate || !rate.middleRate || !rate.unit) {
+        toast.error(`NBS nije vratio srednji kurs za ${formData.currency}`);
+        return;
+      }
+      // Srednji kurs za jedinicu (npr. 100 JPY = ...). Računamo kurs za 1 jedinicu.
+      const ratePerUnit = Number(rate.middleRate) / Number(rate.unit);
+      const rounded = +ratePerUnit.toFixed(6);
+      setExchangeRateText(rounded.toLocaleString("sr-Latn-RS", { minimumFractionDigits: 4, maximumFractionDigits: 6 }));
+      setFormData((prev) => ({ ...prev, exchange_rate: rounded }));
+      toast.success(`Kurs ${formData.currency}: ${rounded.toFixed(4)} (NBS srednji, ${data.listDate || dateToUse})`);
+    } catch (err: any) {
+      toast.error("Greška pri pozivanju NBS servisa");
+    } finally {
+      setLoadingNbsRate(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!invoice || readOnly) return;
+
+    const rate = formData.currency === "RSD" ? 1 : (formData.exchange_rate || 1);
 
     await updateInvoice.mutateAsync({
       id: invoice.id,
@@ -248,6 +298,14 @@ export function InvoiceHeaderDialog({
       datum_prometa: formData.datum_prometa || null,
       bank_account_id: formData.bank_account_id || null,
       advance_invoice_id: formData.advance_invoice_id || null,
+      // Ino izlazne fakture
+      exchange_rate: rate,
+      subtotal_rsd: +((invoice.subtotal || 0) * rate).toFixed(2),
+      vat_amount_rsd: +((invoice.vat_amount || 0) * rate).toFixed(2),
+      total_amount_rsd: +((invoice.total_amount || 0) * rate).toFixed(2),
+      jci_number: formData.jci_number || null,
+      jci_date: formData.jci_date || null,
+      delivery_terms: formData.delivery_terms || null,
     });
     onOpenChange(false);
     onSaved?.();
