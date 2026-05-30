@@ -468,7 +468,7 @@ export default function ProductionDeliveryNoteEdit() {
                     article_code: wi.article_code,
                     article_name: wi.article_name,
                     unit: wi.unit,
-                    variant_id: wi.variant_id || null,
+                    variant_id: null,
                     kg_per_unit: wi.kg_per_unit ?? 0,
                     launched_qty: Number(wi.launched_qty ?? 0),
                     unit_price: Number(wi.unit_price ?? 0),
