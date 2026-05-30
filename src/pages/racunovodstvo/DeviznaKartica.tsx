@@ -20,7 +20,7 @@ const CURRENCIES = ["EUR", "USD", "CHF", "GBP"];
 
 export default function DeviznaKartica() {
   const { selectedYear } = useAuth();
-  const { data: partners = [] } = usePartners();
+  const { partners = [] } = usePartners();
 
   const yearStart = selectedYear
     ? `${selectedYear.year}-01-01`
