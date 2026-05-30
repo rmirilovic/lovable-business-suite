@@ -554,6 +554,37 @@ export function PartnerDetailsDialog({
                     autoComplete="off"
                   />
                 </div>
+                <div>
+                  <Label htmlFor="country_code">Kod zemlje (ISO-2)</Label>
+                  <Input
+                    id="country_code"
+                    value={formData.country_code}
+                    onChange={(e) => updateField("country_code", e.target.value.toUpperCase().slice(0, 2))}
+                    disabled={[1, 2, 3].includes(formData.legal_status)}
+                    placeholder="RS, DE, IT..."
+                    maxLength={2}
+                    autoComplete="off"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="default_currency">Podrazumevana valuta</Label>
+                  <Select
+                    value={formData.default_currency}
+                    onValueChange={(v) => updateField("default_currency", v)}
+                    disabled={[1, 2, 3].includes(formData.legal_status)}
+                  >
+                    <SelectTrigger id="default_currency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="RSD">RSD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="CHF">CHF</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Contact info */}
