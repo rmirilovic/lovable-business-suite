@@ -451,6 +451,39 @@ export default function ProductionDeliveryNoteEdit() {
           <div className="flex items-center justify-between p-3 border-b">
             <h3 className="font-semibold text-sm">Stavke</h3>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              {isDraft && items.length === 0 && note.work_order_id && (
+                <Button size="sm" variant="outline" onClick={async () => {
+                  if (!note.work_order_id) return;
+                  const { data: woItems, error: woErr } = await supabase
+                    .from("work_order_items")
+                    .select("*")
+                    .eq("work_order_id", note.work_order_id)
+                    .order("item_order");
+                  if (woErr) { toast.error("Greška pri čitanju stavki RN"); return; }
+                  if (!woItems || woItems.length === 0) { toast.error("Radni nalog nema stavki"); return; }
+                  const itemsToInsert = woItems.map((wi: any, idx: number) => ({
+                    delivery_note_id: note.id,
+                    company_id: companyId,
+                    article_id: wi.article_id,
+                    article_code: wi.article_code,
+                    article_name: wi.article_name,
+                    unit: wi.unit,
+                    variant_id: wi.variant_id || null,
+                    kg_per_unit: wi.kg_per_unit ?? 0,
+                    launched_qty: Number(wi.launched_qty ?? 0),
+                    unit_price: Number(wi.unit_price ?? 0),
+                    item_order: idx + 1,
+                  }));
+                  const { error } = await (supabase as any)
+                    .from("production_delivery_note_items")
+                    .insert(itemsToInsert);
+                  if (error) { toast.error("Greška pri ubacivanju stavki"); return; }
+                  toast.success(`Učitano ${itemsToInsert.length} stavki iz RN`);
+                  invalidateItems();
+                }}>
+                  Učitaj stavke iz RN
+                </Button>
+              )}
               <span>Ukupno kg: <strong>{formatNumber(totalKg, { minimumFractionDigits: 2 })}</strong></span>
               <span>Ukupna vrednost: <strong>{formatNumber(totalValue, { minimumFractionDigits: 2 })}</strong></span>
             </div>
