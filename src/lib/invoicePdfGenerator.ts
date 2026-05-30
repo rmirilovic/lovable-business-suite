@@ -169,6 +169,32 @@ async function buildInvoicePdf(
     yPos += 4;
   }
 
+  // Ino faktura — valuta, kurs, JCI
+  const isForeign = invoice.currency && invoice.currency !== "RSD";
+  if (isForeign) {
+    doc.setFont("Roboto", "bold");
+    doc.text(`Valuta: ${invoice.currency}`, 14, yPos);
+    doc.setFont("Roboto", "normal");
+    yPos += 4;
+    if (invoice.exchange_rate && invoice.exchange_rate !== 1) {
+      doc.text(`Srednji kurs NBS: 1 ${invoice.currency} = ${formatPdfNumber(invoice.exchange_rate)} RSD`, 14, yPos);
+      yPos += 4;
+    }
+    if ((invoice as any).jci_number) {
+      const jciDate = (invoice as any).jci_date
+        ? ` od ${format(new Date((invoice as any).jci_date), "dd.MM.yyyy.", { locale: sr })}`
+        : "";
+      doc.text(`JCI: ${(invoice as any).jci_number}${jciDate}`, 14, yPos);
+      yPos += 4;
+    }
+    if ((invoice as any).delivery_terms) {
+      doc.text(`Isporuka (Incoterms): ${(invoice as any).delivery_terms}`, 14, yPos);
+      yPos += 4;
+    }
+  }
+
+
+
 
   // Right column - Customer details
   const rightColX = 14 + colWidth + 10;
@@ -309,6 +335,16 @@ async function buildInvoicePdf(
     doc.setFontSize(12);
     doc.text("IZNOS ZA UPLATU:", labelsX, totalsY);
     doc.text(formatPdfNumber((totalForPdf || 0) - advanceInfo.amount), totalsX, totalsY, { align: "right" });
+  }
+
+  // RSD ekvivalent za ino fakture
+  if (isForeign && invoice.exchange_rate && invoice.exchange_rate !== 1) {
+    totalsY += 7;
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(9);
+    const rsdTotal = (totalForPdf || 0) * invoice.exchange_rate;
+    doc.text(`RSD ekvivalent (po kursu ${formatPdfNumber(invoice.exchange_rate)}):`, labelsX, totalsY);
+    doc.text(`${formatPdfNumber(rsdTotal)} RSD`, totalsX, totalsY, { align: "right" });
   }
 
   // Tax exemption note

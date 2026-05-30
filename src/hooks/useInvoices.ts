@@ -50,6 +50,14 @@ export interface Invoice {
   datum_prometa: string | null;
   bank_account_id: string | null;
   advance_invoice_id: string | null;
+  // Foreign currency / export
+  exchange_rate: number;
+  subtotal_rsd: number;
+  vat_amount_rsd: number;
+  total_amount_rsd: number;
+  jci_number: string | null;
+  jci_date: string | null;
+  delivery_terms: string | null;
   partner?: {
     id: string;
     name: string;
@@ -117,6 +125,13 @@ export interface InvoiceFormData {
   datum_prometa?: string | null;
   bank_account_id?: string | null;
   advance_invoice_id?: string | null;
+  exchange_rate?: number;
+  subtotal_rsd?: number;
+  vat_amount_rsd?: number;
+  total_amount_rsd?: number;
+  jci_number?: string | null;
+  jci_date?: string | null;
+  delivery_terms?: string | null;
 }
 
 export interface InvoiceItemFormData {
@@ -290,15 +305,24 @@ export function useInvoices() {
   });
 
   const updateInvoiceTotals = useMutation({
-    mutationFn: async ({ invoiceId, subtotal, vat_amount, total_amount }: {
+    mutationFn: async ({ invoiceId, subtotal, vat_amount, total_amount, exchange_rate }: {
       invoiceId: string;
       subtotal: number;
       vat_amount: number;
       total_amount: number;
+      exchange_rate?: number;
     }) => {
+      const rate = exchange_rate && exchange_rate > 0 ? exchange_rate : 1;
       const { error } = await supabase
         .from("invoices")
-        .update({ subtotal, vat_amount, total_amount })
+        .update({
+          subtotal,
+          vat_amount,
+          total_amount,
+          subtotal_rsd: +(subtotal * rate).toFixed(2),
+          vat_amount_rsd: +(vat_amount * rate).toFixed(2),
+          total_amount_rsd: +(total_amount * rate).toFixed(2),
+        })
         .eq("id", invoiceId);
 
       if (error) throw error;

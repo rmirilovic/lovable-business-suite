@@ -27,8 +27,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
-import { Eye, Info } from "lucide-react";
+import { Eye, Info, RefreshCw } from "lucide-react";
 import { formatPrice } from "@/lib/formatting";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { parseLocaleNumber } from "@/lib/formatting";
+import { isForeignCurrency } from "@/lib/currencies";
+import { toast } from "sonner";
 
 interface InvoiceHeaderDialogProps {
   open: boolean;
@@ -82,7 +86,15 @@ export function InvoiceHeaderDialog({
     datum_prometa: "" as string | null,
     bank_account_id: "" as string | null,
     advance_invoice_id: "" as string | null,
+    // Ino izlazne fakture
+    exchange_rate: 1,
+    jci_number: "" as string | null,
+    jci_date: "" as string | null,
+    delivery_terms: "" as string | null,
   });
+
+  const [exchangeRateText, setExchangeRateText] = useState("1");
+  const [loadingNbsRate, setLoadingNbsRate] = useState(false);
 
   // Advance invoices for selected partner
   interface AvailableAdvance {
@@ -143,7 +155,12 @@ export function InvoiceHeaderDialog({
       datum_prometa: invoice.datum_prometa || "",
       bank_account_id: invoice.bank_account_id || defaultBankId,
       advance_invoice_id: invoice.advance_invoice_id || "",
+      exchange_rate: invoice.exchange_rate || 1,
+      jci_number: invoice.jci_number || "",
+      jci_date: invoice.jci_date || "",
+      delivery_terms: invoice.delivery_terms || "",
     });
+    setExchangeRateText(String(invoice.exchange_rate || 1));
 
     // Fetch available advances for the partner
     fetchAdvancesForPartner(invoice.partner_id);
@@ -182,6 +199,10 @@ export function InvoiceHeaderDialog({
 
   const handlePartnerChange = (partnerId: string) => {
     const p = customerPartners.find((x) => x.id === partnerId);
+    const isIno = p?.legal_status === 4;
+    const currency = isIno ? (p?.default_currency || "EUR") : "RSD";
+    const countryCode = (p?.country_code || (isIno ? "" : "RS")).toUpperCase();
+
     setFormData((prev) => ({
       ...prev,
       partner_id: partnerId,
@@ -192,13 +213,59 @@ export function InvoiceHeaderDialog({
       partner_pib: p?.pib ?? "",
       partner_mb: p?.mb ?? "",
       advance_invoice_id: "", // Reset advance when partner changes
+      // Ino partner — automatska podešavanja za izvoznu fakturu
+      currency,
+      partner_country_code: countryCode || prev.partner_country_code,
+      payment_means_code: isIno ? "42" : prev.payment_means_code,
+      tax_category_code: isIno ? "E" : prev.tax_category_code,
+      tax_exemption_reason: isIno
+        ? (prev.tax_exemption_reason || "Član 24. stav 1. tačka 2) ZPDV — izvoz dobara")
+        : prev.tax_exemption_reason,
+      exchange_rate: currency === "RSD" ? 1 : prev.exchange_rate,
     }));
+    if (currency === "RSD") setExchangeRateText("1");
     fetchAdvancesForPartner(partnerId);
+  };
+
+  const loadNbsRate = async () => {
+    const dateToUse = formData.datum_prometa || formData.invoice_date;
+    if (!dateToUse) {
+      toast.error("Unesite datum prometa ili datum fakture");
+      return;
+    }
+    if (formData.currency === "RSD") return;
+    setLoadingNbsRate(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nbs-exchange-rates", {
+        body: { date: dateToUse },
+      });
+      if (error || !data?.success) {
+        toast.error(data?.error || "Greška pri preuzimanju kursne liste");
+        return;
+      }
+      const rate = (data.rates || []).find((r: any) => r.currencyCode === formData.currency);
+      if (!rate || !rate.middleRate || !rate.unit) {
+        toast.error(`NBS nije vratio srednji kurs za ${formData.currency}`);
+        return;
+      }
+      // Srednji kurs za jedinicu (npr. 100 JPY = ...). Računamo kurs za 1 jedinicu.
+      const ratePerUnit = Number(rate.middleRate) / Number(rate.unit);
+      const rounded = +ratePerUnit.toFixed(6);
+      setExchangeRateText(rounded.toLocaleString("sr-Latn-RS", { minimumFractionDigits: 4, maximumFractionDigits: 6 }));
+      setFormData((prev) => ({ ...prev, exchange_rate: rounded }));
+      toast.success(`Kurs ${formData.currency}: ${rounded.toFixed(4)} (NBS srednji, ${data.listDate || dateToUse})`);
+    } catch (err: any) {
+      toast.error("Greška pri pozivanju NBS servisa");
+    } finally {
+      setLoadingNbsRate(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!invoice || readOnly) return;
+
+    const rate = formData.currency === "RSD" ? 1 : (formData.exchange_rate || 1);
 
     await updateInvoice.mutateAsync({
       id: invoice.id,
@@ -231,6 +298,14 @@ export function InvoiceHeaderDialog({
       datum_prometa: formData.datum_prometa || null,
       bank_account_id: formData.bank_account_id || null,
       advance_invoice_id: formData.advance_invoice_id || null,
+      // Ino izlazne fakture
+      exchange_rate: rate,
+      subtotal_rsd: +((invoice.subtotal || 0) * rate).toFixed(2),
+      vat_amount_rsd: +((invoice.vat_amount || 0) * rate).toFixed(2),
+      total_amount_rsd: +((invoice.total_amount || 0) * rate).toFixed(2),
+      jci_number: formData.jci_number || null,
+      jci_date: formData.jci_date || null,
+      delivery_terms: formData.delivery_terms || null,
     });
     onOpenChange(false);
     onSaved?.();
@@ -568,6 +643,117 @@ export function InvoiceHeaderDialog({
               </div>
             )}
           </div>
+
+          {/* Ino izlazna faktura — vidljivo samo za strane valute */}
+          {isForeignCurrency(formData.currency) && (
+            <div className="space-y-3 p-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-amber-700 dark:text-amber-300" />
+                <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Ino faktura ({formData.currency}) — kurs i izvozna evidencija
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Srednji kurs NBS *</Label>
+                  <div className="flex gap-2">
+                    <LocaleNumberInput
+                      value={exchangeRateText}
+                      onChange={setExchangeRateText}
+                      onBlur={() => {
+                        const parsed = parseLocaleNumber(exchangeRateText) || 1;
+                        setFormData({ ...formData, exchange_rate: parsed });
+                      }}
+                      className="h-9"
+                      allowEmpty
+                      disabled={readOnly}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={loadNbsRate}
+                      disabled={readOnly || loadingNbsRate}
+                      title="Učitaj srednji kurs NBS za datum prometa/fakture"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${loadingNbsRate ? "animate-spin" : ""}`} />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    1 {formData.currency} = {exchangeRateText} RSD
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Broj JCI / MRN</Label>
+                  <Input
+                    value={formData.jci_number || ""}
+                    onChange={(e) => setFormData({ ...formData, jci_number: e.target.value || null })}
+                    className="h-9"
+                    placeholder="npr. 25RS123456789"
+                    disabled={readOnly}
+                    autoComplete="off"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Datum JCI (carinjenja)</Label>
+                  <LocaleDateInput
+                    value={formData.jci_date || ""}
+                    onChange={(v) => setFormData({ ...formData, jci_date: v || null })}
+                    disabled={readOnly}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Isporučni uslovi (Incoterms)</Label>
+                  <Select
+                    value={formData.delivery_terms || "none"}
+                    onValueChange={(v) => setFormData({ ...formData, delivery_terms: v === "none" ? null : v })}
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="-- Nije navedeno --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">-- Nije navedeno --</SelectItem>
+                      <SelectItem value="EXW">EXW - Ex Works</SelectItem>
+                      <SelectItem value="FCA">FCA - Free Carrier</SelectItem>
+                      <SelectItem value="FAS">FAS - Free Alongside Ship</SelectItem>
+                      <SelectItem value="FOB">FOB - Free On Board</SelectItem>
+                      <SelectItem value="CFR">CFR - Cost & Freight</SelectItem>
+                      <SelectItem value="CIF">CIF - Cost Insurance Freight</SelectItem>
+                      <SelectItem value="CPT">CPT - Carriage Paid To</SelectItem>
+                      <SelectItem value="CIP">CIP - Carriage & Insurance Paid To</SelectItem>
+                      <SelectItem value="DAP">DAP - Delivered At Place</SelectItem>
+                      <SelectItem value="DPU">DPU - Delivered At Place Unloaded</SelectItem>
+                      <SelectItem value="DDP">DDP - Delivered Duty Paid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {invoice && (invoice.total_amount || 0) > 0 && (
+                <div className="text-xs text-muted-foreground border-t border-amber-200 dark:border-amber-800 pt-2">
+                  <div className="flex flex-wrap gap-x-6 gap-y-1">
+                    <span>
+                      Ukupno: <strong>{formatPrice(invoice.total_amount)} {formData.currency}</strong>
+                    </span>
+                    <span>
+                      RSD ekvivalent (po kursu {(formData.exchange_rate || 1).toFixed(4)}):{" "}
+                      <strong>{formatPrice((invoice.total_amount || 0) * (formData.exchange_rate || 1))} RSD</strong>
+                    </span>
+                  </div>
+                  <p className="mt-1 italic">
+                    Knjiženje će biti u RSD po unetom srednjem kursu NBS na datum prometa.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+
 
           {/* Advance invoice deduction */}
           {formData.invoice_type_code === "380" && availableAdvances.length > 0 && (

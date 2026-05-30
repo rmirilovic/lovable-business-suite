@@ -46,6 +46,13 @@ export function useInvoiceMutations() {
       if (formData.datum_prometa !== undefined) updatePayload.datum_prometa = formData.datum_prometa;
       if (formData.bank_account_id !== undefined) updatePayload.bank_account_id = formData.bank_account_id;
       if (formData.advance_invoice_id !== undefined) updatePayload.advance_invoice_id = formData.advance_invoice_id;
+      if (formData.exchange_rate !== undefined) updatePayload.exchange_rate = formData.exchange_rate;
+      if (formData.subtotal_rsd !== undefined) updatePayload.subtotal_rsd = formData.subtotal_rsd;
+      if (formData.vat_amount_rsd !== undefined) updatePayload.vat_amount_rsd = formData.vat_amount_rsd;
+      if (formData.total_amount_rsd !== undefined) updatePayload.total_amount_rsd = formData.total_amount_rsd;
+      if (formData.jci_number !== undefined) updatePayload.jci_number = formData.jci_number;
+      if (formData.jci_date !== undefined) updatePayload.jci_date = formData.jci_date;
+      if (formData.delivery_terms !== undefined) updatePayload.delivery_terms = formData.delivery_terms;
 
       const { data, error } = await supabase
         .from("invoices")
@@ -109,15 +116,25 @@ export function useInvoiceMutations() {
   });
 
   const updateInvoiceTotals = useMutation({
-    mutationFn: async ({ invoiceId, subtotal, vat_amount, total_amount }: {
+    mutationFn: async ({ invoiceId, subtotal, vat_amount, total_amount, exchange_rate }: {
       invoiceId: string;
       subtotal: number;
       vat_amount: number;
       total_amount: number;
+      exchange_rate?: number;
     }) => {
+      const rate = exchange_rate && exchange_rate > 0 ? exchange_rate : 1;
+      const payload: Record<string, any> = {
+        subtotal,
+        vat_amount,
+        total_amount,
+        subtotal_rsd: +(subtotal * rate).toFixed(2),
+        vat_amount_rsd: +(vat_amount * rate).toFixed(2),
+        total_amount_rsd: +(total_amount * rate).toFixed(2),
+      };
       const { error } = await supabase
         .from("invoices")
-        .update({ subtotal, vat_amount, total_amount })
+        .update(payload)
         .eq("id", invoiceId);
 
       if (error) throw error;

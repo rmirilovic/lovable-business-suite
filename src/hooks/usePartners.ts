@@ -13,6 +13,8 @@ export interface Partner {
   postal_code: string | null;
   city: string | null;
   country: string | null;
+  country_code: string;
+  default_currency: string;
   email: string | null;
   group_id: string | null;
   pib: string | null;
