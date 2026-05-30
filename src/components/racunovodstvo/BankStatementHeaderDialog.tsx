@@ -44,6 +44,7 @@ export function BankStatementHeaderDialog({
     bank_account_id: "",
     bank_serial_number: "",
     opening_balance: "0,00",
+    exchange_rate: "1,000000",
     description: "",
   });
 
@@ -54,6 +55,7 @@ export function BankStatementHeaderDialog({
         bank_account_id: statement.bank_account_id,
         bank_serial_number: statement.bank_serial_number || "",
         opening_balance: formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        exchange_rate: formatNumber(statement.exchange_rate ?? 1, { minimumFractionDigits: 6, maximumFractionDigits: 6 }),
         description: statement.description || "",
       });
     }
