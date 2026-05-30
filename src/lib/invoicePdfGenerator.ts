@@ -43,17 +43,59 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
-const formatPdfNumber = (value: number | null | undefined): string => {
-  if (value === null || value === undefined || isNaN(value)) return "0,00";
-  return value.toLocaleString("sr-RS", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const formatPdfNumber = (value: number | null | undefined, lang: "sr" | "en" = "sr"): string => {
+  if (value === null || value === undefined || isNaN(value)) return lang === "en" ? "0.00" : "0,00";
+  const locale = lang === "en" ? "en-US" : "sr-RS";
+  return value.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-const TAX_CATEGORY_LABELS: Record<string, string> = {
+const TAX_CATEGORY_LABELS_SR: Record<string, string> = {
   S: "Standardna stopa",
   E: "Oslobođeno PDV-a",
   O: "Van sistema PDV-a",
   AE: "Obrnuti obračun PDV-a",
 };
+
+const TAX_CATEGORY_LABELS_EN: Record<string, string> = {
+  S: "Standard rate",
+  E: "VAT exempt",
+  O: "Outside VAT system",
+  AE: "Reverse charge VAT",
+};
+
+type Lang = "sr" | "en";
+
+const L = (lang: Lang) => ({
+  invoice: lang === "en" ? "INVOICE" : "FAKTURA",
+  invoiceDetails: lang === "en" ? "Invoice details:" : "Detalji fakture:",
+  invoiceDate: lang === "en" ? "Invoice date" : "Datum fakture",
+  dueDate: lang === "en" ? "Due date" : "Datum valute",
+  deliveryDate: lang === "en" ? "Delivery date" : "Datum prometa",
+  deliveryPlace: lang === "en" ? "Place of delivery" : "Mesto prometa",
+  deliveryNote: lang === "en" ? "Delivery note" : "Otpremnica",
+  currency: lang === "en" ? "Currency" : "Valuta",
+  exchangeRate: lang === "en" ? "NBS middle exchange rate" : "Srednji kurs NBS",
+  jci: lang === "en" ? "Customs declaration (JCI)" : "JCI",
+  of: lang === "en" ? "of" : "od",
+  incoterms: lang === "en" ? "Delivery (Incoterms)" : "Isporuka (Incoterms)",
+  customer: lang === "en" ? "Customer:" : "Kupac:",
+  pib: lang === "en" ? "VAT ID" : "PIB",
+  mb: lang === "en" ? "Reg. No." : "MB",
+  bankAccount: lang === "en" ? "Bank account" : "Broj tekućeg računa",
+  tableHead: lang === "en"
+    ? ["#", "Description", "UoM", "Qty", "Price", "Disc.", "VAT%", "Net", "VAT", "Total"]
+    : ["#", "Naziv", "JM", "Kol.", "Cena", "Rab.", "PDV%", "Osnovica", "PDV iznos", "Ukupno"],
+  subtotal: lang === "en" ? "Subtotal:" : "Osnovica:",
+  vat: lang === "en" ? "VAT:" : "PDV:",
+  total: lang === "en" ? "TOTAL:" : "UKUPNO:",
+  advance: lang === "en" ? "Advance" : "Avans",
+  amountToPay: lang === "en" ? "AMOUNT TO PAY:" : "IZNOS ZA UPLATU:",
+  rsdEquiv: lang === "en" ? "RSD equivalent (at rate" : "RSD ekvivalent (po kursu",
+  taxExempt: lang === "en" ? "Tax exemption" : "Poresko oslobođenje",
+  notes: lang === "en" ? "Notes:" : "Napomena:",
+  composedBy: lang === "en" ? "Prepared by:" : "Fakturu sastavio:",
+  authorizedPerson: lang === "en" ? "Authorized person:" : "Ovlašćeno lice:",
+});
 
 async function buildInvoicePdf(
   invoice: Invoice,
@@ -62,8 +104,11 @@ async function buildInvoicePdf(
   partner: PartnerData,
   bankAccountText?: string | null,
   deliveryNoteNumber?: string | null,
-  advanceInfo?: { number: string; amount: number }
+  advanceInfo?: { number: string; amount: number },
+  lang: Lang = "sr"
 ): Promise<jsPDF> {
+  const t = L(lang);
+  const dateFmt = (d: Date | string) => format(new Date(d), lang === "en" ? "dd/MM/yyyy" : "dd.MM.yyyy.", lang === "en" ? undefined : { locale: sr });
   await initializePdfFonts();
 
   const doc = new jsPDF();
@@ -120,7 +165,7 @@ async function buildInvoicePdf(
     yPos += 4;
     doc.setFontSize(9);
     doc.setFont("Roboto", "normal");
-    doc.text(`Broj tekućeg računa: ${bankAccountText}`, pageWidth - 14, yPos, { align: "right" });
+    doc.text(`${t.bankAccount}: ${bankAccountText}`, pageWidth - 14, yPos, { align: "right" });
     yPos += 4;
   }
 
@@ -128,7 +173,7 @@ async function buildInvoicePdf(
   yPos += 10;
   doc.setFontSize(18);
   doc.setFont("Roboto", "bold");
-  doc.text("FAKTURA", pageWidth / 2, yPos, { align: "center" });
+  doc.text(t.invoice, pageWidth / 2, yPos, { align: "center" });
   yPos += 8;
 
   doc.setFontSize(12);
@@ -141,31 +186,31 @@ async function buildInvoicePdf(
   // Left column - Invoice details
   doc.setFontSize(10);
   doc.setFont("Roboto", "bold");
-  doc.text("Detalji fakture:", 14, yPos);
+  doc.text(t.invoiceDetails, 14, yPos);
   yPos += 5;
 
   doc.setFont("Roboto", "normal");
   doc.setFontSize(9);
-  doc.text(`Datum fakture: ${format(new Date(invoice.invoice_date), "dd.MM.yyyy.", { locale: sr })}`, 14, yPos);
+  doc.text(`${t.invoiceDate}: ${dateFmt(invoice.invoice_date)}`, 14, yPos);
   yPos += 4;
 
   if (invoice.due_date) {
-    doc.text(`Datum valute: ${format(new Date(invoice.due_date), "dd.MM.yyyy.", { locale: sr })}`, 14, yPos);
+    doc.text(`${t.dueDate}: ${dateFmt(invoice.due_date)}`, 14, yPos);
     yPos += 4;
   }
 
   if ((invoice as any).datum_prometa) {
-    doc.text(`Datum prometa: ${format(new Date((invoice as any).datum_prometa), "dd.MM.yyyy.", { locale: sr })}`, 14, yPos);
+    doc.text(`${t.deliveryDate}: ${dateFmt((invoice as any).datum_prometa)}`, 14, yPos);
     yPos += 4;
   }
 
   if ((invoice as any).mesto_prometa) {
-    doc.text(`Mesto prometa: ${(invoice as any).mesto_prometa}`, 14, yPos);
+    doc.text(`${t.deliveryPlace}: ${(invoice as any).mesto_prometa}`, 14, yPos);
     yPos += 4;
   }
 
   if (deliveryNoteNumber) {
-    doc.text(`Otpremnica: ${deliveryNoteNumber}`, 14, yPos);
+    doc.text(`${t.deliveryNote}: ${deliveryNoteNumber}`, 14, yPos);
     yPos += 4;
   }
 
@@ -173,22 +218,22 @@ async function buildInvoicePdf(
   const isForeign = invoice.currency && invoice.currency !== "RSD";
   if (isForeign) {
     doc.setFont("Roboto", "bold");
-    doc.text(`Valuta: ${invoice.currency}`, 14, yPos);
+    doc.text(`${t.currency}: ${invoice.currency}`, 14, yPos);
     doc.setFont("Roboto", "normal");
     yPos += 4;
     if (invoice.exchange_rate && invoice.exchange_rate !== 1) {
-      doc.text(`Srednji kurs NBS: 1 ${invoice.currency} = ${formatPdfNumber(invoice.exchange_rate)} RSD`, 14, yPos);
+      doc.text(`${t.exchangeRate}: 1 ${invoice.currency} = ${formatPdfNumber(invoice.exchange_rate, lang)} RSD`, 14, yPos);
       yPos += 4;
     }
     if ((invoice as any).jci_number) {
       const jciDate = (invoice as any).jci_date
-        ? ` od ${format(new Date((invoice as any).jci_date), "dd.MM.yyyy.", { locale: sr })}`
+        ? ` ${t.of} ${dateFmt((invoice as any).jci_date)}`
         : "";
-      doc.text(`JCI: ${(invoice as any).jci_number}${jciDate}`, 14, yPos);
+      doc.text(`${t.jci}: ${(invoice as any).jci_number}${jciDate}`, 14, yPos);
       yPos += 4;
     }
     if ((invoice as any).delivery_terms) {
-      doc.text(`Isporuka (Incoterms): ${(invoice as any).delivery_terms}`, 14, yPos);
+      doc.text(`${t.incoterms}: ${(invoice as any).delivery_terms}`, 14, yPos);
       yPos += 4;
     }
   }
@@ -203,7 +248,7 @@ async function buildInvoicePdf(
 
   doc.setFontSize(10);
   doc.setFont("Roboto", "bold");
-  doc.text("Kupac:", rightColX, rightYPos);
+  doc.text(t.customer, rightColX, rightYPos);
   rightYPos += 5;
 
   doc.setFont("Roboto", "normal");
@@ -232,13 +277,13 @@ async function buildInvoicePdf(
 
   const displayPib = invoice.partner_pib || partner.pib;
   if (displayPib) {
-    doc.text(`PIB: ${displayPib}`, rightColX, rightYPos);
+    doc.text(`${t.pib}: ${displayPib}`, rightColX, rightYPos);
     rightYPos += 4;
   }
 
   const displayMb = invoice.partner_mb || partner.mb;
   if (displayMb) {
-    doc.text(`MB: ${displayMb}`, rightColX, rightYPos);
+    doc.text(`${t.mb}: ${displayMb}`, rightColX, rightYPos);
     rightYPos += 4;
   }
 
@@ -268,7 +313,7 @@ async function buildInvoicePdf(
 
   autoTable(doc, {
     startY: yPos,
-    head: [["#", "Naziv", "JM", "Kol.", "Cena", "Rab.", "PDV%", "Osnovica", "PDV iznos", "Ukupno"]],
+    head: [t.tableHead],
     body: tableData,
     theme: "grid",
     styles: { font: "Roboto" },
@@ -310,31 +355,31 @@ async function buildInvoicePdf(
   doc.setFontSize(10);
   doc.setFont("Roboto", "normal");
 
-  doc.text("Osnovica:", labelsX, totalsY);
-  doc.text(formatPdfNumber(subtotalForPdf), totalsX, totalsY, { align: "right" });
+  doc.text(t.subtotal, labelsX, totalsY);
+  doc.text(formatPdfNumber(subtotalForPdf, lang), totalsX, totalsY, { align: "right" });
   totalsY += 5;
 
-  doc.text("PDV:", labelsX, totalsY);
-  doc.text(formatPdfNumber(vatForPdf), totalsX, totalsY, { align: "right" });
+  doc.text(t.vat, labelsX, totalsY);
+  doc.text(formatPdfNumber(vatForPdf, lang), totalsX, totalsY, { align: "right" });
   totalsY += 6;
 
   doc.setFont("Roboto", "bold");
   doc.setFontSize(11);
-  doc.text("UKUPNO:", labelsX, totalsY);
-  doc.text(formatPdfNumber(totalForPdf), totalsX, totalsY, { align: "right" });
+  doc.text(t.total, labelsX, totalsY);
+  doc.text(formatPdfNumber(totalForPdf, lang), totalsX, totalsY, { align: "right" });
 
   // Advance invoice deduction + Amount to pay
   if (advanceInfo && advanceInfo.amount > 0) {
     totalsY += 7;
     doc.setFont("Roboto", "normal");
     doc.setFontSize(10);
-    doc.text(`Avans (AF ${advanceInfo.number}):`, labelsX, totalsY);
-    doc.text(`- ${formatPdfNumber(advanceInfo.amount)}`, totalsX, totalsY, { align: "right" });
+    doc.text(`${t.advance} (${lang === "en" ? "AI" : "AF"} ${advanceInfo.number}):`, labelsX, totalsY);
+    doc.text(`- ${formatPdfNumber(advanceInfo.amount, lang)}`, totalsX, totalsY, { align: "right" });
     totalsY += 6;
     doc.setFont("Roboto", "bold");
     doc.setFontSize(12);
-    doc.text("IZNOS ZA UPLATU:", labelsX, totalsY);
-    doc.text(formatPdfNumber((totalForPdf || 0) - advanceInfo.amount), totalsX, totalsY, { align: "right" });
+    doc.text(t.amountToPay, labelsX, totalsY);
+    doc.text(formatPdfNumber((totalForPdf || 0) - advanceInfo.amount, lang), totalsX, totalsY, { align: "right" });
   }
 
   // RSD ekvivalent za ino fakture
@@ -343,8 +388,8 @@ async function buildInvoicePdf(
     doc.setFont("Roboto", "normal");
     doc.setFontSize(9);
     const rsdTotal = (totalForPdf || 0) * invoice.exchange_rate;
-    doc.text(`RSD ekvivalent (po kursu ${formatPdfNumber(invoice.exchange_rate)}):`, labelsX, totalsY);
-    doc.text(`${formatPdfNumber(rsdTotal)} RSD`, totalsX, totalsY, { align: "right" });
+    doc.text(`${t.rsdEquiv} ${formatPdfNumber(invoice.exchange_rate, lang)}):`, labelsX, totalsY);
+    doc.text(`${formatPdfNumber(rsdTotal, lang)} RSD`, totalsX, totalsY, { align: "right" });
   }
 
   // Tax exemption note
@@ -353,8 +398,9 @@ async function buildInvoicePdf(
     totalsY += 10;
     doc.setFontSize(9);
     doc.setFont("Roboto", "bold");
-    const label = TAX_CATEGORY_LABELS[taxCat] || taxCat;
-    let exemptionText = `Poresko oslobođenje: ${label}`;
+    const labels = lang === "en" ? TAX_CATEGORY_LABELS_EN : TAX_CATEGORY_LABELS_SR;
+    const label = labels[taxCat] || taxCat;
+    let exemptionText = `${t.taxExempt}: ${label}`;
     if (invoice.tax_exemption_reason) {
       exemptionText += ` — ${invoice.tax_exemption_reason}`;
     }
@@ -367,7 +413,7 @@ async function buildInvoicePdf(
     totalsY += 5;
     doc.setFontSize(9);
     doc.setFont("Roboto", "bold");
-    doc.text("Napomena:", 14, totalsY);
+    doc.text(t.notes, 14, totalsY);
     totalsY += 4;
     doc.setFont("Roboto", "normal");
     doc.setFontSize(8);
@@ -412,14 +458,14 @@ async function buildInvoicePdf(
   const sigLeftX = 14;
   const sigRightX = pageWidth - 60;
 
-  doc.text("Fakturu sastavio:", sigLeftX, totalsY);
+  doc.text(t.composedBy, sigLeftX, totalsY);
   doc.setFont("Roboto", "bold");
   doc.text(invoice.composed_by || "________________", sigLeftX, totalsY + 8);
   doc.setDrawColor(0, 0, 0);
   doc.line(sigLeftX, totalsY + 12, sigLeftX + 60, totalsY + 12);
 
   doc.setFont("Roboto", "normal");
-  doc.text("Ovlašćeno lice:", sigRightX, totalsY);
+  doc.text(t.authorizedPerson, sigRightX, totalsY);
   doc.setFont("Roboto", "bold");
   doc.text(company.responsible_person_name || "________________", sigRightX, totalsY + 8);
   doc.line(sigRightX - 10, totalsY + 12, sigRightX + 50, totalsY + 12);
@@ -434,10 +480,12 @@ export async function generateInvoicePdf(
   partner: PartnerData,
   bankAccountText?: string | null,
   deliveryNoteNumber?: string | null,
-  advanceInfo?: { number: string; amount: number }
+  advanceInfo?: { number: string; amount: number },
+  lang: Lang = "sr"
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo);
-  doc.save(`Faktura_${invoice.invoice_number.replace(/\//g, "-")}.pdf`);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo, lang);
+  const prefix = lang === "en" ? "Invoice" : "Faktura";
+  doc.save(`${prefix}_${invoice.invoice_number.replace(/\//g, "-")}.pdf`);
 }
 
 export async function printInvoicePdf(
@@ -447,9 +495,10 @@ export async function printInvoicePdf(
   partner: PartnerData,
   bankAccountText?: string | null,
   deliveryNoteNumber?: string | null,
-  advanceInfo?: { number: string; amount: number }
+  advanceInfo?: { number: string; amount: number },
+  lang: Lang = "sr"
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo, lang);
   const blob = doc.output("blob");
   printPdfBlob(blob);
 }
