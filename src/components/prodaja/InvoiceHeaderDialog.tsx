@@ -406,7 +406,7 @@ export function InvoiceHeaderDialog({
     // Ako je novopovezana otpremnica — kopiraj stavke (ako faktura nema stavke) i poveži otpremnicu
     const prevDnId = invoice.source_delivery_note_id || null;
     const newDnId = formData.source_delivery_note_id || null;
-    if (newDnId && newDnId !== prevDnId) {
+    if (newDnId) {
       try {
         // Provera da li faktura već ima stavke
         const { count: existingItemsCount } = await supabase
@@ -429,7 +429,7 @@ export function InvoiceHeaderDialog({
             for (const item of dnItems as DeliveryNoteItemRow[]) {
               const key = item.item_code || item.article?.code || item.article_id || item.item_name;
               const unitPrice = item.unit_price ?? item.article?.selling_price ?? 0;
-              const vatRate = item.vat_rate ?? item.article?.vat_rate ?? 20;
+              const vatRate = item.article?.vat_rate ?? 20;
 
               if (!grouped.has(key)) {
                 grouped.set(key, {
@@ -485,11 +485,13 @@ export function InvoiceHeaderDialog({
           }
         }
 
-        // Poveži otpremnicu sa fakturom (reverzna veza)
-        await supabase.from("delivery_notes").update({ invoice_id: invoice.id }).eq("id", newDnId);
-        // Odveži staru otpremnicu ako je postojala
-        if (prevDnId) {
-          await supabase.from("delivery_notes").update({ invoice_id: null }).eq("id", prevDnId);
+        if (newDnId !== prevDnId) {
+          // Poveži otpremnicu sa fakturom (reverzna veza)
+          await supabase.from("delivery_notes").update({ invoice_id: invoice.id }).eq("id", newDnId);
+          // Odveži staru otpremnicu ako je postojala
+          if (prevDnId) {
+            await supabase.from("delivery_notes").update({ invoice_id: null }).eq("id", prevDnId);
+          }
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Nepoznata greška";
