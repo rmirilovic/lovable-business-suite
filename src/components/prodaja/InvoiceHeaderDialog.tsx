@@ -644,6 +644,117 @@ export function InvoiceHeaderDialog({
             )}
           </div>
 
+          {/* Ino izlazna faktura — vidljivo samo za strane valute */}
+          {isForeignCurrency(formData.currency) && (
+            <div className="space-y-3 p-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-amber-700 dark:text-amber-300" />
+                <h3 className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Ino faktura ({formData.currency}) — kurs i izvozna evidencija
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Srednji kurs NBS *</Label>
+                  <div className="flex gap-2">
+                    <LocaleNumberInput
+                      value={exchangeRateText}
+                      onChange={setExchangeRateText}
+                      onBlur={() => {
+                        const parsed = parseLocaleNumber(exchangeRateText) || 1;
+                        setFormData({ ...formData, exchange_rate: parsed });
+                      }}
+                      className="h-9"
+                      allowEmpty
+                      disabled={readOnly}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={loadNbsRate}
+                      disabled={readOnly || loadingNbsRate}
+                      title="Učitaj srednji kurs NBS za datum prometa/fakture"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${loadingNbsRate ? "animate-spin" : ""}`} />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    1 {formData.currency} = {exchangeRateText} RSD
+                  </p>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Broj JCI / MRN</Label>
+                  <Input
+                    value={formData.jci_number || ""}
+                    onChange={(e) => setFormData({ ...formData, jci_number: e.target.value || null })}
+                    className="h-9"
+                    placeholder="npr. 25RS123456789"
+                    disabled={readOnly}
+                    autoComplete="off"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Datum JCI (carinjenja)</Label>
+                  <LocaleDateInput
+                    value={formData.jci_date || ""}
+                    onChange={(v) => setFormData({ ...formData, jci_date: v || null })}
+                    disabled={readOnly}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Isporučni uslovi (Incoterms)</Label>
+                  <Select
+                    value={formData.delivery_terms || "none"}
+                    onValueChange={(v) => setFormData({ ...formData, delivery_terms: v === "none" ? null : v })}
+                    disabled={readOnly}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="-- Nije navedeno --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">-- Nije navedeno --</SelectItem>
+                      <SelectItem value="EXW">EXW - Ex Works</SelectItem>
+                      <SelectItem value="FCA">FCA - Free Carrier</SelectItem>
+                      <SelectItem value="FAS">FAS - Free Alongside Ship</SelectItem>
+                      <SelectItem value="FOB">FOB - Free On Board</SelectItem>
+                      <SelectItem value="CFR">CFR - Cost & Freight</SelectItem>
+                      <SelectItem value="CIF">CIF - Cost Insurance Freight</SelectItem>
+                      <SelectItem value="CPT">CPT - Carriage Paid To</SelectItem>
+                      <SelectItem value="CIP">CIP - Carriage & Insurance Paid To</SelectItem>
+                      <SelectItem value="DAP">DAP - Delivered At Place</SelectItem>
+                      <SelectItem value="DPU">DPU - Delivered At Place Unloaded</SelectItem>
+                      <SelectItem value="DDP">DDP - Delivered Duty Paid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {invoice && (invoice.total_amount || 0) > 0 && (
+                <div className="text-xs text-muted-foreground border-t border-amber-200 dark:border-amber-800 pt-2">
+                  <div className="flex flex-wrap gap-x-6 gap-y-1">
+                    <span>
+                      Ukupno: <strong>{formatPrice(invoice.total_amount)} {formData.currency}</strong>
+                    </span>
+                    <span>
+                      RSD ekvivalent (po kursu {(formData.exchange_rate || 1).toFixed(4)}):{" "}
+                      <strong>{formatPrice((invoice.total_amount || 0) * (formData.exchange_rate || 1))} RSD</strong>
+                    </span>
+                  </div>
+                  <p className="mt-1 italic">
+                    Knjiženje će biti u RSD po unetom srednjem kursu NBS na datum prometa.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+
+
           {/* Advance invoice deduction */}
           {formData.invoice_type_code === "380" && availableAdvances.length > 0 && (
             <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
