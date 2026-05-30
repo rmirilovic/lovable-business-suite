@@ -161,6 +161,7 @@ export default function DeviznaKartica() {
 
   const handleExportXlsx = () => {
     if (rows.length === 0) { toast.error("Nema stavki za izvoz"); return; }
+    if (exportCols.length === 0) { toast.error("Izaberite bar jednu kolonu za izvoz"); return; }
     const data = buildExportRows();
     const ws = XLSX.utils.json_to_sheet(data);
     // Sažetak na dnu
