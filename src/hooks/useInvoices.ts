@@ -50,6 +50,14 @@ export interface Invoice {
   datum_prometa: string | null;
   bank_account_id: string | null;
   advance_invoice_id: string | null;
+  // Foreign currency / export
+  exchange_rate: number;
+  subtotal_rsd: number;
+  vat_amount_rsd: number;
+  total_amount_rsd: number;
+  jci_number: string | null;
+  jci_date: string | null;
+  delivery_terms: string | null;
   partner?: {
     id: string;
     name: string;
