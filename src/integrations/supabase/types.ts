@@ -1053,6 +1053,8 @@ export type Database = {
           code: string
           company_id: string
           created_at: string
+          currency: string
+          gl_account_code: string
           id: string
           is_active: boolean
           is_default: boolean
@@ -1064,6 +1066,8 @@ export type Database = {
           code: string
           company_id: string
           created_at?: string
+          currency?: string
+          gl_account_code?: string
           id?: string
           is_active?: boolean
           is_default?: boolean
@@ -1075,6 +1079,8 @@ export type Database = {
           code?: string
           company_id?: string
           created_at?: string
+          currency?: string
+          gl_account_code?: string
           id?: string
           is_active?: boolean
           is_default?: boolean
@@ -1093,6 +1099,8 @@ export type Database = {
       bank_statement_items: {
         Row: {
           bank_statement_id: string
+          closed_document_id: string | null
+          closed_document_type: string | null
           company_id: string
           cost_center_code: string | null
           created_at: string
@@ -1102,6 +1110,8 @@ export type Database = {
           document_reference: string | null
           id: string
           item_order: number
+          original_credit_amount: number
+          original_debit_amount: number
           partner_account_number: string | null
           partner_id: string | null
           payment_code_id: string | null
@@ -1109,6 +1119,8 @@ export type Database = {
         }
         Insert: {
           bank_statement_id: string
+          closed_document_id?: string | null
+          closed_document_type?: string | null
           company_id: string
           cost_center_code?: string | null
           created_at?: string
@@ -1118,6 +1130,8 @@ export type Database = {
           document_reference?: string | null
           id?: string
           item_order?: number
+          original_credit_amount?: number
+          original_debit_amount?: number
           partner_account_number?: string | null
           partner_id?: string | null
           payment_code_id?: string | null
@@ -1125,6 +1139,8 @@ export type Database = {
         }
         Update: {
           bank_statement_id?: string
+          closed_document_id?: string | null
+          closed_document_type?: string | null
           company_id?: string
           cost_center_code?: string | null
           created_at?: string
@@ -1134,6 +1150,8 @@ export type Database = {
           document_reference?: string | null
           id?: string
           item_order?: number
+          original_credit_amount?: number
+          original_debit_amount?: number
           partner_account_number?: string | null
           partner_id?: string | null
           payment_code_id?: string | null
@@ -1180,6 +1198,7 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          exchange_rate: number
           id: string
           journal_entry_id: string | null
           opening_balance: number
@@ -1201,6 +1220,7 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          exchange_rate?: number
           id?: string
           journal_entry_id?: string | null
           opening_balance?: number
@@ -1222,6 +1242,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          exchange_rate?: number
           id?: string
           journal_entry_id?: string | null
           opening_balance?: number
