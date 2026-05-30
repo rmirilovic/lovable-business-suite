@@ -13,7 +13,9 @@ import { BankStatement, useBankStatementMutations, useBankStatements } from "@/h
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
-import { AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { AlertCircle, Download } from "lucide-react";
 
 interface BankStatementHeaderDialogProps {
   open: boolean;
