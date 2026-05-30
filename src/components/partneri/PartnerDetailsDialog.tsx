@@ -95,6 +95,8 @@ export function PartnerDetailsDialog({
         postal_code: partner.postal_code || "",
         city: partner.city || "",
         country: partner.country || "Srbija",
+        country_code: partner.country_code || "RS",
+        default_currency: partner.default_currency || "RSD",
         email: partner.email || "",
         group_id: partner.group_id,
         pib: partner.pib || "",
@@ -118,14 +120,19 @@ export function PartnerDetailsDialog({
     }
   }, [mode, partner, open]);
 
-  // Auto-set country based on legal status
+  // Auto-set country/country_code/currency based on legal status
   useEffect(() => {
     if ([1, 2, 3].includes(formData.legal_status)) {
-      // Serbian legal statuses - set country to Serbia
-      setFormData((prev) => ({ ...prev, country: "Srbija" }));
+      // Serbian legal statuses
+      setFormData((prev) => ({ ...prev, country: "Srbija", country_code: "RS", default_currency: "RSD" }));
     } else if (formData.legal_status === 4) {
-      // Ino partner - clear country (not from Serbia)
-      setFormData((prev) => ({ ...prev, country: "" }));
+      // Ino partner - clear country and default to EUR
+      setFormData((prev) => ({
+        ...prev,
+        country: prev.country && prev.country !== "Srbija" ? prev.country : "",
+        country_code: prev.country_code && prev.country_code !== "RS" ? prev.country_code : "",
+        default_currency: prev.default_currency && prev.default_currency !== "RSD" ? prev.default_currency : "EUR",
+      }));
     }
   }, [formData.legal_status]);
 
