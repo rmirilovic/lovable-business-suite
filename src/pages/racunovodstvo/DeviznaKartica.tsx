@@ -33,13 +33,36 @@ export default function DeviznaKartica() {
   const [currency, setCurrency] = useState<string>("EUR");
   const [dateFrom, setDateFrom] = useState<string>(yearStart);
   const [dateTo, setDateTo] = useState<string>(today);
+  const [rateMin, setRateMin] = useState<string>("");
+  const [rateMax, setRateMax] = useState<string>("");
+  const [onlyFx, setOnlyFx] = useState<boolean>(false);
 
-  const { data: rows = [], isLoading } = useDevizniaKartica(partnerId || null, currency, dateFrom, dateTo);
+  const { data: allRows = [], isLoading } = useDevizniaKartica(partnerId || null, currency, dateFrom, dateTo);
+
+  const rows = useMemo(() => {
+    const min = rateMin ? Number(rateMin.replace(",", ".")) : null;
+    const max = rateMax ? Number(rateMax.replace(",", ".")) : null;
+    return allRows.filter((r) => {
+      if (onlyFx && r.doc_type !== "fx_gain" && r.doc_type !== "fx_loss") return false;
+      // Kurs filter primeniti samo na redove sa kursom (faktura/uplata)
+      if ((min !== null || max !== null) && r.exchange_rate > 0) {
+        if (min !== null && r.exchange_rate < min) return false;
+        if (max !== null && r.exchange_rate > max) return false;
+      }
+      return true;
+    });
+  }, [allRows, onlyFx, rateMin, rateMax]);
 
   const totals = useMemo(() => {
     let dOrig = 0, cOrig = 0, dRsd = 0, cRsd = 0;
-    rows.forEach((r) => { dOrig += r.debit_original; cOrig += r.credit_original; dRsd += r.debit_rsd; cRsd += r.credit_rsd; });
-    return { dOrig, cOrig, dRsd, cRsd, saldoOrig: dOrig - cOrig, saldoRsd: dRsd - cRsd };
+    let fxGain = 0, fxLoss = 0;
+    rows.forEach((r) => {
+      dOrig += r.debit_original; cOrig += r.credit_original;
+      dRsd += r.debit_rsd; cRsd += r.credit_rsd;
+      if (r.doc_type === "fx_gain") fxGain += r.debit_rsd;
+      if (r.doc_type === "fx_loss") fxLoss += r.credit_rsd;
+    });
+    return { dOrig, cOrig, dRsd, cRsd, saldoOrig: dOrig - cOrig, saldoRsd: dRsd - cRsd, fxGain, fxLoss, fxNet: fxGain - fxLoss };
   }, [rows]);
 
   const partner = partners.find((p) => p.id === partnerId);
