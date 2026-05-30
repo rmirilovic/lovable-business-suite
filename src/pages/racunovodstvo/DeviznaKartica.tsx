@@ -294,10 +294,47 @@ export default function DeviznaKartica() {
                 {partner?.name} — {currency}
               </CardTitle>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleExportCsv} disabled={rows.length === 0}>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Columns3 className="h-4 w-4 mr-2" />
+                      Kolone ({exportCols.length}/{EXPORT_COLS.length})
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-3" align="end">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Kolone za izvoz</span>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          className="text-xs text-primary hover:underline"
+                          onClick={() => { setExportCols(DEFAULT_EXPORT_COLS); try { localStorage.setItem("devizna-kartica-export-cols", JSON.stringify(DEFAULT_EXPORT_COLS)); } catch {} }}
+                        >Sve</button>
+                        <span className="text-xs text-muted-foreground">/</span>
+                        <button
+                          type="button"
+                          className="text-xs text-primary hover:underline"
+                          onClick={() => { setExportCols([]); try { localStorage.setItem("devizna-kartica-export-cols", JSON.stringify([])); } catch {} }}
+                        >Nijedna</button>
+                      </div>
+                    </div>
+                    <div className="space-y-2 max-h-72 overflow-auto">
+                      {EXPORT_COLS.map((c) => (
+                        <label key={c.key} className="flex items-center gap-2 cursor-pointer text-sm">
+                          <Checkbox
+                            checked={exportCols.includes(c.key)}
+                            onCheckedChange={(v) => toggleExportCol(c.key, !!v)}
+                          />
+                          <span>{c.label(currency)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button variant="outline" size="sm" onClick={handleExportCsv} disabled={rows.length === 0 || exportCols.length === 0}>
                   <FileDown className="h-4 w-4 mr-2" /> CSV
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleExportXlsx} disabled={rows.length === 0}>
+                <Button variant="outline" size="sm" onClick={handleExportXlsx} disabled={rows.length === 0 || exportCols.length === 0}>
                   <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
                 </Button>
               </div>
