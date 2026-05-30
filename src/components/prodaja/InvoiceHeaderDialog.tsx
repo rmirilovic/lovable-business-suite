@@ -107,6 +107,13 @@ export function InvoiceHeaderDialog({
   }
   const [availableAdvances, setAvailableAdvances] = useState<AvailableAdvance[]>([]);
 
+  interface AvailableDeliveryNote {
+    id: string;
+    delivery_number: string;
+    delivery_date: string;
+  }
+  const [availableDeliveryNotes, setAvailableDeliveryNotes] = useState<AvailableDeliveryNote[]>([]);
+
   useEffect(() => {
     if (!invoice || !open) return;
     
