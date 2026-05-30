@@ -141,8 +141,9 @@ export default function DeviznaKartica() {
 
   const handleExportCsv = () => {
     if (rows.length === 0) { toast.error("Nema stavki za izvoz"); return; }
+    if (exportCols.length === 0) { toast.error("Izaberite bar jednu kolonu za izvoz"); return; }
     const data = buildExportRows();
-    const headers = Object.keys(data[0]);
+    const headers = Object.keys(data[0] ?? {});
     const esc = (v: any) => {
       if (v === null || v === undefined) return "";
       const s = String(v).replace(/"/g, '""');
