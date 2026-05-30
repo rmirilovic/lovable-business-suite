@@ -215,31 +215,11 @@ export default function DeviznaKartica() {
                 <LocaleDateInput value={dateTo} onChange={setDateTo} />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <Label>Kurs od</Label>
-                <Input
-                  inputMode="decimal"
-                  placeholder="npr. 117,00"
-                  value={rateMin}
-                  onChange={(e) => setRateMin(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label>Kurs do</Label>
-                <Input
-                  inputMode="decimal"
-                  placeholder="npr. 118,50"
-                  value={rateMax}
-                  onChange={(e) => setRateMax(e.target.value)}
-                />
-              </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox checked={onlyFx} onCheckedChange={(v) => setOnlyFx(!!v)} />
-                  <span className="text-sm">Prikaži samo kursne razlike</span>
-                </label>
-              </div>
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={onlyFx} onCheckedChange={(v) => setOnlyFx(!!v)} />
+                <span className="text-sm">Prikaži samo kursne razlike</span>
+              </label>
             </div>
           </CardContent>
         </Card>
