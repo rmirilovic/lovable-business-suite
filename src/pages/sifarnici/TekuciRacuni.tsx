@@ -374,6 +374,22 @@ export default function TekuciRacuni() {
                 <Input id="bank_name" value={form.bank_name} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} className="col-span-3" maxLength={63} placeholder="npr. Banca Intesa" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="currency" className="text-right">Valuta</Label>
+                <Select
+                  value={form.currency}
+                  onValueChange={(val) => setForm({ ...form, currency: val, gl_account_code: val === "RSD" ? "2410" : "242" })}
+                >
+                  <SelectTrigger className="col-span-3"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CURRENCY_OPTIONS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="gl_account_code" className="text-right">Konto GK</Label>
+                <Input id="gl_account_code" value={form.gl_account_code} onChange={(e) => setForm({ ...form, gl_account_code: e.target.value })} className="col-span-3" maxLength={10} placeholder="2410 ili 242" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Podrazumevani</Label>
                 <div className="col-span-3 flex items-center gap-2">
                   <Switch checked={form.is_default} onCheckedChange={(checked) => setForm({ ...form, is_default: checked })} />
