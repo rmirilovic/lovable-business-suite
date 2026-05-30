@@ -328,7 +328,7 @@ export default function JournalEntryEdit() {
                     <TableCell className="font-mono">{item.account_code}</TableCell>
                     <TableCell className="text-sm whitespace-normal break-words leading-tight">{item.account_name || "-"}</TableCell>
                     <TableCell className="font-mono text-xs">{item.cost_center_code || item.partner_code || "-"}</TableCell>
-                    <TableCell>{item.description || "-"}</TableCell>
+                    <TableCell className="whitespace-normal break-words leading-tight">{item.description || "-"}</TableCell>
                     <TableCell className="text-xs">
                       <div className="leading-tight">
                         {item.item_document_number || entry.document_number || "-"}
