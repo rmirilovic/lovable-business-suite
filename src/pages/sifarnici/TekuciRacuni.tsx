@@ -33,10 +33,14 @@ interface FormData {
   code: string;
   account_number: string;
   bank_name: string;
+  currency: string;
+  gl_account_code: string;
   is_default: boolean;
 }
 
-const emptyForm: FormData = { code: "", account_number: "", bank_name: "", is_default: false };
+const emptyForm: FormData = { code: "", account_number: "", bank_name: "", currency: "RSD", gl_account_code: "2410", is_default: false };
+
+const CURRENCY_OPTIONS = ["RSD", "EUR", "USD", "CHF", "GBP"];
 
 export default function TekuciRacuni() {
   const { selectedCompany } = useAuth();
@@ -106,6 +110,8 @@ export default function TekuciRacuni() {
         case "code": return item.code;
         case "account_number": return item.account_number;
         case "bank_name": return item.bank_name;
+        case "currency": return item.currency;
+        case "gl_account_code": return item.gl_account_code;
         case "is_active": return item.is_active;
         case "is_default": return item.is_default;
         default: return null;
@@ -136,6 +142,8 @@ export default function TekuciRacuni() {
       code: form.code.trim(),
       account_number: form.account_number.trim(),
       bank_name: form.bank_name.trim(),
+      currency: form.currency,
+      gl_account_code: form.gl_account_code.trim() || (form.currency === "RSD" ? "2410" : "242"),
       is_active: true,
       is_default: form.is_default,
     };
@@ -209,6 +217,12 @@ export default function TekuciRacuni() {
                   <TableHead>
                     <SortableHeader column="bank_name" label="Naziv banke" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} />
                   </TableHead>
+                  <TableHead className="w-[90px] text-center">
+                    <SortableHeader column="currency" label="Valuta" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
+                  <TableHead className="w-[110px] text-center">
+                    <SortableHeader column="gl_account_code" label="Konto GK" sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
+                  </TableHead>
                   <TableHead className="w-[100px] text-center">
                     <SortableHeader column="is_default" label="Podraz." sortColumn={sortColumn} sortDirection={sortDirection} onSort={handleSort} className="justify-center" />
                   </TableHead>
@@ -227,12 +241,14 @@ export default function TekuciRacuni() {
                       <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-12 mx-auto" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                       {searchTerm || statusFilter !== "active" ? "Nema rezultata pretrage" : "Nema tekućih računa. Kliknite 'Novi tekući račun' da dodate."}
                     </TableCell>
                   </TableRow>
@@ -265,6 +281,34 @@ export default function TekuciRacuni() {
                           onSave={async (val) => {
                             if (val.length > 63) { toast.error("Maksimalno 63 karaktera"); return; }
                             await updateBankAccount({ id: ba.id, updates: { bank_name: val } });
+                          }}
+                          disabled={!canEdit}
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {canEdit ? (
+                          <Select
+                            value={ba.currency}
+                            onValueChange={async (val) => {
+                              const defGl = val === "RSD" ? "2410" : "242";
+                              await updateBankAccount({ id: ba.id, updates: { currency: val, gl_account_code: ba.gl_account_code || defGl } });
+                            }}
+                          >
+                            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {CURRENCY_OPTIONS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge variant="secondary">{ba.currency}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <InlineEditCell
+                          value={ba.gl_account_code}
+                          onSave={async (val) => {
+                            if (val.length > 10) { toast.error("Maksimalno 10 karaktera"); return; }
+                            await updateBankAccount({ id: ba.id, updates: { gl_account_code: val } });
                           }}
                           disabled={!canEdit}
                         />
@@ -328,6 +372,22 @@ export default function TekuciRacuni() {
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="bank_name" className="text-right">Banka</Label>
                 <Input id="bank_name" value={form.bank_name} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} className="col-span-3" maxLength={63} placeholder="npr. Banca Intesa" />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="currency" className="text-right">Valuta</Label>
+                <Select
+                  value={form.currency}
+                  onValueChange={(val) => setForm({ ...form, currency: val, gl_account_code: val === "RSD" ? "2410" : "242" })}
+                >
+                  <SelectTrigger className="col-span-3"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CURRENCY_OPTIONS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="gl_account_code" className="text-right">Konto GK</Label>
+                <Input id="gl_account_code" value={form.gl_account_code} onChange={(e) => setForm({ ...form, gl_account_code: e.target.value })} className="col-span-3" maxLength={10} placeholder="2410 ili 242" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Podrazumevani</Label>

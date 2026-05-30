@@ -238,6 +238,10 @@ export default function BankStatementEdit() {
       document_reference: newItem.document_reference || null,
       debit_amount: debit,
       credit_amount: credit,
+      original_debit_amount: debit,
+      original_credit_amount: credit,
+      closed_document_type: null,
+      closed_document_id: null,
       cost_center_code: newItem.cost_center_code || null,
       partner_account_number: newItem.partner_account_number || null,
     });

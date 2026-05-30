@@ -8,6 +8,8 @@ export interface BankAccount {
   code: string;
   account_number: string;
   bank_name: string;
+  currency: string;
+  gl_account_code: string;
   is_active: boolean;
   is_default: boolean;
   created_at: string;

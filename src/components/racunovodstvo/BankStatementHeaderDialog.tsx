@@ -13,7 +13,9 @@ import { BankStatement, useBankStatementMutations, useBankStatements } from "@/h
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
-import { AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { AlertCircle, Download } from "lucide-react";
 
 interface BankStatementHeaderDialogProps {
   open: boolean;
@@ -42,6 +44,7 @@ export function BankStatementHeaderDialog({
     bank_account_id: "",
     bank_serial_number: "",
     opening_balance: "0,00",
+    exchange_rate: "1,000000",
     description: "",
   });
 
@@ -52,6 +55,7 @@ export function BankStatementHeaderDialog({
         bank_account_id: statement.bank_account_id,
         bank_serial_number: statement.bank_serial_number || "",
         opening_balance: formatNumber(statement.opening_balance, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        exchange_rate: formatNumber(statement.exchange_rate ?? 1, { minimumFractionDigits: 6, maximumFractionDigits: 6 }),
         description: statement.description || "",
       });
     }
@@ -89,12 +93,14 @@ export function BankStatementHeaderDialog({
   const handleSave = async () => {
     if (!statement || duplicateError) return;
     const openingBalance = parseLocaleNumber(formData.opening_balance);
+    const fx = parseLocaleNumber(formData.exchange_rate) || 1;
     await update.mutateAsync({
       id: statement.id,
       statement_date: formData.statement_date,
       statement_number: computedNumber || statement.statement_number,
       bank_serial_number: formData.bank_serial_number || null,
       opening_balance: openingBalance,
+      exchange_rate: fx,
       description: formData.description || null,
     });
     onSaved?.();
@@ -104,6 +110,26 @@ export function BankStatementHeaderDialog({
   if (!statement) return null;
 
   const selectedAccount = bankAccounts.find(ba => ba.id === formData.bank_account_id);
+  const isForeign = !!selectedAccount && selectedAccount.currency !== "RSD";
+
+  const handleFetchNbsRate = async () => {
+    if (!isForeign || !formData.statement_date) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("nbs-exchange-rates", {
+        body: { date: formData.statement_date, currency: selectedAccount!.currency },
+      });
+      if (error) throw error;
+      const rate = data?.middleRate ?? data?.rate ?? data?.middle_rate;
+      if (!rate) {
+        toast.error("Kurs NBS nije pronađen za izabrani datum");
+        return;
+      }
+      setFormData((f) => ({ ...f, exchange_rate: formatNumber(rate, { minimumFractionDigits: 6, maximumFractionDigits: 6 }) }));
+      toast.success(`Učitan kurs ${selectedAccount!.currency}: ${rate}`);
+    } catch (e: any) {
+      toast.error(`Greška: ${e.message}`);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -141,11 +167,36 @@ export function BankStatementHeaderDialog({
           <div>
             <Label>Tekući račun</Label>
             <Input
-              value={selectedAccount ? `${selectedAccount.account_number} - ${selectedAccount.bank_name}` : "-"}
+              value={selectedAccount ? `${selectedAccount.account_number} - ${selectedAccount.bank_name} (${selectedAccount.currency})` : "-"}
               disabled
               className="font-mono"
             />
           </div>
+          {isForeign && (
+            <div>
+              <Label>Kurs ({selectedAccount!.currency} → RSD)</Label>
+              <div className="flex gap-2">
+                {readOnly ? (
+                  <Input value={formData.exchange_rate} disabled className="font-mono" />
+                ) : (
+                  <LocaleNumberInput
+                    value={formData.exchange_rate}
+                    onChange={(val) => setFormData({ ...formData, exchange_rate: val })}
+                    className="font-mono"
+                  />
+                )}
+                {!readOnly && (
+                  <Button type="button" variant="outline" size="sm" onClick={handleFetchNbsRate}>
+                    <Download className="h-4 w-4 mr-1" />
+                    NBS kurs
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Iznosi stavki se unose u {selectedAccount!.currency}; preračun u RSD ide preko kursa.
+              </p>
+            </div>
+          )}
           <div>
             <Label>R.br. izvoda banke</Label>
             {readOnly ? (

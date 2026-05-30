@@ -15,6 +15,7 @@ export interface BankStatement {
   closing_balance: number;
   total_debit: number;
   total_credit: number;
+  exchange_rate: number;
   description: string | null;
   status: string;
   journal_entry_id: string | null;
@@ -37,6 +38,10 @@ export interface BankStatementItem {
   document_reference: string | null;
   debit_amount: number;
   credit_amount: number;
+  original_debit_amount: number;
+  original_credit_amount: number;
+  closed_document_type: string | null;
+  closed_document_id: string | null;
   cost_center_code: string | null;
   partner_account_number: string | null;
   created_at: string;
