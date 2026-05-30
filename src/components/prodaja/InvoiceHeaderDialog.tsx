@@ -348,9 +348,89 @@ export function InvoiceHeaderDialog({
       delivery_terms: formData.delivery_terms || null,
       source_delivery_note_id: formData.source_delivery_note_id || null,
     });
+
+    // Ako je novopovezana otpremnica — kopiraj stavke (ako faktura nema stavke) i poveži otpremnicu
+    const prevDnId = invoice.source_delivery_note_id || null;
+    const newDnId = formData.source_delivery_note_id || null;
+    if (newDnId && newDnId !== prevDnId) {
+      try {
+        // Provera da li faktura već ima stavke
+        const { count: existingItemsCount } = await supabase
+          .from("invoice_items")
+          .select("id", { count: "exact", head: true })
+          .eq("invoice_id", invoice.id);
+
+        if ((existingItemsCount ?? 0) === 0) {
+          const { data: dnItems, error: itemsErr } = await supabase
+            .from("delivery_note_items")
+            .select(`*, article:articles(selling_price, vat_rate)`)
+            .eq("delivery_note_id", newDnId);
+          if (itemsErr) throw itemsErr;
+
+          if (dnItems && dnItems.length > 0) {
+            let subtotal = 0;
+            let vatAmount = 0;
+            const rows = dnItems.map((item: any, index: number) => {
+              const unitPrice = item.unit_price ?? item.article?.selling_price ?? 0;
+              const vatRate = item.vat_rate ?? item.article?.vat_rate ?? 20;
+              const lineSubtotal = (item.quantity || 0) * unitPrice;
+              const lineVat = lineSubtotal * (vatRate / 100);
+              subtotal += lineSubtotal;
+              vatAmount += lineVat;
+              return {
+                invoice_id: invoice.id,
+                company_id: invoice.company_id,
+                item_order: index + 1,
+                article_id: item.article_id,
+                item_code: item.item_code,
+                item_name: item.item_name,
+                unit: item.unit,
+                quantity: item.quantity,
+                unit_price: unitPrice,
+                discount_percent: 0,
+                vat_rate: vatRate,
+                line_subtotal: lineSubtotal,
+                line_vat: lineVat,
+                line_total: lineSubtotal + lineVat,
+                description: item.description,
+              };
+            });
+            const { error: insErr } = await supabase.from("invoice_items").insert(rows);
+            if (insErr) throw insErr;
+
+            // Ažuriraj totale fakture
+            const totalAmount = subtotal + vatAmount;
+            await supabase.from("invoices").update({
+              subtotal,
+              vat_amount: vatAmount,
+              total_amount: totalAmount,
+              subtotal_rsd: +(subtotal * rate).toFixed(2),
+              vat_amount_rsd: +(vatAmount * rate).toFixed(2),
+              total_amount_rsd: +(totalAmount * rate).toFixed(2),
+            }).eq("id", invoice.id);
+
+            toast.success(`Učitano ${rows.length} stavki sa otpremnice`);
+          }
+        }
+
+        // Poveži otpremnicu sa fakturom (reverzna veza)
+        await supabase.from("delivery_notes").update({ invoice_id: invoice.id }).eq("id", newDnId);
+        // Odveži staru otpremnicu ako je postojala
+        if (prevDnId) {
+          await supabase.from("delivery_notes").update({ invoice_id: null }).eq("id", prevDnId);
+        }
+      } catch (err: any) {
+        toast.error(`Greška pri učitavanju stavki sa otpremnice: ${err.message}`);
+      }
+    } else if (!newDnId && prevDnId) {
+      // Otpremnica je uklonjena — odveži je
+      await supabase.from("delivery_notes").update({ invoice_id: null }).eq("id", prevDnId);
+    }
+
     onOpenChange(false);
     onSaved?.();
   };
+
 
   const customerPartners = partners.filter((p) => p.is_customer && p.is_active);
 
