@@ -155,7 +155,12 @@ export function InvoiceHeaderDialog({
       datum_prometa: invoice.datum_prometa || "",
       bank_account_id: invoice.bank_account_id || defaultBankId,
       advance_invoice_id: invoice.advance_invoice_id || "",
+      exchange_rate: invoice.exchange_rate || 1,
+      jci_number: invoice.jci_number || "",
+      jci_date: invoice.jci_date || "",
+      delivery_terms: invoice.delivery_terms || "",
     });
+    setExchangeRateText(String(invoice.exchange_rate || 1));
 
     // Fetch available advances for the partner
     fetchAdvancesForPartner(invoice.partner_id);
