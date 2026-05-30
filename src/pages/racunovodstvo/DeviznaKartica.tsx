@@ -80,35 +80,97 @@ export default function DeviznaKartica() {
 
         <Card>
           <CardHeader><CardTitle className="text-base">Filteri</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label>Partner</Label>
-              <SearchablePartnerSelect
-                partners={partners as any}
-                value={partnerId}
-                onValueChange={setPartnerId}
-                placeholder="Izaberi partnera..."
-              />
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <Label>Partner</Label>
+                <SearchablePartnerSelect
+                  partners={partners as any}
+                  value={partnerId}
+                  onValueChange={setPartnerId}
+                  placeholder="Izaberi partnera..."
+                />
+              </div>
+              <div>
+                <Label>Valuta</Label>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Datum od</Label>
+                <LocaleDateInput value={dateFrom} onChange={setDateFrom} />
+              </div>
+              <div>
+                <Label>Datum do</Label>
+                <LocaleDateInput value={dateTo} onChange={setDateTo} />
+              </div>
             </div>
-            <div>
-              <Label>Valuta</Label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Datum od</Label>
-              <LocaleDateInput value={dateFrom} onChange={setDateFrom} />
-            </div>
-            <div>
-              <Label>Datum do</Label>
-              <LocaleDateInput value={dateTo} onChange={setDateTo} />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <Label>Kurs od</Label>
+                <Input
+                  inputMode="decimal"
+                  placeholder="npr. 117,00"
+                  value={rateMin}
+                  onChange={(e) => setRateMin(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>Kurs do</Label>
+                <Input
+                  inputMode="decimal"
+                  placeholder="npr. 118,50"
+                  value={rateMax}
+                  onChange={(e) => setRateMax(e.target.value)}
+                />
+              </div>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox checked={onlyFx} onCheckedChange={(v) => setOnlyFx(!!v)} />
+                  <span className="text-sm">Prikaži samo kursne razlike</span>
+                </label>
+              </div>
             </div>
           </CardContent>
         </Card>
+
+        {partnerId && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Pozitivne kursne razlike (662)</p>
+                  <p className="text-2xl font-bold text-emerald-600">{formatNumber(totals.fxGain, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} RSD</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-emerald-500" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Negativne kursne razlike (552)</p>
+                  <p className="text-2xl font-bold text-rose-600">{formatNumber(totals.fxLoss, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} RSD</p>
+                </div>
+                <TrendingDown className="h-8 w-8 text-rose-500" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Neto efekat kursa za period</p>
+                  <p className={`text-2xl font-bold ${totals.fxNet >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                    {formatNumber(totals.fxNet, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} RSD
+                  </p>
+                </div>
+                <Scale className="h-8 w-8 text-muted-foreground" />
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {partnerId && (
           <Card className="flex-1 min-h-0 flex flex-col">
