@@ -313,7 +313,7 @@ async function buildInvoicePdf(
 
   autoTable(doc, {
     startY: yPos,
-    head: [["#", "Naziv", "JM", "Kol.", "Cena", "Rab.", "PDV%", "Osnovica", "PDV iznos", "Ukupno"]],
+    head: [t.tableHead],
     body: tableData,
     theme: "grid",
     styles: { font: "Roboto" },
