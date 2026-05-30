@@ -337,7 +337,7 @@ export function InvoiceHeaderDialog({
         toast.error(data?.error || "Greška pri preuzimanju kursne liste");
         return;
       }
-      const rate = (data.rates || []).find((r: any) => r.currencyCode === formData.currency);
+      const rate = ((data.rates || []) as NbsRateResponse[]).find((r) => r.currencyCode === formData.currency);
       if (!rate || !rate.middleRate || !rate.unit) {
         toast.error(`NBS nije vratio srednji kurs za ${formData.currency}`);
         return;
@@ -348,7 +348,7 @@ export function InvoiceHeaderDialog({
       setExchangeRateText(rounded.toLocaleString("sr-Latn-RS", { minimumFractionDigits: 4, maximumFractionDigits: 6 }));
       setFormData((prev) => ({ ...prev, exchange_rate: rounded }));
       toast.success(`Kurs ${formData.currency}: ${rounded.toFixed(4)} (NBS srednji, ${data.listDate || dateToUse})`);
-    } catch (err: any) {
+    } catch {
       toast.error("Greška pri pozivanju NBS servisa");
     } finally {
       setLoadingNbsRate(false);
@@ -424,9 +424,9 @@ export function InvoiceHeaderDialog({
           if (dnItems && dnItems.length > 0) {
             let subtotal = 0;
             let vatAmount = 0;
-            const grouped = new Map<string, any>();
+            const grouped = new Map<string, GroupedInvoiceItem>();
 
-            for (const item of dnItems as any[]) {
+            for (const item of dnItems as DeliveryNoteItemRow[]) {
               const key = item.item_code || item.article?.code || item.article_id || item.item_name;
               const unitPrice = item.unit_price ?? item.article?.selling_price ?? 0;
               const vatRate = item.vat_rate ?? item.article?.vat_rate ?? 20;
@@ -451,7 +451,7 @@ export function InvoiceHeaderDialog({
               groupedItem.quantity += Number(item.quantity || 0);
             }
 
-            const rows = Array.from(grouped.values()).map((item: any, index: number) => {
+            const rows: InvoiceInsertRow[] = Array.from(grouped.values()).map((item, index) => {
               const lineSubtotal = (item.quantity || 0) * (item.unit_price || 0);
               const lineVat = lineSubtotal * ((item.vat_rate || 0) / 100);
               subtotal += lineSubtotal;
@@ -491,8 +491,9 @@ export function InvoiceHeaderDialog({
         if (prevDnId) {
           await supabase.from("delivery_notes").update({ invoice_id: null }).eq("id", prevDnId);
         }
-      } catch (err: any) {
-        toast.error(`Greška pri učitavanju stavki sa otpremnice: ${err.message}`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Nepoznata greška";
+        toast.error(`Greška pri učitavanju stavki sa otpremnice: ${message}`);
       }
     } else if (!newDnId && prevDnId) {
       // Otpremnica je uklonjena — odveži je
