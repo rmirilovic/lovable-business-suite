@@ -346,6 +346,7 @@ export function InvoiceHeaderDialog({
       jci_number: formData.jci_number || null,
       jci_date: formData.jci_date || null,
       delivery_terms: formData.delivery_terms || null,
+      source_delivery_note_id: formData.source_delivery_note_id || null,
     });
     onOpenChange(false);
     onSaved?.();
