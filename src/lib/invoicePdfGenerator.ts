@@ -277,13 +277,13 @@ async function buildInvoicePdf(
 
   const displayPib = invoice.partner_pib || partner.pib;
   if (displayPib) {
-    doc.text(`PIB: ${displayPib}`, rightColX, rightYPos);
+    doc.text(`${t.pib}: ${displayPib}`, rightColX, rightYPos);
     rightYPos += 4;
   }
 
   const displayMb = invoice.partner_mb || partner.mb;
   if (displayMb) {
-    doc.text(`MB: ${displayMb}`, rightColX, rightYPos);
+    doc.text(`${t.mb}: ${displayMb}`, rightColX, rightYPos);
     rightYPos += 4;
   }
 
