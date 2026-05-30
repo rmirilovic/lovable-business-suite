@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export interface DeviznaStavka {
   date: string;
-  doc_type: "invoice" | "payment";
+  doc_type: "invoice" | "payment" | "fx_gain" | "fx_loss";
   doc_number: string;
   description: string;
   debit_original: number;
