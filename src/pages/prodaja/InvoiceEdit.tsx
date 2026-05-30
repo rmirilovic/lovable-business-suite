@@ -352,14 +352,20 @@ export default function InvoiceEdit() {
             <Button variant="ghost" size="sm" onClick={() => fetchInvoice()} title="Osveži">
               <RefreshCw className="w-4 h-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportPdf} title="PDF">
+            <Button variant="outline" size="sm" onClick={() => handleExportPdf("sr")} title="PDF">
               <FileDown className="w-4 h-4 mr-2" />PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handleExportPdf("en")} title="PDF na engleskom">
+              <FileDown className="w-4 h-4 mr-2" />PDF (EN)
             </Button>
             <Button variant="outline" size="sm" onClick={handleExportExcel} title="Excel">
               <FileSpreadsheet className="w-4 h-4 mr-2" />Excel
             </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint} title="Štampa">
+            <Button variant="outline" size="sm" onClick={() => handlePrint("sr")} title="Štampa">
               <Printer className="w-4 h-4 mr-2" />Štampa
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => handlePrint("en")} title="Štampa na engleskom">
+              <Printer className="w-4 h-4 mr-2" />Štampa (EN)
             </Button>
             <Button variant="outline" size="sm" onClick={handleExportXml} title="eFaktura XML">
               <FileCode className="w-4 h-4 mr-2" />eFaktura XML
