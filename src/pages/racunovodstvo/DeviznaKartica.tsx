@@ -58,8 +58,6 @@ export default function DeviznaKartica() {
   const [currency, setCurrency] = useState<string>("EUR");
   const [dateFrom, setDateFrom] = useState<string>(yearStart);
   const [dateTo, setDateTo] = useState<string>(today);
-  const [rateMin, setRateMin] = useState<string>("");
-  const [rateMax, setRateMax] = useState<string>("");
   const [onlyFx, setOnlyFx] = useState<boolean>(false);
   const [exportCols, setExportCols] = useState<ExportColKey[]>(() => {
     try {
@@ -85,18 +83,11 @@ export default function DeviznaKartica() {
   const { data: allRows = [], isLoading } = useDevizniaKartica(partnerId || null, currency, dateFrom, dateTo);
 
   const rows = useMemo(() => {
-    const min = rateMin ? Number(rateMin.replace(",", ".")) : null;
-    const max = rateMax ? Number(rateMax.replace(",", ".")) : null;
     return allRows.filter((r) => {
       if (onlyFx && r.doc_type !== "fx_gain" && r.doc_type !== "fx_loss") return false;
-      // Kurs filter primeniti samo na redove sa kursom (faktura/uplata)
-      if ((min !== null || max !== null) && r.exchange_rate > 0) {
-        if (min !== null && r.exchange_rate < min) return false;
-        if (max !== null && r.exchange_rate > max) return false;
-      }
       return true;
     });
-  }, [allRows, onlyFx, rateMin, rateMax]);
+  }, [allRows, onlyFx]);
 
   const totals = useMemo(() => {
     let dOrig = 0, cOrig = 0, dRsd = 0, cRsd = 0;
@@ -224,31 +215,11 @@ export default function DeviznaKartica() {
                 <LocaleDateInput value={dateTo} onChange={setDateTo} />
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <Label>Kurs od</Label>
-                <Input
-                  inputMode="decimal"
-                  placeholder="npr. 117,00"
-                  value={rateMin}
-                  onChange={(e) => setRateMin(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label>Kurs do</Label>
-                <Input
-                  inputMode="decimal"
-                  placeholder="npr. 118,50"
-                  value={rateMax}
-                  onChange={(e) => setRateMax(e.target.value)}
-                />
-              </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox checked={onlyFx} onCheckedChange={(v) => setOnlyFx(!!v)} />
-                  <span className="text-sm">Prikaži samo kursne razlike</span>
-                </label>
-              </div>
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={onlyFx} onCheckedChange={(v) => setOnlyFx(!!v)} />
+                <span className="text-sm">Prikaži samo kursne razlike</span>
+              </label>
             </div>
           </CardContent>
         </Card>
