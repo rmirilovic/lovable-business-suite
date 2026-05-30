@@ -91,6 +91,7 @@ export function InvoiceHeaderDialog({
     jci_number: "" as string | null,
     jci_date: "" as string | null,
     delivery_terms: "" as string | null,
+    source_delivery_note_id: "" as string | null,
   });
 
   const [exchangeRateText, setExchangeRateText] = useState("1");
@@ -105,6 +106,13 @@ export function InvoiceHeaderDialog({
     advance_date: string;
   }
   const [availableAdvances, setAvailableAdvances] = useState<AvailableAdvance[]>([]);
+
+  interface AvailableDeliveryNote {
+    id: string;
+    delivery_number: string;
+    delivery_date: string;
+  }
+  const [availableDeliveryNotes, setAvailableDeliveryNotes] = useState<AvailableDeliveryNote[]>([]);
 
   useEffect(() => {
     if (!invoice || !open) return;
@@ -159,14 +167,44 @@ export function InvoiceHeaderDialog({
       jci_number: invoice.jci_number || "",
       jci_date: invoice.jci_date || "",
       delivery_terms: invoice.delivery_terms || "",
+      source_delivery_note_id: invoice.source_delivery_note_id || "",
     });
     setExchangeRateText(String(invoice.exchange_rate || 1));
 
     // Fetch available advances for the partner
     fetchAdvancesForPartner(invoice.partner_id);
+    fetchDeliveryNotesForPartner(invoice.partner_id);
 
     loadDefaults();
   }, [invoice, open, bankAccounts, selectedCompany?.id]);
+
+  const fetchDeliveryNotesForPartner = async (partnerId: string) => {
+    if (!partnerId || !selectedCompany?.id) {
+      setAvailableDeliveryNotes([]);
+      return;
+    }
+    const { data } = await supabase
+      .from("delivery_notes")
+      .select("id, delivery_number, delivery_date")
+      .eq("company_id", selectedCompany.id)
+      .eq("partner_id", partnerId)
+      .neq("status", "cancelled")
+      .order("delivery_date", { ascending: false });
+
+    if (!data) { setAvailableDeliveryNotes([]); return; }
+
+    // Filter out delivery notes already linked to other invoices
+    const { data: usedDns } = await supabase
+      .from("invoices")
+      .select("source_delivery_note_id")
+      .eq("company_id", selectedCompany.id)
+      .not("source_delivery_note_id", "is", null)
+      .neq("id", invoice?.id || "00000000-0000-0000-0000-000000000000");
+
+    const usedIds = new Set((usedDns || []).map((u) => u.source_delivery_note_id));
+    const available = data.filter((d) => !usedIds.has(d.id) || d.id === invoice?.source_delivery_note_id);
+    setAvailableDeliveryNotes(available);
+  };
 
   const fetchAdvancesForPartner = async (partnerId: string) => {
     if (!partnerId || !selectedCompany?.id) {
@@ -225,6 +263,8 @@ export function InvoiceHeaderDialog({
     }));
     if (currency === "RSD") setExchangeRateText("1");
     fetchAdvancesForPartner(partnerId);
+    fetchDeliveryNotesForPartner(partnerId);
+    setFormData((prev) => ({ ...prev, source_delivery_note_id: "" }));
   };
 
   const loadNbsRate = async () => {
@@ -306,6 +346,7 @@ export function InvoiceHeaderDialog({
       jci_number: formData.jci_number || null,
       jci_date: formData.jci_date || null,
       delivery_terms: formData.delivery_terms || null,
+      source_delivery_note_id: formData.source_delivery_note_id || null,
     });
     onOpenChange(false);
     onSaved?.();
@@ -422,6 +463,35 @@ export function InvoiceHeaderDialog({
               </Select>
             </div>
           </div>
+
+          {/* Otpremnica (po kojoj su isporučena dobra) */}
+          <div className="space-y-2">
+            <Label>Otpremnica (po kojoj su isporučena dobra)</Label>
+            <Select
+              value={formData.source_delivery_note_id || "none"}
+              onValueChange={(v) => setFormData({ ...formData, source_delivery_note_id: v === "none" ? null : v })}
+              disabled={readOnly || !formData.partner_id}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={formData.partner_id ? "-- Bez otpremnice --" : "Prvo izaberite kupca"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-- Bez otpremnice --</SelectItem>
+                {availableDeliveryNotes.map((dn) => (
+                  <SelectItem key={dn.id} value={dn.id}>
+                    {dn.delivery_number} ({new Date(dn.delivery_date).toLocaleDateString("sr-Latn-RS")})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formData.partner_id && availableDeliveryNotes.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Nema dostupnih otpremnica za ovog kupca (sve su već povezane sa drugim fakturama ili stornirane).
+              </p>
+            )}
+          </div>
+
+
 
           {/* Partner snapshot */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-3 bg-muted/50 rounded-lg">

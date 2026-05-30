@@ -53,6 +53,8 @@ export function useInvoiceMutations() {
       if (formData.jci_number !== undefined) updatePayload.jci_number = formData.jci_number;
       if (formData.jci_date !== undefined) updatePayload.jci_date = formData.jci_date;
       if (formData.delivery_terms !== undefined) updatePayload.delivery_terms = formData.delivery_terms;
+      if (formData.source_delivery_note_id !== undefined) updatePayload.source_delivery_note_id = formData.source_delivery_note_id;
+      if (formData.source_quote_id !== undefined) updatePayload.source_quote_id = formData.source_quote_id;
 
       const { data, error } = await supabase
         .from("invoices")
