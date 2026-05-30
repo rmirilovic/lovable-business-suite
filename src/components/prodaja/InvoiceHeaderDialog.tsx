@@ -149,6 +149,7 @@ export function InvoiceHeaderDialog({
     delivery_date: string;
   }
   const [availableDeliveryNotes, setAvailableDeliveryNotes] = useState<AvailableDeliveryNote[]>([]);
+  const selectedDeliveryNote = availableDeliveryNotes.find((dn) => dn.id === formData.source_delivery_note_id);
 
   useEffect(() => {
     if (!invoice || !open) return;
@@ -639,6 +640,11 @@ export function InvoiceHeaderDialog({
                 ))}
               </SelectContent>
             </Select>
+            {selectedDeliveryNote && (
+              <p className="text-xs text-muted-foreground">
+                Izabrana otpremnica: <span className="font-medium text-foreground">{selectedDeliveryNote.delivery_number}</span>
+              </p>
+            )}
             {formData.partner_id && availableDeliveryNotes.length === 0 && (
               <p className="text-xs text-muted-foreground">
                 Nema dostupnih otpremnica za ovog kupca (sve su već povezane sa drugim fakturama ili stornirane).
