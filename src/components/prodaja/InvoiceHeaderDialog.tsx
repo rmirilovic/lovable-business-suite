@@ -160,6 +160,7 @@ export function InvoiceHeaderDialog({
       jci_number: invoice.jci_number || "",
       jci_date: invoice.jci_date || "",
       delivery_terms: invoice.delivery_terms || "",
+      source_delivery_note_id: invoice.source_delivery_note_id || "",
     });
     setExchangeRateText(String(invoice.exchange_rate || 1));
 
