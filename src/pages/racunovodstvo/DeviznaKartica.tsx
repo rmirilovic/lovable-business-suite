@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@/components/ui/table";
@@ -16,7 +18,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
-import { Globe, TrendingUp, TrendingDown, Scale } from "lucide-react";
+import { toast } from "sonner";
+import { Globe, TrendingUp, TrendingDown, Scale, FileDown, FileSpreadsheet } from "lucide-react";
+
+const DOC_TYPE_LABEL: Record<string, string> = {
+  invoice: "Faktura",
+  payment: "Uplata",
+  fx_gain: "Pozitivna kursna razlika",
+  fx_loss: "Negativna kursna razlika",
+};
 
 const CURRENCIES = ["EUR", "USD", "CHF", "GBP"];
 
@@ -66,6 +76,64 @@ export default function DeviznaKartica() {
   }, [rows]);
 
   const partner = partners.find((p) => p.id === partnerId);
+
+  const buildExportRows = () => rows.map((r) => ({
+    Datum: format(new Date(r.date), "dd.MM.yyyy"),
+    Dokument: r.doc_number,
+    Tip: DOC_TYPE_LABEL[r.doc_type] ?? r.doc_type,
+    Opis: r.description,
+    Kurs: r.exchange_rate > 0 ? r.exchange_rate : null,
+    [`Duguje (${currency})`]: r.debit_original || null,
+    [`Potražuje (${currency})`]: r.credit_original || null,
+    "Duguje (RSD)": r.debit_rsd || null,
+    "Potražuje (RSD)": r.credit_rsd || null,
+  }));
+
+  const fileBase = () => {
+    const p = partner ? `${partner.code}_${partner.name}`.replace(/[^\w\-]+/g, "_") : "kartica";
+    return `devizna_kartica_${p}_${currency}_${dateFrom}_${dateTo}${onlyFx ? "_KR" : ""}`;
+  };
+
+  const handleExportCsv = () => {
+    if (rows.length === 0) { toast.error("Nema stavki za izvoz"); return; }
+    const data = buildExportRows();
+    const headers = Object.keys(data[0]);
+    const esc = (v: any) => {
+      if (v === null || v === undefined) return "";
+      const s = String(v).replace(/"/g, '""');
+      return /[",;\n]/.test(s) ? `"${s}"` : s;
+    };
+    const csv = [headers.join(";"), ...data.map((row) => headers.map((h) => esc((row as any)[h])).join(";"))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${fileBase()}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success(`Izvezeno ${rows.length} stavki u CSV`);
+  };
+
+  const handleExportXlsx = () => {
+    if (rows.length === 0) { toast.error("Nema stavki za izvoz"); return; }
+    const data = buildExportRows();
+    const ws = XLSX.utils.json_to_sheet(data);
+    // Sažetak na dnu
+    const lastRow = data.length + 2;
+    XLSX.utils.sheet_add_aoa(ws, [
+      [],
+      [`Ukupno duguje (${currency})`, totals.dOrig, `Ukupno duguje (RSD)`, totals.dRsd],
+      [`Ukupno potražuje (${currency})`, totals.cOrig, `Ukupno potražuje (RSD)`, totals.cRsd],
+      [`Saldo (${currency})`, totals.saldoOrig, `Saldo (RSD)`, totals.saldoRsd],
+      ["Pozitivne kursne razlike (662)", totals.fxGain],
+      ["Negativne kursne razlike (552)", totals.fxLoss],
+      ["Neto efekat kursa", totals.fxNet],
+    ], { origin: `A${lastRow}` });
+    ws["!cols"] = [{ wch: 12 }, { wch: 18 }, { wch: 24 }, { wch: 40 }, { wch: 10 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Devizna kartica");
+    XLSX.writeFile(wb, `${fileBase()}.xlsx`);
+    toast.success(`Izvezeno ${rows.length} stavki u Excel`);
+  };
 
   return (
     <MainLayout title="Devizna kartica">
@@ -174,10 +242,18 @@ export default function DeviznaKartica() {
 
         {partnerId && (
           <Card className="flex-1 min-h-0 flex flex-col">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
               <CardTitle className="text-base">
                 {partner?.name} — {currency}
               </CardTitle>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleExportCsv} disabled={rows.length === 0}>
+                  <FileDown className="h-4 w-4 mr-2" /> CSV
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleExportXlsx} disabled={rows.length === 0}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="flex-1 min-h-0 overflow-auto">
               <Table>
