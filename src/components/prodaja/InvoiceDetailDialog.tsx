@@ -56,6 +56,7 @@ export function InvoiceDetailDialog({
         subtotal,
         vat_amount: vatAmount,
         total_amount: total,
+        exchange_rate: invoice.exchange_rate,
       });
     }
   };
