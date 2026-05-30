@@ -34,6 +34,40 @@ import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { parseLocaleNumber } from "@/lib/formatting";
 import { isForeignCurrency } from "@/lib/currencies";
 import { toast } from "sonner";
+import type { Database } from "@/integrations/supabase/types";
+
+type DeliveryNoteItemRow = Database["public"]["Tables"]["delivery_note_items"]["Row"] & {
+  article: {
+    id: string;
+    code: string | null;
+    name: string;
+    unit: string | null;
+    selling_price: number | null;
+    vat_rate: number | null;
+  } | null;
+};
+
+type InvoiceInsertRow = Database["public"]["Tables"]["invoice_items"]["Insert"];
+
+type GroupedInvoiceItem = {
+  invoice_id: string;
+  company_id: string;
+  article_id: string | null;
+  item_code: string | null;
+  item_name: string;
+  unit: string;
+  quantity: number;
+  unit_price: number;
+  discount_percent: number;
+  vat_rate: number;
+  description: string | null;
+};
+
+type NbsRateResponse = {
+  currencyCode: string;
+  middleRate: number | string;
+  unit: number | string;
+};
 
 interface InvoiceHeaderDialogProps {
   open: boolean;
