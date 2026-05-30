@@ -85,7 +85,8 @@ export default function InvoiceEdit() {
       .from("invoices")
       .select(`
         *,
-        partner:partners(id, name, code, address, city, postal_code, pib, mb)
+        partner:partners(id, name, code, address, city, postal_code, pib, mb),
+        source_delivery_note:delivery_notes!invoices_source_delivery_note_id_fkey(id, delivery_number, delivery_date)
       `)
       .eq("id", id)
       .single();

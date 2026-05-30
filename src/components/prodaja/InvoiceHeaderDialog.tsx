@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,40 @@ import { LocaleNumberInput } from "@/components/ui/locale-number-input";
 import { parseLocaleNumber } from "@/lib/formatting";
 import { isForeignCurrency } from "@/lib/currencies";
 import { toast } from "sonner";
+import type { Database } from "@/integrations/supabase/types";
+
+type DeliveryNoteItemRow = Database["public"]["Tables"]["delivery_note_items"]["Row"] & {
+  article: {
+    id: string;
+    code: string | null;
+    name: string;
+    unit: string | null;
+    selling_price: number | null;
+    vat_rate: number | null;
+  } | null;
+};
+
+type InvoiceInsertRow = Database["public"]["Tables"]["invoice_items"]["Insert"];
+
+type GroupedInvoiceItem = {
+  invoice_id: string;
+  company_id: string;
+  article_id: string | null;
+  item_code: string | null;
+  item_name: string;
+  unit: string;
+  quantity: number;
+  unit_price: number;
+  discount_percent: number;
+  vat_rate: number;
+  description: string | null;
+};
+
+type NbsRateResponse = {
+  currencyCode: string;
+  middleRate: number | string;
+  unit: number | string;
+};
 
 interface InvoiceHeaderDialogProps {
   open: boolean;
@@ -50,6 +85,7 @@ export function InvoiceHeaderDialog({
   onSaved,
 }: InvoiceHeaderDialogProps) {
   const { selectedCompany } = useAuth();
+  const queryClient = useQueryClient();
   const { minDate, maxDate } = useBusinessYearDateLimits();
   const { partners } = usePartners();
   const { units } = useOrganizationalUnits(selectedCompany?.id);
@@ -173,12 +209,12 @@ export function InvoiceHeaderDialog({
 
     // Fetch available advances for the partner
     fetchAdvancesForPartner(invoice.partner_id);
-    fetchDeliveryNotesForPartner(invoice.partner_id);
+    fetchDeliveryNotesForPartner(invoice.partner_id, invoice.source_delivery_note_id);
 
     loadDefaults();
   }, [invoice, open, bankAccounts, selectedCompany?.id]);
 
-  const fetchDeliveryNotesForPartner = async (partnerId: string) => {
+  const fetchDeliveryNotesForPartner = async (partnerId: string, currentDeliveryNoteId?: string | null) => {
     if (!partnerId || !selectedCompany?.id) {
       setAvailableDeliveryNotes([]);
       return;
@@ -191,7 +227,24 @@ export function InvoiceHeaderDialog({
       .neq("status", "cancelled")
       .order("delivery_date", { ascending: false });
 
-    if (!data) { setAvailableDeliveryNotes([]); return; }
+    const deliveryNotes = data ? [...data] : [];
+
+    if (currentDeliveryNoteId && !deliveryNotes.some((d) => d.id === currentDeliveryNoteId)) {
+      const { data: currentDn } = await supabase
+        .from("delivery_notes")
+        .select("id, delivery_number, delivery_date")
+        .eq("id", currentDeliveryNoteId)
+        .maybeSingle();
+
+      if (currentDn) {
+        deliveryNotes.unshift(currentDn);
+      }
+    }
+
+    if (deliveryNotes.length === 0) {
+      setAvailableDeliveryNotes([]);
+      return;
+    }
 
     // Filter out delivery notes already linked to other invoices
     const { data: usedDns } = await supabase
@@ -202,7 +255,8 @@ export function InvoiceHeaderDialog({
       .neq("id", invoice?.id || "00000000-0000-0000-0000-000000000000");
 
     const usedIds = new Set((usedDns || []).map((u) => u.source_delivery_note_id));
-    const available = data.filter((d) => !usedIds.has(d.id) || d.id === invoice?.source_delivery_note_id);
+    const activeDeliveryNoteId = currentDeliveryNoteId ?? invoice?.source_delivery_note_id ?? null;
+    const available = deliveryNotes.filter((d) => !usedIds.has(d.id) || d.id === activeDeliveryNoteId);
     setAvailableDeliveryNotes(available);
   };
 
@@ -263,7 +317,7 @@ export function InvoiceHeaderDialog({
     }));
     if (currency === "RSD") setExchangeRateText("1");
     fetchAdvancesForPartner(partnerId);
-    fetchDeliveryNotesForPartner(partnerId);
+    fetchDeliveryNotesForPartner(partnerId, null);
     setFormData((prev) => ({ ...prev, source_delivery_note_id: "" }));
   };
 
@@ -283,7 +337,7 @@ export function InvoiceHeaderDialog({
         toast.error(data?.error || "Greška pri preuzimanju kursne liste");
         return;
       }
-      const rate = (data.rates || []).find((r: any) => r.currencyCode === formData.currency);
+      const rate = ((data.rates || []) as NbsRateResponse[]).find((r) => r.currencyCode === formData.currency);
       if (!rate || !rate.middleRate || !rate.unit) {
         toast.error(`NBS nije vratio srednji kurs za ${formData.currency}`);
         return;
@@ -294,7 +348,7 @@ export function InvoiceHeaderDialog({
       setExchangeRateText(rounded.toLocaleString("sr-Latn-RS", { minimumFractionDigits: 4, maximumFractionDigits: 6 }));
       setFormData((prev) => ({ ...prev, exchange_rate: rounded }));
       toast.success(`Kurs ${formData.currency}: ${rounded.toFixed(4)} (NBS srednji, ${data.listDate || dateToUse})`);
-    } catch (err: any) {
+    } catch {
       toast.error("Greška pri pozivanju NBS servisa");
     } finally {
       setLoadingNbsRate(false);
@@ -352,7 +406,7 @@ export function InvoiceHeaderDialog({
     // Ako je novopovezana otpremnica — kopiraj stavke (ako faktura nema stavke) i poveži otpremnicu
     const prevDnId = invoice.source_delivery_note_id || null;
     const newDnId = formData.source_delivery_note_id || null;
-    if (newDnId && newDnId !== prevDnId) {
+    if (newDnId) {
       try {
         // Provera da li faktura već ima stavke
         const { count: existingItemsCount } = await supabase
@@ -363,36 +417,52 @@ export function InvoiceHeaderDialog({
         if ((existingItemsCount ?? 0) === 0) {
           const { data: dnItems, error: itemsErr } = await supabase
             .from("delivery_note_items")
-            .select(`*, article:articles(selling_price, vat_rate)`)
+            .select(`*, article:articles(id, code, name, unit, selling_price, vat_rate)`)
             .eq("delivery_note_id", newDnId);
           if (itemsErr) throw itemsErr;
 
           if (dnItems && dnItems.length > 0) {
             let subtotal = 0;
             let vatAmount = 0;
-            const rows = dnItems.map((item: any, index: number) => {
+            const grouped = new Map<string, GroupedInvoiceItem>();
+
+            for (const item of dnItems as DeliveryNoteItemRow[]) {
+              const key = item.item_code || item.article?.code || item.article_id || item.item_name;
               const unitPrice = item.unit_price ?? item.article?.selling_price ?? 0;
-              const vatRate = item.vat_rate ?? item.article?.vat_rate ?? 20;
-              const lineSubtotal = (item.quantity || 0) * unitPrice;
-              const lineVat = lineSubtotal * (vatRate / 100);
+              const vatRate = item.article?.vat_rate ?? 20;
+
+              if (!grouped.has(key)) {
+                grouped.set(key, {
+                  invoice_id: invoice.id,
+                  company_id: invoice.company_id,
+                  article_id: item.article_id,
+                  item_code: item.item_code ?? item.article?.code ?? null,
+                  item_name: item.item_name ?? item.article?.name ?? "",
+                  unit: item.unit ?? item.article?.unit ?? "kom",
+                  quantity: 0,
+                  unit_price: unitPrice,
+                  discount_percent: 0,
+                  vat_rate: vatRate,
+                  description: item.description || null,
+                });
+              }
+
+              const groupedItem = grouped.get(key);
+              groupedItem.quantity += Number(item.quantity || 0);
+            }
+
+            const rows: InvoiceInsertRow[] = Array.from(grouped.values()).map((item, index) => {
+              const lineSubtotal = (item.quantity || 0) * (item.unit_price || 0);
+              const lineVat = lineSubtotal * ((item.vat_rate || 0) / 100);
               subtotal += lineSubtotal;
               vatAmount += lineVat;
+
               return {
-                invoice_id: invoice.id,
-                company_id: invoice.company_id,
+                ...item,
                 item_order: index + 1,
-                article_id: item.article_id,
-                item_code: item.item_code,
-                item_name: item.item_name,
-                unit: item.unit,
-                quantity: item.quantity,
-                unit_price: unitPrice,
-                discount_percent: 0,
-                vat_rate: vatRate,
                 line_subtotal: lineSubtotal,
                 line_vat: lineVat,
                 line_total: lineSubtotal + lineVat,
-                description: item.description,
               };
             });
             const { error: insErr } = await supabase.from("invoice_items").insert(rows);
@@ -409,18 +479,23 @@ export function InvoiceHeaderDialog({
               total_amount_rsd: +(totalAmount * rate).toFixed(2),
             }).eq("id", invoice.id);
 
+            await queryClient.invalidateQueries({ queryKey: ["invoice-items", invoice.id] });
+            await queryClient.invalidateQueries({ queryKey: ["invoices"] });
             toast.success(`Učitano ${rows.length} stavki sa otpremnice`);
           }
         }
 
-        // Poveži otpremnicu sa fakturom (reverzna veza)
-        await supabase.from("delivery_notes").update({ invoice_id: invoice.id }).eq("id", newDnId);
-        // Odveži staru otpremnicu ako je postojala
-        if (prevDnId) {
-          await supabase.from("delivery_notes").update({ invoice_id: null }).eq("id", prevDnId);
+        if (newDnId !== prevDnId) {
+          // Poveži otpremnicu sa fakturom (reverzna veza)
+          await supabase.from("delivery_notes").update({ invoice_id: invoice.id }).eq("id", newDnId);
+          // Odveži staru otpremnicu ako je postojala
+          if (prevDnId) {
+            await supabase.from("delivery_notes").update({ invoice_id: null }).eq("id", prevDnId);
+          }
         }
-      } catch (err: any) {
-        toast.error(`Greška pri učitavanju stavki sa otpremnice: ${err.message}`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Nepoznata greška";
+        toast.error(`Greška pri učitavanju stavki sa otpremnice: ${message}`);
       }
     } else if (!newDnId && prevDnId) {
       // Otpremnica je uklonjena — odveži je
