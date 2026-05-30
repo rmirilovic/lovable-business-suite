@@ -86,7 +86,15 @@ export function InvoiceHeaderDialog({
     datum_prometa: "" as string | null,
     bank_account_id: "" as string | null,
     advance_invoice_id: "" as string | null,
+    // Ino izlazne fakture
+    exchange_rate: 1,
+    jci_number: "" as string | null,
+    jci_date: "" as string | null,
+    delivery_terms: "" as string | null,
   });
+
+  const [exchangeRateText, setExchangeRateText] = useState("1");
+  const [loadingNbsRate, setLoadingNbsRate] = useState(false);
 
   // Advance invoices for selected partner
   interface AvailableAdvance {
