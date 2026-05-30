@@ -165,7 +165,7 @@ async function buildInvoicePdf(
     yPos += 4;
     doc.setFontSize(9);
     doc.setFont("Roboto", "normal");
-    doc.text(`Broj tekućeg računa: ${bankAccountText}`, pageWidth - 14, yPos, { align: "right" });
+    doc.text(`${t.bankAccount}: ${bankAccountText}`, pageWidth - 14, yPos, { align: "right" });
     yPos += 4;
   }
 
@@ -173,7 +173,7 @@ async function buildInvoicePdf(
   yPos += 10;
   doc.setFontSize(18);
   doc.setFont("Roboto", "bold");
-  doc.text("FAKTURA", pageWidth / 2, yPos, { align: "center" });
+  doc.text(t.invoice, pageWidth / 2, yPos, { align: "center" });
   yPos += 8;
 
   doc.setFontSize(12);
@@ -186,31 +186,31 @@ async function buildInvoicePdf(
   // Left column - Invoice details
   doc.setFontSize(10);
   doc.setFont("Roboto", "bold");
-  doc.text("Detalji fakture:", 14, yPos);
+  doc.text(t.invoiceDetails, 14, yPos);
   yPos += 5;
 
   doc.setFont("Roboto", "normal");
   doc.setFontSize(9);
-  doc.text(`Datum fakture: ${format(new Date(invoice.invoice_date), "dd.MM.yyyy.", { locale: sr })}`, 14, yPos);
+  doc.text(`${t.invoiceDate}: ${dateFmt(invoice.invoice_date)}`, 14, yPos);
   yPos += 4;
 
   if (invoice.due_date) {
-    doc.text(`Datum valute: ${format(new Date(invoice.due_date), "dd.MM.yyyy.", { locale: sr })}`, 14, yPos);
+    doc.text(`${t.dueDate}: ${dateFmt(invoice.due_date)}`, 14, yPos);
     yPos += 4;
   }
 
   if ((invoice as any).datum_prometa) {
-    doc.text(`Datum prometa: ${format(new Date((invoice as any).datum_prometa), "dd.MM.yyyy.", { locale: sr })}`, 14, yPos);
+    doc.text(`${t.deliveryDate}: ${dateFmt((invoice as any).datum_prometa)}`, 14, yPos);
     yPos += 4;
   }
 
   if ((invoice as any).mesto_prometa) {
-    doc.text(`Mesto prometa: ${(invoice as any).mesto_prometa}`, 14, yPos);
+    doc.text(`${t.deliveryPlace}: ${(invoice as any).mesto_prometa}`, 14, yPos);
     yPos += 4;
   }
 
   if (deliveryNoteNumber) {
-    doc.text(`Otpremnica: ${deliveryNoteNumber}`, 14, yPos);
+    doc.text(`${t.deliveryNote}: ${deliveryNoteNumber}`, 14, yPos);
     yPos += 4;
   }
 
@@ -218,22 +218,22 @@ async function buildInvoicePdf(
   const isForeign = invoice.currency && invoice.currency !== "RSD";
   if (isForeign) {
     doc.setFont("Roboto", "bold");
-    doc.text(`Valuta: ${invoice.currency}`, 14, yPos);
+    doc.text(`${t.currency}: ${invoice.currency}`, 14, yPos);
     doc.setFont("Roboto", "normal");
     yPos += 4;
     if (invoice.exchange_rate && invoice.exchange_rate !== 1) {
-      doc.text(`Srednji kurs NBS: 1 ${invoice.currency} = ${formatPdfNumber(invoice.exchange_rate)} RSD`, 14, yPos);
+      doc.text(`${t.exchangeRate}: 1 ${invoice.currency} = ${formatPdfNumber(invoice.exchange_rate, lang)} RSD`, 14, yPos);
       yPos += 4;
     }
     if ((invoice as any).jci_number) {
       const jciDate = (invoice as any).jci_date
-        ? ` od ${format(new Date((invoice as any).jci_date), "dd.MM.yyyy.", { locale: sr })}`
+        ? ` ${t.of} ${dateFmt((invoice as any).jci_date)}`
         : "";
-      doc.text(`JCI: ${(invoice as any).jci_number}${jciDate}`, 14, yPos);
+      doc.text(`${t.jci}: ${(invoice as any).jci_number}${jciDate}`, 14, yPos);
       yPos += 4;
     }
     if ((invoice as any).delivery_terms) {
-      doc.text(`Isporuka (Incoterms): ${(invoice as any).delivery_terms}`, 14, yPos);
+      doc.text(`${t.incoterms}: ${(invoice as any).delivery_terms}`, 14, yPos);
       yPos += 4;
     }
   }
@@ -248,7 +248,7 @@ async function buildInvoicePdf(
 
   doc.setFontSize(10);
   doc.setFont("Roboto", "bold");
-  doc.text("Kupac:", rightColX, rightYPos);
+  doc.text(t.customer, rightColX, rightYPos);
   rightYPos += 5;
 
   doc.setFont("Roboto", "normal");
