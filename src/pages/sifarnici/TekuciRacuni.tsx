@@ -140,6 +140,8 @@ export default function TekuciRacuni() {
       code: form.code.trim(),
       account_number: form.account_number.trim(),
       bank_name: form.bank_name.trim(),
+      currency: form.currency,
+      gl_account_code: form.gl_account_code.trim() || (form.currency === "RSD" ? "2410" : "242"),
       is_active: true,
       is_default: form.is_default,
     };
