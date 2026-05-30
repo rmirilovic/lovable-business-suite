@@ -263,6 +263,8 @@ export function InvoiceHeaderDialog({
     }));
     if (currency === "RSD") setExchangeRateText("1");
     fetchAdvancesForPartner(partnerId);
+    fetchDeliveryNotesForPartner(partnerId);
+    setFormData((prev) => ({ ...prev, source_delivery_note_id: "" }));
   };
 
   const loadNbsRate = async () => {
