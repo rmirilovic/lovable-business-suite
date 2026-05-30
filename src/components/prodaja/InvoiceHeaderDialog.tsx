@@ -464,6 +464,35 @@ export function InvoiceHeaderDialog({
             </div>
           </div>
 
+          {/* Otpremnica (po kojoj su isporučena dobra) */}
+          <div className="space-y-2">
+            <Label>Otpremnica (po kojoj su isporučena dobra)</Label>
+            <Select
+              value={formData.source_delivery_note_id || "none"}
+              onValueChange={(v) => setFormData({ ...formData, source_delivery_note_id: v === "none" ? null : v })}
+              disabled={readOnly || !formData.partner_id}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={formData.partner_id ? "-- Bez otpremnice --" : "Prvo izaberite kupca"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">-- Bez otpremnice --</SelectItem>
+                {availableDeliveryNotes.map((dn) => (
+                  <SelectItem key={dn.id} value={dn.id}>
+                    {dn.delivery_number} ({new Date(dn.delivery_date).toLocaleDateString("sr-Latn-RS")})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formData.partner_id && availableDeliveryNotes.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Nema dostupnih otpremnica za ovog kupca (sve su već povezane sa drugim fakturama ili stornirane).
+              </p>
+            )}
+          </div>
+
+
+
           {/* Partner snapshot */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-3 bg-muted/50 rounded-lg">
             <div className="col-span-2 md:col-span-3 space-y-1">
