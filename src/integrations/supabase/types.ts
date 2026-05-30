@@ -4626,13 +4626,17 @@ export type Database = {
           created_by: string
           currency: string
           datum_prometa: string | null
+          delivery_terms: string | null
           due_date: string | null
+          exchange_rate: number
           header_note: string | null
           id: string
           internal_note: string | null
           invoice_date: string
           invoice_number: string
           invoice_type_code: string
+          jci_date: string | null
+          jci_number: string | null
           journal_entry_id: string | null
           mesto_prometa: string | null
           note: string | null
@@ -4653,11 +4657,14 @@ export type Database = {
           source_quote_id: string | null
           status: Database["public"]["Enums"]["document_status"]
           subtotal: number
+          subtotal_rsd: number
           tax_category_code: string
           tax_exemption_reason: string | null
           total_amount: number
+          total_amount_rsd: number
           updated_at: string
           vat_amount: number
+          vat_amount_rsd: number
         }
         Insert: {
           advance_invoice_id?: string | null
@@ -4672,13 +4679,17 @@ export type Database = {
           created_by: string
           currency?: string
           datum_prometa?: string | null
+          delivery_terms?: string | null
           due_date?: string | null
+          exchange_rate?: number
           header_note?: string | null
           id?: string
           internal_note?: string | null
           invoice_date?: string
           invoice_number: string
           invoice_type_code?: string
+          jci_date?: string | null
+          jci_number?: string | null
           journal_entry_id?: string | null
           mesto_prometa?: string | null
           note?: string | null
@@ -4699,11 +4710,14 @@ export type Database = {
           source_quote_id?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           subtotal?: number
+          subtotal_rsd?: number
           tax_category_code?: string
           tax_exemption_reason?: string | null
           total_amount?: number
+          total_amount_rsd?: number
           updated_at?: string
           vat_amount?: number
+          vat_amount_rsd?: number
         }
         Update: {
           advance_invoice_id?: string | null
@@ -4718,13 +4732,17 @@ export type Database = {
           created_by?: string
           currency?: string
           datum_prometa?: string | null
+          delivery_terms?: string | null
           due_date?: string | null
+          exchange_rate?: number
           header_note?: string | null
           id?: string
           internal_note?: string | null
           invoice_date?: string
           invoice_number?: string
           invoice_type_code?: string
+          jci_date?: string | null
+          jci_number?: string | null
           journal_entry_id?: string | null
           mesto_prometa?: string | null
           note?: string | null
@@ -4745,11 +4763,14 @@ export type Database = {
           source_quote_id?: string | null
           status?: Database["public"]["Enums"]["document_status"]
           subtotal?: number
+          subtotal_rsd?: number
           tax_category_code?: string
           tax_exemption_reason?: string | null
           total_amount?: number
+          total_amount_rsd?: number
           updated_at?: string
           vat_amount?: number
+          vat_amount_rsd?: number
         }
         Relationships: [
           {
@@ -5742,7 +5763,9 @@ export type Database = {
           code: string
           company_id: string
           country: string | null
+          country_code: string
           created_at: string
+          default_currency: string
           email: string | null
           group_id: string | null
           id: string
@@ -5772,7 +5795,9 @@ export type Database = {
           code: string
           company_id: string
           country?: string | null
+          country_code?: string
           created_at?: string
+          default_currency?: string
           email?: string | null
           group_id?: string | null
           id?: string
@@ -5802,7 +5827,9 @@ export type Database = {
           code?: string
           company_id?: string
           country?: string | null
+          country_code?: string
           created_at?: string
+          default_currency?: string
           email?: string | null
           group_id?: string | null
           id?: string
