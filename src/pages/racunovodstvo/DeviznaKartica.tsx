@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@/components/ui/table";
@@ -14,7 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
-import { Globe } from "lucide-react";
+import { Globe, TrendingUp, TrendingDown, Scale } from "lucide-react";
 
 const CURRENCIES = ["EUR", "USD", "CHF", "GBP"];
 
