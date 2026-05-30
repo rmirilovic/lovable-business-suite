@@ -19,7 +19,8 @@ import { formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { toast } from "sonner";
-import { Globe, TrendingUp, TrendingDown, Scale, FileDown, FileSpreadsheet } from "lucide-react";
+import { Globe, TrendingUp, TrendingDown, Scale, FileDown, FileSpreadsheet, Columns3 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const DOC_TYPE_LABEL: Record<string, string> = {
   invoice: "Faktura",
