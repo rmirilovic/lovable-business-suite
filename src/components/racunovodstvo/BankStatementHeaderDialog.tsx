@@ -93,12 +93,14 @@ export function BankStatementHeaderDialog({
   const handleSave = async () => {
     if (!statement || duplicateError) return;
     const openingBalance = parseLocaleNumber(formData.opening_balance);
+    const fx = parseLocaleNumber(formData.exchange_rate) || 1;
     await update.mutateAsync({
       id: statement.id,
       statement_date: formData.statement_date,
       statement_number: computedNumber || statement.statement_number,
       bank_serial_number: formData.bank_serial_number || null,
       opening_balance: openingBalance,
+      exchange_rate: fx,
       description: formData.description || null,
     });
     onSaved?.();
@@ -108,6 +110,26 @@ export function BankStatementHeaderDialog({
   if (!statement) return null;
 
   const selectedAccount = bankAccounts.find(ba => ba.id === formData.bank_account_id);
+  const isForeign = !!selectedAccount && selectedAccount.currency !== "RSD";
+
+  const handleFetchNbsRate = async () => {
+    if (!isForeign || !formData.statement_date) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("nbs-exchange-rates", {
+        body: { date: formData.statement_date, currency: selectedAccount!.currency },
+      });
+      if (error) throw error;
+      const rate = data?.middleRate ?? data?.rate ?? data?.middle_rate;
+      if (!rate) {
+        toast.error("Kurs NBS nije pronađen za izabrani datum");
+        return;
+      }
+      setFormData((f) => ({ ...f, exchange_rate: formatNumber(rate, { minimumFractionDigits: 6, maximumFractionDigits: 6 }) }));
+      toast.success(`Učitan kurs ${selectedAccount!.currency}: ${rate}`);
+    } catch (e: any) {
+      toast.error(`Greška: ${e.message}`);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
