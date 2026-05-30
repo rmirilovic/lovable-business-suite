@@ -27,8 +27,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBusinessYearDateLimits } from "@/hooks/useBusinessYearDateLimits";
 import { Invoice } from "@/hooks/useInvoices";
 import { useInvoiceMutations } from "@/hooks/useInvoiceMutations";
-import { Eye, Info } from "lucide-react";
+import { Eye, Info, RefreshCw } from "lucide-react";
 import { formatPrice } from "@/lib/formatting";
+import { LocaleNumberInput } from "@/components/ui/locale-number-input";
+import { parseLocaleNumber } from "@/lib/formatting";
+import { isForeignCurrency } from "@/lib/currencies";
+import { toast } from "sonner";
 
 interface InvoiceHeaderDialogProps {
   open: boolean;
