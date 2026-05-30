@@ -83,18 +83,11 @@ export default function DeviznaKartica() {
   const { data: allRows = [], isLoading } = useDevizniaKartica(partnerId || null, currency, dateFrom, dateTo);
 
   const rows = useMemo(() => {
-    const min = rateMin ? Number(rateMin.replace(",", ".")) : null;
-    const max = rateMax ? Number(rateMax.replace(",", ".")) : null;
     return allRows.filter((r) => {
       if (onlyFx && r.doc_type !== "fx_gain" && r.doc_type !== "fx_loss") return false;
-      // Kurs filter primeniti samo na redove sa kursom (faktura/uplata)
-      if ((min !== null || max !== null) && r.exchange_rate > 0) {
-        if (min !== null && r.exchange_rate < min) return false;
-        if (max !== null && r.exchange_rate > max) return false;
-      }
       return true;
     });
-  }, [allRows, onlyFx, rateMin, rateMax]);
+  }, [allRows, onlyFx]);
 
   const totals = useMemo(() => {
     let dOrig = 0, cOrig = 0, dRsd = 0, cRsd = 0;
