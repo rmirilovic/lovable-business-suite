@@ -458,14 +458,14 @@ async function buildInvoicePdf(
   const sigLeftX = 14;
   const sigRightX = pageWidth - 60;
 
-  doc.text("Fakturu sastavio:", sigLeftX, totalsY);
+  doc.text(t.composedBy, sigLeftX, totalsY);
   doc.setFont("Roboto", "bold");
   doc.text(invoice.composed_by || "________________", sigLeftX, totalsY + 8);
   doc.setDrawColor(0, 0, 0);
   doc.line(sigLeftX, totalsY + 12, sigLeftX + 60, totalsY + 12);
 
   doc.setFont("Roboto", "normal");
-  doc.text("Ovlašćeno lice:", sigRightX, totalsY);
+  doc.text(t.authorizedPerson, sigRightX, totalsY);
   doc.setFont("Roboto", "bold");
   doc.text(company.responsible_person_name || "________________", sigRightX, totalsY + 8);
   doc.line(sigRightX - 10, totalsY + 12, sigRightX + 50, totalsY + 12);
