@@ -277,21 +277,21 @@ export default function InvoiceEdit() {
     };
   };
 
-  const handleExportPdf = async () => {
+  const handleExportPdf = async (lang: "sr" | "en" = "sr") => {
     const data = await fetchInvoiceDataForExport();
     if (!data || !invoice) return;
     const advanceInfo = linkedDocs.advanceInvoiceNumber && linkedDocs.advanceInvoiceAmount
       ? { number: linkedDocs.advanceInvoiceNumber, amount: linkedDocs.advanceInvoiceAmount } : undefined;
-    await generateInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null, advanceInfo);
-    toast.success("PDF je uspešno exportovan");
+    await generateInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null, advanceInfo, lang);
+    toast.success(lang === "en" ? "PDF (EN) je uspešno exportovan" : "PDF je uspešno exportovan");
   };
 
-  const handlePrint = async () => {
+  const handlePrint = async (lang: "sr" | "en" = "sr") => {
     const data = await fetchInvoiceDataForExport();
     if (!data || !invoice) return;
     const advanceInfo = linkedDocs.advanceInvoiceNumber && linkedDocs.advanceInvoiceAmount
       ? { number: linkedDocs.advanceInvoiceNumber, amount: linkedDocs.advanceInvoiceAmount } : undefined;
-    await printInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null, advanceInfo);
+    await printInvoicePdf(invoice, data.items, data.company, data.partner, data.bankAccountText, linkedDocs.deliveryNoteNumber || null, advanceInfo, lang);
   };
 
   const handleExportExcel = async () => {
