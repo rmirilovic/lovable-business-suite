@@ -173,9 +173,38 @@ export function InvoiceHeaderDialog({
 
     // Fetch available advances for the partner
     fetchAdvancesForPartner(invoice.partner_id);
+    fetchDeliveryNotesForPartner(invoice.partner_id);
 
     loadDefaults();
   }, [invoice, open, bankAccounts, selectedCompany?.id]);
+
+  const fetchDeliveryNotesForPartner = async (partnerId: string) => {
+    if (!partnerId || !selectedCompany?.id) {
+      setAvailableDeliveryNotes([]);
+      return;
+    }
+    const { data } = await supabase
+      .from("delivery_notes")
+      .select("id, delivery_number, delivery_date")
+      .eq("company_id", selectedCompany.id)
+      .eq("partner_id", partnerId)
+      .neq("status", "cancelled")
+      .order("delivery_date", { ascending: false });
+
+    if (!data) { setAvailableDeliveryNotes([]); return; }
+
+    // Filter out delivery notes already linked to other invoices
+    const { data: usedDns } = await supabase
+      .from("invoices")
+      .select("source_delivery_note_id")
+      .eq("company_id", selectedCompany.id)
+      .not("source_delivery_note_id", "is", null)
+      .neq("id", invoice?.id || "00000000-0000-0000-0000-000000000000");
+
+    const usedIds = new Set((usedDns || []).map((u) => u.source_delivery_note_id));
+    const available = data.filter((d) => !usedIds.has(d.id) || d.id === invoice?.source_delivery_note_id);
+    setAvailableDeliveryNotes(available);
+  };
 
   const fetchAdvancesForPartner = async (partnerId: string) => {
     if (!partnerId || !selectedCompany?.id) {
