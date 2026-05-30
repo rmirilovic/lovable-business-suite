@@ -337,6 +337,16 @@ async function buildInvoicePdf(
     doc.text(formatPdfNumber((totalForPdf || 0) - advanceInfo.amount), totalsX, totalsY, { align: "right" });
   }
 
+  // RSD ekvivalent za ino fakture
+  if (isForeign && invoice.exchange_rate && invoice.exchange_rate !== 1) {
+    totalsY += 7;
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(9);
+    const rsdTotal = (totalForPdf || 0) * invoice.exchange_rate;
+    doc.text(`RSD ekvivalent (po kursu ${formatPdfNumber(invoice.exchange_rate)}):`, labelsX, totalsY);
+    doc.text(`${formatPdfNumber(rsdTotal)} RSD`, totalsX, totalsY, { align: "right" });
+  }
+
   // Tax exemption note
   const taxCat = invoice.tax_category_code || "S";
   if (taxCat !== "S") {
