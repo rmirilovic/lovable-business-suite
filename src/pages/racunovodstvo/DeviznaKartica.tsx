@@ -19,7 +19,8 @@ import { formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
 import { toast } from "sonner";
-import { Globe, TrendingUp, TrendingDown, Scale, FileDown, FileSpreadsheet } from "lucide-react";
+import { Globe, TrendingUp, TrendingDown, Scale, FileDown, FileSpreadsheet, Columns3 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const DOC_TYPE_LABEL: Record<string, string> = {
   invoice: "Faktura",
@@ -27,6 +28,20 @@ const DOC_TYPE_LABEL: Record<string, string> = {
   fx_gain: "Pozitivna kursna razlika",
   fx_loss: "Negativna kursna razlika",
 };
+
+type ExportColKey = "date" | "doc" | "type" | "description" | "rate" | "debit_orig" | "credit_orig" | "debit_rsd" | "credit_rsd";
+const EXPORT_COLS: { key: ExportColKey; label: (cur: string) => string }[] = [
+  { key: "date", label: () => "Datum" },
+  { key: "doc", label: () => "Dokument" },
+  { key: "type", label: () => "Tip" },
+  { key: "description", label: () => "Opis" },
+  { key: "rate", label: () => "Kurs" },
+  { key: "debit_orig", label: (c) => `Duguje (${c})` },
+  { key: "credit_orig", label: (c) => `Potražuje (${c})` },
+  { key: "debit_rsd", label: () => "Duguje (RSD)" },
+  { key: "credit_rsd", label: () => "Potražuje (RSD)" },
+];
+const DEFAULT_EXPORT_COLS: ExportColKey[] = EXPORT_COLS.map((c) => c.key);
 
 const CURRENCIES = ["EUR", "USD", "CHF", "GBP"];
 
@@ -46,6 +61,26 @@ export default function DeviznaKartica() {
   const [rateMin, setRateMin] = useState<string>("");
   const [rateMax, setRateMax] = useState<string>("");
   const [onlyFx, setOnlyFx] = useState<boolean>(false);
+  const [exportCols, setExportCols] = useState<ExportColKey[]>(() => {
+    try {
+      const saved = localStorage.getItem("devizna-kartica-export-cols");
+      if (saved) {
+        const arr = JSON.parse(saved) as ExportColKey[];
+        if (Array.isArray(arr) && arr.length > 0) return arr;
+      }
+    } catch {}
+    return DEFAULT_EXPORT_COLS;
+  });
+
+  const toggleExportCol = (key: ExportColKey, checked: boolean) => {
+    setExportCols((prev) => {
+      const next = checked ? [...new Set([...prev, key])] : prev.filter((k) => k !== key);
+      // Sačuvaj redosled po EXPORT_COLS
+      const ordered = EXPORT_COLS.map((c) => c.key).filter((k) => next.includes(k));
+      try { localStorage.setItem("devizna-kartica-export-cols", JSON.stringify(ordered)); } catch {}
+      return ordered;
+    });
+  };
 
   const { data: allRows = [], isLoading } = useDevizniaKartica(partnerId || null, currency, dateFrom, dateTo);
 
@@ -77,17 +112,27 @@ export default function DeviznaKartica() {
 
   const partner = partners.find((p) => p.id === partnerId);
 
-  const buildExportRows = () => rows.map((r) => ({
-    Datum: format(new Date(r.date), "dd.MM.yyyy"),
-    Dokument: r.doc_number,
-    Tip: DOC_TYPE_LABEL[r.doc_type] ?? r.doc_type,
-    Opis: r.description,
-    Kurs: r.exchange_rate > 0 ? r.exchange_rate : null,
-    [`Duguje (${currency})`]: r.debit_original || null,
-    [`Potražuje (${currency})`]: r.credit_original || null,
-    "Duguje (RSD)": r.debit_rsd || null,
-    "Potražuje (RSD)": r.credit_rsd || null,
-  }));
+  const buildExportRows = () => {
+    const activeCols = EXPORT_COLS.filter((c) => exportCols.includes(c.key));
+    return rows.map((r) => {
+      const obj: Record<string, any> = {};
+      for (const c of activeCols) {
+        const label = c.label(currency);
+        switch (c.key) {
+          case "date": obj[label] = format(new Date(r.date), "dd.MM.yyyy"); break;
+          case "doc": obj[label] = r.doc_number; break;
+          case "type": obj[label] = DOC_TYPE_LABEL[r.doc_type] ?? r.doc_type; break;
+          case "description": obj[label] = r.description; break;
+          case "rate": obj[label] = r.exchange_rate > 0 ? r.exchange_rate : null; break;
+          case "debit_orig": obj[label] = r.debit_original || null; break;
+          case "credit_orig": obj[label] = r.credit_original || null; break;
+          case "debit_rsd": obj[label] = r.debit_rsd || null; break;
+          case "credit_rsd": obj[label] = r.credit_rsd || null; break;
+        }
+      }
+      return obj;
+    });
+  };
 
   const fileBase = () => {
     const p = partner ? `${partner.code}_${partner.name}`.replace(/[^\w\-]+/g, "_") : "kartica";
@@ -96,8 +141,9 @@ export default function DeviznaKartica() {
 
   const handleExportCsv = () => {
     if (rows.length === 0) { toast.error("Nema stavki za izvoz"); return; }
+    if (exportCols.length === 0) { toast.error("Izaberite bar jednu kolonu za izvoz"); return; }
     const data = buildExportRows();
-    const headers = Object.keys(data[0]);
+    const headers = Object.keys(data[0] ?? {});
     const esc = (v: any) => {
       if (v === null || v === undefined) return "";
       const s = String(v).replace(/"/g, '""');
@@ -115,6 +161,7 @@ export default function DeviznaKartica() {
 
   const handleExportXlsx = () => {
     if (rows.length === 0) { toast.error("Nema stavki za izvoz"); return; }
+    if (exportCols.length === 0) { toast.error("Izaberite bar jednu kolonu za izvoz"); return; }
     const data = buildExportRows();
     const ws = XLSX.utils.json_to_sheet(data);
     // Sažetak na dnu
@@ -247,10 +294,47 @@ export default function DeviznaKartica() {
                 {partner?.name} — {currency}
               </CardTitle>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleExportCsv} disabled={rows.length === 0}>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Columns3 className="h-4 w-4 mr-2" />
+                      Kolone ({exportCols.length}/{EXPORT_COLS.length})
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-3" align="end">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Kolone za izvoz</span>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          className="text-xs text-primary hover:underline"
+                          onClick={() => { setExportCols(DEFAULT_EXPORT_COLS); try { localStorage.setItem("devizna-kartica-export-cols", JSON.stringify(DEFAULT_EXPORT_COLS)); } catch {} }}
+                        >Sve</button>
+                        <span className="text-xs text-muted-foreground">/</span>
+                        <button
+                          type="button"
+                          className="text-xs text-primary hover:underline"
+                          onClick={() => { setExportCols([]); try { localStorage.setItem("devizna-kartica-export-cols", JSON.stringify([])); } catch {} }}
+                        >Nijedna</button>
+                      </div>
+                    </div>
+                    <div className="space-y-2 max-h-72 overflow-auto">
+                      {EXPORT_COLS.map((c) => (
+                        <label key={c.key} className="flex items-center gap-2 cursor-pointer text-sm">
+                          <Checkbox
+                            checked={exportCols.includes(c.key)}
+                            onCheckedChange={(v) => toggleExportCol(c.key, !!v)}
+                          />
+                          <span>{c.label(currency)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button variant="outline" size="sm" onClick={handleExportCsv} disabled={rows.length === 0 || exportCols.length === 0}>
                   <FileDown className="h-4 w-4 mr-2" /> CSV
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleExportXlsx} disabled={rows.length === 0}>
+                <Button variant="outline" size="sm" onClick={handleExportXlsx} disabled={rows.length === 0 || exportCols.length === 0}>
                   <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
                 </Button>
               </div>
