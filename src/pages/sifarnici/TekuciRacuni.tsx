@@ -287,6 +287,34 @@ export default function TekuciRacuni() {
                       </TableCell>
                       <TableCell className="text-center">
                         {canEdit ? (
+                          <Select
+                            value={ba.currency}
+                            onValueChange={async (val) => {
+                              const defGl = val === "RSD" ? "2410" : "242";
+                              await updateBankAccount({ id: ba.id, updates: { currency: val, gl_account_code: ba.gl_account_code || defGl } });
+                            }}
+                          >
+                            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {CURRENCY_OPTIONS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge variant="secondary">{ba.currency}</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <InlineEditCell
+                          value={ba.gl_account_code}
+                          onSave={async (val) => {
+                            if (val.length > 10) { toast.error("Maksimalno 10 karaktera"); return; }
+                            await updateBankAccount({ id: ba.id, updates: { gl_account_code: val } });
+                          }}
+                          disabled={!canEdit}
+                        />
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {canEdit ? (
                           <Button
                             variant="ghost"
                             size="icon"
