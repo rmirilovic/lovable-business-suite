@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
+import * as XLSX from "xlsx";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter,
 } from "@/components/ui/table";
@@ -16,7 +18,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatNumber } from "@/lib/formatting";
 import { format } from "date-fns";
 import { sr } from "date-fns/locale";
-import { Globe, TrendingUp, TrendingDown, Scale } from "lucide-react";
+import { toast } from "sonner";
+import { Globe, TrendingUp, TrendingDown, Scale, FileDown, FileSpreadsheet } from "lucide-react";
+
+const DOC_TYPE_LABEL: Record<string, string> = {
+  invoice: "Faktura",
+  payment: "Uplata",
+  fx_gain: "Pozitivna kursna razlika",
+  fx_loss: "Negativna kursna razlika",
+};
 
 const CURRENCIES = ["EUR", "USD", "CHF", "GBP"];
 
