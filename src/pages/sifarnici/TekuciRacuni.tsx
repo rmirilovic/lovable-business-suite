@@ -110,6 +110,8 @@ export default function TekuciRacuni() {
         case "code": return item.code;
         case "account_number": return item.account_number;
         case "bank_name": return item.bank_name;
+        case "currency": return item.currency;
+        case "gl_account_code": return item.gl_account_code;
         case "is_active": return item.is_active;
         case "is_default": return item.is_default;
         default: return null;
