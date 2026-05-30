@@ -383,36 +383,52 @@ export function InvoiceHeaderDialog({
         if ((existingItemsCount ?? 0) === 0) {
           const { data: dnItems, error: itemsErr } = await supabase
             .from("delivery_note_items")
-            .select(`*, article:articles(selling_price, vat_rate)`)
+            .select(`*, article:articles(id, code, name, unit, selling_price, vat_rate)`)
             .eq("delivery_note_id", newDnId);
           if (itemsErr) throw itemsErr;
 
           if (dnItems && dnItems.length > 0) {
             let subtotal = 0;
             let vatAmount = 0;
-            const rows = dnItems.map((item: any, index: number) => {
+            const grouped = new Map<string, any>();
+
+            for (const item of dnItems as any[]) {
+              const key = item.article_id || item.item_code || item.item_name;
               const unitPrice = item.unit_price ?? item.article?.selling_price ?? 0;
               const vatRate = item.vat_rate ?? item.article?.vat_rate ?? 20;
-              const lineSubtotal = (item.quantity || 0) * unitPrice;
-              const lineVat = lineSubtotal * (vatRate / 100);
+
+              if (!grouped.has(key)) {
+                grouped.set(key, {
+                  invoice_id: invoice.id,
+                  company_id: invoice.company_id,
+                  article_id: item.article_id,
+                  item_code: item.item_code ?? item.article?.code ?? null,
+                  item_name: item.item_name ?? item.article?.name ?? "",
+                  unit: item.unit ?? item.article?.unit ?? "kom",
+                  quantity: 0,
+                  unit_price: unitPrice,
+                  discount_percent: 0,
+                  vat_rate: vatRate,
+                  description: item.description || null,
+                });
+              }
+
+              const groupedItem = grouped.get(key);
+              groupedItem.quantity += Number(item.quantity || 0);
+            }
+
+            const rows = Array.from(grouped.values()).map((item: any, index: number) => {
+              const lineSubtotal = (item.quantity || 0) * (item.unit_price || 0);
+              const lineVat = lineSubtotal * ((item.vat_rate || 0) / 100);
               subtotal += lineSubtotal;
               vatAmount += lineVat;
+
               return {
-                invoice_id: invoice.id,
-                company_id: invoice.company_id,
+                ...item,
                 item_order: index + 1,
-                article_id: item.article_id,
-                item_code: item.item_code,
-                item_name: item.item_name,
-                unit: item.unit,
-                quantity: item.quantity,
-                unit_price: unitPrice,
-                discount_percent: 0,
-                vat_rate: vatRate,
                 line_subtotal: lineSubtotal,
                 line_vat: lineVat,
                 line_total: lineSubtotal + lineVat,
-                description: item.description,
               };
             });
             const { error: insErr } = await supabase.from("invoice_items").insert(rows);
@@ -429,6 +445,8 @@ export function InvoiceHeaderDialog({
               total_amount_rsd: +(totalAmount * rate).toFixed(2),
             }).eq("id", invoice.id);
 
+            await queryClient.invalidateQueries({ queryKey: ["invoice-items", invoice.id] });
+            await queryClient.invalidateQueries({ queryKey: ["invoices"] });
             toast.success(`Učitano ${rows.length} stavki sa otpremnice`);
           }
         }
