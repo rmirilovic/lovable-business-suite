@@ -50,6 +50,8 @@ const defaultFormData: Omit<PartnerInsert, "company_id"> = {
   postal_code: "",
   city: "",
   country: "Srbija",
+  country_code: "RS",
+  default_currency: "RSD",
   email: "",
   group_id: null,
   pib: "",
