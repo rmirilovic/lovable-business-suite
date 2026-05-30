@@ -27,12 +27,12 @@ export default function DeviznaKartica() {
     : `${new Date().getFullYear()}-01-01`;
   const today = format(new Date(), "yyyy-MM-dd");
 
-  const [partnerId, setPartnerId] = useState<string | null>(null);
+  const [partnerId, setPartnerId] = useState<string>("");
   const [currency, setCurrency] = useState<string>("EUR");
   const [dateFrom, setDateFrom] = useState<string>(yearStart);
   const [dateTo, setDateTo] = useState<string>(today);
 
-  const { data: rows = [], isLoading } = useDevizniaKartica(partnerId, currency, dateFrom, dateTo);
+  const { data: rows = [], isLoading } = useDevizniaKartica(partnerId || null, currency, dateFrom, dateTo);
 
   const totals = useMemo(() => {
     let dOrig = 0, cOrig = 0, dRsd = 0, cRsd = 0;
@@ -61,7 +61,7 @@ export default function DeviznaKartica() {
               <SearchablePartnerSelect
                 partners={partners as any}
                 value={partnerId}
-                onChange={setPartnerId}
+                onValueChange={setPartnerId}
                 placeholder="Izaberi partnera..."
               />
             </div>
