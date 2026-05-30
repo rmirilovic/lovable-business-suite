@@ -33,10 +33,14 @@ interface FormData {
   code: string;
   account_number: string;
   bank_name: string;
+  currency: string;
+  gl_account_code: string;
   is_default: boolean;
 }
 
-const emptyForm: FormData = { code: "", account_number: "", bank_name: "", is_default: false };
+const emptyForm: FormData = { code: "", account_number: "", bank_name: "", currency: "RSD", gl_account_code: "2410", is_default: false };
+
+const CURRENCY_OPTIONS = ["RSD", "EUR", "USD", "CHF", "GBP"];
 
 export default function TekuciRacuni() {
   const { selectedCompany } = useAuth();
