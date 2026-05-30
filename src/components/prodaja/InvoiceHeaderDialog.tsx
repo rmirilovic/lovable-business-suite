@@ -91,6 +91,7 @@ export function InvoiceHeaderDialog({
     jci_number: "" as string | null,
     jci_date: "" as string | null,
     delivery_terms: "" as string | null,
+    source_delivery_note_id: "" as string | null,
   });
 
   const [exchangeRateText, setExchangeRateText] = useState("1");
