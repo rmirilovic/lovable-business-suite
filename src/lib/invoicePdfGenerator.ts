@@ -480,10 +480,12 @@ export async function generateInvoicePdf(
   partner: PartnerData,
   bankAccountText?: string | null,
   deliveryNoteNumber?: string | null,
-  advanceInfo?: { number: string; amount: number }
+  advanceInfo?: { number: string; amount: number },
+  lang: Lang = "sr"
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo);
-  doc.save(`Faktura_${invoice.invoice_number.replace(/\//g, "-")}.pdf`);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo, lang);
+  const prefix = lang === "en" ? "Invoice" : "Faktura";
+  doc.save(`${prefix}_${invoice.invoice_number.replace(/\//g, "-")}.pdf`);
 }
 
 export async function printInvoicePdf(
@@ -493,9 +495,10 @@ export async function printInvoicePdf(
   partner: PartnerData,
   bankAccountText?: string | null,
   deliveryNoteNumber?: string | null,
-  advanceInfo?: { number: string; amount: number }
+  advanceInfo?: { number: string; amount: number },
+  lang: Lang = "sr"
 ) {
-  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo);
+  const doc = await buildInvoicePdf(invoice, items, company, partner, bankAccountText, deliveryNoteNumber, advanceInfo, lang);
   const blob = doc.output("blob");
   printPdfBlob(blob);
 }
