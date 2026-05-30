@@ -413,7 +413,7 @@ async function buildInvoicePdf(
     totalsY += 5;
     doc.setFontSize(9);
     doc.setFont("Roboto", "bold");
-    doc.text("Napomena:", 14, totalsY);
+    doc.text(t.notes, 14, totalsY);
     totalsY += 4;
     doc.setFont("Roboto", "normal");
     doc.setFontSize(8);
