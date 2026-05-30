@@ -242,10 +242,18 @@ export default function DeviznaKartica() {
 
         {partnerId && (
           <Card className="flex-1 min-h-0 flex flex-col">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
               <CardTitle className="text-base">
                 {partner?.name} — {currency}
               </CardTitle>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleExportCsv} disabled={rows.length === 0}>
+                  <FileDown className="h-4 w-4 mr-2" /> CSV
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleExportXlsx} disabled={rows.length === 0}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="flex-1 min-h-0 overflow-auto">
               <Table>
