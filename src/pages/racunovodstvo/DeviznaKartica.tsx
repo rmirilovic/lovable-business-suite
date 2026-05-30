@@ -61,6 +61,26 @@ export default function DeviznaKartica() {
   const [rateMin, setRateMin] = useState<string>("");
   const [rateMax, setRateMax] = useState<string>("");
   const [onlyFx, setOnlyFx] = useState<boolean>(false);
+  const [exportCols, setExportCols] = useState<ExportColKey[]>(() => {
+    try {
+      const saved = localStorage.getItem("devizna-kartica-export-cols");
+      if (saved) {
+        const arr = JSON.parse(saved) as ExportColKey[];
+        if (Array.isArray(arr) && arr.length > 0) return arr;
+      }
+    } catch {}
+    return DEFAULT_EXPORT_COLS;
+  });
+
+  const toggleExportCol = (key: ExportColKey, checked: boolean) => {
+    setExportCols((prev) => {
+      const next = checked ? [...new Set([...prev, key])] : prev.filter((k) => k !== key);
+      // Sačuvaj redosled po EXPORT_COLS
+      const ordered = EXPORT_COLS.map((c) => c.key).filter((k) => next.includes(k));
+      try { localStorage.setItem("devizna-kartica-export-cols", JSON.stringify(ordered)); } catch {}
+      return ordered;
+    });
+  };
 
   const { data: allRows = [], isLoading } = useDevizniaKartica(partnerId || null, currency, dateFrom, dateTo);
 
