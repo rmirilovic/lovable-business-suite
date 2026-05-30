@@ -45,6 +45,7 @@ import KarticePartnera from "./pages/racunovodstvo/KarticePartnera";
 import PartneriPoValuti from "./pages/racunovodstvo/PartneriPoValuti";
 import PartneriPoDpo from "./pages/racunovodstvo/PartneriPoDpo";
 import PartnerDocumentBalancesReport from "./pages/racunovodstvo/PartnerDocumentBalancesReport";
+import DeviznaKartica from "./pages/racunovodstvo/DeviznaKartica";
 import Ponude from "./pages/prodaja/Ponude";
 import QuoteEdit from "./pages/prodaja/QuoteEdit";
 import Fakture from "./pages/prodaja/Fakture";
@@ -351,6 +352,11 @@ const App = () => (
               <Route path="/racunovodstvo/dokumenti-partnera" element={
                 <ProtectedRoute>
                   <PartnerDocumentBalancesReport />
+                </ProtectedRoute>
+              } />
+              <Route path="/racunovodstvo/devizna-kartica" element={
+                <ProtectedRoute>
+                  <DeviznaKartica />
                 </ProtectedRoute>
               } />
               <Route path="/prodaja/ponude" element={
