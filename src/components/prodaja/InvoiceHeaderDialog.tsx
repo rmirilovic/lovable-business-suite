@@ -393,7 +393,7 @@ export function InvoiceHeaderDialog({
             const grouped = new Map<string, any>();
 
             for (const item of dnItems as any[]) {
-              const key = item.article_id || item.item_code || item.item_name;
+              const key = item.item_code || item.article?.code || item.article_id || item.item_name;
               const unitPrice = item.unit_price ?? item.article?.selling_price ?? 0;
               const vatRate = item.vat_rate ?? item.article?.vat_rate ?? 20;
 
