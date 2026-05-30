@@ -295,7 +295,7 @@ export default function JournalEntryEdit() {
             <TableHeader className="sticky top-0 z-10 bg-background">
               <TableRow>
                 <TableHead className="w-[100px]">Konto</TableHead>
-                <TableHead className="w-[200px]">Naziv konta</TableHead>
+                <TableHead className="w-[140px]">Naziv konta</TableHead>
                 <TableHead className="w-[100px]">Analitika</TableHead>
                 <TableHead>Opis</TableHead>
                 <TableHead className="w-[140px]">Dokument</TableHead>
