@@ -355,31 +355,31 @@ async function buildInvoicePdf(
   doc.setFontSize(10);
   doc.setFont("Roboto", "normal");
 
-  doc.text("Osnovica:", labelsX, totalsY);
-  doc.text(formatPdfNumber(subtotalForPdf), totalsX, totalsY, { align: "right" });
+  doc.text(t.subtotal, labelsX, totalsY);
+  doc.text(formatPdfNumber(subtotalForPdf, lang), totalsX, totalsY, { align: "right" });
   totalsY += 5;
 
-  doc.text("PDV:", labelsX, totalsY);
-  doc.text(formatPdfNumber(vatForPdf), totalsX, totalsY, { align: "right" });
+  doc.text(t.vat, labelsX, totalsY);
+  doc.text(formatPdfNumber(vatForPdf, lang), totalsX, totalsY, { align: "right" });
   totalsY += 6;
 
   doc.setFont("Roboto", "bold");
   doc.setFontSize(11);
-  doc.text("UKUPNO:", labelsX, totalsY);
-  doc.text(formatPdfNumber(totalForPdf), totalsX, totalsY, { align: "right" });
+  doc.text(t.total, labelsX, totalsY);
+  doc.text(formatPdfNumber(totalForPdf, lang), totalsX, totalsY, { align: "right" });
 
   // Advance invoice deduction + Amount to pay
   if (advanceInfo && advanceInfo.amount > 0) {
     totalsY += 7;
     doc.setFont("Roboto", "normal");
     doc.setFontSize(10);
-    doc.text(`Avans (AF ${advanceInfo.number}):`, labelsX, totalsY);
-    doc.text(`- ${formatPdfNumber(advanceInfo.amount)}`, totalsX, totalsY, { align: "right" });
+    doc.text(`${t.advance} (${lang === "en" ? "AI" : "AF"} ${advanceInfo.number}):`, labelsX, totalsY);
+    doc.text(`- ${formatPdfNumber(advanceInfo.amount, lang)}`, totalsX, totalsY, { align: "right" });
     totalsY += 6;
     doc.setFont("Roboto", "bold");
     doc.setFontSize(12);
-    doc.text("IZNOS ZA UPLATU:", labelsX, totalsY);
-    doc.text(formatPdfNumber((totalForPdf || 0) - advanceInfo.amount), totalsX, totalsY, { align: "right" });
+    doc.text(t.amountToPay, labelsX, totalsY);
+    doc.text(formatPdfNumber((totalForPdf || 0) - advanceInfo.amount, lang), totalsX, totalsY, { align: "right" });
   }
 
   // RSD ekvivalent za ino fakture
@@ -388,8 +388,8 @@ async function buildInvoicePdf(
     doc.setFont("Roboto", "normal");
     doc.setFontSize(9);
     const rsdTotal = (totalForPdf || 0) * invoice.exchange_rate;
-    doc.text(`RSD ekvivalent (po kursu ${formatPdfNumber(invoice.exchange_rate)}):`, labelsX, totalsY);
-    doc.text(`${formatPdfNumber(rsdTotal)} RSD`, totalsX, totalsY, { align: "right" });
+    doc.text(`${t.rsdEquiv} ${formatPdfNumber(invoice.exchange_rate, lang)}):`, labelsX, totalsY);
+    doc.text(`${formatPdfNumber(rsdTotal, lang)} RSD`, totalsX, totalsY, { align: "right" });
   }
 
   // Tax exemption note
@@ -398,8 +398,9 @@ async function buildInvoicePdf(
     totalsY += 10;
     doc.setFontSize(9);
     doc.setFont("Roboto", "bold");
-    const label = TAX_CATEGORY_LABELS[taxCat] || taxCat;
-    let exemptionText = `Poresko oslobođenje: ${label}`;
+    const labels = lang === "en" ? TAX_CATEGORY_LABELS_EN : TAX_CATEGORY_LABELS_SR;
+    const label = labels[taxCat] || taxCat;
+    let exemptionText = `${t.taxExempt}: ${label}`;
     if (invoice.tax_exemption_reason) {
       exemptionText += ` — ${invoice.tax_exemption_reason}`;
     }
