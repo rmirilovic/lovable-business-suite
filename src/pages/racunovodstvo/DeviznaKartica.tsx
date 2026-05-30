@@ -112,17 +112,27 @@ export default function DeviznaKartica() {
 
   const partner = partners.find((p) => p.id === partnerId);
 
-  const buildExportRows = () => rows.map((r) => ({
-    Datum: format(new Date(r.date), "dd.MM.yyyy"),
-    Dokument: r.doc_number,
-    Tip: DOC_TYPE_LABEL[r.doc_type] ?? r.doc_type,
-    Opis: r.description,
-    Kurs: r.exchange_rate > 0 ? r.exchange_rate : null,
-    [`Duguje (${currency})`]: r.debit_original || null,
-    [`Potražuje (${currency})`]: r.credit_original || null,
-    "Duguje (RSD)": r.debit_rsd || null,
-    "Potražuje (RSD)": r.credit_rsd || null,
-  }));
+  const buildExportRows = () => {
+    const activeCols = EXPORT_COLS.filter((c) => exportCols.includes(c.key));
+    return rows.map((r) => {
+      const obj: Record<string, any> = {};
+      for (const c of activeCols) {
+        const label = c.label(currency);
+        switch (c.key) {
+          case "date": obj[label] = format(new Date(r.date), "dd.MM.yyyy"); break;
+          case "doc": obj[label] = r.doc_number; break;
+          case "type": obj[label] = DOC_TYPE_LABEL[r.doc_type] ?? r.doc_type; break;
+          case "description": obj[label] = r.description; break;
+          case "rate": obj[label] = r.exchange_rate > 0 ? r.exchange_rate : null; break;
+          case "debit_orig": obj[label] = r.debit_original || null; break;
+          case "credit_orig": obj[label] = r.credit_original || null; break;
+          case "debit_rsd": obj[label] = r.debit_rsd || null; break;
+          case "credit_rsd": obj[label] = r.credit_rsd || null; break;
+        }
+      }
+      return obj;
+    });
+  };
 
   const fileBase = () => {
     const p = partner ? `${partner.code}_${partner.name}`.replace(/[^\w\-]+/g, "_") : "kartica";
