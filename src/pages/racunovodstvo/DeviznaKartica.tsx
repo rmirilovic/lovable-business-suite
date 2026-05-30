@@ -58,8 +58,6 @@ export default function DeviznaKartica() {
   const [currency, setCurrency] = useState<string>("EUR");
   const [dateFrom, setDateFrom] = useState<string>(yearStart);
   const [dateTo, setDateTo] = useState<string>(today);
-  const [rateMin, setRateMin] = useState<string>("");
-  const [rateMax, setRateMax] = useState<string>("");
   const [onlyFx, setOnlyFx] = useState<boolean>(false);
   const [exportCols, setExportCols] = useState<ExportColKey[]>(() => {
     try {
