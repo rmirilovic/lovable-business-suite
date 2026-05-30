@@ -134,6 +134,8 @@ export default function DeviznaKartica() {
     XLSX.writeFile(wb, `${fileBase()}.xlsx`);
     toast.success(`Izvezeno ${rows.length} stavki u Excel`);
   };
+
+  return (
     <MainLayout title="Devizna kartica">
       <div className="flex-1 min-h-0 overflow-auto flex flex-col space-y-6">
         <div>
