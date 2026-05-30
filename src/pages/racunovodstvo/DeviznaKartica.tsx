@@ -111,18 +111,21 @@ export default function DeviznaKartica() {
                     <TableRow><TableCell colSpan={8} className="text-center py-6 text-muted-foreground">Učitavanje...</TableCell></TableRow>
                   ) : rows.length === 0 ? (
                     <TableRow><TableCell colSpan={8} className="text-center py-6 text-muted-foreground">Nema stavki za izabrane parametre</TableCell></TableRow>
-                  ) : rows.map((r, i) => (
-                    <TableRow key={i}>
+                  ) : rows.map((r, i) => {
+                    const isFx = r.doc_type === "fx_gain" || r.doc_type === "fx_loss";
+                    return (
+                    <TableRow key={i} className={isFx ? "bg-muted/40" : undefined}>
                       <TableCell>{format(new Date(r.date), "dd.MM.yyyy.", { locale: sr })}</TableCell>
                       <TableCell className="font-mono text-xs">{r.doc_number}</TableCell>
-                      <TableCell>{r.description}</TableCell>
-                      <TableCell className="text-right font-mono">{formatNumber(r.exchange_rate, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}</TableCell>
+                      <TableCell className={isFx ? "italic text-muted-foreground" : undefined}>{r.description}</TableCell>
+                      <TableCell className="text-right font-mono">{isFx ? "" : formatNumber(r.exchange_rate, { minimumFractionDigits: 4, maximumFractionDigits: 6 })}</TableCell>
                       <TableCell className="text-right font-mono">{r.debit_original > 0 ? formatNumber(r.debit_original, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}</TableCell>
                       <TableCell className="text-right font-mono">{r.credit_original > 0 ? formatNumber(r.credit_original, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}</TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">{r.debit_rsd > 0 ? formatNumber(r.debit_rsd, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}</TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">{r.credit_rsd > 0 ? formatNumber(r.credit_rsd, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ""}</TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
                 {rows.length > 0 && (
                   <TableFooter>
